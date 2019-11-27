@@ -1,0 +1,25 @@
+.phx-dashboard-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-items: center;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  padding: 0rem 1rem;
+}
+
+.phx-dashboard-col {
+  flex: 1;
+  flex-basis: 527px;
+  min-width: 0;
+}
+
+@media (min-width: 40.0rem) {
+  .phx-dashboard-col {
+    flex-basis: 327px;
+  }
+}

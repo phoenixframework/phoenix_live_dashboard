@@ -1,0 +1,23 @@
+{
+  "name": "phoenix_live_dashboard",
+  "version": "0.1.0",
+  "peerDependencies": {
+    "chart.js": "2.x"
+  },
+  "description": "The Phoenix LiveDashboard JavaScript client.",
+  "license": "MIT",
+  "main": "./priv/static/phoenix_live_dashboard.js",
+  "author": "Chris McCord <chris@chrismccord.com> (http://www.phoenixframework.org)",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/phoenixframework/phoenix_live_dashboard.git"
+  },
+  "files": [
+    "README.md",
+    "LICENSE.md",
+    "package.json",
+    "priv/static/phoenix_live_dashboard.js",
+    "assets/js/phoenix_live_dashboard.js",
+    "assets/css/live_dashboard.css"
+  ]
+}
