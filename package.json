@@ -1,9 +1,6 @@
 {
   "name": "phoenix_live_dashboard",
   "version": "0.1.0",
-  "peerDependencies": {
-    "chart.js": "2.x"
-  },
   "description": "The Phoenix LiveDashboard JavaScript client.",
   "license": "MIT",
   "main": "./priv/static/phoenix_live_dashboard.js",
