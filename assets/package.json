@@ -1,0 +1,20 @@
+{
+  "name": "phoenix_live_dashboard",
+  "version": "0.1.0",
+  "description": "The Phoenix LiveDashboard JavaScript client.",
+  "license": "MIT",
+  "main": "./assets/js/phoenix_live_dashboard.js",
+  "repository": {},
+  "scripts": {
+    "build": "webpack --mode production",
+    "watch": "webpack --mode development --watch"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.4.1",
+    "babel-loader": "^8.0.6",
+    "glob": "^7.1.6",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
+  }
+}
