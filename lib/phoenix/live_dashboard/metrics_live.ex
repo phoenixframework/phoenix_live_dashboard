@@ -1,11 +1,5 @@
 defmodule Phoenix.LiveDashboard.MetricsLive do
-  @moduledoc """
-  The `Telemetry.Metrics` LiveView.
-
-  ## Usage
-      # my_app_web/router.ex
-      live "/dashboard/metrics", Phoenix.LiveDashboard.MetricsLive
-  """
+  @moduledoc false
   use Phoenix.LiveView
   alias Phoenix.LiveDashboard
   alias Phoenix.LiveDashboard.LiveMetric
