@@ -46,7 +46,6 @@ defmodule Phoenix.LiveDashboard do
   end
 
   get "/", LiveDashboard.Plug, LiveDashboard.MetricsLive
-  get "/baz", LiveDashboard.Plug, LiveDashboard.MetricsLive
 end
 
 defmodule Phoenix.LiveDashboard.Plug do
