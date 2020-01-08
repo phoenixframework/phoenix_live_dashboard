@@ -18,10 +18,10 @@ defmodule Phoenix.LiveDashboard do
         ]
       end
   """
+  use Phoenix.Router
   use Agent
-  alias Phoenix.LiveDashboard.MetricsLive
 
-  @behaviour Plug
+  alias Phoenix.LiveDashboard
 
   def start_link(opts) do
     metrics =
@@ -31,29 +31,33 @@ defmodule Phoenix.LiveDashboard do
     Agent.start_link(fn -> %{metrics: metrics} end, name: __MODULE__)
   end
 
-  @impl Plug
-  def init(opts \\ []) do
-    {router, opts} = Keyword.pop(opts, :router)
-
-    unless router do
-      raise "the :router option is a required by #{inspect(__MODULE__)}.init/1"
-    end
+  def init(opts) do
+    router =
+      opts[:router] ||
+        raise "the :router option is a required by #{inspect(__MODULE__)}.init/1"
 
     {router, opts}
   end
 
-  @impl Plug
   def call(conn, {router, opts}) do
     conn
-    |> put_live_view(router, opts)
-    |> Phoenix.LiveView.Plug.call(MetricsLive)
+    |> put_private(:phoenix_live_dashboard_router, router)
+    |> super(opts)
   end
 
-  defp put_live_view(conn, router, opts) do
-    Plug.Conn.put_private(
-      conn,
-      :phoenix_live_view,
-      Phoenix.LiveView.Router.__live_options__(router, opts)
-    )
+  get "/", LiveDashboard.Plug, LiveDashboard.MetricsLive
+  get "/baz", LiveDashboard.Plug, LiveDashboard.MetricsLive
+end
+
+defmodule Phoenix.LiveDashboard.Plug do
+  @behaviour Plug
+
+  @impl Plug
+  def init(view), do: view
+
+  @impl Plug
+  def call(conn, view) do
+    opts = Phoenix.LiveView.Plug.init({view, router: conn.private.phoenix_live_dashboard_router})
+    Phoenix.LiveView.Plug.call(conn, opts)
   end
 end
