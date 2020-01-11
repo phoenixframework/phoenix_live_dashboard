@@ -10,9 +10,11 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     groups = Enum.group_by(metrics, & &1.event_name)
     channel = self()
 
-    for {event, metrics} <- groups do
-      id = {__MODULE__, event, channel}
-      :telemetry.attach(id, event, &__MODULE__.handle_metrics/4, {metrics, channel})
+    if connected?(socket) do
+      for {event, metrics} <- groups do
+        id = {__MODULE__, event, channel}
+        :telemetry.attach(id, event, &__MODULE__.handle_metrics/4, {metrics, channel})
+      end
     end
 
     charts =
