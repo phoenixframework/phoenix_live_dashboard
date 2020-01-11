@@ -12,7 +12,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
     for {event, metrics} <- groups do
       id = {__MODULE__, event, channel}
-      :telemetry.attach(id, event, &__MODULE__.handle_event/4, {metrics, channel})
+      :telemetry.attach(id, event, &__MODULE__.handle_metrics/4, {metrics, channel})
     end
 
     charts =
@@ -36,7 +36,8 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     """
   end
 
-  def handle_event(event_name, measurements, metadata, {metrics, channel}) do
+  @doc false
+  def handle_metrics(event_name, measurements, metadata, {metrics, channel}) do
     send(channel, {event_name, measurements, metadata, metrics})
   end
 
