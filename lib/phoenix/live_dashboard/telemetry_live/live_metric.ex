@@ -46,7 +46,7 @@ defmodule Phoenix.LiveDashboard.LiveMetric do
   @impl true
   def render(assigns) do
     ~L"""
-    <div phx-hook="LiveMetric" class="phx-dashboard-col">
+    <div phx-hook="PhxLiveMetric" class="phx-dashboard-col">
       <div style="display:none;"><%= render_datasets(assigns) %></div>
       <div class="chart" phx-update="ignore">
         <canvas id="<%= @id %>"

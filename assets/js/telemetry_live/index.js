@@ -148,4 +148,10 @@ ChartFactory.register('line', LineChart)
 
 const Charts = ChartRegistryImpl(ChartFactory)
 
-export default Charts
+/* Hooks for Chart.js */
+const PhxLiveMetric = {
+  mounted() { Charts.add(this.el) },
+  updated() { Charts.update(this.el) }
+}
+
+export default PhxLiveMetric

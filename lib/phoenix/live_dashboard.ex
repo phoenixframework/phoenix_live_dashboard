@@ -17,6 +17,19 @@ defmodule Phoenix.LiveDashboard do
           Telemetry.Metrics.distribution("phoenix.endpoint.stop.duration", buckets: [100, 200, 300])
         ]
       end
+
+      # assets/app.js
+
+      # import LiveDashboard JS
+      import LiveSocket from "phoenix_live_view"
+      import LiveDashboard from "phoenix_live_dashboard"
+
+      # load LiveDashboard.Hooks into your Hooks object
+      const Hooks = {
+        ...LiveDashboard.Hooks
+      }
+
+      # ...initialize LiveSocket as usual...
   """
   use Phoenix.Router
   use Agent
