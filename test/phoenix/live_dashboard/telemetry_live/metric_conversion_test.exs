@@ -1,5 +1,6 @@
 defmodule Phoenix.LiveDashboard.MetricConversionTest do
   use ExUnit.Case, async: true
+  import ExUnit.CaptureLog
   import Telemetry.Metrics
   alias Phoenix.LiveDashboard.{Chart, MetricConversion}
 
@@ -66,14 +67,14 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
 
   describe "label_measurement/3" do
     test "measurement from key" do
-      assert {"phoenix-endpoint-stop-duration-counter", 1} ==
+      assert {:ok, {"phoenix-endpoint-stop-duration-counter", 1}} ==
                MetricConversion.label_measurement(
                  new_chart("phoenix.endpoint.stop.duration", :counter),
                  %{duration: 1},
                  %{}
                )
 
-      assert {"vm-memory-total-last_value", 1024} ==
+      assert {:ok, {"vm-memory-total-last_value", 1024}} ==
                MetricConversion.label_measurement(
                  new_chart("vm.memory.total", :last_value),
                  %{
@@ -84,7 +85,7 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
     end
 
     test "measurement from callback" do
-      assert {"test-measurement-callback-counter", 3} ==
+      assert {:ok, {"test-measurement-callback-counter", 3}} ==
                MetricConversion.label_measurement(
                  new_chart("test.measurement.callback", :counter,
                    measurement: &sum_all_measurements/1
@@ -98,9 +99,27 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
                )
     end
 
+    test "logs bad measurements" do
+      log =
+        capture_log(fn ->
+          assert :error ==
+                   MetricConversion.label_measurement(
+                     new_chart("endpoint.stop.duration", :summary,
+                       tag_values: fn %{foo: :bar} -> %{bar: :baz} end,
+                       tags: [:bar]
+                     ),
+                     %{duration: 100},
+                     %{bar: :baz}
+                   )
+        end)
+
+      assert log =~ "Could not format metric %Telemetry.Metrics.Summary"
+      assert log =~ "** (FunctionClauseError) no function clause matching"
+    end
+
     test "label from tags" do
       # key in metadata
-      assert {"foo", 1} ==
+      assert {:ok, {"foo", 1}} ==
                MetricConversion.label_measurement(
                  new_chart("test.tags.duration", tags: [:name]),
                  %{duration: 1},
@@ -108,7 +127,7 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
                )
 
       # multiple keys
-      assert {"GET /dashboard", 0.001} ==
+      assert {:ok, {"GET /dashboard", 0.001}} ==
                MetricConversion.label_measurement(
                  new_chart("http.request.stop.duration", tags: [:method, :path]),
                  %{duration: 0.001},
@@ -116,7 +135,7 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
                )
 
       # nonexistent keys
-      assert {"test-tags-duration-with-invalid-keys-last_value", 1} ==
+      assert {:ok, {"test-tags-duration-with-invalid-keys-last_value", 1}} ==
                MetricConversion.label_measurement(
                  new_chart("test.tags.duration", tags: [:with, :invalid, :keys]),
                  %{duration: 1},
@@ -124,7 +143,7 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
                )
 
       # mixed existence keys
-      assert {"foo", 1} ==
+      assert {:ok, {"foo", 1}} ==
                MetricConversion.label_measurement(
                  new_chart("test.tags.duration", tags: [:a, :b, :c]),
                  %{duration: 1},
@@ -133,7 +152,7 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
     end
 
     test "label from tag values" do
-      assert {"GET /dashboard", 0.001} ==
+      assert {:ok, {"GET /dashboard", 0.001}} ==
                MetricConversion.label_measurement(
                  new_chart("http.request.stop.duration",
                    tags: [:method, :request_path],
@@ -143,7 +162,7 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
                  %{conn: Phoenix.ConnTest.build_conn(:get, "/dashboard")}
                )
 
-      assert {"GET", 0.001} ==
+      assert {:ok, {"GET", 0.001}} ==
                MetricConversion.label_measurement(
                  new_chart("http.request.stop.duration",
                    tags: [:method, :invalid_key],
