@@ -44,8 +44,9 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
     # generate a timestamp for timeseries x-axis
     time = DateTime.truncate(DateTime.utc_now(), :millisecond)
 
-    for {chart, points} <- handle_points(charts, measurements, metadata, time) do
-      send_update(LiveMetric, id: chart.id, data: points)
+    for chart <- charts do
+      {label, value} = MetricConversion.label_measurement(chart, measurements, metadata)
+      send_update(LiveMetric, id: chart.id, data: [%{x: label, y: value, z: time}])
     end
 
     {:noreply, socket}
@@ -58,12 +59,5 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
     end
 
     :ok
-  end
-
-  defp handle_points(charts, values, meta, time) do
-    for chart <- charts do
-      {label, value} = MetricConversion.label_measurement(chart, values, meta)
-      {chart, [%{x: label, y: value, z: time}]}
-    end
   end
 end
