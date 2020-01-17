@@ -20,6 +20,7 @@ end
 defmodule Phoenix.LiveDashboard.MetricConversion do
   @moduledoc false
   alias Phoenix.LiveDashboard.Chart
+  require Logger
 
   @spec to_chart(metric :: Telemetry.Metrics.t()) :: Chart.t()
   def to_chart(%Telemetry.Metrics.Distribution{}) do
@@ -69,15 +70,24 @@ defmodule Phoenix.LiveDashboard.MetricConversion do
           chart :: Chart.t(),
           :telemetry.measurements(),
           :telemetry.metadata()
-        ) ::
-          {label :: String.t(), measurement :: nil | number()}
+        ) :: {:ok, {label :: String.t(), measurement :: nil | number()}} | :error
   def label_measurement(%Chart{} = chart, measurements, metadata) do
-    # TODO: handle failures for measurements/tags
     %{id: id, metric: metric} = chart
-    measurement = extract_measurement(metric, measurements)
-    label = metric |> extract_tags(metadata) |> tags_to_label() || id
 
-    {label, measurement}
+    try do
+      measurement = extract_measurement(metric, measurements)
+      label = metric |> extract_tags(metadata) |> tags_to_label() || id
+
+      {:ok, {label, measurement}}
+    rescue
+      e ->
+        Logger.error([
+          "Could not format metric #{inspect(metric)}\n",
+          Exception.format(:error, e, __STACKTRACE__)
+        ])
+
+        :error
+    end
   end
 
   defp extract_measurement(metric, measurements) do

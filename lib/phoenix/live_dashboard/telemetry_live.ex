@@ -1,13 +1,13 @@
 defmodule Phoenix.LiveDashboard.TelemetryLive do
   @moduledoc false
   use Phoenix.LiveView
+  import Phoenix.LiveDashboard.MetricConversion
   alias Phoenix.LiveDashboard.LiveMetric
-  alias Phoenix.LiveDashboard.MetricConversion
 
   @impl true
   def mount(%{"name" => agent_name}, socket) do
     metrics = Agent.get(agent_name, & &1.metrics, 1_000)
-    charts = Enum.map(metrics, &MetricConversion.to_chart/1)
+    charts = Enum.map(metrics, &to_chart/1)
     groups = Enum.group_by(charts, & &1.metric.event_name)
     channel = self()
 
@@ -45,8 +45,9 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
     time = DateTime.truncate(DateTime.utc_now(), :millisecond)
 
     for chart <- charts do
-      {label, value} = MetricConversion.label_measurement(chart, measurements, metadata)
-      send_update(LiveMetric, id: chart.id, data: [%{x: label, y: value, z: time}])
+      with {:ok, {x, y}} <- label_measurement(chart, measurements, metadata) do
+        send_update(LiveMetric, id: chart.id, data: [%{x: x, y: y, z: time}])
+      end
     end
 
     {:noreply, socket}
