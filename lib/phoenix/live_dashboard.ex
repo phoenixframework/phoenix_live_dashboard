@@ -45,7 +45,7 @@ defmodule Phoenix.LiveDashboard do
     |> super(opts)
   end
 
-  get "/", LiveDashboard.Plug, LiveDashboard.MetricsLive
+  get("/", LiveDashboard.Plug, LiveDashboard.TelemetryLive)
 end
 
 defmodule Phoenix.LiveDashboard.Plug do

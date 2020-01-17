@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.MetricsLive do
+defmodule Phoenix.LiveDashboard.TelemetryLive do
   @moduledoc false
   use Phoenix.LiveView
   alias Phoenix.LiveDashboard
@@ -28,7 +28,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <section id="telemetry-dashboard-app">
+    <section id="phx-dashboard-telemetry-live">
       <div class="phx-dashboard-grid">
       <%= for {id, chart} <- @charts do %>
         <%= live_component @socket, LiveMetric, id: id, chart: chart  %>
