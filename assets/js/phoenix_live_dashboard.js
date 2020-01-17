@@ -1,9 +1,8 @@
-import Charts from './metric_charts'
+import PhxLiveMetric from './telemetry_live'
 
-/* The LiveView Hook for the LiveMetric component. */
-const LiveMetric = {
-  mounted() { Charts.add(this.el) },
-  updated() { Charts.update(this.el) }
+/* The LiveView Hooks for the Phoenix.LiveDashboard components. */
+export default {
+  Hooks: {
+    PhxLiveMetric: PhxLiveMetric
+  }
 }
-
-export { LiveMetric }
