@@ -46,27 +46,21 @@ defmodule Phoenix.LiveDashboard.MetricConversion do
   defp kind(Telemetry.Metrics.Sum), do: :sum
   defp kind(Telemetry.Metrics.Summary), do: :summary
 
-  def label(%_struct{} = metric) do
+  defp label(%_struct{} = metric) do
     metric.name
     |> List.last()
     |> Phoenix.Naming.humanize()
     |> Kernel.<>("#{humanize_unit(metric.unit)}")
   end
 
-  def metric(Telemetry.Metrics.Counter), do: "counter"
-  def metric(Telemetry.Metrics.Distribution), do: "distribution"
-  def metric(Telemetry.Metrics.LastValue), do: "last_value"
-  def metric(Telemetry.Metrics.Sum), do: "sum"
-  def metric(Telemetry.Metrics.Summary), do: "summary"
-
   @spec humanize_unit(Telemetry.Metrics.unit()) :: String.t()
-  def humanize_unit(:byte), do: " (bytes)"
-  def humanize_unit(:kilobyte), do: " (KB)"
-  def humanize_unit(:megabyte), do: " (MB)"
-  def humanize_unit(:nanosecond), do: " (ns)"
-  def humanize_unit(:microsecond), do: " (µs)"
-  def humanize_unit(:millisecond), do: " (ms)"
-  def humanize_unit(:second), do: " s"
-  def humanize_unit(:unit), do: ""
-  def humanize_unit(unit) when is_atom(unit), do: " #{unit}"
+  defp humanize_unit(:byte), do: " (bytes)"
+  defp humanize_unit(:kilobyte), do: " (KB)"
+  defp humanize_unit(:megabyte), do: " (MB)"
+  defp humanize_unit(:nanosecond), do: " (ns)"
+  defp humanize_unit(:microsecond), do: " (µs)"
+  defp humanize_unit(:millisecond), do: " (ms)"
+  defp humanize_unit(:second), do: " s"
+  defp humanize_unit(:unit), do: ""
+  defp humanize_unit(unit) when is_atom(unit), do: " #{unit}"
 end

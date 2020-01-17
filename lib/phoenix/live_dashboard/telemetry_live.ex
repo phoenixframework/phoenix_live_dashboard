@@ -2,24 +2,21 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
   @moduledoc false
   use Phoenix.LiveView
   alias Phoenix.LiveDashboard.LiveMetric
+  alias Phoenix.LiveDashboard.MetricConversion
 
   @impl true
   def mount(%{"name" => agent_name}, socket) do
     metrics = Agent.get(agent_name, & &1.metrics, 1_000)
-    groups = Enum.group_by(metrics, & &1.event_name)
+    charts = Enum.map(metrics, &MetricConversion.to_chart/1)
+    groups = Enum.group_by(charts, & &1.metric.event_name)
     channel = self()
 
     if connected?(socket) do
-      for {event, metrics} <- groups do
+      for {event, charts} <- groups do
         id = {__MODULE__, event, channel}
-        :telemetry.attach(id, event, &__MODULE__.handle_metrics/4, {metrics, channel})
+        :telemetry.attach(id, event, &__MODULE__.handle_metrics/4, {charts, channel})
       end
     end
-
-    charts =
-      for metric <- metrics,
-          chart = LiveMetric.from_telemetry(metric),
-          do: {chart.id, chart}
 
     {:ok, assign(socket, events: Map.keys(groups), charts: charts)}
   end
@@ -29,8 +26,8 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
     ~L"""
     <section id="phx-dashboard-telemetry-live">
       <div class="phx-dashboard-grid">
-      <%= for {id, chart} <- @charts do %>
-        <%= live_component @socket, LiveMetric, id: id, chart: chart  %>
+      <%= for chart <- @charts do %>
+        <%= live_component @socket, LiveMetric, id: chart.id, chart: chart %>
       <% end %>
       </div>
     </section>
@@ -43,49 +40,29 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
   end
 
   @impl true
-  def handle_info({_event_name, measurements, metadata, metrics}, socket) do
+  def handle_info({_event_name, measurements, metadata, charts}, socket) do
     # generate a timestamp for timeseries x-axis
     received_at = DateTime.truncate(DateTime.utc_now(), :millisecond)
 
-    {:noreply,
-     assign(
-       socket,
-       :charts,
-       Enum.reduce(metrics, socket.assigns.charts, fn metric, charts ->
-         %LiveMetric{id: chart_id} = proto_chart = LiveMetric.from_telemetry(metric)
+    for chart <- charts do
+      %{metric: metric} = chart
+      # TODO: handle failures for measurements/tags
+      measurement = extract_measurement(metric, measurements)
+      label = metric |> extract_tags(metadata) |> tags_to_label() || chart.id
 
-         # TODO: handle failures for measurements/tags
-         measurement = extract_measurement(metric, measurements)
-         label = metric |> extract_tags(metadata) |> tags_to_label() || chart_id
+      send_update(LiveMetric,
+        id: chart.id,
+        data: [
+          %{
+            x: label,
+            y: measurement,
+            z: received_at
+          }
+        ]
+      )
+    end
 
-         # get all datasets for the given chart_id
-         {_, %LiveMetric{datasets: datasets} = chart} =
-           List.keyfind(charts, chart_id, 0, {chart_id, proto_chart})
-
-         # get the dataset value for the given label
-         {_, current_value} = List.keyfind(datasets, label, 0, {label, 0})
-
-         # update the charts...
-         # with the updated datasets...
-         # with the updated datapoint.
-         List.keyreplace(
-           charts,
-           chart_id,
-           0,
-           {chart_id,
-            %LiveMetric{
-              chart
-              | datasets:
-                  List.keystore(
-                    datasets,
-                    label,
-                    0,
-                    {label, next_value(chart, measurement, current_value, received_at)}
-                  )
-            }}
-         )
-       end)
-     )}
+    {:noreply, socket}
   end
 
   @impl true
@@ -107,15 +84,6 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
   defp extract_tags(metric, metadata) do
     tag_values = metric.tag_values.(metadata)
     Map.take(tag_values, metric.tags)
-  end
-
-  defp next_value(%LiveMetric{metric: metric}, measurement, current_value, received_at) do
-    case metric do
-      "last_value" -> measurement
-      "counter" -> current_value + 1
-      "sum" -> current_value + measurement
-      "summary" -> {received_at, measurement}
-    end
   end
 
   defp tags_to_label(tags) when tags == %{}, do: nil
