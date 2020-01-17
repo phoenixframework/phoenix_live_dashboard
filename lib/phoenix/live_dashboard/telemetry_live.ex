@@ -35,31 +35,17 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
   end
 
   @doc false
-  def handle_metrics(event_name, measurements, metadata, {metrics, channel}) do
-    send(channel, {event_name, measurements, metadata, metrics})
+  def handle_metrics(event_name, measurements, metadata, {charts, channel}) do
+    send(channel, {event_name, measurements, metadata, charts})
   end
 
   @impl true
   def handle_info({_event_name, measurements, metadata, charts}, socket) do
     # generate a timestamp for timeseries x-axis
-    received_at = DateTime.truncate(DateTime.utc_now(), :millisecond)
+    time = DateTime.truncate(DateTime.utc_now(), :millisecond)
 
-    for chart <- charts do
-      %{metric: metric} = chart
-      # TODO: handle failures for measurements/tags
-      measurement = extract_measurement(metric, measurements)
-      label = metric |> extract_tags(metadata) |> tags_to_label() || chart.id
-
-      send_update(LiveMetric,
-        id: chart.id,
-        data: [
-          %{
-            x: label,
-            y: measurement,
-            z: received_at
-          }
-        ]
-      )
+    for {chart, points} <- handle_points(charts, measurements, metadata, time) do
+      send_update(LiveMetric, id: chart.id, data: points)
     end
 
     {:noreply, socket}
@@ -74,25 +60,10 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
     :ok
   end
 
-  defp extract_measurement(metric, measurements) do
-    case metric.measurement do
-      fun when is_function(fun, 1) -> fun.(measurements)
-      key -> measurements[key]
+  defp handle_points(charts, values, meta, time) do
+    for chart <- charts do
+      {label, value} = MetricConversion.label_measurement(chart, values, meta)
+      {chart, [%{x: label, y: value, z: time}]}
     end
-  end
-
-  defp extract_tags(metric, metadata) do
-    tag_values = metric.tag_values.(metadata)
-    Map.take(tag_values, metric.tags)
-  end
-
-  defp tags_to_label(tags) when tags == %{}, do: nil
-
-  defp tags_to_label(tags) when is_map(tags) do
-    tags
-    |> Enum.reduce([], fn {_k, v}, acc -> [to_string(v) | acc] end)
-    |> Enum.reverse()
-    |> Enum.intersperse(?\s)
-    |> IO.iodata_to_binary()
   end
 end

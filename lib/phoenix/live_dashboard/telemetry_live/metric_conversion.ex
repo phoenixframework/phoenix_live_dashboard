@@ -19,7 +19,9 @@ end
 
 defmodule Phoenix.LiveDashboard.MetricConversion do
   @moduledoc false
-  @spec to_chart(metric :: Telemetry.Metrics.t()) :: Phoenix.LiveDashboard.Chart.t()
+  alias Phoenix.LiveDashboard.Chart
+
+  @spec to_chart(metric :: Telemetry.Metrics.t()) :: Chart.t()
   def to_chart(%Telemetry.Metrics.Distribution{}) do
     raise ArgumentError, "LiveDashboard does not yet support distribution metrics"
   end
@@ -53,7 +55,6 @@ defmodule Phoenix.LiveDashboard.MetricConversion do
     |> Kernel.<>("#{humanize_unit(metric.unit)}")
   end
 
-  @spec humanize_unit(Telemetry.Metrics.unit()) :: String.t()
   defp humanize_unit(:byte), do: " (bytes)"
   defp humanize_unit(:kilobyte), do: " (KB)"
   defp humanize_unit(:megabyte), do: " (MB)"
@@ -63,4 +64,41 @@ defmodule Phoenix.LiveDashboard.MetricConversion do
   defp humanize_unit(:second), do: " s"
   defp humanize_unit(:unit), do: ""
   defp humanize_unit(unit) when is_atom(unit), do: " #{unit}"
+
+  @spec label_measurement(
+          chart :: Chart.t(),
+          :telemetry.measurements(),
+          :telemetry.metadata()
+        ) ::
+          {label :: String.t(), measurement :: nil | number()}
+  def label_measurement(%Chart{} = chart, measurements, metadata) do
+    # TODO: handle failures for measurements/tags
+    %{id: id, metric: metric} = chart
+    measurement = extract_measurement(metric, measurements)
+    label = metric |> extract_tags(metadata) |> tags_to_label() || id
+
+    {label, measurement}
+  end
+
+  defp extract_measurement(metric, measurements) do
+    case metric.measurement do
+      fun when is_function(fun, 1) -> fun.(measurements)
+      key -> measurements[key]
+    end
+  end
+
+  defp extract_tags(metric, metadata) do
+    tag_values = metric.tag_values.(metadata)
+    Map.take(tag_values, metric.tags)
+  end
+
+  defp tags_to_label(tags) when tags == %{}, do: nil
+
+  defp tags_to_label(tags) when is_map(tags) do
+    tags
+    |> Enum.reduce([], fn {_k, v}, acc -> [to_string(v) | acc] end)
+    |> Enum.reverse()
+    |> Enum.intersperse(?\s)
+    |> IO.iodata_to_binary()
+  end
 end
