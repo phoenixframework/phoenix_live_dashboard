@@ -1,12 +1,11 @@
 defmodule Phoenix.LiveDashboard.TelemetryLive do
   @moduledoc false
   use Phoenix.LiveView
-  alias Phoenix.LiveDashboard
   alias Phoenix.LiveDashboard.LiveMetric
 
   @impl true
-  def mount(_session, socket) do
-    metrics = Agent.get(LiveDashboard, & &1.metrics, 1_000)
+  def mount(%{"name" => agent_name}, socket) do
+    metrics = Agent.get(agent_name, & &1.metrics, 1_000)
     groups = Enum.group_by(metrics, & &1.event_name)
     channel = self()
 

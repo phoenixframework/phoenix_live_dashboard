@@ -1,14 +1,17 @@
 defmodule Phoenix.LiveDashboard do
   @moduledoc """
-  The  Phoenix LiveView Dashboard.
+  The Phoenix LiveView Dashboard.
 
   ## Usage
+
       # my_app_web/router.ex
-      forward "/dashboard", Phoenix.LiveDashboard
+      forward "/dashboard", Phoenix.LiveDashboard,
+        name: MyApp.Dashboard,
+        router: __MODULE__
 
       # my_app/application.ex
       children = [
-        {Phoenix.LiveDashboard, metrics: metrics()}
+        {Phoenix.LiveDashboard, name: MyApp.Dashboard, metrics: metrics()}
       ]
 
       defp metrics do
@@ -37,24 +40,35 @@ defmodule Phoenix.LiveDashboard do
   alias Phoenix.LiveDashboard
 
   def start_link(opts) do
+    name =
+      opts[:name] ||
+        raise ArgumentError, "the :name option is required by #{inspect(__MODULE__)}"
+
     metrics =
       opts[:metrics] ||
         raise ArgumentError, "the :metrics option is required by #{inspect(__MODULE__)}"
 
-    Agent.start_link(fn -> %{metrics: metrics} end, name: __MODULE__)
+    Agent.start_link(fn -> %{metrics: metrics} end, name: name)
   end
 
   def init(opts) do
+    _name =
+      opts[:name] ||
+        raise ArgumentError, "the :name option is a required by #{inspect(__MODULE__)}.init/1"
+
     router =
       opts[:router] ||
-        raise "the :router option is a required by #{inspect(__MODULE__)}.init/1"
+        raise ArgumentError, "the :router option is a required by #{inspect(__MODULE__)}.init/1"
 
     {router, opts}
   end
 
   def call(conn, {router, opts}) do
     conn
-    |> put_private(:phoenix_live_dashboard_router, router)
+    |> put_private(:phoenix_live_dashboard,
+      router: router,
+      session: %{"name" => opts[:name]}
+    )
     |> super(opts)
   end
 
@@ -62,6 +76,7 @@ defmodule Phoenix.LiveDashboard do
 end
 
 defmodule Phoenix.LiveDashboard.Plug do
+  @moduledoc false
   @behaviour Plug
 
   @impl Plug
@@ -69,7 +84,9 @@ defmodule Phoenix.LiveDashboard.Plug do
 
   @impl Plug
   def call(conn, view) do
-    opts = Phoenix.LiveView.Plug.init({view, router: conn.private.phoenix_live_dashboard_router})
+    %{phoenix_live_dashboard: init_opts} = conn.private
+    opts = Phoenix.LiveView.Plug.init({view, init_opts})
+
     Phoenix.LiveView.Plug.call(conn, opts)
   end
 end
