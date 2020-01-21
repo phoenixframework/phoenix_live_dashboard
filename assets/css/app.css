@@ -1,3 +1,6 @@
+@import "./phoenix.css";
+@import "../../deps/phoenix_live_view/assets/css/live_view.css";
+
 .phx-dashboard-grid {
   display: flex;
   flex-wrap: wrap;

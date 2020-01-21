@@ -1,4 +1,5 @@
 import ColorWheel from './color_wheel'
+import Chart from 'chart.js'
 
 const DoughnutChart = (canvas) => {
   let config = {
