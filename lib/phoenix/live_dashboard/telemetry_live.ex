@@ -1,6 +1,6 @@
 defmodule Phoenix.LiveDashboard.TelemetryLive do
   @moduledoc false
-  use Phoenix.LiveView
+  use Phoenix.LiveView, layout: {Phoenix.LiveDashboard.LayoutView, "live.html"}
   import Phoenix.LiveDashboard.MetricConversion
   alias Phoenix.LiveDashboard.LiveMetric
 

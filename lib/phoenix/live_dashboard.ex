@@ -65,6 +65,7 @@ defmodule Phoenix.LiveDashboard do
 
   def call(conn, {router, opts}) do
     conn
+    |> put_layout({Phoenix.LiveDashboard.LayoutView, :dash})
     |> put_private(:phoenix_live_dashboard,
       router: router,
       session: %{"name" => opts[:name]}
