@@ -1,16 +1,33 @@
 const path = require('path')
 const glob = require('glob')
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 module.exports = {
-  entry: {
-    './js/phoenix_live_dashboard.js': glob.sync('./vendor/**/*.js').concat(['./js/phoenix_live_dashboard.js'])
-  },
+  entry: './js/app.js',
   output: {
-    filename: 'phoenix_live_dashboard.js',
-    path: path.resolve(__dirname, '../priv/static'),
-    library: 'phoenix_live_dashboard',
-    libraryTarget: 'umd',
-    globalObject: 'this'
+    filename: 'app.js',
+    path: path.resolve(__dirname, '../priv/static/js')
   },
-  plugins: []
-}
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader'
+        }
+      },
+      {
+        test: /\.css$/,
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: 'css-loader'
+        })
+      }
+    ]
+  },
+  plugins: [
+    new ExtractTextPlugin('../css/app.css')
+  ]
+};
+
