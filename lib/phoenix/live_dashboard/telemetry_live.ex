@@ -1,6 +1,9 @@
 defmodule Phoenix.LiveDashboard.TelemetryLive do
   @moduledoc false
-  use Phoenix.LiveView, layout: {Phoenix.LiveDashboard.LayoutView, "live.html"}
+  use Phoenix.LiveView,
+    container: {:section, id: "phx-dashboard-telemetry-live"},
+    layout: {Phoenix.LiveDashboard.LayoutView, "live.html"}
+
   import Phoenix.LiveDashboard.MetricConversion
   alias Phoenix.LiveDashboard.LiveMetric
 
@@ -24,13 +27,11 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <section id="phx-dashboard-telemetry-live">
-      <div class="phx-dashboard-grid">
-      <%= for chart <- @charts do %>
-        <%= live_component @socket, LiveMetric, id: chart.id, chart: chart %>
-      <% end %>
-      </div>
-    </section>
+    <div class="phx-dashboard-grid">
+    <%= for chart <- @charts do %>
+      <%= live_component @socket, LiveMetric, id: chart.id, chart: chart %>
+    <% end %>
+    </div>
     """
   end
 
