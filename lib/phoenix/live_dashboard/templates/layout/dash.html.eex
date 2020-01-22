@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no, user-scalable=no"/>
     <%= csrf_meta_tag() %>
     <title><%= assigns[:page_title] || "Phoenix LiveDashboard" %></title>
-    <style><%= raw(render("app.js")) %></style>
+    <style><%= raw(render("app.css")) %></style>
   </head><%= render @view_module, @view_template, assigns %>
   <script><%= raw(render("app.js")) %></script>
 </html>
