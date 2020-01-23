@@ -1,4 +1,3 @@
-<!-- This is the LiveDashboard static layout at dash.html.eex. -->
 <!DOCTYPE html>
 <html lang="en" phx-socket="/live">
   <head>
