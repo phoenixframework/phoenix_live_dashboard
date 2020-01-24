@@ -56,18 +56,14 @@ defmodule Phoenix.LiveDashboard do
       opts[:name] ||
         raise ArgumentError, "the :name option is a required by #{inspect(__MODULE__)}.init/1"
 
-    router =
-      opts[:router] ||
-        raise ArgumentError, "the :router option is a required by #{inspect(__MODULE__)}.init/1"
-
-    {router, opts}
+    opts
   end
 
-  def call(conn, {router, opts}) do
+  def call(conn, opts) do
     conn
     |> put_layout({Phoenix.LiveDashboard.LayoutView, :dash})
     |> put_private(:phoenix_live_dashboard,
-      router: router,
+      router: Phoenix.Controller.router_module(conn),
       session: %{"name" => opts[:name]}
     )
     |> super(opts)
