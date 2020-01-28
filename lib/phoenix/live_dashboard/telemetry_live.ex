@@ -8,7 +8,7 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
   alias Phoenix.LiveDashboard.LiveMetric
 
   @impl true
-  def mount(%{"name" => agent_name}, socket) do
+  def mount(_, %{"name" => agent_name}, socket) do
     metrics = Agent.get(agent_name, & &1.metrics, 1_000)
     charts = Enum.map(metrics, &to_chart/1)
     groups = Enum.group_by(charts, & &1.metric.event_name)
