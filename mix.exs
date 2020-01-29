@@ -11,7 +11,12 @@ defmodule Phoenix.LiveDashboard.MixProject do
       compilers: [:phoenix] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      package: package()
+      package: package(),
+      docs: docs(),
+      homepage_url: "http://www.phoenixframework.org",
+      description: """
+      Real-time performance monitor and debugger for Phoenix
+      """
     ]
   end
 
@@ -33,9 +38,43 @@ defmodule Phoenix.LiveDashboard.MixProject do
     ]
   end
 
+  defp docs do
+    [
+      main: "Phoenix.LiveDashboard",
+      source_ref: "v#{@version}",
+      source_url: "https://github.com/phoenixframework/phoenix_live_dashboard",
+      extra_section: "GUIDES",
+      extras: extras(),
+      groups_for_extras: groups_for_extras(),
+      groups_for_modules: groups_for_modules()
+    ]
+  end
+
+  defp extras do
+    [
+      "guides/introduction/installation.md",
+      "guides/telemetry.md"
+    ]
+  end
+
+  defp groups_for_extras do
+    [
+      Introduction: ~r/guides\/introduction\/.?/,
+      Guides: ~r/guides\/[^\/]+\.md/
+    ]
+  end
+
+  defp groups_for_modules do
+    [
+      Routing: [
+        Phoenix.LiveDashboard.Helpers
+      ]
+    ]
+  end
+
   defp package do
     [
-      maintainers: ["Chris McCord", "José Valim"],
+      maintainers: ["Chris McCord", "José Valim", "Michael Crumm"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/phoenixframework/phoenix_live_dashboard"},
       files:
