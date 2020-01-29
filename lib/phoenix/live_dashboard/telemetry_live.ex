@@ -21,7 +21,8 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
       end
     end
 
-    {:ok, assign(socket, events: Map.keys(groups), charts: charts)}
+    {:ok, assign(socket, events: Map.keys(groups), charts: charts),
+     temporary_assigns: [charts: []]}
   end
 
   @impl true
