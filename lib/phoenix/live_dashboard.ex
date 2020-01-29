@@ -1,38 +1,98 @@
 defmodule Phoenix.LiveDashboard do
-  @moduledoc """
-  The Phoenix LiveView Dashboard.
+  @moduledoc ~S"""
+  LiveDashboard provides real-time performance monitoring
+  and debugging tools for Phoenix developers.
 
-  ## Usage
+  ## Built-in features
 
-      # my_app_web/router.ex
-      forward "/dashboard", Phoenix.LiveDashboard,
-        name: MyApp.Dashboard,
-        router: __MODULE__
+    * Debugging - (Coming soon)
 
-      # my_app/application.ex
+    * Performance monitoring - See how your application
+      performs under different conditions by visualizing
+      [`:telemetry`](https://hexdocs.pm/telemetry) events
+      with real-time charts. See [Telemetry](#module-telemetry).
+
+  ## The LiveView Dashboard
+
+  In order to use LiveDashboard, you need to:
+
+    1. Install `Phoenix.LiveView` in your application
+    1. Define your Telemetry metrics
+    1. Forward requests to LiveDashboard
+
+  ### Example
+
+  To start a LiveDashboard, add your LiveDashboard reporter
+  to your Telemetry supervision tree (usually in
+  `lib/my_app_web/telemetry.ex`):
+
       children = [
-        {Phoenix.LiveDashboard, name: MyApp.Dashboard, metrics: metrics()}
+        {Phoenix.LiveDashboard, name: MyAppWeb.Dashboard, metrics: metrics()}
       ]
+
+      Supervisor.start_link(children, strategy: :one_for_one)
+
+  With two options:
+
+  * `:name` - A unique name for your LiveDashboard.
+
+  * `:metrics` - A list of [`Telemetry.Metrics`](`t:Telemetry.Metrics.t/0`)
+    structs. Each metric will be rendered as a chart on the
+    dashboard.
+
+  Here are some example metrics from the Phoenix framework
+  that you can use to get started:
 
       defp metrics do
         [
-          Telemetry.Metrics.counter("phoenix.endpoint.stop.duration"),
-          Telemetry.Metrics.distribution("phoenix.endpoint.stop.duration", buckets: [100, 200, 300])
+          # Phoenix Metrics
+          Telemetry.Metrics.counter("phoenix.endpoint.stop.duration")
+          Telemetry.Metrics.summary("phoenix.endpoint.stop.duration", unit: {:native, :millisecond})
         ]
       end
 
-      # assets/app.js
+  > Read the [Phoenix Telemetry](telemetry.html) guide for
+  more information on how to configure metrics.
 
-      # import LiveDashboard JS
-      import LiveSocket from "phoenix_live_view"
-      import LiveDashboard from "phoenix_live_dashboard"
+  Then, to access the dashboard, you can `forward` requests
+  to LiveDashboard from your `Phoenix.Router` (usually in
+  `lib/my_app_web/router.ex`).
 
-      # load LiveDashboard.Hooks into your Hooks object
-      const Hooks = {
-        ...LiveDashboard.Hooks
-      }
+  Remember to use the same `name` you gave to your
+  LiveDashboard reporter:
 
-      # ...initialize LiveSocket as usual...
+      defmodule MyAppWeb.Router do
+        use Phoenix.Router
+        alias Phoenix.LiveDashboard
+
+        ...application routes...
+
+        # LiveDashboard is only recommended in dev, for now :)
+        if Mix.env() == :dev do
+          scope "/" do
+            pipe_through :browser
+            forward "/dashboard", Phoenix.LiveDashboard, name: MyAppWeb.Dashboard
+          end
+        end
+      end
+
+  ## Telemetry
+
+  LiveDashboard integrates with `Telemetry.Metrics` to
+  render your application metrics as beatiful, real-time
+  charts.
+
+  ### Translation from Telemetry.Metrics to LiveDashboard
+
+  The following table shows how `Telemetry.Metrics` metrics
+  map to LiveDashboard charts:
+
+  | Telemetry.Metrics | Chart |
+  |-------------------|-------|
+  | `last_value`      | `Doughnut`, always set to an absolute value |
+  | `counter`         | `Doughnut`, always increased by 1 |
+  | `summary`         | `Line`, recording individual measurement using time scale |
+  | `distribution`    | (Coming Soon) `Line`, recording measurement in individual buckets using time scale |
   """
   use Phoenix.Router
   use Agent
