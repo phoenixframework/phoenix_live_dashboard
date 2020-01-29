@@ -51,7 +51,7 @@ defmodule Phoenix.LiveDashboard do
         ]
       end
 
-  > Read the [Phoenix Telemetry](telemetry.html) guide for
+  > Read the [Telemetry Walkthrough](telemetry.html) for
   more information on how to configure metrics.
 
   Then, to access the dashboard, you can `forward` requests
@@ -61,18 +61,11 @@ defmodule Phoenix.LiveDashboard do
   Remember to use the same `name` you gave to your
   LiveDashboard reporter:
 
-      defmodule MyAppWeb.Router do
-        use Phoenix.Router
-        alias Phoenix.LiveDashboard
-
-        ...application routes...
-
-        # LiveDashboard is only recommended in dev, for now :)
-        if Mix.env() == :dev do
-          scope "/" do
-            pipe_through :browser
-            forward "/dashboard", Phoenix.LiveDashboard, name: MyAppWeb.Dashboard
-          end
+      # LiveDashboard is only recommended in dev, for now :)
+      if Mix.env() == :dev do
+        scope "/" do
+          pipe_through :browser
+          forward "/dashboard", Phoenix.LiveDashboard, name: MyAppWeb.Dashboard
         end
       end
 
