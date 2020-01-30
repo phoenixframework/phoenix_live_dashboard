@@ -74,7 +74,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
 
   defp package do
     [
-      maintainers: ["Chris McCord", "José Valim", "Michael Crumm"],
+      maintainers: ["Michael Crumm", "Chris McCord", "José Valim"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/phoenixframework/phoenix_live_dashboard"},
       files:
