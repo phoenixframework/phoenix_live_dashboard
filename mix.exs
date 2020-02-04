@@ -30,11 +30,11 @@ defmodule Phoenix.LiveDashboard.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:phoenix_live_view, "0.6.0"},
+      {:phoenix_live_view, "0.7.0-dev", github: "phoenixframework/phoenix_live_view"},
       {:telemetry_metrics, "~> 0.4.0"},
       {:ex_doc, "~> 0.21", only: :docs},
       {:jason, "~> 1.0", optional: true},
-      {:floki, ">= 0.0.0", only: :test}
+      {:floki, "~> 0.24.0", only: :test}
     ]
   end
 
