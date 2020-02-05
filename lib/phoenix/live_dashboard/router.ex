@@ -6,8 +6,6 @@ defmodule Phoenix.LiveDashboard.Router do
   @doc """
   Defines a LiveDashboard route.
 
-  Accepts the same options as [`live/3`](`Phoenix.LiveView.Router.live/3`).
-
   ## Examples
 
       defmodule MyAppWeb.Router
