@@ -54,18 +54,18 @@ defmodule Phoenix.LiveDashboard do
   > Read the [Telemetry Walkthrough](telemetry.html) for
   more information on how to configure metrics.
 
-  Then, to access the dashboard, you can `forward` requests
-  to LiveDashboard from your `Phoenix.Router` (usually in
-  `lib/my_app_web/router.ex`).
+  Then, to access the dashboard, you use the
+  [`live_dashboard/2`](`Phoenix.LiveDashboard.Router.live_dashboard/2`)
+  macro in your `Phoenix.Router` (usually in
+  `lib/my_app_web/router.ex`):
 
-  Remember to use the same `name` you gave to your
-  LiveDashboard reporter:
+      import Phoenix.LiveDashboard.Router
 
       # LiveDashboard is only recommended in dev, for now :)
       if Mix.env() == :dev do
         scope "/" do
           pipe_through :browser
-          forward "/dashboard", Phoenix.LiveDashboard, name: MyAppWeb.Dashboard
+          live_dashboard "/dashboard", MyAppWeb.Dashboard
         end
       end
 
@@ -87,10 +87,7 @@ defmodule Phoenix.LiveDashboard do
   | `summary`         | `Line`, recording individual measurement using time scale |
   | `distribution`    | (Coming Soon) `Line`, recording measurement in individual buckets using time scale |
   """
-  use Phoenix.Router
   use Agent
-
-  alias Phoenix.LiveDashboard
 
   def start_link(opts) do
     name =
@@ -102,41 +99,5 @@ defmodule Phoenix.LiveDashboard do
         raise ArgumentError, "the :metrics option is required by #{inspect(__MODULE__)}"
 
     Agent.start_link(fn -> %{metrics: metrics} end, name: name)
-  end
-
-  def init(opts) do
-    _name =
-      opts[:name] ||
-        raise ArgumentError, "the :name option is a required by #{inspect(__MODULE__)}.init/1"
-
-    opts
-  end
-
-  def call(conn, opts) do
-    conn
-    |> put_layout({Phoenix.LiveDashboard.LayoutView, :dash})
-    |> put_private(:phoenix_live_dashboard,
-      router: Phoenix.Controller.router_module(conn),
-      session: %{"name" => opts[:name]}
-    )
-    |> super(opts)
-  end
-
-  get("/", LiveDashboard.Plug, LiveDashboard.TelemetryLive)
-end
-
-defmodule Phoenix.LiveDashboard.Plug do
-  @moduledoc false
-  @behaviour Plug
-
-  @impl Plug
-  def init(view), do: view
-
-  @impl Plug
-  def call(conn, view) do
-    %{phoenix_live_dashboard: init_opts} = conn.private
-    opts = Phoenix.LiveView.Plug.init({view, init_opts})
-
-    Phoenix.LiveView.Plug.call(conn, opts)
   end
 end
