@@ -10,7 +10,7 @@
   "nimble_parsec": {:hex, :nimble_parsec, "0.5.2", "1d71150d5293d703a9c38d4329da57d3935faed2031d64bc19e77b654ef2d177", [:mix], [], "hexpm"},
   "phoenix": {:git, "https://github.com/phoenixframework/phoenix.git", "762cc5f57316e0f58eee842209d3dc17dd7c68f4", [branch: "v1.4"]},
   "phoenix_html": {:hex, :phoenix_html, "2.14.0", "d8c6bc28acc8e65f8ea0080ee05aa13d912c8758699283b8d3427b655aabe284", [:mix], [{:plug, "~> 1.5", [hex: :plug, repo: "hexpm", optional: false]}], "hexpm"},
-  "phoenix_live_view": {:git, "https://github.com/phoenixframework/phoenix_live_view.git", "43c374e16fa1d7e31d4ef5fddbd9a3531665066a", []},
+  "phoenix_live_view": {:git, "https://github.com/phoenixframework/phoenix_live_view.git", "0e91c2576255124c912c7cdc5f94d2fae871d5ad", []},
   "phoenix_pubsub": {:hex, :phoenix_pubsub, "1.1.2", "496c303bdf1b2e98a9d26e89af5bba3ab487ba3a3735f74bf1f4064d2a845a3e", [:mix], [], "hexpm"},
   "plug": {:hex, :plug, "1.8.3", "12d5f9796dc72e8ac9614e94bda5e51c4c028d0d428e9297650d09e15a684478", [:mix], [{:mime, "~> 1.0", [hex: :mime, repo: "hexpm", optional: false]}, {:plug_crypto, "~> 1.0", [hex: :plug_crypto, repo: "hexpm", optional: false]}, {:telemetry, "~> 0.4", [hex: :telemetry, repo: "hexpm", optional: true]}], "hexpm"},
   "plug_crypto": {:hex, :plug_crypto, "1.0.0", "18e49317d3fa343f24620ed22795ec29d4a5e602d52d1513ccea0b07d8ea7d4d", [:mix], [], "hexpm"},
