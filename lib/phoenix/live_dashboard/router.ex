@@ -20,20 +20,14 @@ defmodule Phoenix.LiveDashboard.Router do
         end
       end
   """
-  defmacro live_dashboard(path, reporter, opts \\ []) do
+  defmacro live_dashboard(path, reporter) do
     quote bind_quoted: binding() do
       Phoenix.LiveView.Router.live(
         path,
         Phoenix.LiveDashboard.TelemetryLive,
-        Phoenix.LiveDashboard.Router.__opts__(reporter, opts)
+        session: %{"name" => reporter},
+        layout: {Phoenix.LiveDashboard.LayoutView, :dash}
       )
     end
-  end
-
-  @doc false
-  def __opts__(reporter, opts) do
-    opts
-    |> Keyword.put(:session, %{"name" => reporter})
-    |> Keyword.put(:layout, {Phoenix.LiveDashboard.LayoutView, :dash})
   end
 end
