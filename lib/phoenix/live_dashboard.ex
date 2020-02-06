@@ -55,7 +55,7 @@ defmodule Phoenix.LiveDashboard do
   more information on how to configure metrics.
 
   Then, to access the dashboard, you use the
-  [`live_dashboard/3`](`Phoenix.LiveDashboard.Router.live_dashboard/3`)
+  [`live_dashboard/2`](`Phoenix.LiveDashboard.Router.live_dashboard/2`)
   macro in your `Phoenix.Router` (usually in
   `lib/my_app_web/router.ex`):
 
