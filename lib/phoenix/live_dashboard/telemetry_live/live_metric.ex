@@ -12,7 +12,7 @@ defmodule Phoenix.LiveDashboard.LiveMetric do
   def render(assigns) do
     ~L"""
     <div id="<%= @chart.id %>" class="phx-dashboard-col">
-      <div phx-hook="PhxLiveMetric" id="<%= @chart.id %>--datasets" class="datasets">
+      <div phx-hook="PhxLiveMetric" id="<%= @chart.id %>--datasets" style="display:none;">
       <%= for %{x: x, y: y, z: z} <- @data do %>
         <span data-x="<%= x %>" data-y="<%= y %>" data-z="<%= z %>"></span>
       <% end %>
