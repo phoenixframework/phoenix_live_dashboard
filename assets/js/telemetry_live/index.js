@@ -1,22 +1,69 @@
 import ColorWheel from './color_wheel'
 import Chart from 'chart.js'
 
-const DoughnutChart = (canvas) => {
-  let config = {
+/** Chart.js Storage Adapters **/
+
+const DataFns = {
+  increment(labelIndex, { y: measurement }) {
+    this.data.datasets[0].data[labelIndex] += measurement
+  },
+  indexOf(label) {
+    return this.data.labels.indexOf(label)
+  },
+  pushDataset(label, { y: measurement }) {
+    const labelIndex = this.data.labels.push(label)
+    this.data.datasets[0].data.push(measurement)
+    this.data.datasets[0].backgroundColor.push(
+      ColorWheel.at(this.data.labels.length)
+    )
+    return labelIndex
+  },
+  pushData(labelIndex, { y: measurement }) {
+    this.data.datasets[0].data[labelIndex] = measurement
+  }
+}
+
+const DatasetFns = {
+  increment(labelIndex, { z }) {
+    let { y } = this.data.datasets[labelIndex].data[this.data.datasets[labelIndex].length - 1]
+    DatasetFns.pushData.call(this, labelIndex, { y: y++, z })
+  },
+  indexOf(label) {
+    return this.data.datasets.findIndex(d => d.label === label)
+  },
+  pushDataset(label, { y, z: t }) {
+    const color = ColorWheel.at(this.data.datasets.length)
+    return this.data.datasets.push({
+      label: label,
+      data: [{ t, y }],
+      backgroundColor: color,
+      borderColor: color,
+      fill: false
+    })
+  },
+  pushData(labelIndex, { y, z: t }) {
+    this.data.datasets[labelIndex].data.push({ t, y })
+  }
+}
+
+/** Chart.js Configs **/
+
+const DoughnutConfig = (options) => {
+  return {
     type: 'doughnut',
     data: {
       labels: [],
       datasets: [{
         backgroundColor: [],
         data: [],
-        label: canvas.dataset.title
+        label: options.title
       }]
     },
     options: {
       responsive: true,
       title: {
         display: true,
-        text: canvas.dataset.title
+        text: options.title
       },
       animation: {
         animateScale: true,
@@ -30,40 +77,11 @@ const DoughnutChart = (canvas) => {
       }
     }
   }
+}
 
+const TimeseriesConfig = (options) => {
   return {
-    id: canvas.id,
-    chart: new Chart(canvas.getContext('2d'), config),
-    config: config,
-    update: function (datasets) {
-      datasets.forEach((el, idx) => {
-        if (this.config.data.labels.length <= idx) {
-          this.config.data.labels.push(el.dataset.label)
-          this.config.data.datasets[0].data.push(el.dataset.value)
-          this.config.data.datasets[0].backgroundColor.push(ColorWheel.at(idx))
-        } else {
-          this.config.data.datasets[0].data[idx] = el.dataset.value
-        }
-      })
-
-      this.chart.update()
-    }
-  }
-}
-
-const timeseries_dataset = (dataset, idx) => {
-  const color = ColorWheel.at(idx)
-
-  return Object.assign({
-    backgroundColor: color,
-    borderColor: color,
-    fill: false,
-  }, dataset)
-}
-
-const LineChart = (canvas) => {
-  let config = {
-    type: canvas.dataset.type,
+    type: 'line',
     data: { datasets: [] },
     options: {
       responsive: true,
@@ -75,13 +93,13 @@ const LineChart = (canvas) => {
         yAxes: [{
           scaleLabel: {
             display: true,
-            labelString: canvas.dataset.label
+            labelString: options.label
           }
         }]
       },
       title: {
         display: true,
-        text: canvas.dataset.title
+        text: options.title
       },
       legend: {
         position: 'bottom',
@@ -89,70 +107,139 @@ const LineChart = (canvas) => {
       }
     }
   }
+}
 
-  return {
-    id: canvas.id,
-    chart: new Chart(canvas.getContext('2d'), config),
-    config: config,
-    update: function (datasets) {
-      datasets.forEach((el, idx) => {
-        let point = { x: el.dataset.x, y: el.dataset.y }
+/** Chart.js Instrument **/
 
-        if (this.config.data.datasets.length <= idx) {
-          this.config.data.datasets.push(timeseries_dataset({
-            label: el.dataset.label,
-            data: [point]
-          }, this.config.data.datasets.length))
-        } else {
-          let last_point = this.config.data.datasets[idx].data[this.config.data.datasets[idx].data.length - 1]
-          if (last_point && last_point.x == point.x && last_point.y == point.y) {
-            // should we ever add the _exact_ same point to a dataset?
-          } else {
-            this.config.data.datasets[idx].data.push(point)
-          }
-        }
-      })
+const __INSTRUMENTS__ = {
+  doughnut: { config: DoughnutConfig, storage: DataFns },
+  timeseries: { config: TimeseriesConfig, storage: DatasetFns }
+}
 
+class Instrument {
+  static create({ instrument, ...options }) {
+    return new Instrument(Object.assign({}, options, __INSTRUMENTS__[instrument]))
+  }
+
+  constructor({ config: configFn, storage: storageFns, ...options }) {
+    this.config = configFn.call(null, options)
+    this.storageFns = storageFns
+  }
+
+  increment({ x, y, z }) {
+    let labelIndex = this.indexOf(x)
+    if (labelIndex === -1) {
+      this.pushDataset(x, { y: 1, z })
+    } else {
+      this.storageFns.increment.call(this.config, labelIndex, { x, y, z })
+    }
+  }
+
+  indexOf(label) {
+    return this.storageFns.indexOf.call(this.config, label)
+  }
+
+  pushDataset(label, data) {
+    return this.storageFns.pushDataset.call(this.config, label, data)
+  }
+
+  pushData({ x: label, ...rest }) {
+    let labelIndex = this.indexOf(label)
+    if (labelIndex === -1) {
+      this.pushDataset(label, rest)
+    } else {
+      this.storageFns.pushData.call(this.config, labelIndex, rest)
+    }
+  }
+}
+
+/** Telemetry Metrics **/
+
+// Displays the last measurement received
+class LastValue {
+  constructor(instrument, _options) {
+    this.instrument = instrument
+  }
+
+  pushData(data) {
+    data.forEach((item) => this.instrument.pushData(item))
+  }
+}
+
+// Displays a count of each event received
+class Counter {
+  constructor(instrument, _options) {
+    this.instrument = instrument
+  }
+
+  pushData(data) {
+    data.forEach(({ x, z }) => this.instrument.increment({ x, y: 1, z }))
+  }
+}
+
+// Displays the sum of the values received
+class Sum {
+  constructor(instrument, _options) {
+    this.instrument = instrument
+  }
+
+  pushData(data) {
+    data.forEach((item) => this.instrument.increment(item))
+  }
+}
+
+// Displays a measurement summary
+class Summary {
+  constructor(instrument, _options) {
+    // TODO: Get percentiles from options
+    this.instrument = instrument
+  }
+
+  pushData(data) {
+    data.forEach((item) => this.instrument.pushData(item))
+  }
+}
+
+const __METRICS__ = {
+  counter: Counter,
+  last_value: LastValue,
+  sum: Sum,
+  summary: Summary
+}
+
+class TelemetryChart {
+  constructor(elementOrContext, { metric: metric, ...options }) {
+    let instrument = Instrument.create(options)
+    this.metric = new __METRICS__[metric](instrument, options)
+    this.chart = new Chart(elementOrContext, instrument.config)
+  }
+
+  pushData(data) {
+    // Gives the metric the opportunity to cancel the redraw.
+    if (this.metric.pushData(data) !== false) {
       this.chart.update()
     }
   }
 }
 
-const ChartFactoryImpl = () => {
-  return {
-    factories: {},
-    register: function (name, obj) { this.factories[name] = obj },
-    new: function (canvas) { return this.factories[canvas.dataset.type](canvas) }
-  }
-}
+/** LiveView Hook **/
 
-const ChartRegistryImpl = (factory) => {
-  return {
-    factory: factory,
-    charts: {},
-    add: function (metric) {
-      let canvas = metric.getElementsByTagName('canvas')[0]
-      this.charts[canvas.id] = this.factory.new(canvas)
-    },
-    update: function (metric) {
-      let canvas = metric.getElementsByTagName('canvas')[0]
-      this.charts[canvas.id].update(
-        Array.from(metric.getElementsByClassName('dataset'))
-      )
+const PhxLiveMetric = {
+  mounted() {
+    let canvas = this.el.parentElement.getElementsByTagName('canvas')[0]
+    let options = Object.assign({}, canvas.dataset)
+    options['instrument'] = options['metric'] === 'summary' ? 'timeseries' : 'doughnut'
+    this.chart = new TelemetryChart(canvas.getContext('2d'), options)
+  },
+  updated() {
+    const data = Array
+      .from(this.el.children || [])
+      .map(({ dataset: { x, y, z } }) => { return { x, y, z } })
+
+    if (data.length > 0) {
+      this.chart.pushData(data)
     }
   }
-}
-
-const ChartFactory = ChartFactoryImpl()
-ChartFactory.register('doughnut', DoughnutChart)
-ChartFactory.register('line', LineChart)
-
-const Charts = ChartRegistryImpl(ChartFactory)
-
-/* Hooks for Chart.js */
-const PhxLiveMetric = {
-  mounted() { Charts.add(this.el.parentElement) },
-  updated() { Charts.update(this.el.parentElement) }
 }
 
 export default PhxLiveMetric
