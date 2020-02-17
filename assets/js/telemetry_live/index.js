@@ -151,8 +151,8 @@ const Charts = ChartRegistryImpl(ChartFactory)
 
 /* Hooks for Chart.js */
 const PhxLiveMetric = {
-  mounted() { Charts.add(this.el) },
-  updated() { Charts.update(this.el) }
+  mounted() { Charts.add(this.el.parentElement) },
+  updated() { Charts.update(this.el.parentElement) }
 }
 
 export default PhxLiveMetric
