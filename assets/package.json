@@ -7,7 +7,10 @@
   "repository": {},
   "scripts": {
     "build": "webpack --mode production",
-    "watch": "webpack --mode development --watch"
+    "watch": "webpack --mode development --watch",
+    "test": "jest",
+    "test.coverage": "jest --coverage",
+    "test.watch": "jest --watch"
   },
   "dependencies": {
     "chart.js": "^2.9.3",
@@ -19,12 +22,16 @@
     "@babel/core": "^7.3.4",
     "@babel/preset-env": "^7.4.1",
     "babel-loader": "^8.0.6",
-    "glob": "^7.1.6",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10",
-    "copy-webpack-plugin": "^4.5.0",
-    "css-loader": "^0.28.10",
+    "copy-webpack-plugin": "^5.1.1",
+    "css-loader": "^3.4.2",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
-    "style-loader": "^0.20.2"
+    "glob": "^7.1.6",
+    "jest": "^25.1.0",
+    "style-loader": "^0.20.2",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
+  },
+  "jest": {
+    "testRegex": "/test/.*_test\\.js$"
   }
 }
