@@ -3,7 +3,7 @@ import Chart from 'chart.js'
 
 /** Chart.js Storage Adapters **/
 
-const DataFns = {
+export const DataFns = {
   increment(labelIndex, { y: measurement }) {
     this.data.datasets[0].data[labelIndex] += measurement
   },
@@ -16,7 +16,7 @@ const DataFns = {
     this.data.datasets[0].backgroundColor.push(
       ColorWheel.at(this.data.labels.length)
     )
-    return labelIndex
+    return labelIndex - 1
   },
   pushData(labelIndex, { y: measurement }) {
     this.data.datasets[0].data[labelIndex] = measurement
