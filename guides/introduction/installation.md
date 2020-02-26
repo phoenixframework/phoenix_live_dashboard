@@ -28,11 +28,12 @@ of your choosing:
 ```elixir
 # lib/my_app_web/router.ex
 use Phoenix.Router
+import Phoenix.LiveView.Router
+import Phoenix.LiveDashboard.Router
 
 pipeline :browser do
   ...
-  :fetch_flash
-  Phoenix.LiveView.Flash
+  :fetch_live_flash
 end
 
 ...
@@ -41,7 +42,7 @@ end
 if Mix.env() == :dev do
   scope "/" do
     pipe_through :browser
-    forward "/dashboard", Phoenix.LiveDashboard, name: MyAppWeb.Dashboard
+    live_dashboard "/dashboard", MyAppWeb.Dashboard
   end
 end
 ```
