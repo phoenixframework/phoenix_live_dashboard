@@ -99,6 +99,15 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
                )
     end
 
+    test "skips missing measurements" do
+      assert :missing ==
+               MetricConversion.label_measurement(
+                 new_chart("phoenix.endpoint.stop.duration", :counter),
+                 %{not_duration: 1},
+                 %{}
+               )
+    end
+
     test "logs bad measurements" do
       log =
         capture_log(fn ->

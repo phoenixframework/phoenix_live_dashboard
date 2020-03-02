@@ -75,10 +75,12 @@ defmodule Phoenix.LiveDashboard.MetricConversion do
     %{id: id, metric: metric} = chart
 
     try do
-      measurement = extract_measurement(metric, measurements)
-      label = metric |> extract_tags(metadata) |> tags_to_label() || id
-
-      {:ok, {label, measurement}}
+      if measurement = extract_measurement(metric, measurements) do
+        label = metric |> extract_tags(metadata) |> tags_to_label() || id
+        {:ok, {label, measurement}}
+      else
+        :missing
+      end
     rescue
       e ->
         Logger.error([
@@ -105,10 +107,6 @@ defmodule Phoenix.LiveDashboard.MetricConversion do
   defp tags_to_label(tags) when tags == %{}, do: nil
 
   defp tags_to_label(tags) when is_map(tags) do
-    tags
-    |> Enum.reduce([], fn {_k, v}, acc -> [to_string(v) | acc] end)
-    |> Enum.reverse()
-    |> Enum.intersperse(?\s)
-    |> IO.iodata_to_binary()
+    Enum.map_join(tags, " ", fn {_k, v} -> v end)
   end
 end
