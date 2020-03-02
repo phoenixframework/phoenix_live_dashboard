@@ -48,31 +48,14 @@ defmodule Phoenix.LiveDashboard.MixProject do
       source_ref: "v#{@version}",
       source_url: "https://github.com/phoenixframework/phoenix_live_dashboard",
       extra_section: "GUIDES",
-      extras: extras(),
-      groups_for_extras: groups_for_extras(),
-      groups_for_modules: groups_for_modules()
+      extras: extras()
     ]
   end
 
   defp extras do
     [
-      "guides/introduction/installation.md",
+      "guides/installation.md",
       "guides/telemetry.md"
-    ]
-  end
-
-  defp groups_for_extras do
-    [
-      Introduction: ~r/guides\/introduction\/.?/,
-      Guides: ~r/guides\/[^\/]+\.md/
-    ]
-  end
-
-  defp groups_for_modules do
-    [
-      Routing: [
-        Phoenix.LiveDashboard.Helpers
-      ]
     ]
   end
 

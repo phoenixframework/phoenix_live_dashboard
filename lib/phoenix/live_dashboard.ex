@@ -12,18 +12,16 @@ defmodule Phoenix.LiveDashboard do
       [`:telemetry`](https://hexdocs.pm/telemetry) events
       with real-time charts. See [Telemetry](#module-telemetry).
 
-  ## The LiveView Dashboard
+  ## Installation
 
-  In order to use LiveDashboard, you need to:
+  See [the installation guide](installation.html) to
+  get started.
 
-    1. Install `Phoenix.LiveView` in your application
-    1. Define your Telemetry metrics
-    1. Forward requests to LiveDashboard
+  ## Metrics
 
-  ### Example
-
-  To start a LiveDashboard, add your LiveDashboard reporter
-  to your Telemetry supervision tree (usually in
+  This module is responsible for tracking the metrics you
+  want to show in your LiveDashboard. You start by adding
+  this module to your Telemetry supervision tree (usually in
   `lib/my_app_web/telemetry.ex`):
 
       children = [
@@ -34,11 +32,11 @@ defmodule Phoenix.LiveDashboard do
 
   With two options:
 
-  * `:name` - A unique name for your LiveDashboard.
+    * `:name` - A unique name for your LiveDashboard.
 
-  * `:metrics` - A list of [`Telemetry.Metrics`](`t:Telemetry.Metrics.t/0`)
-    structs. Each metric will be rendered as a chart on the
-    dashboard.
+    * `:metrics` - A list of [`Telemetry.Metrics`](`t:Telemetry.Metrics.t/0`)
+      structs. Each metric will be rendered as a chart on the
+      dashboard.
 
   Here are some example metrics from the Phoenix framework
   that you can use to get started:
@@ -56,26 +54,23 @@ defmodule Phoenix.LiveDashboard do
 
   Then, to access the dashboard, you use the
   [`live_dashboard/2`](`Phoenix.LiveDashboard.Router.live_dashboard/2`)
-  macro in your `Phoenix.Router` (usually in
-  `lib/my_app_web/router.ex`):
-
-      import Phoenix.LiveDashboard.Router
+  macro in your `Phoenix.Router` (usually in `lib/my_app_web/router.ex`):
 
       # LiveDashboard is only recommended in dev, for now :)
       if Mix.env() == :dev do
+        import Phoenix.LiveDashboard.Router
+
         scope "/" do
           pipe_through :browser
           live_dashboard "/dashboard", MyAppWeb.Dashboard
         end
       end
 
-  ## Telemetry
+  ### Telemetry
 
   LiveDashboard integrates with `Telemetry.Metrics` to
   render your application metrics as beatiful, real-time
   charts.
-
-  ### Translation from Telemetry.Metrics to LiveDashboard
 
   The following table shows how `Telemetry.Metrics` metrics
   map to LiveDashboard charts:
@@ -87,6 +82,7 @@ defmodule Phoenix.LiveDashboard do
   | `summary`         | `Line`, recording individual measurement using time scale |
   | `distribution`    | (Coming Soon) `Line`, recording measurement in individual buckets using time scale |
   """
+
   use Agent
 
   @doc false
