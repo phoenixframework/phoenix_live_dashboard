@@ -89,6 +89,7 @@ defmodule Phoenix.LiveDashboard do
   """
   use Agent
 
+  @doc false
   def start_link(opts) do
     name =
       opts[:name] ||
