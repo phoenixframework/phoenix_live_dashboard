@@ -1,7 +1,7 @@
 @import "./phoenix.css";
 @import "../../deps/phoenix_live_view/assets/css/live_view.css";
 
-.phx-dashboard-grid {
+.phx-dashboard-metrics-grid {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -15,14 +15,14 @@
   padding: 0rem 1rem;
 }
 
-.phx-dashboard-col {
+.phx-dashboard-metrics-col {
   flex: 1;
   flex-basis: 527px;
   min-width: 0;
 }
 
 @media (min-width: 40.0rem) {
-  .phx-dashboard-col {
+  .phx-dashboard-metrics-col {
     flex-basis: 327px;
   }
 }

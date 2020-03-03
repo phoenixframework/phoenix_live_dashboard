@@ -1,7 +1,16 @@
-defmodule Phoenix.LiveDashboard.LiveMetric do
+defmodule Phoenix.LiveDashboard.ChartComponent do
   # A LiveComponent for rendering a `Telemetry.Metrics` chart on the dashboard.
   @moduledoc false
   use Phoenix.LiveComponent
+
+  @enforce_keys [:id, :kind, :label, :metric]
+  defstruct [:id, :kind, :label, :metric]
+
+  @type t :: %__MODULE__{
+          id: String.t(),
+          kind: atom,
+          label: nil | String.t()
+        }
 
   @impl true
   def mount(socket) do
@@ -11,8 +20,8 @@ defmodule Phoenix.LiveDashboard.LiveMetric do
   @impl true
   def render(assigns) do
     ~L"""
-    <div id="<%= @chart.id %>" class="phx-dashboard-col">
-      <div phx-hook="PhxLiveMetric" id="<%= @chart.id %>--datasets" style="display:none;">
+    <div id="<%= @chart.id %>" class="phx-dashboard-metrics-col">
+      <div phx-hook="PhxChartComponent" id="<%= @chart.id %>--datasets" style="display:none;">
       <%= for %{x: x, y: y, z: z} <- @data do %>
         <span data-x="<%= x %>" data-y="<%= y %>" data-z="<%= z %>"></span>
       <% end %>

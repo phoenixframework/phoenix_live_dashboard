@@ -1,9 +1,20 @@
-const path = require('path')
-const glob = require('glob')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const path = require('path');
+const glob = require('glob');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-module.exports = {
-  entry: './js/app.js',
+module.exports = (env, options) => ({
+  optimization: {
+    minimizer: [
+      new TerserPlugin({ cache: true, parallel: true, sourceMap: false }),
+      new OptimizeCSSAssetsPlugin({})
+    ]
+  },
+  entry: {
+    './js/app.js': glob.sync('./vendor/**/*.js').concat(['./js/app.js'])
+  },
   output: {
     filename: 'app.js',
     path: path.resolve(__dirname, '../priv/static/js')
@@ -19,15 +30,15 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: 'css-loader'
-        })
+        use: [
+          MiniCssExtractPlugin.loader,
+          {loader: 'css-loader'}
+        ]
       }
     ]
   },
   plugins: [
-    new ExtractTextPlugin('../css/app.css')
+    new MiniCssExtractPlugin({ filename: '../css/app.css' }),
+    new CopyWebpackPlugin([{ from: 'static/', to: '../' }])
   ]
-};
-
+});

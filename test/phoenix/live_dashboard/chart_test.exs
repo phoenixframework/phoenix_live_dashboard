@@ -1,24 +1,24 @@
-defmodule Phoenix.LiveDashboard.MetricConversionTest do
+defmodule Phoenix.LiveDashboard.ChartTest do
   use ExUnit.Case, async: true
   import ExUnit.CaptureLog
   import Telemetry.Metrics
-  alias Phoenix.LiveDashboard.{Chart, MetricConversion}
+  alias Phoenix.LiveDashboard.Chart
 
   describe "to_chart/1" do
     test "with Distribution, raises with not yet supported message" do
       assert_raise ArgumentError, "LiveDashboard does not yet support distribution metrics", fn ->
-        MetricConversion.to_chart(distribution("a.b.c", buckets: [10, 20, 30]))
+        Chart.from_metric(distribution("a.b.c", buckets: [10, 20, 30]))
       end
     end
 
     test "new chart" do
-      assert MetricConversion.to_chart(counter("a.b.c")) ==
+      assert Chart.from_metric(counter("a.b.c")) ==
                new_chart("a.b.c", :counter)
     end
 
     test "metric" do
       metric = counter("a.b.c")
-      assert %Chart{} = chart = MetricConversion.to_chart(metric)
+      assert %Chart{} = chart = Chart.from_metric(metric)
       assert chart.metric == metric
     end
 
@@ -67,15 +67,15 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
 
   describe "label_measurement/3" do
     test "measurement from key" do
-      assert {:ok, {"phoenix-endpoint-stop-duration-counter", 1}} ==
-               MetricConversion.label_measurement(
+      assert {"phoenix-endpoint-stop-duration-counter", 1} ==
+               Chart.label_measurement(
                  new_chart("phoenix.endpoint.stop.duration", :counter),
                  %{duration: 1},
                  %{}
                )
 
-      assert {:ok, {"vm-memory-total-last_value", 1024}} ==
-               MetricConversion.label_measurement(
+      assert  {"vm-memory-total-last_value", 1024} ==
+               Chart.label_measurement(
                  new_chart("vm.memory.total", :last_value),
                  %{
                    total: 1024
@@ -85,8 +85,8 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
     end
 
     test "measurement from callback" do
-      assert {:ok, {"test-measurement-callback-counter", 3}} ==
-               MetricConversion.label_measurement(
+      assert {"test-measurement-callback-counter", 3} ==
+               Chart.label_measurement(
                  new_chart("test.measurement.callback", :counter,
                    measurement: &sum_all_measurements/1
                  ),
@@ -101,7 +101,7 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
 
     test "skips missing measurements" do
       assert :missing ==
-               MetricConversion.label_measurement(
+               Chart.label_measurement(
                  new_chart("phoenix.endpoint.stop.duration", :counter),
                  %{not_duration: 1},
                  %{}
@@ -112,7 +112,7 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
       log =
         capture_log(fn ->
           assert :error ==
-                   MetricConversion.label_measurement(
+                   Chart.label_measurement(
                      new_chart("endpoint.stop.duration", :summary,
                        tag_values: fn %{foo: :bar} -> %{bar: :baz} end,
                        tags: [:bar]
@@ -128,32 +128,32 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
 
     test "label from tags" do
       # key in metadata
-      assert {:ok, {"foo", 1}} ==
-               MetricConversion.label_measurement(
+      assert {"foo", 1} ==
+               Chart.label_measurement(
                  new_chart("test.tags.duration", tags: [:name]),
                  %{duration: 1},
                  %{name: :foo}
                )
 
       # multiple keys
-      assert {:ok, {"GET /dashboard", 0.001}} ==
-               MetricConversion.label_measurement(
+      assert {"GET /dashboard", 0.001} ==
+               Chart.label_measurement(
                  new_chart("http.request.stop.duration", tags: [:method, :path]),
                  %{duration: 0.001},
                  %{method: "GET", path: "/dashboard"}
                )
 
       # nonexistent keys
-      assert {:ok, {"test-tags-duration-with-invalid-keys-last_value", 1}} ==
-               MetricConversion.label_measurement(
+      assert {"test-tags-duration-with-invalid-keys-last_value", 1} ==
+               Chart.label_measurement(
                  new_chart("test.tags.duration", tags: [:with, :invalid, :keys]),
                  %{duration: 1},
                  %{name: :foo}
                )
 
       # mixed existence keys
-      assert {:ok, {"foo", 1}} ==
-               MetricConversion.label_measurement(
+      assert {"foo", 1} ==
+               Chart.label_measurement(
                  new_chart("test.tags.duration", tags: [:a, :b, :c]),
                  %{duration: 1},
                  %{b: "foo"}
@@ -161,8 +161,8 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
     end
 
     test "label from tag values" do
-      assert {:ok, {"GET /dashboard", 0.001}} ==
-               MetricConversion.label_measurement(
+      assert {"GET /dashboard", 0.001} ==
+               Chart.label_measurement(
                  new_chart("http.request.stop.duration",
                    tags: [:method, :request_path],
                    tag_values: &take_method_and_path_from_conn/1
@@ -171,8 +171,8 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
                  %{conn: Phoenix.ConnTest.build_conn(:get, "/dashboard")}
                )
 
-      assert {:ok, {"GET", 0.001}} ==
-               MetricConversion.label_measurement(
+      assert {"GET", 0.001} ==
+               Chart.label_measurement(
                  new_chart("http.request.stop.duration",
                    tags: [:method, :invalid_key],
                    tag_values: &take_method_and_path_from_conn/1
@@ -197,7 +197,7 @@ defmodule Phoenix.LiveDashboard.MetricConversionTest do
        when is_atom(metric) and is_list(opts) do
     Telemetry.Metrics
     |> apply(metric, [event_name, opts])
-    |> MetricConversion.to_chart()
+    |> Chart.from_metric()
   end
 
   # Telemetry.Metrics callbacks

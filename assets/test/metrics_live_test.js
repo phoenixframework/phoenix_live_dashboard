@@ -1,4 +1,4 @@
-import { DataFns } from '../js/telemetry_live'
+import { DataFns } from '../js/metrics_live'
 
 describe('DataFns', () => {
   describe('pushDataset', () => {

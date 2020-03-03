@@ -1,16 +1,13 @@
-defmodule Phoenix.LiveDashboard.TelemetryLive do
-  @moduledoc false
-  use Phoenix.LiveView,
-    container: {:section, id: "phx-dashboard-telemetry-live"},
-    layout: {Phoenix.LiveDashboard.LayoutView, "live.html"}
+defmodule Phoenix.LiveDashboard.MetricsLive do
+  use Phoenix.LiveDashboard.Web, :live_view
 
-  import Phoenix.LiveDashboard.MetricConversion
-  alias Phoenix.LiveDashboard.LiveMetric
+  alias Phoenix.LiveDashboard.{Chart, ChartComponent}
 
   @impl true
-  def mount(_, %{"name" => agent_name}, socket) do
-    metrics = Agent.get(agent_name, & &1.metrics, 1_000)
-    charts = Enum.map(metrics, &to_chart/1)
+  def mount(_, %{"metrics" => {mod, fun}}, socket) do
+    Process.flag(:trap_exit, true)
+    metrics = apply(mod, fun, [])
+    charts = Enum.map(metrics, &Chart.from_metric/1)
     groups = Enum.group_by(charts, & &1.metric.event_name)
     channel = self()
 
@@ -28,9 +25,9 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="phx-dashboard-grid">
+    <div class="phx-dashboard-metrics-grid">
     <%= for chart <- @charts do %>
-      <%= live_component @socket, LiveMetric, id: chart.id, chart: chart %>
+      <%= live_component @socket, ChartComponent, id: chart.id, chart: chart %>
     <% end %>
     </div>
     """
@@ -47,8 +44,8 @@ defmodule Phoenix.LiveDashboard.TelemetryLive do
     time = DateTime.truncate(DateTime.utc_now(), :millisecond)
 
     for chart <- charts do
-      with {:ok, {x, y}} <- label_measurement(chart, measurements, metadata) do
-        send_update(LiveMetric, id: chart.id, data: [%{x: x, y: y, z: time}])
+      with {x, y} <- Chart.label_measurement(chart, measurements, metadata) do
+        send_update(ChartComponent, id: chart.id, data: [%{x: x, y: y, z: time}])
       end
     end
 

@@ -224,7 +224,7 @@ class TelemetryChart {
 
 /** LiveView Hook **/
 
-const PhxLiveMetric = {
+const PhxChartComponent = {
   mounted() {
     let canvas = this.el.parentElement.getElementsByTagName('canvas')[0]
     let options = Object.assign({}, canvas.dataset)
@@ -242,4 +242,4 @@ const PhxLiveMetric = {
   }
 }
 
-export default PhxLiveMetric
+export default PhxChartComponent

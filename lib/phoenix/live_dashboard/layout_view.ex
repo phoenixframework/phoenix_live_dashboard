@@ -1,10 +1,6 @@
 defmodule Phoenix.LiveDashboard.LayoutView do
   @moduledoc false
-  use Phoenix.HTML
-
-  use Phoenix.View,
-    namespace: Phoenix.LiveDashboard,
-    root: "lib/phoenix/live_dashboard/templates"
+  use Phoenix.LiveDashboard.Web, :view
 
   js_path = Path.join(__DIR__, "../../../priv/static/js/app.js")
   css_path = Path.join(__DIR__, "../../../priv/static/css/app.css")

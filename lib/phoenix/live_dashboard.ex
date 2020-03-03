@@ -82,19 +82,4 @@ defmodule Phoenix.LiveDashboard do
   | `summary`         | `Line`, recording individual measurement using time scale |
   | `distribution`    | (Coming Soon) `Line`, recording measurement in individual buckets using time scale |
   """
-
-  use Agent
-
-  @doc false
-  def start_link(opts) do
-    name =
-      opts[:name] ||
-        raise ArgumentError, "the :name option is required by #{inspect(__MODULE__)}"
-
-    metrics =
-      opts[:metrics] ||
-        raise ArgumentError, "the :metrics option is required by #{inspect(__MODULE__)}"
-
-    Agent.start_link(fn -> %{metrics: metrics} end, name: name)
-  end
 end

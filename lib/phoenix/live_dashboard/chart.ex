@@ -1,33 +1,24 @@
 defmodule Phoenix.LiveDashboard.Chart do
   @moduledoc false
+  require Logger
+  alias __MODULE__
 
-  @enforce_keys [:id, :kind, :metric]
-  defstruct [
-    :id,
-    :kind,
-    :label,
-    :metric
-  ]
+  @enforce_keys [:id, :kind, :label, :metric]
+  defstruct [:id, :kind, :label, :metric]
 
-  @type t :: %__MODULE__{
+  @type t :: %Chart{
           id: String.t(),
           kind: atom,
           label: nil | String.t(),
           metric: Telemetry.Metrics.t()
         }
-end
 
-defmodule Phoenix.LiveDashboard.MetricConversion do
-  @moduledoc false
-  alias Phoenix.LiveDashboard.Chart
-  require Logger
-
-  @spec to_chart(metric :: Telemetry.Metrics.t()) :: Chart.t()
-  def to_chart(%Telemetry.Metrics.Distribution{}) do
+  @spec from_metric(metric :: Telemetry.Metrics.t()) :: Chart.t()
+  def from_metric(%Telemetry.Metrics.Distribution{}) do
     raise ArgumentError, "LiveDashboard does not yet support distribution metrics"
   end
 
-  def to_chart(%struct{} = metric) do
+  def from_metric(%struct{} = metric) do
     %Phoenix.LiveDashboard.Chart{
       id: id(metric),
       kind: kind(struct),
@@ -67,17 +58,17 @@ defmodule Phoenix.LiveDashboard.MetricConversion do
   defp humanize_unit(unit) when is_atom(unit), do: " #{unit}"
 
   @spec label_measurement(
-          chart :: Chart.t(),
+          chart :: t(),
           :telemetry.measurements(),
           :telemetry.metadata()
-        ) :: {:ok, {label :: String.t(), measurement :: nil | number()}} | :error
+        ) :: {:ok, {label :: String.t(), measurement :: number()}} | :error | :missing
   def label_measurement(%Chart{} = chart, measurements, metadata) do
     %{id: id, metric: metric} = chart
 
     try do
       if measurement = extract_measurement(metric, measurements) do
         label = metric |> extract_tags(metadata) |> tags_to_label() || id
-        {:ok, {label, measurement}}
+        {label, measurement}
       else
         :missing
       end
