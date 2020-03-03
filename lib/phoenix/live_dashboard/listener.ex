@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.Listener do
   @moduledoc false
   use GenServer, restart: :temporary
 
-  def listen(node, parent, events) do
+  def listen(node, events) do
     DynamicSupervisor.start_child(
       {Phoenix.LiveDashboard.ListenerSupervisor, node},
       {Phoenix.LiveDashboard.Listener, {self(), events}}
