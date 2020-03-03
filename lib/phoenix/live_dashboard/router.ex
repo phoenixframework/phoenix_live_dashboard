@@ -36,6 +36,8 @@ defmodule Phoenix.LiveDashboard.Router do
         opts = Phoenix.LiveDashboard.Router.__options__(opts)
         live("/", Phoenix.LiveDashboard.IndexLive, :index, opts)
         live("/metrics/:node", Phoenix.LiveDashboard.MetricsLive, :metrics, opts)
+        live("/request_logger", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts)
+        live("/request_logger/:stream", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts)
       end
     end
   end
@@ -59,9 +61,17 @@ defmodule Phoenix.LiveDashboard.Router do
       end
 
     [
-      session: %{"metrics" => metrics},
+      session: {__MODULE__, :__session__, [metrics]},
       layout: {Phoenix.LiveDashboard.LayoutView, :dash},
       as: :live_dashboard
     ]
+  end
+
+  @doc false
+  def __session__(conn, metrics) do
+    %{
+      "metrics" => metrics,
+      "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
+    }
   end
 end

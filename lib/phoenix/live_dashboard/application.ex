@@ -3,6 +3,8 @@ defmodule Phoenix.LiveDashboard.Application do
   use Application
 
   def start(_, _) do
+    Logger.add_backend(Phoenix.LiveDashboard.LoggerPubSubBackend)
+
     children = [
       {DynamicSupervisor, name: Phoenix.LiveDashboard.ListenerSupervisor, strategy: :one_for_one}
     ]
