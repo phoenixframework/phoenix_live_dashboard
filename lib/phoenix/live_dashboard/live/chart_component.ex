@@ -1,16 +1,5 @@
 defmodule Phoenix.LiveDashboard.ChartComponent do
-  # A LiveComponent for rendering a `Telemetry.Metrics` chart on the dashboard.
-  @moduledoc false
   use Phoenix.LiveComponent
-
-  @enforce_keys [:id, :kind, :label, :metric]
-  defstruct [:id, :kind, :label, :metric]
-
-  @type t :: %__MODULE__{
-          id: String.t(),
-          kind: atom,
-          label: nil | String.t()
-        }
 
   @impl true
   def mount(socket) do

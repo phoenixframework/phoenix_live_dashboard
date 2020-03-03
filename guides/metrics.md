@@ -1,56 +1,30 @@
-# Installation
+# Configuring metrics
 
-> Note: LiveDashboard requires `Phoenix.LiveView`.
-If LiveView is not already installed in your application,
-please follow ALL of the instructions in the
-[LiveView Installation](https://hexdocs.pm/phoenix_live_view/installation.html)
-guide before continuing.
+This guide covers how to install and configure your LiveDashboard Metrics.
 
-To start using LiveDashboard, add to your `mix.exs` and run
-[`mix deps.get`](https://hexdocs.pm/mix/Mix.Tasks.Deps.Get.html):
+## Installing metrics
 
-```elixir
-def deps do
-  [
-    {:telemetry_poller, "~> 0.4"},
-    {:telemetry_metrics, "~> 0.4"},
-    {:phoenix_live_dashboard, github: "phoenixframework/phoenix_live_dashboard"},
-  ]
-end
-```
+To enable the "Metrics" functionality in your dashboard, you will need
+to do the three steps below:
 
-### Configuring the Router
+  1. Add the telemetry dependencies
+  2. Define your telemetry module
+  3. Configure the dashboard
 
-Once installed, update your router's configuration to
-`forward` requests to a LiveDashboard with a unique `name`
-of your choosing:
+### Add the telemetry dependencies
+
+In your `mix.exs`, add the following to your `deps`:
 
 ```elixir
-# lib/my_app_web/router.ex
-use Phoenix.Router
-import Phoenix.LiveView.Router
-import Phoenix.LiveDashboard.Router
-
-pipeline :browser do
-  ...
-  :fetch_live_flash
-end
-
-...
-
-# LiveDashboard is only recommended in dev, for now :)
-if Mix.env() == :dev do
-  scope "/" do
-    pipe_through :browser
-    live_dashboard "/dashboard", MyAppWeb.Dashboard
-  end
-end
+  {:telemetry_poller, "~> 0.4"},
+  {:telemetry_metrics, "~> 0.4"},
 ```
 
-### Adding Telemetry
+If you are generated your Phoenix app in version v1.5+,
+these dependencies will already be installed. You can also
+skip the next section.
 
-Before you can use LiveDashboard, you will need to define
-the metrics that you wish to see rendered as real-time charts.
+### Define your telemetry module
 
 In your Phoenix application, we recommend that you create a
 module to act as your telemetry supervision tree. Within
@@ -65,7 +39,6 @@ events emitted by Phoenix, Ecto, and the VM (via the
 Create your Telemetry module in `lib/my_app_web/telemetry.ex`:
 
 ```elixir
-# lib/my_app_web/telemetry.ex
 defmodule MyAppWeb.Telemetry do
   use Supervisor
   import Telemetry.Metrics
@@ -76,16 +49,13 @@ defmodule MyAppWeb.Telemetry do
 
   def init(_arg) do
     children = [
-      {:telemetry_poller,
-       measurements: periodic_measurements(),
-       period: 10_000},
-      {Phoenix.LiveDashboard, name: MyAppWeb.Dashboard, metrics: metrics()}
+      {:telemetry_poller, measurements: periodic_measurements(), period: 10_000}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
   end
 
-  defp metrics do
+  def metrics do
     [
       # Phoenix Metrics
       summary("phoenix.endpoint.stop.duration",
@@ -93,9 +63,8 @@ defmodule MyAppWeb.Telemetry do
         tag_values: &tag_method_and_request_path/1,
         unit: {:native, :millisecond}
       ),
-      counter("phoenix.endpoint.stop.duration",
-        tags: [:method, :request_path],
-        tag_values: &tag_method_and_request_path/1,
+      summary("phoenix.router_dispatch.stop.duration",
+        tags: [:plug],
         unit: {:native, :millisecond}
       ),
 
@@ -104,10 +73,7 @@ defmodule MyAppWeb.Telemetry do
       summary("my_app.repo.query.decode_time", unit: {:native, :millisecond}),
       summary("my_app.repo.query.query_time", unit: {:native, :millisecond}),
       summary("my_app.repo.query.queue_time", unit: {:native, :millisecond}),
-
-      # Periodic measurements from Repo
-      last_value("demo.users.total"),
-      summary("demo.users.total"),
+      summary("my_app.repo.query.idle_time", unit: {:native, :millisecond}),
 
       # VM Metrics
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
@@ -118,9 +84,7 @@ defmodule MyAppWeb.Telemetry do
   end
 
   defp periodic_measurements do
-    [
-      {MyApp, :measure_users, []}
-    ]
+    []
   end
 
   # Extracts labels like "GET /"
@@ -130,33 +94,33 @@ defmodule MyAppWeb.Telemetry do
 end
 ```
 
+Make sure to replace `MyApp` and `my_app` by your actual application name.
+
 Then add to your main application's supervision tree (usually
 in `lib/my_app/application.ex`):
 
 ```elixir
 children = [
-  # Start the telemetry supervisor
+  MyApp.Repo,
   MyAppWeb.Telemetry,
-  # Start the endpoint when the application starts
   MyAppWeb.Endpoint,
   ...
 ]
 ```
 
-Finally, start the Phoenix server:
+### Configure the dashboard
+
+The last step now is to configure the dashboard. Go to the `live_dashboard` call in your router and add the following option:
 
 ```elixir
-mix phx.server
+live_dashboard "/dashboard", metrics: MyAppWeb.Telemetry
 ```
 
-And visit the LiveDashboard at
-[`localhost:4000/dashboard`](http://localhost:4000/dashboard).
+Now refresh the "/dashboard" page and the metrics functionality should be enabled.
 
-### Learning More
+## More about telemetry
 
-Now that you are up and running with LiveDashboard, you can
-begin exploring the rest of the telemetry ecosystem! Here are
-a few links to get you started:
+Now that you have metrics up andd running, you can begin exploring the rest of the telemetry ecosystem! Here are a few links to get you started:
 
 * The [`Telemetry.Metrics`](https://hexdocs.pm/telemetry_metrics)
   module documentation contains more information on:
@@ -166,9 +130,24 @@ a few links to get you started:
   * Custom periodic polling
 
 * For a deeper dive into Phoenix and Ecto metrics, see our
-  [Telemetry Walkthrough](telemetry.html).
+  [Telemetry Walkthrough](https://hexdocs.pm/phoenix/telemetry.html).
 
 * For more Elixir libraries using `:telemetry`, see
-  [Libraries using Telemetry](telemetry.html#libraries-using-telemetry).
+  [Libraries using Telemetry](https://hexdocs.pm/phoenix/telemetry.html#libraries-using-telemetry).
+
+## Configure Metrics
+
+The LiveDashboard integrates with `:telemetry` converting
+each  `Telemetry.Metrics` to a beatiful, real-time chart.
+
+The following table shows how `Telemetry.Metrics` metrics
+map to LiveDashboard charts:
+
+| Telemetry.Metrics | Chart |
+|-------------------|-------|
+| `last_value`      | `Doughnut`, always set to an absolute value |
+| `counter`         | `Doughnut`, always increased by 1 |
+| `summary`         | `Line`, recording individual measurement using time scale |
+| `distribution`    | (Coming Soon) `Line`, recording measurement in individual buckets using time scale |
 
 Happy coding!

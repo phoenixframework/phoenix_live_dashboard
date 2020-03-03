@@ -6,6 +6,15 @@ defmodule Phoenix.LiveDashboard.Router do
   @doc """
   Defines a LiveDashboard route.
 
+  It expects the `path` the dashboard will be mounted at
+  and a set of options.
+
+  ## Options
+
+    * `:metrics` - Configures the module to retrieve metrics from.
+      It can be a `module` or a `{module, function}`. If nothing is
+      given, the metrics functionality will be disabled.
+
   ## Examples
 
       defmodule MyAppWeb.Router
@@ -21,12 +30,12 @@ defmodule Phoenix.LiveDashboard.Router do
       end
 
   """
-  defmacro live_dashboard(path, options \\ []) do
+  defmacro live_dashboard(path, opts \\ []) do
     quote bind_quoted: binding() do
       scope path do
         import Phoenix.LiveView.Router, only: [live: 4]
 
-        opts = Phoenix.LiveDashboard.Router.__options__(options)
+        opts = Phoenix.LiveDashboard.Router.__options__(opts)
         live("/", Phoenix.LiveDashboard.IndexLive, :index, opts)
         live("/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts)
       end
@@ -37,14 +46,14 @@ defmodule Phoenix.LiveDashboard.Router do
   def __options__(options) do
     metrics =
       case options[:metrics] do
+        nil ->
+          nil
+
         mod when is_atom(mod) ->
           {mod, :metrics}
 
         {mod, fun} when is_atom(mod) and is_atom(fun) ->
           {mod, fun}
-
-        nil ->
-          nil
 
         other ->
           raise ":metrics must be a tuple with {Mod, fun}, " <>

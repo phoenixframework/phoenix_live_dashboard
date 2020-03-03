@@ -7,17 +7,14 @@ defmodule Phoenix.LiveDashboard.MixProject do
     [
       app: :phoenix_live_dashboard,
       version: @version,
-      elixir: "~> 1.8",
+      elixir: "~> 1.7",
       compilers: [:phoenix] ++ Mix.compilers(),
-      start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       package: package(),
       docs: docs(),
       homepage_url: "http://www.phoenixframework.org",
-      description: """
-      Real-time performance monitor and debugger for Phoenix
-      """
+      description: "Real-time performance monitor and tracer for Phoenix"
     ]
   end
 
@@ -54,8 +51,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
 
   defp extras do
     [
-      "guides/installation.md",
-      "guides/telemetry.md"
+      "guides/metrics.md"
     ]
   end
 
