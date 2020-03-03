@@ -17,14 +17,12 @@ defmodule Phoenix.LiveDashboard.Router do
 
   ## Examples
 
-      defmodule MyAppWeb.Router
+      defmodule MyAppWeb.Router do
         use Phoenix.Router
-        import Phoenix.LiveView.Router
         import Phoenix.LiveDashboard.Router
 
         scope "/", MyAppWeb do
           pipe_through [:browser]
-          live "/thermostat", ThermostatLive
           live_dashboard "/dashboard", metrics: {MyAppWeb.Telemetry, :metrics}
         end
       end

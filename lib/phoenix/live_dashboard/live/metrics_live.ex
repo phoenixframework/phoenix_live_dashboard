@@ -1,19 +1,17 @@
 defmodule Phoenix.LiveDashboard.MetricsLive do
   use Phoenix.LiveDashboard.Web, :live_view
 
-  alias Phoenix.LiveDashboard.{Chart, ChartComponent}
+  alias Phoenix.LiveDashboard.ChartComponent
 
   @impl true
   def mount(%{"node" => param_node}, %{"metrics" => {mod, fun}}, socket) do
     metrics = apply(mod, fun, [])
-    charts = Enum.map(metrics, &Chart.from_metric/1)
-    socket = assign(socket, charts: charts, node: nil, nodes: nodes())
+    socket = assign(socket, metrics: Enum.with_index(metrics), node: nil, nodes: nodes())
     socket = assign_node_or_redirect(socket, param_node)
 
     if connected?(socket) and is_nil(socket.redirected) do
       :net_kernel.monitor_nodes(true, node_type: :all)
-      events = Enum.map(charts, & &1.metric.event_name)
-      Phoenix.LiveDashboard.Listener.listen(socket.assigns.node, events)
+      Phoenix.LiveDashboard.Listener.listen(socket.assigns.node, metrics)
     end
 
     {:ok, socket}
@@ -23,30 +21,37 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   def render(assigns) do
     ~L"""
     <form phx-change="change_node">
-      Node: <%= select :metrics, :node, @nodes, value: @node, data: [phx_change: "hello"] %>
+      Node: <%= select :metrics, :node, @nodes, value: @node %>
     </form>
 
     <div class="phx-dashboard-metrics-grid">
-    <%= for chart <- @charts do %>
-      <%= live_component @socket, ChartComponent, id: chart.id, chart: chart %>
+    <%= for {metric, id} <- @metrics do %>
+      <%= live_component @socket, ChartComponent, id: id, metric: metric %>
     <% end %>
     </div>
     """
   end
 
   @impl true
-  def handle_info({:nodeup, _, _}, socket), do: {:noreply, assign(socket, nodes: nodes())}
-  def handle_info({:nodedown, _, _}, socket), do: {:noreply, assign(socket, nodes: nodes())}
+  def handle_info({:nodeup, _, _}, socket) do
+    {:noreply, assign(socket, nodes: nodes())}
+  end
 
-  def handle_info({event_name, measurements, metadata}, socket) do
-    # generate a timestamp for timeseries x-axis
-    time = DateTime.truncate(DateTime.utc_now(), :millisecond)
+  def handle_info({:nodedown, _, _}, socket) do
+    if socket.assigns.node not in nodes() do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Node #{socket.assigns.node} disconnected.")
+       |> redirect_to_current_node()}
+    else
+      {:noreply, assign(socket, nodes: nodes())}
+    end
+  end
 
-    for chart <- socket.assigns.charts,
-        chart.metric.event_name == event_name do
-      with {x, y} <- Chart.label_measurement(chart, measurements, metadata) do
-        send_update(ChartComponent, id: chart.id, data: [%{x: x, y: y, z: time}])
-      end
+  def handle_info({:telemetry, entries}, socket) do
+    for {id, label, measurement, time} <- entries do
+      data = [%{x: label, y: measurement, z: DateTime.from_unix!(time, :millisecond)}]
+      send_update(ChartComponent, id: id, data: data)
     end
 
     {:noreply, socket}
@@ -64,7 +69,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
     cond do
       is_nil(node) ->
-        push_redirect(socket, to: live_dashboard_path(socket, :metrics, [node()]))
+        redirect_to_current_node(socket)
 
       is_nil(socket.assigns.node) ->
         assign(socket, node: node)
@@ -75,5 +80,9 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
       true ->
         assign(socket, node: node)
     end
+  end
+
+  defp redirect_to_current_node(socket) do
+    push_redirect(socket, to: live_dashboard_path(socket, :metrics, [node()]))
   end
 end
