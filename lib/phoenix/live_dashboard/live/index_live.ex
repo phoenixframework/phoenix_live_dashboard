@@ -14,7 +14,7 @@ defmodule Phoenix.LiveDashboard.IndexLive do
     <ul>
       <li>
         <%= if @metrics do %>
-          <%= live_redirect "Metrics", to: live_dashboard_path(@socket, :metrics) %>
+          <%= live_redirect "Metrics", to: live_dashboard_path(@socket, :metrics, [node()]) %>
         <% else %>
           Metrics (not configured - <%= link "learn more", to: guide(:metrics) %>)
         <% end %>

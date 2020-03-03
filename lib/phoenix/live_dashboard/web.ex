@@ -61,6 +61,6 @@ defmodule Phoenix.LiveDashboard.Web do
   Computes a route path to the live dashboard.
   """
   def live_dashboard_path(socket, action, args \\ []) do
-    socket.router.__helpers__().live_dashboard_path(socket, action, args)
+    apply(socket.router.__helpers__(), :live_dashboard_path, [socket, action | args])
   end
 end

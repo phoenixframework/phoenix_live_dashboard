@@ -16,4 +16,7 @@
    position:relative;
    width:100%
  }
- 
+
+ select {
+  width: auto;
+ }
