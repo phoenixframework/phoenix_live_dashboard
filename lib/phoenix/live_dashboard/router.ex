@@ -34,17 +34,11 @@ defmodule Phoenix.LiveDashboard.Router do
         import Phoenix.LiveView.Router, only: [live: 4]
 
         opts = Phoenix.LiveDashboard.Router.__options__(opts)
-        live("/", Phoenix.LiveDashboard.IndexLive, :index, opts)
-        live("/:node", Phoenix.LiveDashboard.IndexLive, :index, opts)
-        live("/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts)
-        live("/:node/request_logger", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts)
-
-        live(
-          "/:node/request_logger/:stream",
-          Phoenix.LiveDashboard.LoggerLive,
-          :request_logger,
-          opts
-        )
+        live "/", Phoenix.LiveDashboard.IndexLive, :index, opts
+        live "/:node", Phoenix.LiveDashboard.IndexLive, :index, opts
+        live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
+        live "/:node/request_logger", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts
+        live "/:node/request_logger/:stream", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts
       end
     end
   end
