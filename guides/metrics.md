@@ -4,8 +4,7 @@ This guide covers how to install and configure your LiveDashboard Metrics.
 
 ## Installing metrics
 
-To enable the "Metrics" functionality in your dashboard, you will need
-to do the three steps below:
+To enable the "Metrics" functionality in your dashboard, you will need to do the three steps below:
 
   1. Add the telemetry dependencies
   2. Define your telemetry module
@@ -20,21 +19,13 @@ In your `mix.exs`, add the following to your `deps`:
   {:telemetry_metrics, "~> 0.4"},
 ```
 
-If you are generated your Phoenix app in version v1.5+,
-these dependencies will already be installed. You can also
-skip the next section.
+If you are generated your Phoenix app in version v1.5+, these dependencies will already be installed. You can also skip the next section.
 
 ### Define your telemetry module
 
-In your Phoenix application, we recommend that you create a
-module to act as your telemetry supervision tree. Within
-this supervisor you can define your application's metrics
-and start your reporters.
+In your Phoenix application, we recommend that you create a module to act as your telemetry supervision tree. Within this supervisor you can define your application's metrics and start your reporters.
 
-The example below contains the child spec for a LiveDashboard
-reporter, as well as some metrics definitions for telemetry
-events emitted by Phoenix, Ecto, and the VM (via the
-`:telemetry_poller` package).
+The example below contains the child spec for a LiveDashboard reporter, as well as some metrics definitions for telemetry events emitted by Phoenix, Ecto, and the VM (via the `:telemetry_poller` package).
 
 Create your Telemetry module in `lib/my_app_web/telemetry.ex`:
 
@@ -96,8 +87,7 @@ end
 
 Make sure to replace `MyApp` and `my_app` by your actual application name.
 
-Then add to your main application's supervision tree (usually
-in `lib/my_app/application.ex`):
+Then add to your main application's supervision tree (usually in `lib/my_app/application.ex`):
 
 ```elixir
 children = [
@@ -137,11 +127,9 @@ Now that you have metrics up andd running, you can begin exploring the rest of t
 
 ## Configure Metrics
 
-The LiveDashboard integrates with `:telemetry` converting
-each  `Telemetry.Metrics` to a beatiful, real-time chart.
+The LiveDashboard integrates with `:telemetry` converting each  `Telemetry.Metrics` to a beatiful, real-time chart.
 
-The following table shows how `Telemetry.Metrics` metrics
-map to LiveDashboard charts:
+The following table shows how `Telemetry.Metrics` metrics map to LiveDashboard charts:
 
 | Telemetry.Metrics | Chart |
 |-------------------|-------|
@@ -150,4 +138,4 @@ map to LiveDashboard charts:
 | `summary`         | `Line`, recording individual measurement using time scale |
 | `distribution`    | (Coming Soon) `Line`, recording measurement in individual buckets using time scale |
 
-Happy coding!
+Those are hardcoded and not configured at the moment.
