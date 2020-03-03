@@ -4,15 +4,20 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   alias Phoenix.LiveDashboard.ChartComponent
 
   @impl true
-  def mount(%{"node" => node}, %{"metrics" => {mod, fun}}, socket) do
+  def mount(params, %{"metrics" => {mod, fun}} = session, socket) do
     metrics = apply(mod, fun, [])
 
+    socket =
+      socket
+      |> assign_defaults(params, session)
+      |> assign(metrics: Enum.with_index(metrics))
+
     if connected?(socket) do
-      Phoenix.LiveDashboard.Listener.listen(find_node!(node), metrics)
+      Phoenix.LiveDashboard.Listener.listen(find_node!(socket.assigns.node), metrics)
       :net_kernel.monitor_nodes(true, node_type: :all)
     end
 
-    {:ok, assign(socket, node: node, metrics: Enum.with_index(metrics))}
+    {:ok, socket}
   end
 
   @impl true

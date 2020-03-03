@@ -38,7 +38,13 @@ defmodule Phoenix.LiveDashboard.Router do
         live("/:node", Phoenix.LiveDashboard.IndexLive, :index, opts)
         live("/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts)
         live("/:node/request_logger", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts)
-        live("/:node/request_logger/:stream", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts)
+
+        live(
+          "/:node/request_logger/:stream",
+          Phoenix.LiveDashboard.LoggerLive,
+          :request_logger,
+          opts
+        )
       end
     end
   end

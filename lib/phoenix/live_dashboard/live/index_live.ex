@@ -2,13 +2,13 @@ defmodule Phoenix.LiveDashboard.IndexLive do
   use Phoenix.LiveDashboard.Web, :live_view
 
   @impl true
-  def mount(%{"node" => node}, session, socket) do
-    {:ok,
-     assign(socket,
-       node: node,
-       metrics: session["metrics"],
-       request_logger: session["request_logger"]
-     )}
+  def mount(%{"node" => _} = params, session, socket) do
+    socket =
+      socket
+      |> assign_defaults(params, session)
+      |> assign(metrics: session["metrics"], request_logger: session["request_logger"])
+
+    {:ok, socket}
   end
 
   def mount(_params, _session, socket) do

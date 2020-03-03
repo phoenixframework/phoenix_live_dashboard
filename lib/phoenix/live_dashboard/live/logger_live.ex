@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
   use Phoenix.LiveDashboard.Web, :live_view
 
   @impl true
-  def mount(%{"stream" => stream, "node" => node}, %{"request_logger" => param_key}, socket) do
+  def mount(%{"stream" => stream} = params, %{"request_logger" => param_key} = session, socket) do
     endpoint = socket.endpoint
     signed_param = Phoenix.LiveDashboard.RequestLogger.sign(endpoint, param_key, stream)
 
@@ -12,9 +12,12 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
       Phoenix.PubSub.subscribe(pubsub_server, Phoenix.LiveDashboard.RequestLogger.topic(stream))
     end
 
-    {:ok,
-     assign(socket, signed_param: signed_param, stream: stream, param_key: param_key, node: node),
-     temporary_assigns: [messages: []]}
+    socket =
+      socket
+      |> assign_defaults(params, session)
+      |> assign(signed_param: signed_param, stream: stream, param_key: param_key)
+
+    {:ok, socket, temporary_assigns: [messages: []]}
   end
 
   def mount(%{"node" => node}, %{"request_logger" => _}, socket) do

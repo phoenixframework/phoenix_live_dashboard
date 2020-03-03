@@ -17,7 +17,8 @@ defmodule Phoenix.LiveDashboard.LoggerPubSubBackend do
   end
 
   @impl true
-  def handle_event({level, gl, {Logger, msg, ts, metadata}}, {format, keys} = state) when node(gl) == node() do
+  def handle_event({level, gl, {Logger, msg, ts, metadata}}, {format, keys} = state)
+      when node(gl) == node() do
     with {pubsub, topic} <- metadata[:logger_pubsub_backend] do
       metadata = take_metadata(metadata, keys)
       formatted = Logger.Formatter.format(format, level, msg, ts, metadata)

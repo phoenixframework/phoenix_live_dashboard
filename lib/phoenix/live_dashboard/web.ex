@@ -64,4 +64,14 @@ defmodule Phoenix.LiveDashboard.Web do
   def live_dashboard_path(socket, action, node, args \\ []) do
     apply(socket.router.__helpers__(), :live_dashboard_path, [socket, action, node | args])
   end
+
+  def assign_defaults(socket, params, session) do
+    socket = Phoenix.LiveView.assign(socket, :node, Map.fetch!(params, "node"))
+
+    Phoenix.LiveView.assign(socket, :menu, %{
+      node: params["node"],
+      metrics: session["metrics"],
+      request_logger: session["request_logger"]
+    })
+  end
 end

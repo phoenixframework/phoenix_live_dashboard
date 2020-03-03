@@ -1,12 +1,14 @@
-defmodule Phoenix.LiveDashboard.NodeSelectorLive do
+defmodule Phoenix.LiveDashboard.MenuLive do
   @moduledoc false
-  use Phoenix.LiveView
+  use Phoenix.LiveView, container: {:nav, []}
+
   use Phoenix.LiveDashboard.Web, :view_helpers
 
   @impl true
-  def mount(_, %{"node" => param_node}, socket) do
-    socket = assign(socket, node: nil, nodes: nodes())
-    socket = assign_node_or_redirect(socket, param_node)
+  def mount(_, %{"menu" => menu}, socket) do
+    IO.inspect(menu)
+    socket = socket |> assign(menu) |> assign(node: nil, nodes: nodes())
+    socket = assign_node_or_redirect(socket, menu.node)
 
     if connected?(socket) and is_nil(socket.redirected) do
       :net_kernel.monitor_nodes(true, node_type: :all)
@@ -18,7 +20,17 @@ defmodule Phoenix.LiveDashboard.NodeSelectorLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <form phx-change="select_node">
+    <%= live_redirect "Home", to: live_dashboard_path(@socket, :index, [@node]) %> |
+
+    <%= if @metrics do %>
+      <%= live_redirect "Metrics", to: live_dashboard_path(@socket, :metrics, @node) %> |
+    <% end %>
+
+    <%= if @request_logger do %>
+      <%= live_redirect "Request Logger", to: live_dashboard_path(@socket, :request_logger, @node) %> |
+    <% end %>
+
+    <form phx-change="select_node" style="display:inline">
       Node: <%= select :node_selector, :node, @nodes, value: @node %>
     </form>
     """
