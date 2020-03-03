@@ -7,6 +7,9 @@
     <%= csrf_meta_tag() %>
     <title><%= assigns[:page_title] || "Phoenix LiveDashboard" %></title>
     <style><%= raw(render("app.css")) %></style>
-  </head><%= render @view_module, @view_template, assigns %>
+  </head>
+  <body>
+    <%= render @view_module, @view_template, assigns %>
+  </body>
   <script><%= raw(render("app.js")) %></script>
 </html>

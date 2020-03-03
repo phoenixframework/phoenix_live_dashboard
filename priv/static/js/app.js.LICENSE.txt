@@ -1,3 +1,6 @@
+/* NProgress, (c) 2013, 2014 Rico Sta. Cruz - http://ricostacruz.com/nprogress
+ * @license MIT */
+
 /*!
  * Chart.js v2.9.3
  * https://www.chartjs.org

@@ -1,6 +1,20 @@
 @import "./phoenix.css";
-@import "../../deps/phoenix_live_view/assets/css/live_view.css";
+@import "../node_modules/nprogress/nprogress.css";
 
+/* LiveView specific classes for your customizations */
+.phx-click-loading {
+  opacity: 0.5;
+  transition: opacity 1s ease-out;
+}
+
+.phx-disconnected{
+  cursor: wait;
+}
+.phx-disconnected *{
+  pointer-events: none;
+}
+
+/* App metrics */
 .phx-dashboard-metrics-grid {
   display: flex;
   flex-wrap: wrap;

@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "chart.js": "^2.9.3",
+    "nprogress": "^0.2.0",
     "phoenix": "../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
     "phoenix_live_view": "file:../deps/phoenix_live_view"
