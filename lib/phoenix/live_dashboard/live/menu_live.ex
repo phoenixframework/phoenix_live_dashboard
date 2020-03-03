@@ -6,7 +6,6 @@ defmodule Phoenix.LiveDashboard.MenuLive do
 
   @impl true
   def mount(_, %{"menu" => menu}, socket) do
-    IO.inspect(menu)
     socket = socket |> assign(menu) |> assign(node: nil, nodes: nodes())
     socket = assign_node_or_redirect(socket, menu.node)
 
