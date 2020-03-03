@@ -2,8 +2,22 @@ defmodule Phoenix.LiveDashboard.IndexLive do
   use Phoenix.LiveDashboard.Web, :live_view
 
   @impl true
-  def mount(_params, session, socket) do
-    {:ok, assign(socket, metrics: session["metrics"], request_logger: session["request_logger"])}
+  def mount(%{"node" => node}, session, socket) do
+    {:ok,
+     assign(socket,
+       node: node,
+       metrics: session["metrics"],
+       request_logger: session["request_logger"]
+     )}
+  end
+
+  def mount(_params, _session, socket) do
+    {:ok, push_redirect(socket, to: live_dashboard_path(socket, :index, node()))}
+  end
+
+  @impl true
+  def handle_info({:node_redirect, node}, socket) do
+    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :index, node))}
   end
 
   @impl true
@@ -14,7 +28,7 @@ defmodule Phoenix.LiveDashboard.IndexLive do
     <ul>
       <li>
         <%= if @metrics do %>
-          <%= live_redirect "Metrics", to: live_dashboard_path(@socket, :metrics, [node()]) %>
+          <%= live_redirect "Metrics", to: live_dashboard_path(@socket, :metrics, @node) %>
         <% else %>
           Metrics (not configured - <%= link "learn more", to: guide(:metrics) %>)
         <% end %>
@@ -22,7 +36,7 @@ defmodule Phoenix.LiveDashboard.IndexLive do
 
       <li>
         <%= if @request_logger do %>
-          <%= live_redirect "New request logger stream", to: live_dashboard_path(@socket, :request_logger) %>
+          <%= live_redirect "New request logger stream", to: live_dashboard_path(@socket, :request_logger, @node) %>
         <% else %>
           Request Logger (not configured - <%= link "learn more", to: guide(:request_logger) %>)
         <% end %>

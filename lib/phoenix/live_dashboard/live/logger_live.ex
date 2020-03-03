@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
   use Phoenix.LiveDashboard.Web, :live_view
 
   @impl true
-  def mount(%{"stream" => stream}, %{"request_logger" => param_key}, socket) do
+  def mount(%{"stream" => stream, "node" => node}, %{"request_logger" => param_key}, socket) do
     endpoint = socket.endpoint
     signed_param = Phoenix.LiveDashboard.RequestLogger.sign(endpoint, param_key, stream)
 
@@ -12,13 +12,14 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
       Phoenix.PubSub.subscribe(pubsub_server, Phoenix.LiveDashboard.RequestLogger.topic(stream))
     end
 
-    {:ok, assign(socket, signed_param: signed_param, param_key: param_key),
+    {:ok,
+     assign(socket, signed_param: signed_param, stream: stream, param_key: param_key, node: node),
      temporary_assigns: [messages: []]}
   end
 
-  def mount(%{}, %{"request_logger" => _}, socket) do
+  def mount(%{"node" => node}, %{"request_logger" => _}, socket) do
     stream = :crypto.strong_rand_bytes(3) |> Base.url_encode64()
-    {:ok, push_redirect(socket, to: live_dashboard_path(socket, :request_logger, [stream]))}
+    {:ok, push_redirect(socket, to: live_dashboard_path(socket, :request_logger, node, [stream]))}
   end
 
   @impl true
@@ -26,12 +27,19 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
     {:noreply, assign(socket, messages: [message])}
   end
 
+  def handle_info({:node_redirect, node}, socket) do
+    stream = socket.assigns.stream
+
+    {:noreply,
+     push_redirect(socket, to: live_dashboard_path(socket, :request_logger, node, [stream]))}
+  end
+
   @impl true
   def render(assigns) do
     ~L"""
     <p>Access any page with this query parameter:<br /><code>?<%= @param_key %>=<%= @signed_param %></code></p>
 
-    <p><%= live_redirect "New stream", to: live_dashboard_path(@socket, :request_logger) %></p>
+    <p><%= live_redirect "New stream", to: live_dashboard_path(@socket, :request_logger, @node) %></p>
 
     <div id="logger-messages" phx-update="append">
       <%= for message <- @messages do %>

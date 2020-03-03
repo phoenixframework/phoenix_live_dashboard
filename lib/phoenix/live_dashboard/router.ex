@@ -35,9 +35,10 @@ defmodule Phoenix.LiveDashboard.Router do
 
         opts = Phoenix.LiveDashboard.Router.__options__(opts)
         live("/", Phoenix.LiveDashboard.IndexLive, :index, opts)
-        live("/metrics/:node", Phoenix.LiveDashboard.MetricsLive, :metrics, opts)
-        live("/request_logger", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts)
-        live("/request_logger/:stream", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts)
+        live("/:node", Phoenix.LiveDashboard.IndexLive, :index, opts)
+        live("/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts)
+        live("/:node/request_logger", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts)
+        live("/:node/request_logger/:stream", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts)
       end
     end
   end

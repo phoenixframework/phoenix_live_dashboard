@@ -1,1 +1,3 @@
+<%= live_render @socket, Phoenix.LiveDashboard.NodeSelectorLive,
+      id: "node_selector", session: %{"node" => @node} %>
 <section role="main"><%= @inner_content %></section>

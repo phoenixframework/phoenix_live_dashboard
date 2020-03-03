@@ -37,7 +37,8 @@ defmodule Phoenix.LiveDashboard.Web do
     end
   end
 
-  defp view_helpers do
+  @doc false
+  def view_helpers do
     quote do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
@@ -60,7 +61,7 @@ defmodule Phoenix.LiveDashboard.Web do
   @doc """
   Computes a route path to the live dashboard.
   """
-  def live_dashboard_path(socket, action, args \\ []) do
-    apply(socket.router.__helpers__(), :live_dashboard_path, [socket, action | args])
+  def live_dashboard_path(socket, action, node, args \\ []) do
+    apply(socket.router.__helpers__(), :live_dashboard_path, [socket, action, node | args])
   end
 end
