@@ -50,12 +50,16 @@ defmodule MyAppWeb.Telemetry do
     [
       # Phoenix Metrics
       summary("phoenix.endpoint.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+      summary("phoenix.endpoint.stop.duration",
         tags: [:method, :request_path],
         tag_values: &tag_method_and_request_path/1,
         unit: {:native, :millisecond}
       ),
       summary("phoenix.router_dispatch.stop.duration",
-        tags: [:plug],
+        tags: [:controller_action],
+        tag_values: &tag_controller_action/1,
         unit: {:native, :millisecond}
       ),
 
@@ -80,7 +84,16 @@ defmodule MyAppWeb.Telemetry do
 
   # Extracts labels like "GET /"
   defp tag_method_and_request_path(metadata) do
-    Map.merge(metadata, Map.take(metadata.conn, [:method, :request_path]))
+    Map.take(metadata.conn, [:method, :request_path])
+  end
+
+  # Extracts controller#action from route dispatch
+  defp tag_controller_action(%{plug: plug, plug_opts: plug_opts}) when is_atom(plug_opts) do
+    %{controller_action: "#{inspect(plug)}##{plug_opts}"}
+  end
+
+  defp tag_controller_action(%{plug: plug}) do
+    %{controller_action: inspect(plug)}
   end
 end
 ```
@@ -106,7 +119,7 @@ The last step now is to configure the dashboard. Go to the `live_dashboard` call
 live_dashboard "/dashboard", metrics: MyAppWeb.Telemetry
 ```
 
-Now refresh the "/dashboard" page and the metrics functionality should be enabled.
+Now refresh the "/dashboard" page and the metrics functionality should be enabled. Each metric goes to a distinct group based on the metric name itself.
 
 ## More about telemetry
 
@@ -138,4 +151,14 @@ The following table shows how `Telemetry.Metrics` metrics map to LiveDashboard c
 | `summary`         | `Line`, recording individual measurement using time scale |
 | `distribution`    | (Coming Soon) `Line`, recording measurement in individual buckets using time scale |
 
-Those are hardcoded and not configured at the moment.
+Those are hardcoded and not configurable at the moment.
+
+### Reporter options
+
+Reporter options can be given to each metric as an option. For example:
+
+    counter("my_app.counter", reporter_options: [...])
+
+The following reporter options are available to the dashboard:
+
+  * `:group` - configures the group the metric belongs to. By default the group is the first part of the name. For example, `counter("my_app.counter")` defaults to group "my_app"
