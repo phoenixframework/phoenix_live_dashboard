@@ -6,7 +6,7 @@ defmodule Phoenix.LiveDashboard.MenuLive do
 
   @impl true
   def mount(_, %{"menu" => menu}, socket) do
-    socket = socket |> assign(menu) |> assign(node: nil, nodes: nodes())
+    socket = assign(socket, menu: menu, node: nil, nodes: nodes())
     socket = assign_node_or_redirect(socket, menu.node)
 
     if connected?(socket) and is_nil(socket.redirected) do
@@ -20,19 +20,20 @@ defmodule Phoenix.LiveDashboard.MenuLive do
   def render(assigns) do
     ~L"""
     <%= live_redirect "Home", to: live_dashboard_path(@socket, :index, [@node]) %> |
-
-    <%= if @metrics do %>
-      <%= live_redirect "Metrics", to: live_dashboard_path(@socket, :metrics, @node) %> |
-    <% end %>
-
-    <%= if @request_logger do %>
-      <%= live_redirect "Request Logger", to: live_dashboard_path(@socket, :request_logger, @node) %> |
-    <% end %>
-
+    <%= maybe_live_redirect @socket, "Metrics", :metrics, @node %>
+    <%= maybe_live_redirect @socket, "Request Logger", :request_logger, @node %>
     <form phx-change="select_node" style="display:inline">
       Node: <%= select :node_selector, :node, @nodes, value: @node %>
     </form>
     """
+  end
+
+  defp maybe_live_redirect(socket, text, action, node) do
+    cond do
+      is_nil(socket.assigns.menu[action]) -> ""
+      socket.assigns.menu.action == action -> [text | " | "]
+      true -> [live_redirect(text, to: live_dashboard_path(socket, action, node)) | " | "]
+    end
   end
 
   @impl true
