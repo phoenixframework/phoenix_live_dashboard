@@ -1,13 +1,13 @@
-defmodule Phoenix.LiveDashboard.Listener do
-  # This module is the one responsible for listening
-  # and sending metrics to a given node.
+defmodule Phoenix.LiveDashboard.TelemetryListener do
+  # This module is the one responsible for listening to
+  # telemetry events and sending metrics from the given node.
   @moduledoc false
   use GenServer, restart: :temporary
 
   def listen(node, metrics) do
     DynamicSupervisor.start_child(
-      {Phoenix.LiveDashboard.ListenerSupervisor, node},
-      {Phoenix.LiveDashboard.Listener, {self(), metrics}}
+      {Phoenix.LiveDashboard.DynamicSupervisor, node},
+      {__MODULE__, {self(), metrics}}
     )
   end
 

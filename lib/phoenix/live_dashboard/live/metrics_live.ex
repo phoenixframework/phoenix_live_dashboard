@@ -17,8 +17,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
       |> assign(group: group, groups: Map.keys(metrics_per_group))
 
     if metrics && connected?(socket) do
-      Phoenix.LiveDashboard.Listener.listen(find_node!(socket.assigns.node), metrics)
-      :net_kernel.monitor_nodes(true, node_type: :all)
+      Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
       {:ok, assign(socket, metrics: Enum.with_index(metrics))}
     else
       {:ok, assign(socket, metrics: nil)}
@@ -36,7 +35,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
       <%= for group <- @groups do %>
         <li class="<%= if @group == group, do: "active" %>">
           <%= live_redirect "#{inspect(group)} metrics",
-                to: live_dashboard_path(@socket, :metrics, @node, [group]) %>
+                to: live_dashboard_path(@socket, :metrics, @menu.node, [group]) %>
         </li>
       <% end %>
     </ul>
@@ -62,11 +61,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   end
 
   def handle_info({:node_redirect, node}, socket) do
-    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node))}
-  end
-
-  defp find_node!(param_node) do
-    Enum.find([node() | Node.list()], &(Atom.to_string(&1) == param_node)) ||
-      raise "could not find #{param_node}"
+    args = if group = socket.assigns.group, do: [group], else: []
+    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, args))}
   end
 end

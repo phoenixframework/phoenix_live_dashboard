@@ -31,10 +31,8 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
   end
 
   def handle_info({:node_redirect, node}, socket) do
-    stream = socket.assigns.stream
-
-    {:noreply,
-     push_redirect(socket, to: live_dashboard_path(socket, :request_logger, node, [stream]))}
+    to = live_dashboard_path(socket, :request_logger, node, [socket.assigns.stream])
+    {:noreply, push_redirect(socket, to: to)}
   end
 
   @impl true
@@ -42,7 +40,7 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
     ~L"""
     <p>Access any page with this query parameter:<br /><code>?<%= @param_key %>=<%= @signed_param %></code></p>
 
-    <p><%= live_redirect "New stream", to: live_dashboard_path(@socket, :request_logger, @node) %></p>
+    <p><%= live_redirect "New stream", to: live_dashboard_path(@socket, :request_logger, @menu.node) %></p>
 
     <div id="logger-messages" phx-update="append">
       <%= for message <- @messages do %>

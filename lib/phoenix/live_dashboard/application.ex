@@ -6,7 +6,7 @@ defmodule Phoenix.LiveDashboard.Application do
     Logger.add_backend(Phoenix.LiveDashboard.LoggerPubSubBackend)
 
     children = [
-      {DynamicSupervisor, name: Phoenix.LiveDashboard.ListenerSupervisor, strategy: :one_for_one}
+      {DynamicSupervisor, name: Phoenix.LiveDashboard.DynamicSupervisor, strategy: :one_for_one}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one)
