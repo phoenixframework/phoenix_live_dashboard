@@ -11,27 +11,48 @@ defmodule Phoenix.LiveDashboard.RequestLogger do
 
   @impl true
   def init(opts) do
-    param_key =
-      opts[:param_key] ||
-        raise ArgumentError,
-              "the name of the parameter to log must be given to Phoenix.LiveDashboard.RequestLogger"
+    param_key = opts[:param_key]
+    cookie_key = opts[:cookie_key]
 
-    param_key
+    unless param_key || cookie_key do
+      raise ArgumentError, "expected either :param_key or :cookie_key to be given"
+    end
+
+    {param_key, cookie_key}
   end
 
   @impl true
-  def call(conn, param_key) do
-    conn = Plug.Conn.fetch_query_params(conn)
+  def call(conn, {param_key, cookie_key}) do
+    conn
+    |> verify_from_param_key(param_key)
+    |> verify_from_cookie_key(cookie_key)
+    |> Plug.Conn.put_private(@private_key, {param_key, cookie_key})
+  end
 
-    with signed_param when is_binary(signed_param) <- conn.query_params[param_key],
-         {:ok, stream} <- Phoenix.Token.verify(conn, param_key, signed_param, max_age: @max_age) do
-      endpoint = conn.private.phoenix_endpoint
+  defp verify_from_param_key(conn, nil), do: conn
+
+  defp verify_from_param_key(conn, param_key) do
+    conn = Plug.Conn.fetch_query_params(conn)
+    verify_value(conn, param_key, conn.query_params[param_key])
+    conn
+  end
+
+  defp verify_from_cookie_key(conn, nil), do: conn
+
+  defp verify_from_cookie_key(conn, cookie_key) do
+    conn = Plug.Conn.fetch_cookies(conn)
+    verify_value(conn, cookie_key, conn.req_cookies[cookie_key])
+    conn
+  end
+
+  defp verify_value(conn, key, value) do
+    with true <- is_binary(value),
+         {:ok, stream} <- Phoenix.Token.verify(conn, key, value, max_age: @max_age) do
       # TODO: Remove || once we support Phoenix v1.5+
+      endpoint = conn.private.phoenix_endpoint
       pubsub_server = endpoint.config(:pubsub_server) || endpoint.__pubsub_server__()
       Logger.metadata(logger_pubsub_backend: {pubsub_server, topic(stream)})
     end
-
-    Plug.Conn.put_private(conn, @private_key, param_key)
   end
 
   @doc false

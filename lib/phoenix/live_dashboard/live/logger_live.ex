@@ -2,12 +2,12 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
   use Phoenix.LiveDashboard.Web, :live_view
 
   @impl true
-  def mount(%{"stream" => stream} = params, %{"request_logger" => param_key} = session, socket) do
-    endpoint = socket.endpoint
-    signed_param = Phoenix.LiveDashboard.RequestLogger.sign(endpoint, param_key, stream)
+  def mount(%{"stream" => stream} = params, session, socket) do
+    %{"request_logger" => {param_key, cookie_key}} = session
 
     if connected?(socket) do
       # TODO: Remove || once we support Phoenix v1.5+
+      endpoint = socket.endpoint
       pubsub_server = endpoint.config(:pubsub_server) || endpoint.__pubsub_server__()
       Phoenix.PubSub.subscribe(pubsub_server, Phoenix.LiveDashboard.RequestLogger.topic(stream))
     end
@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
     socket =
       socket
       |> assign_defaults(params, session)
-      |> assign(signed_param: signed_param, stream: stream, param_key: param_key)
+      |> assign(stream: stream, param_key: param_key, cookie_key: cookie_key)
 
     {:ok, socket, temporary_assigns: [messages: []]}
   end
@@ -38,7 +38,15 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <p>Access any page with this query parameter:<br /><code>?<%= @param_key %>=<%= @signed_param %></code></p>
+    <%= if @param_key do %>
+      <p>Access any page with this query parameter:<br />
+      <code>?<%= @param_key %>=<%= sign(@socket, @param_key, @stream) %></code></p>
+    <% end %>
+
+    <%= if @cookie_key do %>
+      <p>Click this upcoming magic button to set or unset cookie:<br />
+      <code><%= @cookie_key %>=<%= sign(@socket, @cookie_key, @stream) %></code></p>
+    <% end %>
 
     <p><%= live_redirect "New stream", to: live_dashboard_path(@socket, :request_logger, @menu.node) %></p>
 
@@ -48,5 +56,9 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
       <% end %>
     </div>
     """
+  end
+
+  defp sign(socket, key, value) do
+    Phoenix.LiveDashboard.RequestLogger.sign(socket.endpoint, key, value)
   end
 end
