@@ -1,2 +1,2 @@
 <%= live_render @socket, Phoenix.LiveDashboard.MenuLive, id: "menu", session: %{"menu" => @menu} %>
-<section role="main"><%= @inner_content %></section>
+<section role="main"><%= @live_view_module.render(assigns) %></section>

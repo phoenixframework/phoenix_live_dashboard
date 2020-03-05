@@ -4,16 +4,19 @@ defmodule Phoenix.LiveDashboard.MenuLive do
 
   use Phoenix.LiveDashboard.Web, :view_helpers
 
+  @default_refresh 5
+  @supported_refresh [{"1s", 1}, {"2s", 2}, {"5s", 5}, {"15s", 15}, {"30s", 30}]
+
   @impl true
   def mount(_, %{"menu" => menu}, socket) do
-    socket = assign(socket, menu: menu, node: menu.node)
+    socket = assign(socket, menu: menu, node: menu.node, refresh: @default_refresh)
     socket = validate_nodes_or_redirect(socket)
 
-    if connected?(socket) and is_nil(socket.redirected) do
+    if connected?(socket) do
       :net_kernel.monitor_nodes(true, node_type: :all)
     end
 
-    {:ok, socket}
+    {:ok, init_schedule_refresh(socket)}
   end
 
   @impl true
@@ -21,11 +24,24 @@ defmodule Phoenix.LiveDashboard.MenuLive do
     ~L"""
     <%= maybe_active_live_redirect @socket, "Home", :home, @node %> |
     <%= maybe_enabled_live_redirect @socket, "Metrics", :metrics, @node %> |
-    <%= maybe_enabled_live_redirect @socket, "Request Logger", :request_logger, @node %> |
+    <%= maybe_enabled_live_redirect @socket, "Request Logger", :request_logger, @node %> --
+
     <form phx-change="select_node" style="display:inline">
-      Node: <%= select :node_selector, :node, @nodes, value: @node %>
+      Node: <%= select :node_selector, :node, @nodes, value: @node %> |
     </form>
+
+    <%= if @menu.refresher? do %>
+      <form phx-change="select_refresh" style="display:inline">
+        Update every: <%= select :refresh_selector, :refresh, refresh_options(), value: @refresh %>
+      </form>
+    <% else %>
+      Updates automatically
+    <% end %>
     """
+  end
+
+  defp refresh_options() do
+    @supported_refresh
   end
 
   defp maybe_active_live_redirect(socket, text, action, node) do
@@ -57,6 +73,11 @@ defmodule Phoenix.LiveDashboard.MenuLive do
     {:noreply, validate_nodes_or_redirect(socket)}
   end
 
+  def handle_info(:refresh, socket) do
+    send(socket.root_pid, :refresh)
+    {:noreply, schedule_refresh(socket)}
+  end
+
   @impl true
   def handle_event("select_node", params, socket) do
     param_node = params["node_selector"]["node"]
@@ -68,6 +89,29 @@ defmodule Phoenix.LiveDashboard.MenuLive do
       {:noreply, redirect_to_current_node(socket)}
     end
   end
+
+  def handle_event("select_refresh", params, socket) do
+    case Integer.parse(params["refresh_selector"]["refresh"]) do
+      {refresh, ""} -> {:noreply, assign(socket, refresh: refresh)}
+      _ -> {:noreply, socket}
+    end
+  end
+
+  ## Refresh helpers
+
+  defp init_schedule_refresh(socket) do
+    if connected?(socket) and socket.assigns.menu.refresher? do
+      schedule_refresh(socket)
+    else
+      assign(socket, timer: nil)
+    end
+  end
+
+  defp schedule_refresh(socket) do
+    assign(socket, timer: Process.send_after(self(), :refresh, socket.assigns.refresh * 1000))
+  end
+
+  ## Node helpers
 
   defp nodes(), do: [node() | Node.list()]
 

@@ -7,7 +7,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    socket = assign_defaults(socket, params, session)
+    socket = assign_defaults(socket, params, session, true)
 
     %{
       # Read once
@@ -65,5 +65,9 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   @impl true
   def handle_info({:node_redirect, node}, socket) do
     {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
+  end
+
+  def handle_info(:refresh, socket) do
+    {:noreply, assign(socket, system_usage: SystemInfo.usage(socket.assigns.menu.node))}
   end
 end
