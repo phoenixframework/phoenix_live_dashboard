@@ -6,6 +6,8 @@
 
 LiveDashboard provides real-time performance monitoring and debugging tools for Phoenix developers. It provides the following modules:
 
+  * Home - See general information about the system
+
   * Metrics - See how your application performs under different conditions by visualizing [`:telemetry`](https://hexdocs.pm/telemetry) events with real-time charts
 
   * Request logging - See everything that was logged for certain requests
@@ -16,7 +18,7 @@ To start using LiveDashboard, you will need three steps:
 
   1. Add the `phoenix_live_dashboard` dependency
   2. Configure LiveView
-  3. Add the dashboard routes
+  3. Add dashboard access
 
 ### Add the `phoenix_live_dashboard` dependency
 
@@ -49,21 +51,18 @@ Then add the `Phoenix.LiveView.Socket` declaration to your endpodint:
 
 And you are good to go!
 
-### Add the dashboard routes
+### Add dashboard access for development-only usage
 
 Once installed, update your router's configuration to forward requests to a LiveDashboard with a unique `name` of your choosing:
 
 ```elixir
 # lib/my_app_web/router.ex
 use MyAppWeb, :router
+import Phoenix.LiveDashboard.Router
 
 ...
 
-# If using LiveDashboard in production,
-# remember to add authentication to it.
 if Mix.env() == :dev do
-  import Phoenix.LiveDashboard.Router
-
   scope "/" do
     pipe_through :browser
     live_dashboard "/dashboard"
@@ -72,6 +71,28 @@ end
 ```
 
 This is all. Run `mix phx.server` and access the "/dashboard" to configure the necessary modules.
+
+### Add dashboard access on all environments (including production)
+
+If you want to use the LiveDashboard in production, you should put it behind some authentication and allow only admins to access it. If your application does not have an admins-only section yet, you can use `Plug.BasicAuth` to set up some basic authentication as long as you are also using SSL (which you should anyway):
+
+```elixir
+# lib/my_app_web/router.ex
+use MyAppWeb, :router
+import Plug.BasicAuth
+import Phoenix.LiveDashboard.Router
+
+...
+
+pipeline :admins_only do
+  plug :basic_auth, username: "admin", password: "a very special secret"
+end
+
+scope "/" do
+  pipe_through [:browser, :admins_only]
+  live_dashboard "/dashboard"
+end
+```
 
 <!-- MDOC !-->
 
