@@ -46,13 +46,15 @@ defmodule Phoenix.LiveDashboard.MixProject do
       source_ref: "v#{@version}",
       source_url: "https://github.com/phoenixframework/phoenix_live_dashboard",
       extra_section: "GUIDES",
-      extras: extras()
+      extras: extras(),
+      nest_modules_by_prefix: [Phoenix.LiveDashboard]
     ]
   end
 
   defp extras do
     [
-      "guides/metrics.md"
+      "guides/metrics.md",
+      "guides/request_logger.md"
     ]
   end
 

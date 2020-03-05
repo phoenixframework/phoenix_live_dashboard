@@ -1,11 +1,15 @@
 defmodule Phoenix.LiveDashboard.RequestLogger do
   @moduledoc """
   A plug that enables request logging.
+
+  See [our Request Logger guides](request_logger.html) for more information.
   """
 
+  @behaviour Plug
   @max_age 3600
   @private_key :phoenix_request_logger
 
+  @impl true
   def init(opts) do
     param_key =
       opts[:param_key] ||
@@ -15,6 +19,7 @@ defmodule Phoenix.LiveDashboard.RequestLogger do
     param_key
   end
 
+  @impl true
   def call(conn, param_key) do
     conn = Plug.Conn.fetch_query_params(conn)
 

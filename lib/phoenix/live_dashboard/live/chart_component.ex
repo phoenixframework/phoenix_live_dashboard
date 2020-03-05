@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.ChartComponent do
-  use Phoenix.LiveComponent
+  use Phoenix.LiveDashboard.Web, :live_component
 
   @impl true
   def mount(socket) do
@@ -13,9 +13,9 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
     socket =
       if metric do
         assign(socket,
-          title: title(metric),
-          kind: kind(metric.__struct__),
-          label: label(metric)
+          title: chart_title(metric),
+          kind: chart_kind(metric.__struct__),
+          label: chart_label(metric)
         )
       else
         socket
@@ -43,22 +43,22 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
     """
   end
 
-  defp title(metric) do
-    "#{Enum.join(metric.name, ".")}#{tags(metric.tags)}"
+  defp chart_title(metric) do
+    "#{Enum.join(metric.name, ".")}#{chart_tags(metric.tags)}"
   end
 
-  defp tags([]), do: ""
-  defp tags(tags), do: " (#{Enum.join(tags, "-")})"
+  defp chart_tags([]), do: ""
+  defp chart_tags(tags), do: " (#{Enum.join(tags, "-")})"
 
-  defp kind(Telemetry.Metrics.Counter), do: :counter
-  defp kind(Telemetry.Metrics.LastValue), do: :last_value
-  defp kind(Telemetry.Metrics.Sum), do: :sum
-  defp kind(Telemetry.Metrics.Summary), do: :summary
+  defp chart_kind(Telemetry.Metrics.Counter), do: :counter
+  defp chart_kind(Telemetry.Metrics.LastValue), do: :last_value
+  defp chart_kind(Telemetry.Metrics.Sum), do: :sum
+  defp chart_kind(Telemetry.Metrics.Summary), do: :summary
 
-  defp kind(Telemetry.Metrics.Distribution),
+  defp chart_kind(Telemetry.Metrics.Distribution),
     do: raise(ArgumentError, "LiveDashboard does not yet support distribution metrics")
 
-  defp label(%{} = metric) do
+  defp chart_label(%{} = metric) do
     metric.name
     |> List.last()
     |> Phoenix.Naming.humanize()
