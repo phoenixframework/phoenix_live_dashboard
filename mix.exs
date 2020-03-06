@@ -34,9 +34,12 @@ defmodule Phoenix.LiveDashboard.MixProject do
     [
       {:phoenix_live_view, "~> 0.8.0", github: "phoenixframework/phoenix_live_view"},
       {:telemetry_metrics, "~> 0.4.0"},
-      {:ex_doc, "~> 0.21", only: :docs},
-      {:jason, "~> 1.0", optional: true},
-      {:floki, "~> 0.24.0", only: :test}
+      {:telemetry_poller, "~> 0.4.0", only: :dev},
+      {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:plug_cowboy, "~> 2.0", only: :dev},
+      {:jason, "~> 1.0", only: [:dev, :test]},
+      {:floki, "~> 0.24.0", only: :test},
+      {:ex_doc, "~> 0.21", only: :docs}
     ]
   end
 
