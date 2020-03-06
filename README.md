@@ -66,10 +66,12 @@ if Mix.env() == :dev do
 
   scope "/" do
     pipe_through :browser
-    live_dashboard "/dashboard"
+    live_dashboard "/dashboard", metrics: MyAppWeb.Telemetry
   end
 end
 ```
+
+Define [MyAppWeb.Telemetry](https://hexdocs.pm/phoenix_live_dashboard/metrics.html#define-your-telemetry-module) 
 
 This is all. Run `mix phx.server` and access the "/dashboard" to configure the necessary modules.
 
