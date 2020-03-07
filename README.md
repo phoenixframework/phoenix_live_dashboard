@@ -96,6 +96,10 @@ end
 
 <!-- MDOC !-->
 
+## Contributing
+
+For those planning to contribute to this project, you can run `iex -S mix run dev.exs` in the root of this project to start a Phoenix application that has the dashboard enabled with live code reloading.
+
 ## License
 
 MIT License. Copyright (c) 2019 Michael Crumm, Chris McCord, José Valim.
