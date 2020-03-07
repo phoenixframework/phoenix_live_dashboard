@@ -37,8 +37,7 @@ defmodule Phoenix.LiveDashboard.Web do
     end
   end
 
-  @doc false
-  def view_helpers do
+  defp view_helpers do
     quote do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML

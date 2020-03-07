@@ -1,8 +1,5 @@
 defmodule Phoenix.LiveDashboard.MenuLive do
-  @moduledoc false
-  use Phoenix.LiveView, container: {:nav, []}
-
-  use Phoenix.LiveDashboard.Web, :view_helpers
+  use Phoenix.LiveDashboard.Web, :live_view
 
   @default_refresh 5
   @supported_refresh [{"1s", 1}, {"2s", 2}, {"5s", 5}, {"15s", 15}, {"30s", 30}]
