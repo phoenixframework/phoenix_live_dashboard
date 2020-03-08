@@ -29,7 +29,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
     ~L"""
     <div id="chart-<%= @id %>" class="phx-dashboard-metrics-col">
       <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" style="display:none;">
-      <%= for %{x: x, y: y, z: z} <- @data do %>
+      <%= for {x, y, z} <- @data do %>
         <span data-x="<%= x || @title %>" data-y="<%= y %>" data-z="<%= z %>"></span>
       <% end %>
       </div>
@@ -73,5 +73,5 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp humanize_unit(:millisecond), do: " (ms)"
   defp humanize_unit(:second), do: " s"
   defp humanize_unit(:unit), do: ""
-  defp humanize_unit(unit) when is_atom(unit), do: " #{unit}"
+  defp humanize_unit(unit) when is_atom(unit), do: " (#{unit})"
 end
