@@ -78,7 +78,7 @@ defmodule DemoWeb.Router do
     plug :fetch_flash
   end
 
-  live_dashboard "/dashboard", metrics: DemoWeb.Telemetry
+  live_dashboard("/dashboard", metrics: DemoWeb.Telemetry)
 end
 
 defmodule DemoWeb.Endpoint do
