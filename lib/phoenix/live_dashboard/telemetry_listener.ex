@@ -21,7 +21,7 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
     entries =
       for {metric, index} <- metrics do
         if measurement = extract_measurement(metric, measurements) do
-          label = metric |> extract_tags(metadata) |> tags_to_label()
+          label = tags_to_label(metric, metadata)
           {index, label, measurement, time}
         end
       end
@@ -36,15 +36,20 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
     end
   end
 
-  defp extract_tags(metric, metadata) do
-    tag_values = metric.tag_values.(metadata)
-    Map.take(tag_values, metric.tags)
-  end
+  defp tags_to_label(%{tags: []}, _metadata), do: nil
 
-  defp tags_to_label(tags) when tags == %{}, do: nil
+  defp tags_to_label(%{tags: tags, tag_values: tag_values}, metadata) do
+    tag_values = tag_values.(metadata)
 
-  defp tags_to_label(tags) when is_map(tags) do
-    Enum.map_join(tags, " ", fn {_k, v} -> v end)
+    tags
+    |> Enum.reduce([], fn tag, acc ->
+      case tag_values do
+        %{^tag => value} -> [to_string(value) | acc]
+        %{} -> acc
+      end
+    end)
+    |> Enum.reduce(&[&1, " " | &2])
+    |> IO.iodata_to_binary()
   end
 
   @impl true
