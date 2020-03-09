@@ -36,8 +36,8 @@ defmodule Phoenix.LiveDashboardTest.Endpoint do
   use Phoenix.Endpoint, otp_app: :phoenix_live_dashboard
 
   plug Phoenix.LiveDashboard.RequestLogger,
-    param_key: "request_logger",
-    cookie_key: "request_logger"
+    param_key: "request_logger_param_key",
+    cookie_key: "request_logger_cookie_key"
 
   plug Plug.Session,
     store: :cookie,

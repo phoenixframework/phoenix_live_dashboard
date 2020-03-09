@@ -16,11 +16,16 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
       |> assign_defaults(params, session)
       |> assign(group: group, groups: Map.keys(metrics_per_group))
 
-    if metrics && connected?(socket) do
-      Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
-      {:ok, assign(socket, metrics: Enum.with_index(metrics))}
-    else
-      {:ok, assign(socket, metrics: nil)}
+    cond do
+      group && is_nil(metrics) ->
+        {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node()))}
+
+      metrics && connected?(socket) ->
+        Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
+        {:ok, assign(socket, metrics: Enum.with_index(metrics))}
+
+      true ->
+        {:ok, assign(socket, metrics: nil)}
     end
   end
 
