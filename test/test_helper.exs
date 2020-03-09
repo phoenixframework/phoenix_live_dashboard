@@ -1,25 +1,50 @@
-Phoenix.PubSub.PG2.start_link(name: Phoenix.LiveDashboardTest.PubSub)
+Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Endpoint,
+  secret_key_base: "Hu4qQN3iKzTV4fJxhorPQlA/osH9fAMtbtjVS58PFgfw3ja5Z18Q/WSNR9wP4OfW",
+  live_view: [signing_salt: "hMegieSe"],
+  check_origin: false,
+  pubsub: [name: Phoenix.LiveDashboardTest.PubSub, adapter: Phoenix.PubSub.PG2]
+)
 
-defmodule Phoenix.LiveDashboardTest.Endpoint do
-  def url(), do: "http://localhost:4000"
-  def instrument(_, _, _, func), do: func.()
-  def config(:live_view), do: [signing_salt: "112345678212345678312345678412"]
-  def config(:secret_key_base), do: "5678567899556789656789756789856789956789"
-  def config(:pubsub_server), do: Phoenix.LiveDashboardTest.PubSub
+defmodule Phoenix.LiveDashboardTest.Telemetry do
+  import Telemetry.Metrics
 
-  def init(opts), do: opts
-
-  @parsers Plug.Parsers.init(
-             parsers: [:urlencoded, :multipart, :json],
-             pass: ["*/*"],
-             json_decoder: Phoenix.json_library()
-           )
-
-  def call(conn, _) do
-    conn
-    |> Plug.Parsers.call(@parsers)
-    |> Plug.Conn.put_private(:phoenix_endpoint, __MODULE__)
+  def metrics do
+    [
+      counter("a.b.c"),
+      counter("a.b.d"),
+      counter("e.f.g")
+    ]
   end
 end
 
+defmodule Phoenix.LiveDashboardTest.Router do
+  use Phoenix.Router
+  import Phoenix.LiveDashboard.Router
+
+  pipeline :browser do
+    plug :fetch_session
+  end
+
+  scope "/" do
+    pipe_through :browser
+    live_dashboard("/dashboard", metrics: Phoenix.LiveDashboardTest.Telemetry)
+  end
+end
+
+defmodule Phoenix.LiveDashboardTest.Endpoint do
+  use Phoenix.Endpoint, otp_app: :phoenix_live_dashboard
+
+  plug Phoenix.LiveDashboard.RequestLogger,
+    param_key: "request_logger",
+    cookie_key: "request_logger"
+
+  plug Plug.Session,
+    store: :cookie,
+    key: "_live_view_key",
+    signing_salt: "/VEDsdfsffMnp5"
+
+  plug Phoenix.LiveDashboardTest.Router
+end
+
+Phoenix.LiveDashboardTest.Endpoint.start_link()
 ExUnit.start()

@@ -75,10 +75,14 @@ defmodule DemoWeb.Router do
   import Phoenix.LiveDashboard.Router
 
   pipeline :browser do
+    plug :fetch_session
     plug :fetch_flash
   end
 
-  live_dashboard("/dashboard", metrics: DemoWeb.Telemetry)
+  scope "/" do
+    pipe_through :browser
+    live_dashboard("/dashboard", metrics: DemoWeb.Telemetry)
+  end
 end
 
 defmodule DemoWeb.Endpoint do

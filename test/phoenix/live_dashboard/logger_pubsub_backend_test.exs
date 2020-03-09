@@ -7,10 +7,10 @@ defmodule Phoenix.LiveDashboard.LoggerPubSubBackendTest do
   @tag :capture_log
   test "broadcasts messages when metadata matches" do
     Phoenix.PubSub.subscribe(PubSub, "hello:world")
-    Logger.info("refute_received")
-    Logger.info("assert_received", logger_pubsub_backend: {PubSub, "hello:world"})
-    assert_receive {:logger, :info, msg}, 1000
-    assert IO.iodata_to_binary(msg) == "[info] assert_received\n"
+    Logger.error("refute_received")
+    Logger.error("assert_received", logger_pubsub_backend: {PubSub, "hello:world"})
+    assert_receive {:logger, :error, msg}, 1000
+    assert IO.iodata_to_binary(msg) == "[error] assert_received\n"
     refute_received {:logger, _, _}
   end
 end
