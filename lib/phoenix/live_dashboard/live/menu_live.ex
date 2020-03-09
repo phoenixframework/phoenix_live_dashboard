@@ -5,7 +5,7 @@ defmodule Phoenix.LiveDashboard.MenuLive do
   @supported_refresh [{"1s", 1}, {"2s", 2}, {"5s", 5}, {"15s", 15}, {"30s", 30}]
 
   @impl true
-  def mount(_, %{"menu" => menu}, socket) do
+  def mount(_, %{"menu" => menu} = session, socket) do
     socket = assign(socket, menu: menu, node: menu.node, refresh: @default_refresh)
     socket = validate_nodes_or_redirect(socket)
 
@@ -78,8 +78,9 @@ defmodule Phoenix.LiveDashboard.MenuLive do
   @impl true
   def handle_event("select_node", params, socket) do
     param_node = params["node_selector"]["node"]
+    node = Enum.find(nodes(), &(Atom.to_string(&1) == param_node))
 
-    if node = Enum.find(nodes(), &(Atom.to_string(&1) == param_node)) do
+    if node && node != socket.assigns.node do
       send(socket.root_pid, {:node_redirect, node})
       {:noreply, socket}
     else
