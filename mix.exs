@@ -32,6 +32,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:phoenix, "~> 1.4.15", github: "phoenixframework/phoenix", branch: "v1.4", override: true},
       {:phoenix_live_view, "~> 0.9.0", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.4.0"},
       {:telemetry_poller, "~> 0.4.0", only: :dev},

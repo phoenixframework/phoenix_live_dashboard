@@ -5,7 +5,7 @@ defmodule Phoenix.LiveDashboard.MenuLive do
   @supported_refresh [{"1s", 1}, {"2s", 2}, {"5s", 5}, {"15s", 15}, {"30s", 30}]
 
   @impl true
-  def mount(_, %{"menu" => menu} = session, socket) do
+  def mount(_, %{"menu" => menu}, socket) do
     socket = assign(socket, menu: menu, node: menu.node, refresh: @default_refresh)
     socket = validate_nodes_or_redirect(socket)
 

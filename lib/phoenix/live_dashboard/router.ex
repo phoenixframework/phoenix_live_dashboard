@@ -62,7 +62,8 @@ defmodule Phoenix.LiveDashboard.Router do
           {mod, fun}
 
         other ->
-          raise ":metrics must be a tuple with {Mod, fun}, " <>
+          raise ArgumentError,
+                ":metrics must be a tuple with {Mod, fun}, " <>
                   "such as {MyAppWeb.Telemetry, :metrics}, got: #{inspect(other)}"
       end
 
