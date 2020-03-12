@@ -1,4 +1,5 @@
 # iex -S mix run dev.exs
+Logger.configure(level: :debug)
 
 # Configures the endpoint
 Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
