@@ -63,8 +63,10 @@ defmodule DemoWeb.PageController do
     """)
   end
 
-  def call(conn, :hello), do: content(conn, "<p>Hello, friend!</p>")
-  def call(conn, :hello_name), do: content(conn, "<p>Hello, #{conn.params["name"]}!</p>")
+  def call(conn, :hello) do
+    name = Map.get(conn.params, "name", "friend")
+    content(conn, "<p>Hello, #{name}!</p>")
+  end
 
   defp content(conn, content) do
     conn
@@ -86,7 +88,7 @@ defmodule DemoWeb.Router do
     pipe_through :browser
     get "/", DemoWeb.PageController, :index
     get "/hello", DemoWeb.PageController, :hello
-    get "/hello/:name", DemoWeb.PageController, :hello_name
+    get "/hello/:name", DemoWeb.PageController, :hello
     live_dashboard("/dashboard", metrics: DemoWeb.Telemetry)
   end
 end
