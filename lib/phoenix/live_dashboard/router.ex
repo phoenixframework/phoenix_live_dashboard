@@ -30,7 +30,7 @@ defmodule Phoenix.LiveDashboard.Router do
   """
   defmacro live_dashboard(path, opts \\ []) do
     quote bind_quoted: binding() do
-      scope path do
+      scope path, alias: false, as: false do
         import Phoenix.LiveView.Router, only: [live: 4]
 
         opts = Phoenix.LiveDashboard.Router.__options__(opts)

@@ -26,7 +26,7 @@ defmodule Phoenix.LiveDashboardTest.Router do
     plug :fetch_session
   end
 
-  scope "/" do
+  scope "/", ThisWontBeUsed, as: :this_wont_be_used do
     pipe_through :browser
     live_dashboard("/dashboard", metrics: Phoenix.LiveDashboardTest.Telemetry)
   end
