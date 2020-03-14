@@ -97,6 +97,11 @@ const TimeseriesConfig = (options) => {
           }
         }]
       },
+      elements: {
+        line: {
+          tension: 0
+        }
+      },
       title: {
         display: true,
         text: options.title
