@@ -14,6 +14,10 @@
   pointer-events: none;
 }
 
+[data-phx-view="LiveDashboard.MetricsLive"].phx-disconnected .chart *{
+  pointer-events: auto;
+}
+
 /* App metrics */
 .phx-dashboard-metrics-grid {
   display: flex;
