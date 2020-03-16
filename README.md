@@ -47,7 +47,7 @@ First, update your endpoint's configuration to include a signing salt. You can g
     config :my_app, MyAppWeb.Endpoint,
        live_view: [signing_salt: "SECRET_SALT"]
 
-Then add the `Phoenix.LiveView.Socket` declaration to your endpodint:
+Then add the `Phoenix.LiveView.Socket` declaration to your endpoint:
 
     socket "/live", Phoenix.LiveView.Socket
 
