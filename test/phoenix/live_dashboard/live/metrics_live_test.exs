@@ -9,18 +9,18 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics")
     rendered = render(live)
     assert rendered =~ "Updates automatically"
-    assert rendered =~ "&quot;a&quot; metrics"
-    assert rendered =~ "&quot;e&quot; metrics"
+    assert rendered =~ "&quot;phx&quot; metrics"
+    assert rendered =~ "&quot;ecto&quot; metrics"
   end
 
   test "shows given group metrics" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/a")
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/phx")
     rendered = render(live)
     assert rendered =~ "Updates automatically"
-    assert rendered =~ "&quot;a&quot; metrics"
-    assert rendered =~ "&quot;e&quot; metrics"
-    assert rendered =~ ~s|data-title="a.b.c"|
-    assert rendered =~ ~s|data-title="a.b.d"|
+    assert rendered =~ "&quot;phx&quot; metrics"
+    assert rendered =~ "&quot;ecto&quot; metrics"
+    assert rendered =~ ~s|data-title="phx.b.c"|
+    assert rendered =~ ~s|data-title="phx.b.d"|
 
     send(live.pid, {:telemetry, [{0, nil, "value", System.system_time(:millisecond)}]})
 
@@ -28,7 +28,7 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
     _ = render(live)
 
     # Guarantees the components have been updated
-    assert render(live) =~ ~s|<span data-x="a.b.c" data-y="value"|
+    assert render(live) =~ ~s|<span data-x="phx.b.c" data-y="value"|
   end
 
   test "redirects on unknown group" do
@@ -41,8 +41,8 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
     send(live.pid, {:node_redirect, "foo@bar"})
     assert_redirect(live, "/dashboard/foo%40bar/metrics")
 
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/a")
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/phx")
     send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/metrics/a")
+    assert_redirect(live, "/dashboard/foo%40bar/metrics/phx")
   end
 end

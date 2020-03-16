@@ -11,9 +11,9 @@ defmodule Phoenix.LiveDashboardTest.Telemetry do
 
   def metrics do
     [
-      counter("a.b.c"),
-      counter("a.b.d"),
-      counter("e.f.g")
+      counter("phx.b.c"),
+      counter("phx.b.d"),
+      counter("ecto.f.g")
     ]
   end
 end
