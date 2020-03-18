@@ -100,7 +100,12 @@ end
 
 ## Contributing
 
-For those planning to contribute to this project, you can run `iex -S mix run dev.exs` in the root of this project to start a Phoenix application that has the dashboard enabled with live code reloading.
+For those planning to contribute to this project, you can run a dev version of the dashboard with the following commands:
+
+    $ npm install --prefix assets
+    $ mix run dev.exs
+
+Alternatively, run `iex -S mix run dev.exs` if you also want a shell.
 
 ## License
 

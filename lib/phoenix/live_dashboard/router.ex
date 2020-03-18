@@ -38,10 +38,14 @@ defmodule Phoenix.LiveDashboard.Router do
         live "/:node", Phoenix.LiveDashboard.HomeLive, :home, opts
         live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
         live "/:node/metrics/:group", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
-        live "/:node/request_logger", Phoenix.LiveDashboard.LoggerLive, :request_logger, opts
+
+        live "/:node/request_logger",
+             Phoenix.LiveDashboard.RequestLoggerLive,
+             :request_logger,
+             opts
 
         live "/:node/request_logger/:stream",
-             Phoenix.LiveDashboard.LoggerLive,
+             Phoenix.LiveDashboard.RequestLoggerLive,
              :request_logger,
              opts
       end

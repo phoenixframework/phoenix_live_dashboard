@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.LoggerLive do
+defmodule Phoenix.LiveDashboard.RequestLoggerLive do
   use Phoenix.LiveDashboard.Web, :live_view
 
   @impl true
@@ -141,9 +141,9 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
     </div>
 
     <!-- Row with a 'new stream' link -->
-    <div class="row">
+    <div class="row mb-3">
       <div class="col text-center">
-        Want to refresh the logger parameter? <%= live_redirect "Activate a new stream", to: live_dashboard_path(@socket, :request_logger, @menu.node) %>
+        Want to refresh the logger parameter? <%= live_redirect "Start a new stream", to: live_dashboard_path(@socket, :request_logger, @menu.node) %>
       </div>
     </div>
     """
