@@ -1,0 +1,94 @@
+// Header and menu styles
+header {
+  background: $color-header;
+  height: 120px;
+
+  h1 {
+    text-shadow: 2px 2px 0 change-color($color-shadow-dark, $alpha: 0.5);
+    color: $color-gray-200;
+    font-size: 1.75rem;
+    margin-top: 2.25rem;
+  }
+
+  #menu-bar {
+    margin-top: auto;
+    box-shadow: $box-shadow-lighter;
+    border-radius: $border-radius;
+    background-color: #fff;
+    display: inline-block;
+    margin-bottom: -1.5rem;
+    padding: 0 0.75rem;
+  }
+
+  #menu {
+    .menu-item {
+      display: inline-block;
+      padding: 0.75rem;
+      position: relative;
+
+      text-decoration: none;
+      color: change-color($primary, $alpha: 0.75);
+
+      &:hover {
+        color: $color-elixir-800;
+      }
+
+      &.active {
+        color: $color-elixir-800;
+        text-shadow: 1px 1px change-color($primary, $alpha: 0.1);
+      }
+    }
+
+    .menu-item-disabled {
+      color: $text-muted;
+
+      &:hover {
+        color: $text-muted;
+      }
+    }
+
+    .menu-item-enable-button {
+      background-color: $color-button-primary;
+      border-radius: 3px;
+      color: $color-gray-warm-100;
+      position: absolute;
+      font-size: 0.75rem;
+      right: 50%;
+      bottom: -15px;
+      padding: 0.15rem 0.5rem;
+      transform: translateX(50%);
+
+      &:hover {
+        background-color: lighten($color-button-primary, 5%);
+        text-decoration: none;
+      }
+    }
+  }
+
+  .container {
+    position: relative;
+  }
+}
+
+@media (max-width: map-get($grid-breakpoints, sm)) {
+  header .header-title-part {
+    display: block;
+    font-size: 1.25rem;
+    padding: 0.1rem 0;
+  }
+
+  header h1 {
+    margin-top: 1.25rem;
+  }
+
+  header #menu-bar {
+    padding: 0 0.5rem;
+
+  }
+
+  #menu {
+    .menu-item {
+      padding: 0.75rem 0.5rem;
+    }
+  }
+}

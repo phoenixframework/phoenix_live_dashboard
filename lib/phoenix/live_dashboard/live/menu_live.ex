@@ -19,21 +19,35 @@ defmodule Phoenix.LiveDashboard.MenuLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <%= maybe_active_live_redirect @socket, "Home", :home, @node %> |
-    <%= maybe_enabled_live_redirect @socket, "Metrics", :metrics, @node %> |
-    <%= maybe_enabled_live_redirect @socket, "Request Logger", :request_logger, @node %> --
+    <%= maybe_active_live_redirect @socket, "Home", :home, @node %>
+    <%= maybe_enabled_live_redirect @socket, "Metrics", :metrics, @node %>
+    <%= maybe_enabled_live_redirect @socket, "Request Logger", :request_logger, @node %>
 
-    <form phx-change="select_node" style="display:inline">
-      Node: <%= select :node_selector, :node, @nodes, value: @node %> |
+    <form id="node-selection" phx-change="select_node" style="display:inline">
+      <div class="input-group input-group-sm d-flex flex-column">
+        <div class="input-group-prepend">
+          <label class="input-group-text" for="node-select">Selected node:</label>
+        </div>
+        <%= select :node_selector, :node, @nodes, value: @node, class: "custom-select", id: "node-select" %>
+      </div>
     </form>
 
-    <%= if @menu.refresher? do %>
-      <form phx-change="select_refresh" style="display:inline">
-        Update every: <%= select :refresh_selector, :refresh, refresh_options(), value: @refresh %>
+    <div id="refresh-interval-selection">
+      <form phx-change="select_refresh">
+        <div class="input-group input-group-sm">
+          <%= if @menu.refresher? do %>
+            <div class="input-group-prepend">
+              <label class="input-group-text" for="refresh-interval-select">Update every</label>
+            </div>
+            <%= select :refresh_selector, :refresh, refresh_options(), value: @refresh, class: "custom-select", id: "refresh-interval-select" %>
+          <% else %>
+            <div class="input-group-prepend">
+              <small class="input-group-text text-muted">Updates automatically</small>
+            </div>
+          <% end %>
+        </div>
       </form>
-    <% else %>
-      Updates automatically
-    <% end %>
+    </div>
     """
   end
 
@@ -43,9 +57,11 @@ defmodule Phoenix.LiveDashboard.MenuLive do
 
   defp maybe_active_live_redirect(socket, text, action, node) do
     if socket.assigns.menu.action == action do
-      text
+      ~E"""
+      <div class='menu-item active'><%= text %></div>
+      """
     else
-      live_redirect(text, to: live_dashboard_path(socket, action, node))
+      live_redirect(text, to: live_dashboard_path(socket, action, node), class: "menu-item")
     end
   end
 
@@ -54,7 +70,9 @@ defmodule Phoenix.LiveDashboard.MenuLive do
       maybe_active_live_redirect(socket, text, action, node)
     else
       ~E"""
-      <%= text %> (<%= link "enable", to: guide(action) %>)
+      <div class="menu-item menu-item-disabled">
+        <%= text %> <%= link "Enable", to: guide(action), class: "menu-item-enable-button" %>
+      </div>
       """
     end
   end

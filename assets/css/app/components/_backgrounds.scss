@@ -1,0 +1,12 @@
+// Colorful backgrounds that can be used across the app
+.background-elixir {
+  background: linear-gradient(40deg, $color-elixir, $color-elixir-accent);
+}
+
+.background-phoenix {
+  background: linear-gradient(40deg, $color-phoenix, $color-phoenix-accent);
+}
+
+.background-dashboard {
+  background: linear-gradient(40deg, $color-dashboard, $color-dashboard-accent);
+}

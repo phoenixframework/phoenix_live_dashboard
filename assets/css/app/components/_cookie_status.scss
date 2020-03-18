@@ -1,0 +1,47 @@
+// Text and animation informin about the logger cookie being present
+.cookie-status {
+  display: inline-block;
+  padding: 0.35rem 0 0.25rem 0;
+  transition: all 0.3s ease-out;
+  padding-left: 18px;
+  position: relative;
+  opacity: 0;
+
+  &[data-enabled="true"] {
+    opacity: 0.75;
+  }
+
+  &::before {
+    background-color: #df0606;
+    content: '';
+    display: block;
+    height: 10px;
+    width: 10px;
+    border-radius: 50px;
+    top: 0.82rem;
+    left: 0;
+    position: absolute;
+    animation-name: pulse;
+    animation-iteration-count: infinite;
+    animation-duration: 1.2s;
+    animation-timing-function: ease-in-out;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  45% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+
+  95% {
+    opacity: 0;
+  }
+}

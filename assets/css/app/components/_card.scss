@@ -1,0 +1,14 @@
+// Extra styles on top of basic Bootstrap card
+.card {
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  border: none;
+}
+
+.card-title {
+  margin-bottom: 0.75rem;
+
+  .badge {
+    font-weight: inherit;
+  }
+}

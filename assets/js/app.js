@@ -1,12 +1,18 @@
-import css from "../css/app.css"
+import css from "../css/app.scss"
 import "phoenix_html"
 import { Socket } from "phoenix"
 import NProgress from "nprogress"
 import { LiveSocket } from "phoenix_live_view"
 import PhxChartComponent from "./metrics_live"
+import PhxRequestLoggerCookie from "./request_logger_cookie"
+import PhxRequestLoggerQueryParameter from "./request_logger_query_parameter"
+import PhxRequestLoggerMessages from "./request_logger_messages"
 
 let Hooks = {
-  PhxChartComponent: PhxChartComponent
+  PhxChartComponent: PhxChartComponent,
+  PhxRequestLoggerCookie: PhxRequestLoggerCookie,
+  PhxRequestLoggerQueryParameter: PhxRequestLoggerQueryParameter,
+  PhxRequestLoggerMessages: PhxRequestLoggerMessages
 }
 
 let socketPath = document.querySelector("html").getAttribute("phx-socket") || "/live"

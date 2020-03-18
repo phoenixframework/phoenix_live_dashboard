@@ -20,7 +20,8 @@ defmodule Phoenix.LiveDashboard.RequestLoggerTest do
   end
 
   test "stores request and cookie keys in private" do
-    assert request_logger(conn(), cookie_key: "cookie_key", param_key: "param_key").private.phoenix_request_logger == {"param_key", "cookie_key"}
+    assert request_logger(conn(), cookie_key: "cookie_key", param_key: "param_key").private.phoenix_request_logger ==
+             {"param_key", "cookie_key"}
   end
 
   test "sets logger metadata for matching param" do

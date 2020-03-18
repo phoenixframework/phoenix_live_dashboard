@@ -5,6 +5,18 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
   @temporary_assigns [system_info: nil, system_usage: nil]
 
+  @system_limits_sections [
+    {:atoms, "Atoms"},
+    {:ports, "Ports"},
+    {:processes, "Processes"}
+  ]
+
+  @versions_sections [
+    {:elixir, "Elixir"},
+    {:phoenix, "Phoenix"},
+    {:dashboard, "Dashboard"}
+  ]
+
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
     socket = assign_defaults(socket, params, session, true)
@@ -35,26 +47,64 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <h1>Welcome to the LiveDashboard</h1>
+    <div class="row">
+      <!-- Left column with system/version information -->
+      <div class="col-sm-6">
+        <h5 class="card-title">System information</h5>
 
-    <h2>System info</h2>
+        <!-- Row with colorful version banners -->
+        <div class="row">
+          <%= for {section, title} <- versions_sections() do %>
+            <div class="col mb-4">
+              <div class="banner-card background-<%= section %>">
+                <h6 class="banner-card-title"><%= title %></h6>
+                <div class="banner-card-value"><%= @system_info[:"#{section}_version"] %></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
 
-    <p><%= @system_info.banner %></p>
+        <div class="card mb-4">
+          <div class="card-body">
+            <p><%= @system_info.banner %></p>
+            <p class="mb-0">Compile for: <%= @system_info.system_architecture %></p>
+          </div>
+        </div>
+      </div>
 
-    <ul>
-      <li>Elixir version: <%= @system_info.elixir_version %></li>
-      <li>Phoenix version: <%= @system_info.phoenix_version %></li>
-      <li>Dashboard version: <%= @system_info.dashboard_version %></li>
-      <li>Compiled for: <%= @system_info.system_architecture %></li>
-    </ul>
+      <!-- Right column containing system usage information -->
+      <div class="col-sm-6">
+        <h5 class="card-title">System usage / limits</h5>
 
-    <h2>System usage / limits</h2>
+        <%= for {section, title} <- system_limits_sections() do %>
+          <div class="card progress-section mb-4">
+            <div class="card-body">
+              <section>
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <%= title %>
+                  </div>
+                  <div>
+                    <small class="text-muted pr-2">
+                      <%= @system_usage[section] %> / <%= @system_limits[section] %>
+                    </small>
+                    <strong>
+                      <%= used(:atoms, @system_usage, @system_limits) %>%
+                    </strong>
+                  </div>
+                </div>
 
-    <ul>
-      <li>Atoms: <%= @system_usage.atoms %> / <%= @system_limits.atoms %> (<%= used(:atoms, @system_usage, @system_limits) %>% used)</li>
-      <li>Ports: <%= @system_usage.ports %> / <%= @system_limits.ports %> (<%= used(:ports, @system_usage, @system_limits) %>% used)</li>
-      <li>Processes: <%= @system_usage.processes %> / <%= @system_limits.processes %> (<%= used(:processes, @system_usage, @system_limits) %>% used)</li>
-    </ul>
+                <div class="progress flex-grow-1 mt-2">
+                  <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: <%= used(:atoms, @system_usage, @system_limits) %>%"></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        <% end %>
+
+      </div>
+    </div>
+
     """
   end
 
@@ -70,4 +120,8 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   def handle_info(:refresh, socket) do
     {:noreply, assign(socket, system_usage: SystemInfo.usage(socket.assigns.menu.node))}
   end
+
+  defp system_limits_sections(), do: @system_limits_sections
+
+  defp versions_sections(), do: @versions_sections
 end

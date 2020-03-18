@@ -1,0 +1,14 @@
+// Extra styles on top of basic Bootstrap buttons
+.btn.btn-primary {
+  background-color: $color-button-primary;
+  border-width: 0;
+
+  &:not(:disabled):not(.disabled):active {
+    background-color: darken($color-button-primary, 20%);
+  }
+}
+
+.btn.btn-secondary {
+  background-color: $color-gray-warm-700;
+  border-width: 0;
+}

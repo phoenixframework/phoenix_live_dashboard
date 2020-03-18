@@ -27,17 +27,19 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   @impl true
   def render(assigns) do
     ~L"""
-    <div id="chart-<%= @id %>" class="phx-dashboard-metrics-col">
-      <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" style="display:none;">
-      <%= for {x, y, z} <- @data do %>
-        <span data-x="<%= x || @title %>" data-y="<%= y %>" data-z="<%= z %>"></span>
-      <% end %>
-      </div>
-      <div class="chart" phx-update="ignore">
-        <canvas id="chart-<%= @id %>--canvas"
-         data-label="<%= @label %>"
-         data-metric="<%= @kind %>"
-         data-title="<%= @title %>"></canvas>
+    <div class="col-md-6 charts-col">
+      <div id="chart-<%= @id %>" class="card">
+        <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" style="display:none;">
+        <%= for {x, y, z} <- @data do %>
+          <span data-x="<%= x || @title %>" data-y="<%= y %>" data-z="<%= z %>"></span>
+        <% end %>
+        </div>
+        <div class="chart" phx-update="ignore">
+          <canvas id="chart-<%= @id %>--canvas"
+          data-label="<%= @label %>"
+          data-metric="<%= @kind %>"
+          data-title="<%= @title %>"></canvas>
+        </div>
       </div>
     </div>
     """

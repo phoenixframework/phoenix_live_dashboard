@@ -13,6 +13,7 @@
     "test.watch": "jest --watch"
   },
   "dependencies": {
+    "bootstrap": "^4.4.1",
     "chart.js": "^2.9.3",
     "nprogress": "^0.2.0",
     "phoenix": "../deps/phoenix",
@@ -25,12 +26,17 @@
     "babel-loader": "^8.0.6",
     "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^3.4.2",
-    "mini-css-extract-plugin": "^0.9.0",
-    "optimize-css-assets-webpack-plugin": "^5.0.1",
-    "terser-webpack-plugin": "^2.3.2",
     "glob": "^7.1.6",
     "jest": "^25.1.0",
+    "mini-css-extract-plugin": "^0.9.0",
+    "node-sass": "^4.13.1",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "postcss-loader": "^3.0.0",
+    "precss": "^4.0.0",
+    "sass-loader": "^8.0.2",
     "style-loader": "^0.20.2",
+    "terser-webpack-plugin": "^2.3.2",
+    "url-loader": "^4.0.0",
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"
   },

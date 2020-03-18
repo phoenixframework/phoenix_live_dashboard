@@ -1,0 +1,32 @@
+// Refresh interval selection dropdown
+#refresh-interval-selection {
+  position: absolute;
+  bottom: -5.25rem;
+  right: 0.75rem;
+  z-index: 2;
+
+  .custom-select {
+    background-color: $color-gray;
+    border-radius: $border-radius;
+    border-width: 0;
+  }
+
+  .input-group-text {
+    border-width: 0;
+    background-color: transparent;
+  }
+}
+
+@media (max-width: map-get($grid-breakpoints, lg)) {
+  #refresh-interval-selection {
+    right: auto;
+    left: auto;
+    text-align: center;
+    width: 100%;
+    bottom: -5rem;
+
+    form {
+      display: inline-block;
+    }
+  }
+}
