@@ -16,8 +16,8 @@ defmodule Phoenix.LiveDashboard.LoggerLiveTest do
   @tag :capture_log
   test "receives log messages on stream" do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/request_logger/sample")
-    assert render(live) =~ "?request_logger_param_key="
-    assert render(live) =~ "request_logger_cookie_key="
+    assert render(live) =~ "request_logger_param_key="
+    assert render(live) =~ "Enable cookie"
 
     Logger.error("hello world", logger_pubsub_backend: {PubSub, RequestLogger.topic("sample")})
 

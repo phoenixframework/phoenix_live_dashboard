@@ -15,7 +15,14 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
     socket =
       socket
       |> assign_defaults(params, session)
-      |> assign(stream: stream, param_key: param_key, cookie_key: cookie_key)
+      |> assign(
+        stream: stream,
+        param_key: param_key,
+        cookie_key: cookie_key,
+        cookie_enabled: false,
+        autoscroll_enabled: true,
+        messages_present: false
+      )
 
     {:ok, socket, temporary_assigns: [messages: []]}
   end
@@ -26,8 +33,8 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
   end
 
   @impl true
-  def handle_info({:logger, _level, message}, socket) do
-    {:noreply, assign(socket, messages: [message])}
+  def handle_info({:logger, level, message}, socket) do
+    {:noreply, assign(socket, messages: [{message, level}], messages_present: true)}
   end
 
   def handle_info({:node_redirect, node}, socket) do
@@ -36,29 +43,124 @@ defmodule Phoenix.LiveDashboard.LoggerLive do
   end
 
   @impl true
+  def handle_event("toggle_cookie", %{"enable" => "true"}, socket) do
+    {:noreply, assign(socket, :cookie_enabled, true)}
+  end
+
+  def handle_event("toggle_cookie", _params, socket) do
+    {:noreply, assign(socket, :cookie_enabled, false)}
+  end
+
+  def handle_event("toggle_autoscroll", _params, socket) do
+    {:noreply, assign(socket, :autoscroll_enabled, !socket.assigns.autoscroll_enabled)}
+  end
+
+  @impl true
   def render(assigns) do
     ~L"""
-    <%= if @param_key do %>
-      <p>Access any page with this query parameter:<br />
-      <code>?<%= @param_key %>=<%= sign(@socket, @param_key, @stream) %></code></p>
-    <% end %>
+    <!-- Card containing log messages -->
+    <div class="logs-card" data-messages-present="<%= @messages_present %>">
+      <h5 class="card-title">Logs</h5>
 
-    <%= if @cookie_key do %>
-      <p>Click this upcoming magic button to set or unset cookie:<br />
-      <code><%= @cookie_key %>=<%= sign(@socket, @cookie_key, @stream) %></code></p>
-    <% end %>
+      <div class="card mb-4" id="logger-messages-card" phx-hook="PhxRequestLoggerMessages">
+        <div class="card-body">
+          <div id="logger-messages" phx-update="append">
+            <%= for {message, level} <- @messages do %>
+              <pre id="log-<%= System.unique_integer() %>" class="log-level-<%= level %>"><%= message %></pre>
+            <% end %>
+          </div>
 
-    <p><%= live_redirect "New stream", to: live_dashboard_path(@socket, :request_logger, @menu.node) %></p>
+          <%= autoscroll_checkbox(@autoscroll_enabled) %>
+        </div>
+      </div>
+    </div>
 
-    <div id="logger-messages" phx-update="append">
-      <%= for message <- @messages do %>
-        <pre id="log-<%= System.unique_integer() %>"><%= message %></pre>
+    <!-- Row containing cookie and query parameter cards -->
+    <div class="row">
+
+      <!-- Param column -->
+      <%= if @param_key do %>
+        <div class="col-md d-flex flex-column" phx-hook="PhxRequestLoggerQueryParameter">
+          <h5 class="card-title flex-grow-0">Query Parameter</h5>
+
+          <div class="card mb-4 flex-grow-1">
+            <div class="card-body d-flex flex-column">
+              <p>Access any page with this query parameter:</p>
+
+              <textarea rows="1" class="code-field text-monospace" readonly="readonly">?<%= @param_key %>=<%= sign(@socket, @param_key, @stream) %></textarea>
+
+              <div class="row flex-grow-0">
+                <div class="col">
+                  <span class="copy-indicator">Copied!</span>
+                </div>
+                <div class="col">
+                  <button class="btn btn-primary float-right">Copy to clipboard</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       <% end %>
+      <!-- End param column -->
+
+      <!-- Cookie column -->
+      <%= if @cookie_key do %>
+        <div class="col-md d-flex flex-column">
+          <h5 class="card-title flex-grow-0">Cookie Parameter</h5>
+
+          <div class="card mb-4 flex-grow-1">
+            <div class="card-body d-flex flex-column">
+              <p class="flex-grow-1">Create a logger cookie to automatically log requests for the current browser session.</p>
+
+              <div class="row flex-grow-0">
+                <div class="col">
+                  <span class="cookie-status" data-enabled="<%= @cookie_enabled %>">Cookie enabled</span>
+                </div>
+
+                <div class="col">
+                  <!-- Button and hook for switching cookie on and off -->
+                  <div phx-hook="PhxRequestLoggerCookie" id="request-logger-cookie-buttons"
+                    data-cookie-key=<%=@cookie_key %>
+                    data-cookie-value=<%=sign(@socket, @cookie_key, @stream) %>
+                    data-cookie-enabled="<%= @cookie_enabled %>">
+
+                    <%= if @cookie_enabled do %>
+                      <button phx-click="toggle_cookie" phx-value-enable="false" class="btn btn-secondary float-right">Disable cookie</button>
+                    <% else %>
+                      <button phx-click="toggle_cookie" phx-value-enable="true" class="btn btn-primary float-right">Enable cookie</button>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      <% end %>
+      <!-- End cookie column -->
+    </div>
+
+    <!-- Row with a 'new stream' link -->
+    <div class="row">
+      <div class="col text-center">
+        Want to refresh the logger parameter? <%= live_redirect "Activate a new stream", to: live_dashboard_path(@socket, :request_logger, @menu.node) %>
+      </div>
     </div>
     """
   end
 
   defp sign(socket, key, value) do
     Phoenix.LiveDashboard.RequestLogger.sign(socket.endpoint, key, value)
+  end
+
+  defp autoscroll_checkbox(autoscroll_enabled) do
+    checked_param = if autoscroll_enabled, do: "checked='checked'", else: ""
+
+    ~E"""
+      <!-- Autoscroll ON/OFF checkbox -->
+      <div id="logger-autoscroll" class="text-right mt-3">
+        Autoscroll <input phx-click="toggle_autoscroll" <%= checked_param %> class="logger-autoscroll-checkbox" type="checkbox">
+      </div>
+    """
   end
 end

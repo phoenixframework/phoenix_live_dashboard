@@ -1,0 +1,14 @@
+// Component with progress info and bar at the bottom (used for displaying resources usage etc.)
+.progress-section {
+  .progress {
+  // Bootstrap progress bar with added border radius
+    border-radius: 0.5rem;
+  }
+
+  .progress-section-percent {
+    font-weight: bold;
+    font-size: 1.75rem;
+    line-height: 1.75rem;
+    padding-top: 0.25rem;
+  }
+}

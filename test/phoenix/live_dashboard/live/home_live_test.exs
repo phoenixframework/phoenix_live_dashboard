@@ -15,15 +15,26 @@ defmodule Phoenix.LiveDashboard.HomeLiveTest do
     rendered = render(live)
     assert rendered =~ "Update every"
     assert rendered =~ to_string(:erlang.system_info(:system_version))
-    assert rendered =~ "Dashboard version: #{Application.spec(:phoenix_live_dashboard, :vsn)}"
-    assert rendered =~ ~r"Atoms: \d+ / \d+ \(\d+% used\)"
-    assert rendered =~ ~r"Ports: \d+ / \d+ \(\d+% used\)"
-    assert rendered =~ ~r"Processes: \d+ / \d+ \(\d+% used\)"
+
+    assert rendered =~
+             ~s|<h6 class="banner-card-title">Dashboard</h6><div class="banner-card-value">#{
+               Application.spec(:phoenix_live_dashboard, :vsn)
+             }</div></div>|
+
+    # ~s|"#{Application.spec(:phoenix_live_dashboard, :vsn)}|
+    assert rendered =~
+             ~r"Atoms\s+</div><div><small class=\"text-muted pr-2\">\s+\d+ / \d+\s+</small><strong>\s+\d+%"
+
+    assert rendered =~
+             ~r"Ports\s+</div><div><small class=\"text-muted pr-2\">\s+\d+ / \d+\s+</small><strong>\s+\d+%"
+
+    assert rendered =~
+             ~r"Processes\s+</div><div><small class=\"text-muted pr-2\">\s+\d+ / \d+\s+</small><strong>\s+\d+%"
   end
 
   test "redirects to new node" do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost")
     send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect live, "/dashboard/foo%40bar"
+    assert_redirect(live, "/dashboard/foo%40bar")
   end
 end

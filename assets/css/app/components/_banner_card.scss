@@ -1,0 +1,18 @@
+// Small cards with colorful backgrounds
+.banner-card {
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  color: white;
+  background-color: $color-elixir-500;
+  padding: 1rem;
+}
+
+.banner-card-title {
+  margin-bottom: 0.25rem;
+}
+
+.banner-card-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: -0.15rem;
+}

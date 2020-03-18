@@ -1,0 +1,28 @@
+// Logs and card containing them
+.logs-card {
+  display: none;
+
+  &[data-messages-present="true"] {
+    display: block;
+  }
+
+  #logger-messages {
+    pre {
+      color: $text-color;
+      margin-bottom: 0;
+      padding: 0.25rem;
+      font-size: 0.75rem;
+
+      &:hover {
+        background-color: change-color($color-gray-warm-100, $alpha: 0.5);
+      }
+
+      &.log-level-debug {
+        color: change-color($text-color, $alpha: 0.75);
+      }
+    }
+
+    overflow-y: scroll;
+    height: 350px;
+  }
+}

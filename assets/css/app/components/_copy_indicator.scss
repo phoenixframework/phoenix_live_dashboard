@@ -1,0 +1,28 @@
+// Animated text that appears after logger request param code has been copied
+.copy-indicator {
+  opacity: 0;
+
+  &[data-enabled="true"] {
+    animation-name: blink;
+    animation-duration: 1.5s;
+    animation-timing-function: ease-out;
+  }
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}

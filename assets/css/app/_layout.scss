@@ -1,0 +1,25 @@
+// Basic Layout and core styles
+html {
+  background-color: $color-gray;
+  background: linear-gradient(-15deg, $color-gray, lighten($color-gray, 5%));
+  background-size: cover;
+  background-repeat: repeat-x;
+  min-height: 100%;
+}
+
+body {
+  background-color: transparent;
+  color: $text-color;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+#main {
+  padding-top: 3.5rem;
+}
+
+@media (max-width: map-get($grid-breakpoints, lg)) {
+  #main {
+    padding-top: 6.5rem;
+  }
+}

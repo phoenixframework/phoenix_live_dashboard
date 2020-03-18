@@ -41,8 +41,8 @@ defmodule Phoenix.LiveDashboard.MenuLiveTest do
   describe "menu" do
     test "disables metrics and request logger" do
       {:ok, live, _} = menu_live([])
-      assert render(live) =~ ~r"Metrics \(<a[^>]+>enable</a>\)"
-      assert render(live) =~ ~r"Request Logger \(<a[^>]+>enable</a>\)"
+      assert render(live) =~ ~r"Metrics <a[^>]+>Enable</a>"
+      assert render(live) =~ ~r"Request Logger <a[^>]+>Enable</a>"
     end
 
     test "enables metrics and request logger" do
@@ -53,17 +53,17 @@ defmodule Phoenix.LiveDashboard.MenuLiveTest do
 
     test "when home is active" do
       {:ok, live, _} = menu_live(action: :home)
-      assert render(live) =~ "Home |"
+      assert render(live) =~ ~s|<div class="menu-item active">Home</div>|
     end
 
     test "when metrics is active" do
       {:ok, live, _} = menu_live(action: :metrics, metrics: {Foo.Bar, :baz})
-      assert render(live) =~ "Metrics |"
+      assert render(live) =~ ~s|<div class="menu-item active">Metrics</div>|
     end
 
     test "when request logger is active" do
       {:ok, live, _} = menu_live(action: :request_logger, request_logger: {"key1", "key2"})
-      assert render(live) =~ "Request Logger -"
+      assert render(live) =~ ~s|<div class="menu-item active">Request Logger</div>|
     end
   end
 end
