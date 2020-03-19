@@ -85,7 +85,7 @@ defmodule Phoenix.LiveDashboard.Web do
     socket =
       Phoenix.LiveView.assign(socket, :menu, %{
         refresher?: refresher?,
-        action: socket.assigns.live_view_action,
+        action: socket.assigns.live_action,
         node: found_node || node(),
         metrics: session["metrics"],
         request_logger: session["request_logger"]
