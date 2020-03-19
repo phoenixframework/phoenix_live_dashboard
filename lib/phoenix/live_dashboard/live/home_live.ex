@@ -80,14 +80,14 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
           <div class="col mb-4">
             <div class="banner-card">
-              <h6 class="banner-card-title">Input</h6>
+              <h6 class="banner-card-title">Total input</h6>
               <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(0)) %></div>
             </div>
           </div>
 
           <div class="col mb-4">
             <div class="banner-card">
-              <h6 class="banner-card-title">Output</h6>
+              <h6 class="banner-card-title">Total output</h6>
               <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(1)) %></div>
             </div>
           </div>

@@ -17,11 +17,9 @@ defmodule Phoenix.LiveDashboard.HomeLiveTest do
     assert rendered =~ to_string(:erlang.system_info(:system_version))
 
     assert rendered =~
-             ~s|<h6 class="banner-card-title">Dashboard</h6><div class="banner-card-value">#{
-               Application.spec(:phoenix_live_dashboard, :vsn)
-             }</div></div>|
+             ~s|<h6 class="banner-card-title">Dashboard</h6><div class="banner-card-value">| <>
+               ~s|#{Application.spec(:phoenix_live_dashboard, :vsn)}</div>|
 
-    # ~s|"#{Application.spec(:phoenix_live_dashboard, :vsn)}|
     assert rendered =~
              ~r"Atoms\s+</div><div><small class=\"text-muted pr-2\">\s+\d+ / \d+\s+</small><strong>\s+\d+%"
 
@@ -30,6 +28,9 @@ defmodule Phoenix.LiveDashboard.HomeLiveTest do
 
     assert rendered =~
              ~r"Processes\s+</div><div><small class=\"text-muted pr-2\">\s+\d+ / \d+\s+</small><strong>\s+\d+%"
+
+    assert rendered =~
+             ~s|<h6 class=\"banner-card-title\">Uptime</h6><div class=\"banner-card-value\">0m</div>|
   end
 
   test "redirects to new node" do
