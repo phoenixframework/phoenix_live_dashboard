@@ -28,7 +28,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
       system_limits: system_limits,
       # Updated periodically
       system_usage: system_usage
-    } = SystemInfo.info(socket.assigns.menu.node)
+    } = SystemInfo.fetch_info(socket.assigns.menu.node)
 
     socket =
       assign(socket,
@@ -52,11 +52,17 @@ defmodule Phoenix.LiveDashboard.HomeLive do
       <div class="col-sm-6">
         <h5 class="card-title">System information</h5>
 
+        <div class="card mb-4">
+          <div class="card-body rounded">
+            <%= @system_info.banner %> [<%= @system_info.system_architecture %>]
+          </div>
+        </div>
+
         <!-- Row with colorful version banners -->
         <div class="row">
           <%= for {section, title} <- versions_sections() do %>
             <div class="col mb-4">
-              <div class="banner-card background-<%= section %>">
+              <div class="banner-card background-<%= section %> text-white">
                 <h6 class="banner-card-title"><%= title %></h6>
                 <div class="banner-card-value"><%= @system_info[:"#{section}_version"] %></div>
               </div>
@@ -64,10 +70,51 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           <% end %>
         </div>
 
-        <div class="card mb-4">
-          <div class="card-body">
-            <p><%= @system_info.banner %></p>
-            <p class="mb-0">Compile for: <%= @system_info.system_architecture %></p>
+        <div class="row">
+          <div class="col mb-4">
+            <div class="banner-card">
+              <h6 class="banner-card-title">Uptime</h6>
+              <div class="banner-card-value"><%= SystemInfo.format_uptime(@system_usage.uptime) %></div>
+            </div>
+          </div>
+
+          <div class="col mb-4">
+            <div class="banner-card">
+              <h6 class="banner-card-title">Input</h6>
+              <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(0)) %></div>
+            </div>
+          </div>
+
+          <div class="col mb-4">
+            <div class="banner-card">
+              <h6 class="banner-card-title">Output</h6>
+              <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(1)) %></div>
+            </div>
+          </div>
+        </div>
+
+        <h5 class="card-title">Run queues</h5>
+
+        <div class="row">
+          <div class="col mb-4">
+            <div class="banner-card">
+              <h6 class="banner-card-title">Total</h6>
+              <div class="banner-card-value"><%= @system_usage.total_run_queue %></div>
+            </div>
+          </div>
+
+          <div class="col mb-4">
+            <div class="banner-card">
+              <h6 class="banner-card-title">CPU</h6>
+              <div class="banner-card-value"><%= @system_usage.cpu_run_queue %></div>
+            </div>
+          </div>
+
+          <div class="col mb-4">
+            <div class="banner-card">
+              <h6 class="banner-card-title">IO</h6>
+              <div class="banner-card-value"><%= @system_usage.total_run_queue - @system_usage.cpu_run_queue %></div>
+            </div>
           </div>
         </div>
       </div>
@@ -102,9 +149,15 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           </div>
         <% end %>
 
+        <h5 class="card-title">Memory</h5>
+
+        <div class="card mb-4">
+          <div class="card-body">
+            <%= inspect(@system_usage.memory) %>
+          </div>
+        </div>
       </div>
     </div>
-
     """
   end
 
@@ -118,10 +171,9 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   end
 
   def handle_info(:refresh, socket) do
-    {:noreply, assign(socket, system_usage: SystemInfo.usage(socket.assigns.menu.node))}
+    {:noreply, assign(socket, system_usage: SystemInfo.fetch_usage(socket.assigns.menu.node))}
   end
 
   defp system_limits_sections(), do: @system_limits_sections
-
   defp versions_sections(), do: @versions_sections
 end
