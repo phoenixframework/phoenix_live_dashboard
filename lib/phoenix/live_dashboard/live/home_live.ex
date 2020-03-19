@@ -136,13 +136,13 @@ defmodule Phoenix.LiveDashboard.HomeLive do
                       <%= @system_usage[section] %> / <%= @system_limits[section] %>
                     </small>
                     <strong>
-                      <%= used(:atoms, @system_usage, @system_limits) %>%
+                      <%= used(section, @system_usage, @system_limits) %>%
                     </strong>
                   </div>
                 </div>
 
                 <div class="progress flex-grow-1 mt-2">
-                  <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: <%= used(:atoms, @system_usage, @system_limits) %>%"></div>
+                  <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: <%= used(section, @system_usage, @system_limits) %>%"></div>
                 </div>
               </section>
             </div>
