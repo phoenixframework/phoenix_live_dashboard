@@ -4,11 +4,17 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def format_uptime(uptime) do
     {d, {h, m, _s}} = :calendar.seconds_to_daystime(div(uptime, 1000))
-    (if d > 0, do: "#{d}d", else: "") <> (if h > 0, do: "#{d}h", else: "") <> "#{m}m"
+
+    cond do
+      d > 0 -> "#{d}d#{h}h#{m}m"
+      h > 0 -> "#{h}h#{m}m"
+      true -> "#{m}m"
+    end
   end
 
   def format_bytes(bytes) when is_integer(bytes) do
     cond do
+      bytes >= memory_unit(:TB) -> format_bytes(bytes, :TB)
       bytes >= memory_unit(:GB) -> format_bytes(bytes, :GB)
       bytes >= memory_unit(:MB) -> format_bytes(bytes, :MB)
       bytes >= memory_unit(:KB) -> format_bytes(bytes, :KB)
@@ -16,13 +22,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
-  defp format_bytes(bytes, unit) when is_integer(bytes) and unit in [:GB, :MB, :KB] do
+  defp format_bytes(bytes, :B) when is_integer(bytes), do: "#{bytes} B"
+
+  defp format_bytes(bytes, unit) when is_integer(bytes) do
     value = bytes / memory_unit(unit)
     "#{:erlang.float_to_binary(value, decimals: 1)} #{unit}"
   end
 
-  defp format_bytes(bytes, :B) when is_integer(bytes), do: "#{bytes} B"
-
+  defp memory_unit(:TB), do: 1024 * 1024 * 1024 * 1024
   defp memory_unit(:GB), do: 1024 * 1024 * 1024
   defp memory_unit(:MB), do: 1024 * 1024
   defp memory_unit(:KB), do: 1024
