@@ -20,6 +20,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLiveTest do
     assert render(live) =~ "Enable cookie"
 
     Logger.error("hello world", logger_pubsub_backend: {PubSub, RequestLogger.topic("sample")})
+    Logger.flush()
 
     # Guarantees the message above has been processed
     _ = render(live)
