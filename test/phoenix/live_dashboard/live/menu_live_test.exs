@@ -33,7 +33,7 @@ defmodule Phoenix.LiveDashboard.MenuLiveTest do
       assert render(live) =~ "Update every"
       assert render(live) =~ ~s|<option value="5" selected="selected">5s</option>|
 
-      assert render_change(live, "select_refresh", %{"refresh_selector" => %{"refresh" => "1"}}) =~
+      assert render_change(live, "select_refresh", %{"refresh" => "1"}) =~
                ~s|<option value="1" selected="selected">1s</option>|
     end
   end

@@ -2,6 +2,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   # Helpers for fetching and formatting system info.
   @moduledoc false
 
+  ## Formatters
+
   def format_uptime(uptime) do
     {d, {h, m, _s}} = :calendar.seconds_to_daystime(div(uptime, 1000))
 
@@ -34,12 +36,48 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   defp memory_unit(:MB), do: 1024 * 1024
   defp memory_unit(:KB), do: 1024
 
+  ## Fetchers
+
+  def fetch_processes(node, sort_by, sort_dir, limit) do
+    :rpc.call(node, __MODULE__, :processes_callback, [sort_by, sort_dir, limit])
+  end
+
   def fetch_info(node) do
     :rpc.call(node, __MODULE__, :info_callback, [])
   end
 
   def fetch_usage(node) do
     :rpc.call(node, __MODULE__, :usage_callback, [])
+  end
+
+  ## Callbacks
+
+  @process_info [
+    :registered_name,
+    :initial_call,
+    :memory,
+    :reductions,
+    :message_queue_len,
+    :current_function
+  ]
+
+  defp sort_dir_multipler(:asc), do: 1
+  defp sort_dir_multipler(:desc), do: -1
+
+  @doc false
+  def processes_callback(sort_by, sort_dir, limit) do
+    multiplier = sort_dir_multipler(sort_dir)
+
+    processes =
+      for pid <- Process.list(), info = Process.info(pid, @process_info) do
+        [registered_name: name, initial_call: initial_call] ++ rest = info
+        name_or_initial_call = if is_atom(name), do: name, else: initial_call
+        sorter = info[sort_by] * multiplier
+        {sorter, [pid: pid, name_or_initial_call: name_or_initial_call] ++ rest}
+      end
+
+    processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
+    {processes, :erlang.system_info(:process_count)}
   end
 
   @doc false
