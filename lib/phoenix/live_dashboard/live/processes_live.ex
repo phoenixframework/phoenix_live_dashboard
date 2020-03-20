@@ -2,9 +2,9 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   use Phoenix.LiveDashboard.Web, :live_view
 
   alias Phoenix.LiveDashboard.SystemInfo
+  import Phoenix.LiveDashboard.TableHelpers
 
   @sort_by ~w(memory reductions message_queue_len)
-  @limit ~w(50 100 500 1000 5000)
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
@@ -13,26 +13,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
 
   @impl true
   def handle_params(params, _url, socket) do
-    sort_by =
-      case params do
-        %{"sort_by" => sort_by} when sort_by in @sort_by -> String.to_atom(sort_by)
-        %{} -> :memory
-      end
-
-    sort_dir =
-      case params do
-        %{"sort_dir" => sort_dir} when sort_dir in ~w(asc desc) -> String.to_atom(sort_dir)
-        %{} -> :desc
-      end
-
-    limit =
-      case params do
-        %{"limit" => limit} when limit in @limit -> String.to_integer(limit)
-        %{} -> 50
-      end
-
-    params = %{sort_by: sort_by, sort_dir: sort_dir, limit: limit}
-    {:noreply, socket |> assign(:params, params) |> fetch_processes()}
+    {:noreply, socket |> assign_params(params, @sort_by) |> fetch_processes()}
   end
 
   defp fetch_processes(socket) do
@@ -43,8 +24,6 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
 
     assign(socket, processes: processes, total: total)
   end
-
-  defp limit_options(), do: @limit
 
   @impl true
   def render(assigns) do
@@ -112,23 +91,6 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
     </div>
     """
   end
-
-  defp sort_link(socket, params, sort_by, sort_dir) do
-    %{live_action: live_action, menu: %{node: node}} = socket.assigns
-    body = sort_link_body(sort_dir)
-
-    case params do
-      %{sort_by: ^sort_by, sort_dir: ^sort_dir} ->
-        body
-
-      %{} ->
-        params = %{params | sort_dir: sort_dir, sort_by: sort_by}
-        link(body, to: live_dashboard_path(socket, live_action, node, [], params))
-    end
-  end
-
-  defp sort_link_body(:asc), do: "asc"
-  defp sort_link_body(:desc), do: "desc"
 
   defp format_name_or_initial_call(name) when is_atom(name), do: inspect(name)
   defp format_name_or_initial_call({m, f, a}), do: Exception.format_mfa(m, f, a)
