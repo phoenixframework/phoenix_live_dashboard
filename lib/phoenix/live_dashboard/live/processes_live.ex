@@ -35,9 +35,9 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
         <div class="card-body">
           <form phx-change="select_limit" class="form-inline">
             <div class="input-group input-group-sm">
-              Showing at most&nbsp;<select name="limit" class="custom-select" id="limit-select">
+              Showing at most <select name="limit" class="custom-select" id="limit-select">
                 <%= options_for_select(limit_options(), @params.limit) %>
-              </select>&nbsp; processes out of <%= @total %>:
+              </select> processes out of <%= @total %>:
             </div>
           </form>
         
