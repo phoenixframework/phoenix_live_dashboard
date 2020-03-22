@@ -1,13 +1,13 @@
 // Header and menu styles
 header {
   background: $color-header;
-  height: 120px;
 
   h1 {
     text-shadow: 2px 2px 0 change-color($color-shadow-dark, $alpha: 0.5);
     color: $color-gray-200;
     font-size: 1.75rem;
     margin-top: 2.25rem;
+    margin-bottom: 0;
   }
 
   #menu-bar {
@@ -16,8 +16,10 @@ header {
     border-radius: $border-radius;
     background-color: #fff;
     display: inline-block;
-    margin-bottom: -1.5rem;
     padding: 0 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: -1.5rem;
+    position: relative;
   }
 
   #menu {
@@ -67,6 +69,7 @@ header {
 
   .container {
     position: relative;
+    z-index: 3;
   }
 }
 

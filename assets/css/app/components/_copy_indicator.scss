@@ -1,6 +1,8 @@
 // Animated text that appears after logger request param code has been copied
 .copy-indicator {
   opacity: 0;
+  padding: .375rem .75rem;
+  display: inline-block;
 
   &[data-enabled="true"] {
     animation-name: blink;

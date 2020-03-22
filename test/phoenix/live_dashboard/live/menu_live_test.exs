@@ -9,38 +9,21 @@ defmodule Phoenix.LiveDashboard.MenuLiveTest do
   defp menu_live(menu) do
     menu =
       Enum.into(menu, %{
-        refresher?: false,
         action: :home,
         node: node(),
         metrics: nil,
-        request_logger: nil
+        request_logger: nil,
       })
 
     live_isolated(build_conn(), MenuLive,
       session: %{"menu" => menu},
-      router: Phoenix.LiveDashboardTest.Router
+      router: Phoenix.LiveDashboardTest.Router,
     )
-  end
-
-  describe "refresher" do
-    test "is disabled when true" do
-      {:ok, live, _} = menu_live([])
-      assert render(live) =~ "Updates automatically"
-    end
-
-    test "is enabled when true" do
-      {:ok, live, _} = menu_live(refresher?: true)
-      assert render(live) =~ "Update every"
-      assert render(live) =~ ~s|<option value="5" selected="selected">5s</option>|
-
-      assert render_change(live, "select_refresh", %{"refresh" => "1"}) =~
-               ~s|<option value="1" selected="selected">1s</option>|
-    end
   end
 
   describe "menu" do
     test "disables metrics and request logger" do
-      {:ok, live, _} = menu_live([])
+      {:ok, live, _} = menu_live(refresher: %{})
       assert render(live) =~ ~r"Metrics <a[^>]+>Enable</a>"
       assert render(live) =~ ~r"Request Logger <a[^>]+>Enable</a>"
     end
@@ -52,7 +35,7 @@ defmodule Phoenix.LiveDashboard.MenuLiveTest do
     end
 
     test "when home is active" do
-      {:ok, live, _} = menu_live(action: :home)
+      {:ok, live, _} = menu_live(action: :home, refresher: %{})
       assert render(live) =~ ~s|<div class="menu-item active">Home</div>|
     end
 

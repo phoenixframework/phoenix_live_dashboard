@@ -10,5 +10,6 @@
   </div>
 </header>
 <section id="main" role="main" class="container">
+  <%= live_render @socket, Phoenix.LiveDashboard.RefresherLive, id: "refresher", session: %{"refresher" => @refresher} %>
   <%= @inner_content %>
 </section>
