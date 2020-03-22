@@ -19,10 +19,12 @@ defmodule Phoenix.LiveDashboard.MenuLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <%= maybe_active_live_redirect @socket, "Home", :home, @node %>
-    <%= maybe_enabled_live_redirect @socket, "Metrics", :metrics, @node %>
-    <%= maybe_enabled_live_redirect @socket, "Request Logger", :request_logger, @node %>
-    <%= maybe_active_live_redirect @socket, "Processes", :processes, @node %>
+    <nav id="menu-bar">
+      <%= maybe_active_live_redirect @socket, "Home", :home, @node %>
+      <%= maybe_enabled_live_redirect @socket, "Metrics", :metrics, @node %>
+      <%= maybe_enabled_live_redirect @socket, "Request Logger", :request_logger, @node %>
+      <%= maybe_active_live_redirect @socket, "Processes", :processes, @node %>
+    </nav>
 
     <form id="node-selection" phx-change="select_node" class="d-inline">
       <div class="input-group input-group-sm d-flex flex-column">
@@ -35,7 +37,7 @@ defmodule Phoenix.LiveDashboard.MenuLive do
       </div>
     </form>
 
-    <div id="refresh-interval-selection">
+    <div id="refresher">
       <form phx-change="select_refresh">
         <div class="input-group input-group-sm">
           <%= if @menu.refresher? do %>

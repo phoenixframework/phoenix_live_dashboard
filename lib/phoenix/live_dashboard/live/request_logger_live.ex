@@ -90,7 +90,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
               <textarea rows="1" class="code-field text-monospace" readonly="readonly">?<%= @param_key %>=<%= sign(@socket, @param_key, @stream) %></textarea>
 
               <div class="row flex-grow-0">
-                <div class="col">
+                <div class="col flex-grow-0">
                   <span class="copy-indicator">Copied!</span>
                 </div>
                 <div class="col">

@@ -4,9 +4,7 @@
       <span class="header-title-part">Phoenix </span>
       <span class="header-title-part">LiveDashboard<span>
     </h1>
-    <nav id="menu-bar">
-      <%= live_render @socket, Phoenix.LiveDashboard.MenuLive, id: "menu", session: %{"menu" => @menu} %>
-    </nav>
+    <%= live_render @socket, Phoenix.LiveDashboard.MenuLive, id: "menu", session: %{"menu" => @menu} %>
   </div>
 </header>
 <section id="main" role="main" class="container">

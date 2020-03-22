@@ -71,21 +71,21 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         </div>
 
         <div class="row">
-          <div class="col mb-4">
+          <div class="col-lg-4 mb-4">
             <div class="banner-card">
               <h6 class="banner-card-title">Uptime</h6>
               <div class="banner-card-value"><%= SystemInfo.format_uptime(@system_usage.uptime) %></div>
             </div>
           </div>
 
-          <div class="col mb-4">
+          <div class="col-lg-4 mb-4">
             <div class="banner-card">
               <h6 class="banner-card-title">Total input</h6>
               <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(0)) %></div>
             </div>
           </div>
 
-          <div class="col mb-4">
+          <div class="col-lg-4 mb-4">
             <div class="banner-card">
               <h6 class="banner-card-title">Total output</h6>
               <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(1)) %></div>
@@ -96,21 +96,21 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         <h5 class="card-title">Run queues</h5>
 
         <div class="row">
-          <div class="col mb-4">
+          <div class="col-md-4 mb-4">
             <div class="banner-card">
               <h6 class="banner-card-title">Total</h6>
               <div class="banner-card-value"><%= @system_usage.total_run_queue %></div>
             </div>
           </div>
 
-          <div class="col mb-4">
+          <div class="col-md-4 mb-4">
             <div class="banner-card">
               <h6 class="banner-card-title">CPU</h6>
               <div class="banner-card-value"><%= @system_usage.cpu_run_queue %></div>
             </div>
           </div>
 
-          <div class="col mb-4">
+          <div class="col-md-4 mb-4">
             <div class="banner-card">
               <h6 class="banner-card-title">IO</h6>
               <div class="banner-card-value"><%= @system_usage.total_run_queue - @system_usage.cpu_run_queue %></div>

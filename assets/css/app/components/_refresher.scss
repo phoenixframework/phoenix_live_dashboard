@@ -1,8 +1,8 @@
 // Refresh interval selection dropdown
-#refresh-interval-selection {
+#refresher {
   position: absolute;
   bottom: -5.25rem;
-  right: 0.75rem;
+  right: 0;
   z-index: 2;
 
   .custom-select {
@@ -18,12 +18,12 @@
 }
 
 @media (max-width: map-get($grid-breakpoints, lg)) {
-  #refresh-interval-selection {
+  #refresher {
     right: auto;
     left: auto;
     text-align: center;
     width: 100%;
-    bottom: -5rem;
+    bottom: -4.5rem;
 
     form {
       display: inline-block;
