@@ -78,18 +78,17 @@ defmodule Phoenix.LiveDashboard.Web do
   @doc """
   Assign default values on the socket.
   """
-  def assign_defaults(socket, params, session, refresher_enabled? \\ false) do
+  def assign_defaults(socket, params, session, refresher? \\ false) do
     param_node = Map.fetch!(params, "node")
     found_node = Enum.find([node() | Node.list()], &(Atom.to_string(&1) == param_node))
 
     socket =
-      Phoenix.LiveView.assign(socket, menu: %{
+      Phoenix.LiveView.assign(socket, :menu, %{
+        refresher?: refresher?,
         action: socket.assigns.live_action,
         node: found_node || node(),
         metrics: session["metrics"],
         request_logger: session["request_logger"]
-      }, refresher: %{
-        enabled?: refresher_enabled?
       })
 
     if found_node do

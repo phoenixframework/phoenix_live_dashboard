@@ -1,8 +1,8 @@
 // Refresh interval selection dropdown
 #refresher {
   position: absolute;
-  top: 3.25rem;
-  right: 0.75rem;
+  bottom: -5.25rem;
+  right: 0;
   z-index: 2;
 
   .custom-select {
@@ -23,7 +23,7 @@
     left: auto;
     text-align: center;
     width: 100%;
-    top: 3.5rem;
+    bottom: -4.5rem;
 
     form {
       display: inline-block;

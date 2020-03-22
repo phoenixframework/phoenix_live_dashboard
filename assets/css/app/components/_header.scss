@@ -20,9 +20,12 @@ header {
     margin-top: 1rem;
     margin-bottom: -1.5rem;
     position: relative;
+    width: 100%;
   }
 
   #menu {
+    position: relative;
+
     .menu-item {
       display: inline-block;
       padding: 0.75rem;
