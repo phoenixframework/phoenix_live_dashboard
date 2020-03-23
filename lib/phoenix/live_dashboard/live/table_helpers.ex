@@ -41,6 +41,15 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
     live_component(socket, Phoenix.LiveDashboard.ModalComponent, modal_opts)
   end
 
+  def encode_pid(pid) do
+    pid
+    |> :erlang.pid_to_list()
+    |> tl()
+    |> Enum.drop(-1)
+    |> List.to_string()
+  end
+  def decode_pid(list_pid), do: :erlang.list_to_pid([?< | String.to_charlist(list_pid)] ++ [?>])
+
   defp sort_link_body(:asc), do: "asc"
   defp sort_link_body(:desc), do: "desc"
 end
