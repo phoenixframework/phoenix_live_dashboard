@@ -39,6 +39,7 @@ defmodule Phoenix.LiveDashboard.Router do
         live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
         live "/:node/metrics/:group", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
         live "/:node/processes", Phoenix.LiveDashboard.ProcessesLive, :processes, opts
+        live "/:node/processes/:pid", Phoenix.LiveDashboard.ProcessesLive, :process_info, opts
 
         live "/:node/request_logger",
              Phoenix.LiveDashboard.RequestLoggerLive,

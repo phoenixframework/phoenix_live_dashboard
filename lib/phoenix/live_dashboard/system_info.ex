@@ -4,6 +4,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Formatters
 
+  def format_call({m, f, a}), do: Exception.format_mfa(m, f, a)
+
   def format_uptime(uptime) do
     {d, {h, m, _s}} = :calendar.seconds_to_daystime(div(uptime, 1000))
 
@@ -42,6 +44,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :processes_callback, [sort_by, sort_dir, limit])
   end
 
+  def fetch_process_info(pid, keys) do
+    :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
+  end
+
   def fetch_info(node) do
     :rpc.call(node, __MODULE__, :info_callback, [])
   end
@@ -78,6 +84,11 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
     {processes, :erlang.system_info(:process_count)}
+  end
+
+  @doc false
+  def process_info_callback(pid, keys) do
+    Process.info(pid, keys)
   end
 
   @doc false

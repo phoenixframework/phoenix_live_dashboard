@@ -1,8 +1,8 @@
 defmodule Phoenix.LiveDashboard.ProcessesLive do
   use Phoenix.LiveDashboard.Web, :live_view
-
-  alias Phoenix.LiveDashboard.SystemInfo
   import Phoenix.LiveDashboard.TableHelpers
+
+  alias Phoenix.LiveDashboard.{SystemInfo, ProcessInfoComponent}
 
   @sort_by ~w(memory reductions message_queue_len)
 
@@ -13,7 +13,11 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
 
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply, socket |> assign_params(params, @sort_by) |> fetch_processes()}
+    {:noreply,
+     socket
+     |> assign_params(params, @sort_by)
+     |> assign_pid(socket.assigns.live_action, params)
+     |> fetch_processes()}
   end
 
   defp fetch_processes(socket) do
@@ -40,7 +44,13 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
               </select> processes out of <%= @total %>:
             </div>
           </form>
-        
+
+          <%= if @pid do %>
+            <%= live_modal @socket, ProcessInfoComponent,
+              id: @pid,
+              return_to: @return_path %>
+          <% end %>
+
           <table class="table table-hover mt-4">
             <thead>
               <tr>
@@ -74,14 +84,14 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
               </tr>
             </thead>
             <tbody>
-              <%= for process <- @processes do %>
-                <tr>
-                  <td><%= :erlang.pid_to_list(process[:pid]) %></td>
+              <%= for process <- @processes, list_pid = :erlang.pid_to_list(process[:pid]) do %>
+                <tr phx-click="show_info" phx-value-pid="<%= list_pid %>" class="<%= row_class(process, @pid) %>">
+                  <td><%= list_pid %></td>
                   <td><%= format_name_or_initial_call(process[:name_or_initial_call]) %></td>
                   <td><%= process[:memory] %></td>
                   <td><%= process[:reductions] %></td>
                   <td><%= process[:message_queue_len] %></td>
-                  <td><%= format_name_or_initial_call(process[:current_function]) %></td>
+                  <td><%= SystemInfo.format_call(process[:current_function]) %></td>
                 </tr>
               <% end %>
             </tbody>
@@ -93,7 +103,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   end
 
   defp format_name_or_initial_call(name) when is_atom(name), do: inspect(name)
-  defp format_name_or_initial_call({m, f, a}), do: Exception.format_mfa(m, f, a)
+  defp format_name_or_initial_call(call), do: SystemInfo.format_call(call)
 
   @impl true
   def handle_info({:node_redirect, node}, socket) do
@@ -101,16 +111,40 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   end
 
   def handle_info(:refresh, socket) do
+    if pid = socket.assigns.pid, do: send_update(ProcessInfoComponent, id: pid)
     {:noreply, fetch_processes(socket)}
   end
 
   @impl true
   def handle_event("select_limit", %{"limit" => limit}, socket) do
     params = %{socket.assigns.params | limit: limit}
-    {:noreply, push_patch(socket, to: self_path(socket, socket.assigns.menu.node, params))}
+    {:noreply, push_patch(socket, to: self_path(socket, menu_node(socket), params))}
+  end
+
+  @impl true
+  def handle_event("show_info", %{"pid" => list_pid}, socket) do
+    {:noreply, push_patch(socket, to: process_info_path(socket, list_pid))}
+  end
+
+  defp process_info_path(socket, list_pid) do
+    live_dashboard_path(socket, :process_info, menu_node(socket), [list_pid], socket.assigns.params)
   end
 
   defp self_path(socket, node, params) do
     live_dashboard_path(socket, :processes, node, [], params)
+  end
+
+  defp menu_node(socket), do: socket.assigns.menu.node
+
+  defp assign_pid(socket, :process_info, %{"pid" => pid_param}) do
+    pid = String.to_charlist(pid_param)
+    path = self_path(socket, menu_node(socket), socket.assigns.params)
+    assign(socket, return_path: path, pid: :erlang.list_to_pid(pid))
+  end
+
+  defp assign_pid(socket, _action, %{}), do: assign(socket, pid: nil, return_path: nil)
+
+  defp row_class(process_info, active_pid) do
+    if process_info[:pid] == active_pid, do: "active", else: ""
   end
 end
