@@ -15,7 +15,8 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
         assign(socket,
           title: chart_title(metric),
           kind: chart_kind(metric.__struct__),
-          label: chart_label(metric)
+          label: chart_label(metric),
+          attrs: metric_for_attrs(metric)
         )
       else
         socket
@@ -38,7 +39,8 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
           <canvas id="chart-<%= @id %>--canvas"
           data-label="<%= @label %>"
           data-metric="<%= @kind %>"
-          data-title="<%= @title %>"></canvas>
+          data-title="<%= @title %>"<%= for {key, val} <- @attrs do %>
+          data-<%= key %>="<%= val %>"<% end %>></canvas>
         </div>
       </div>
     </div>
@@ -53,12 +55,10 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp chart_tags(tags), do: " (#{Enum.join(tags, "-")})"
 
   defp chart_kind(Telemetry.Metrics.Counter), do: :counter
+  defp chart_kind(Telemetry.Metrics.Distribution), do: :distribution
   defp chart_kind(Telemetry.Metrics.LastValue), do: :last_value
   defp chart_kind(Telemetry.Metrics.Sum), do: :sum
   defp chart_kind(Telemetry.Metrics.Summary), do: :summary
-
-  defp chart_kind(Telemetry.Metrics.Distribution),
-    do: raise(ArgumentError, "LiveDashboard does not yet support distribution metrics")
 
   defp chart_label(%{} = metric) do
     metric.name
@@ -76,4 +76,10 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp humanize_unit(:second), do: " s"
   defp humanize_unit(:unit), do: ""
   defp humanize_unit(unit) when is_atom(unit), do: " (#{unit})"
+
+  defp metric_for_attrs(%Telemetry.Metrics.Distribution{buckets: buckets}) do
+    [buckets: "#{Enum.join(buckets, ",")}"]
+  end
+
+  defp metric_for_attrs(_), do: []
 end
