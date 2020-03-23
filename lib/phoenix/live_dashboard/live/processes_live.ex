@@ -132,9 +132,6 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
     live_dashboard_path(socket, :processes, node(pid), [encode_pid(pid)], params)
   end
 
-  defp encode_pid(pid), do: List.to_string(:erlang.pid_to_list(pid))
-  defp decode_pid(list_pid), do: :erlang.list_to_pid(String.to_charlist(list_pid))
-
   defp self_path(socket, node, params) do
     live_dashboard_path(socket, :processes, node, [], params)
   end
@@ -142,7 +139,6 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   defp menu_node(socket), do: socket.assigns.menu.node
 
   defp assign_pid(socket, %{"pid" => pid_param}) do
-    pid = String.to_charlist(pid_param)
     path = self_path(socket, menu_node(socket), socket.assigns.params)
     assign(socket, return_path: path, pid: decode_pid(pid_param))
   end
@@ -152,4 +148,13 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   defp row_class(process_info, active_pid) do
     if process_info[:pid] == active_pid, do: "active", else: ""
   end
+
+  defp encode_pid(pid) do
+    pid
+    |> :erlang.pid_to_list()
+    |> tl()
+    |> Enum.drop(-1)
+    |> List.to_string()
+  end
+  defp decode_pid(list_pid), do: :erlang.list_to_pid([?< | String.to_charlist(list_pid)] ++ [?>])
 end
