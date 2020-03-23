@@ -10,8 +10,9 @@ export const DataFns = {
   indexOf(label) {
     return this.data.labels.indexOf(label)
   },
-  pushDataset(label, { y: measurement }) {
+  pushDataset(label, point = { y: 0 }) {
     const labelIndex = this.data.labels.push(label)
+    const { y: measurement } = point
     this.data.datasets[0].data.push(measurement)
     this.data.datasets[0].backgroundColor.push(
       ColorWheel.at(this.data.labels.length)
@@ -31,11 +32,18 @@ const DatasetFns = {
   indexOf(label) {
     return this.data.datasets.findIndex(d => d.label === label)
   },
-  pushDataset(label, { y, z: t }) {
+  pushDataset(label, point) {
     const color = ColorWheel.at(this.data.datasets.length)
+    const data = []
+
+    if (point) {
+      const { y, z: t } = point
+      data.push({ t, y })
+    }
+
     return this.data.datasets.push({
       label: label,
-      data: [{ t, y }],
+      data: data,
       backgroundColor: color,
       borderColor: color,
       fill: false
@@ -114,11 +122,44 @@ const TimeseriesConfig = (options) => {
   }
 }
 
+const HistogramConfig = (options) => {
+  return {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{
+        backgroundColor: [],
+        data: [],
+        label: options.title,
+        barPercentage: 1.0,
+        categoryPercentage: 1.0
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        yAxes: [{
+          scaleLabel: {
+            display: true,
+            labelString: options.label
+          }
+        }]
+      },
+      title: {
+        display: true,
+        text: options.title
+      },
+      legend: false
+    }
+  }
+}
+
 /** Chart.js Instrument **/
 
 const __INSTRUMENTS__ = {
   doughnut: { config: DoughnutConfig, storage: DataFns },
-  timeseries: { config: TimeseriesConfig, storage: DatasetFns }
+  timeseries: { config: TimeseriesConfig, storage: DatasetFns },
+  histogram: { config: HistogramConfig, storage: DataFns }
 }
 
 class Instrument {
@@ -136,8 +177,12 @@ class Instrument {
     if (labelIndex === -1) {
       this.pushDataset(x, { y: 1, z })
     } else {
-      this.storageFns.increment.call(this.config, labelIndex, { x, y, z })
+      this.incrementIndex(labelIndex, { x, y, z })
     }
+  }
+
+  incrementIndex(labelIndex, point) {
+    this.storageFns.increment.call(this.config, labelIndex, point)
   }
 
   indexOf(label) {
@@ -205,8 +250,51 @@ class Summary {
   }
 }
 
+// Displays a histogram
+class Distribution {
+  constructor(instrument, options) {
+    this.instrument = instrument
+    this.buckets = this.__bucketsToRanges__(options.buckets).map(([min, max]) => {
+      const label = min === Number.NEGATIVE_INFINITY ? `< ${max}` : `${min}`
+      return {
+        labelIndex: instrument.pushDataset(label),
+        range: [min, max]
+      }
+    })
+  }
+
+  pushData(data) {
+    data.forEach(({ y: value, ...rest }) => {
+      const index = this.buckets.findIndex(({ range: [min, max] }) => value > min && value <= max)
+      this.instrument.incrementIndex(this.buckets[index].labelIndex, { y: 1, ...rest })
+    })
+  }
+
+  __bucketsToRanges__(bucketsOption) {
+    if (typeof bucketsOption !== 'string') {
+      return []
+    }
+
+    const buckets = bucketsOption.split(',').flatMap(value => {
+      const parsed = parseInt(value)
+      return isNaN(parsed) ? [] : [parsed]
+    })
+
+    return buckets.flatMap((value, k) => {
+      if (k === 0) {
+        return [[Number.NEGATIVE_INFINITY, value], [value, buckets[k + 1]]]
+      } else if (k === buckets.length - 1) {
+        return [[value, Number.POSITIVE_INFINITY]]
+      } else {
+        return [[value, buckets[k + 1]]]
+      }
+    })
+  }
+}
+
 const __METRICS__ = {
   counter: Counter,
+  distribution: Distribution,
   last_value: LastValue,
   sum: Sum,
   summary: Summary
@@ -233,7 +321,16 @@ const PhxChartComponent = {
   mounted() {
     let canvas = this.el.parentElement.getElementsByTagName('canvas')[0]
     let options = Object.assign({}, canvas.dataset)
-    options['instrument'] = options['metric'] === 'summary' ? 'timeseries' : 'doughnut'
+    switch (options.metric) {
+      case 'distribution':
+        options.instrument = 'histogram'
+        break
+      case 'summary':
+        options.instrument = 'timeseries'
+        break
+      default:
+        options.instrument = 'doughnut'
+    }
     this.chart = new TelemetryChart(canvas.getContext('2d'), options)
   },
   updated() {
