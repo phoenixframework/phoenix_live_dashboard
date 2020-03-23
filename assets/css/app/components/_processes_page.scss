@@ -1,0 +1,49 @@
+.processes-page {
+  .processes-table {
+    th {
+      background-color: $color-gray-100;
+      white-space: nowrap;
+    }
+  }
+
+  .processes-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .icon-asc {
+    display: inline-block;
+    width: 0; 
+    height: 0; 
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+
+    border-bottom: 5px solid black;
+    line-height: 5px;
+    vertical-align: middle;
+  }
+
+  .icon-desc {
+    display: inline-block;
+    width: 0; 
+    height: 0; 
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+
+    border-top: 5px solid black;
+    line-height: 5px;
+    vertical-align: middle;
+  }
+
+  .processes-icon {
+    padding-left: 0.25rem;
+    display: inline-block;
+  }
+}
+
+[data-phx-view="LiveDashboard.ProcessesLive"] {
+  .container {
+    max-width: 100%;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}

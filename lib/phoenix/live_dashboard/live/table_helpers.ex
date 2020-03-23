@@ -1,5 +1,6 @@
 defmodule Phoenix.LiveDashboard.TableHelpers do
   @moduledoc false
+  import Phoenix.HTML
   import Phoenix.LiveView
   import Phoenix.LiveView.Helpers
   import Phoenix.LiveDashboard.Web
@@ -21,20 +22,50 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
 
   def limit_options(), do: @limit
 
-  def sort_link(socket, params, sort_by, sort_dir) do
+  def sort_link(socket, params, sort_by, link_name) do
     %{live_action: live_action, menu: %{node: node}} = socket.assigns
-    body = sort_link_body(sort_dir)
 
     case params do
-      %{sort_by: ^sort_by, sort_dir: ^sort_dir} ->
-        body
+      %{sort_by: ^sort_by, sort_dir: sort_dir} ->
+        params = %{params | sort_dir: opposite_sort_dir(params), sort_by: sort_by}
+
+        link_name
+        |> sort_link_body(sort_dir)
+        |> live_patch(to: live_dashboard_path(socket, live_action, node, [], params))
 
       %{} ->
-        params = %{params | sort_dir: sort_dir, sort_by: sort_by}
-        live_patch(body, to: live_dashboard_path(socket, live_action, node, [], params))
+        params = %{params | sort_dir: :desc, sort_by: sort_by}
+
+        link_name
+        |> sort_link_body()
+        |> live_patch(to: live_dashboard_path(socket, live_action, node, [], params))
     end
+
   end
 
-  defp sort_link_body(:asc), do: "asc"
-  defp sort_link_body(:desc), do: "desc"
+  defp sort_link_body(link_name), do: link_name
+
+  defp sort_link_body(link_name, sort_dir) do
+    [ link_name | sort_link_icon(sort_dir) ]
+  end
+
+  defp sort_link_icon(:asc) do
+    ~E"""
+    <div class="processes-icon">
+      <span class="icon-asc"></span>
+    </div>
+    """
+  end
+
+  defp sort_link_icon(:desc) do
+    ~E"""
+    <div class="processes-icon">
+      <span class="icon-desc"></span>
+    </div>
+    """
+  end
+
+  defp opposite_sort_dir(%{sort_dir: :desc}), do: :asc
+
+  defp opposite_sort_dir(_), do: :desc
 end
