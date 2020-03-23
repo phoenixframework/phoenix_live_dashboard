@@ -63,7 +63,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
   @impl true
   def mount(socket) do
-    {:ok, assign(socket, max_list_len: 10)}
+    {:ok, assign(socket, max_list_len: 100)}
   end
 
   @impl true
