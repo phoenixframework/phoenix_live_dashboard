@@ -37,9 +37,17 @@ defmodule DemoWeb.Telemetry do
       summary("phoenix.endpoint.stop.duration",
         unit: {:native, :millisecond}
       ),
+      distribution("phoenix.endpoint.stop.duration",
+        buckets: [100, 200, 300],
+        unit: {:native, :microsecond}
+      ),
       summary("phoenix.router_dispatch.stop.duration",
         tags: [:route],
         unit: {:native, :millisecond}
+      ),
+      distribution("phoenix.router_dispatch.stop.duration",
+        buckets: {0..500, 25},
+        unit: {:native, :microsecond}
       ),
 
       # VM Metrics
