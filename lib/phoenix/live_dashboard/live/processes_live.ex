@@ -70,7 +70,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
               <tbody>
                 <%= for process <- @processes do %>
                   <tr>
-                    <td class="pl-4"><%= :erlang.pid_to_list(process[:pid]) %></td>
+                    <td class="processes-column-pid pl-4"><%= :erlang.pid_to_list(process[:pid]) %></td>
                     <td class="processes-column-name"><%= format_name_or_initial_call(process[:name_or_initial_call]) %></td>
                     <td class="text-right"><%= process[:memory] %></td>
                     <td class="text-right"><%= process[:reductions] %></td>

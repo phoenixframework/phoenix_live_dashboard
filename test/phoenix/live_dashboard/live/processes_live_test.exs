@@ -31,7 +31,8 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
   end
 
   test "order processes by reductions" do
-Agent.start_link(fn -> List.duplicate("a", 1) end, name: :process_live_test_low_reductions)
+    Agent.start_link(fn -> List.duplicate("a", 1) end, name: :process_live_test_low_reductions)
+
     Agent.start_link(fn -> List.duplicate("a", 1000) end, name: :process_live_test_high_reductions)
 
     {:ok, live, _} = live(build_conn(), processes_path(1000, :reductions, :desc))

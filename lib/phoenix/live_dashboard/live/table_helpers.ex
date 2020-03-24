@@ -40,13 +40,12 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
         |> sort_link_body()
         |> live_patch(to: live_dashboard_path(socket, live_action, node, [], params))
     end
-
   end
 
   defp sort_link_body(link_name), do: link_name
 
   defp sort_link_body(link_name, sort_dir) do
-    [ link_name | sort_link_icon(sort_dir) ]
+    [link_name | sort_link_icon(sort_dir)]
   end
 
   defp sort_link_icon(:asc) do

@@ -1,8 +1,14 @@
 .processes-page {
   .processes-table {
+    color: $color-gray-900;
+
     th {
       background-color: $color-gray-100;
       white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background-color: $color-gray-100;
     }
   }
 
@@ -50,6 +56,10 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .processes-column-pid {
+    border-left: 4px solid transparent;
   }
 }
 

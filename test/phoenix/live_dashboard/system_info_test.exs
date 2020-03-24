@@ -7,7 +7,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     assert format_uptime(1000) == "0m"
     assert format_uptime(60000) == "1m"
     assert format_uptime(90000) == "1m"
-    assert format_uptime(120000) == "2m"
+    assert format_uptime(120_000) == "2m"
     assert format_uptime(60 * 60000) == "1h0m"
     assert format_uptime(2 * 60 * 60000) == "2h0m"
     assert format_uptime(24 * 60 * 60000) == "1d0h0m"
