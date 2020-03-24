@@ -48,7 +48,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
           <%= if @pid do %>
             <%= live_modal @socket, ProcessInfoComponent,
               id: @pid,
-              return_to: @return_path,
+              return_to: return_path(@socket, @menu, @params),
               pid_link_builder: &process_info_path(@socket, &1, @params) %>
           <% end %>
 
@@ -118,8 +118,8 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
 
   @impl true
   def handle_event("select_limit", %{"limit" => limit}, socket) do
-    params = %{socket.assigns.params | limit: limit}
-    {:noreply, push_patch(socket, to: self_path(socket, menu_node(socket), params))}
+    %{menu: menu, params: params} = socket.assigns
+    {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
   end
 
   @impl true
@@ -136,14 +136,15 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
     live_dashboard_path(socket, :processes, node, [], params)
   end
 
-  defp menu_node(socket), do: socket.assigns.menu.node
-
   defp assign_pid(socket, %{"pid" => pid_param}) do
-    path = self_path(socket, menu_node(socket), socket.assigns.params)
-    assign(socket, return_path: path, pid: decode_pid(pid_param))
+    assign(socket, pid: decode_pid(pid_param))
   end
 
-  defp assign_pid(socket, %{}), do: assign(socket, pid: nil, return_path: nil)
+  defp assign_pid(socket, %{}), do: assign(socket, pid: nil)
+
+  defp return_path(socket, menu, params) do
+    self_path(socket, menu.node, params)
+  end
 
   defp row_class(process_info, active_pid) do
     if process_info[:pid] == active_pid, do: "active", else: ""
