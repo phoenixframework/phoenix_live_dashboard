@@ -52,7 +52,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
               pid_link_builder: &process_info_path(@socket, &1, @params) %>
           <% end %>
 
-          <table class="table table-hover mt-4">
+          <table class="table table-hover mt-4 clickable-rows">
             <thead>
               <tr>
                 <th class="border-top-0">PID</th>
