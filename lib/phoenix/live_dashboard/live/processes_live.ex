@@ -1,8 +1,8 @@
 defmodule Phoenix.LiveDashboard.ProcessesLive do
   use Phoenix.LiveDashboard.Web, :live_view
-
-  alias Phoenix.LiveDashboard.SystemInfo
   import Phoenix.LiveDashboard.TableHelpers
+
+  alias Phoenix.LiveDashboard.{SystemInfo, ProcessInfoComponent}
 
   @sort_by ~w(memory reductions message_queue_len)
 
@@ -13,7 +13,11 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
 
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply, socket |> assign_params(params, @sort_by) |> fetch_processes()}
+    {:noreply,
+     socket
+     |> assign_params(params, @sort_by)
+     |> assign_pid(params)
+     |> fetch_processes()}
   end
 
   defp fetch_processes(socket) do
@@ -47,10 +51,17 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
         </div>
       </form>
 
+      <%= if @pid do %>
+        <%= live_modal @socket, ProcessInfoComponent,
+          id: @pid,
+          return_to: return_path(@socket, @menu, @params),
+          pid_link_builder: &process_info_path(@socket, &1, @params) %>
+      <% end %>
+
       <div class="card processes-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="processes-table-wrapper">
-            <table class="table table-hover mt-0 processes-table">
+            <table class="table table-hover mt-0 processes-table clickable-rows">
               <thead>
                 <tr>
                   <th class="pl-4">PID</th>
@@ -68,14 +79,14 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
                 </tr>
               </thead>
               <tbody>
-                <%= for process <- @processes do %>
+                <%= for process <- @processes, list_pid = encode_pid(process[:pid]) do %>
                   <tr>
-                    <td class="processes-column-pid pl-4"><%= :erlang.pid_to_list(process[:pid]) %></td>
+                    <td class="processes-column-pid pl-4"><%= list_pid %></td>
                     <td class="processes-column-name"><%= format_name_or_initial_call(process[:name_or_initial_call]) %></td>
                     <td class="text-right"><%= process[:memory] %></td>
                     <td class="text-right"><%= process[:reductions] %></td>
                     <td class="text-right"><%= process[:message_queue_len] %></td>
-                    <td class="processes-column-current"><%= format_name_or_initial_call(process[:current_function]) %></td>
+                    <td class="processes-column-current"><%= SystemInfo.format_call(process[:current_function]) %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -88,7 +99,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   end
 
   defp format_name_or_initial_call(name) when is_atom(name), do: inspect(name)
-  defp format_name_or_initial_call({m, f, a}), do: Exception.format_mfa(m, f, a)
+  defp format_name_or_initial_call(call), do: SystemInfo.format_call(call)
 
   @impl true
   def handle_info({:node_redirect, node}, socket) do
@@ -96,16 +107,53 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   end
 
   def handle_info(:refresh, socket) do
+    if pid = socket.assigns.pid, do: send_update(ProcessInfoComponent, id: pid)
     {:noreply, fetch_processes(socket)}
   end
 
   @impl true
   def handle_event("select_limit", %{"limit" => limit}, socket) do
-    params = %{socket.assigns.params | limit: limit}
-    {:noreply, push_patch(socket, to: self_path(socket, socket.assigns.menu.node, params))}
+    %{menu: menu, params: params} = socket.assigns
+    {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
+  end
+
+  @impl true
+  def handle_event("show_info", %{"pid" => list_pid}, socket) do
+    pid = decode_pid(list_pid)
+    {:noreply, push_patch(socket, to: process_info_path(socket, pid, socket.assigns.params))}
+  end
+
+  defp process_info_path(socket, pid, params) when is_pid(pid) do
+    live_dashboard_path(socket, :processes, node(pid), [encode_pid(pid)], params)
   end
 
   defp self_path(socket, node, params) do
     live_dashboard_path(socket, :processes, node, [], params)
   end
+
+  defp assign_pid(socket, %{"pid" => pid_param}) do
+    assign(socket, pid: decode_pid(pid_param))
+  end
+
+  defp assign_pid(socket, %{}), do: assign(socket, pid: nil)
+
+  defp return_path(socket, menu, params) do
+    self_path(socket, menu.node, params)
+  end
+
+  defp row_class(process_info, active_pid) do
+    if process_info[:pid] == active_pid, do: "active", else: ""
+  end
+
+  @doc false
+  def encode_pid(pid) do
+    pid
+    |> :erlang.pid_to_list()
+    |> tl()
+    |> Enum.drop(-1)
+    |> List.to_string()
+  end
+
+  @doc false
+  def decode_pid(list_pid), do: :erlang.list_to_pid([?<] ++ String.to_charlist(list_pid) ++ [?>])
 end
