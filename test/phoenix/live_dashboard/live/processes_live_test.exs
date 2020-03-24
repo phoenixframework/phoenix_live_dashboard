@@ -32,6 +32,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
   test "order processes by reductions" do
     Agent.start_link(fn -> List.duplicate("a", 1) end, name: :process_live_test_low_reductions)
+
     Agent.start_link(fn -> List.duplicate("a", 1000) end, name: :process_live_test_high_reductions)
 
     {:ok, live, _} = live(build_conn(), processes_path(1000, :reductions, :desc))
@@ -79,7 +80,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     render_click([live, "modal"], "close")
 
     return_path = processes_path(1000, :message_queue_len, :desc)
-    assert_redirect live, ^return_path
+    assert_redirect(live, ^return_path)
   end
 
   defp processes_href(limit, sort_by, sort_dir) do
@@ -90,6 +91,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     "/dashboard/nonode%40nohost/processes/#{Phoenix.LiveDashboard.ProcessesLive.encode_pid(pid)}?" <>
       "limit=#{limit}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
+
   defp processes_path(limit, sort_by, sort_dir) do
     "/dashboard/nonode%40nohost/processes?" <>
       "limit=#{limit}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
