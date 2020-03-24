@@ -49,7 +49,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
             <%= live_modal @socket, ProcessInfoComponent,
               id: @pid,
               return_to: @return_path,
-              pid_link_builder: fn pid -> process_info_path(@socket, pid, @params) end %>
+              pid_link_builder: &process_info_path(@socket, &1, @params) %>
           <% end %>
 
           <table class="table table-hover mt-4">
