@@ -6,44 +6,77 @@
     }
   }
 
+  .custom-select {
+    background-color: $color-gray;
+    border-radius: $border-radius;
+    border-width: 0;
+  }
+
   .processes-table-wrapper {
+    border-radius: $border-radius $border-radius 0 0;
     overflow-x: auto;
   }
 
-  .icon-asc {
+  .icon-sort {
     display: inline-block;
     width: 0; 
     height: 0; 
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-
-    border-bottom: 5px solid black;
-    line-height: 5px;
+    line-height: 6px;
+    position: relative;
+    top: -1px;
     vertical-align: middle;
   }
 
-  .icon-desc {
-    display: inline-block;
-    width: 0; 
-    height: 0; 
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
+  .icon-asc {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid $color-gray-800;
+  }
 
-    border-top: 5px solid black;
-    line-height: 5px;
-    vertical-align: middle;
+  .icon-desc {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid $color-gray-800;
   }
 
   .processes-icon {
     padding-left: 0.25rem;
     display: inline-block;
   }
+
+  .processes-column-name {
+    padding-right: 0;
+    max-width: 350px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
-[data-phx-view="LiveDashboard.ProcessesLive"] {
-  .container {
-    max-width: 100%;
-    padding-left: 2rem;
-    padding-right: 2rem;
+@media (max-width: map-get($grid-breakpoints, xl)) {
+  [data-phx-view="LiveDashboard.ProcessesLive"] {
+    .container {
+      max-width: 100%;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+}
+
+@media (max-width: map-get($grid-breakpoints, lg)) {
+  [data-phx-view="LiveDashboard.ProcessesLive"] {
+    .processes-card {
+      border-radius: 0;
+      margin-left: -2rem;
+      margin-right: -2rem;
+    }
+
+    .processes-table {
+      font-size: 0.85rem;
+    }
+
+    .processes-column-name {
+      max-width: 150px;
+    }
   }
 }

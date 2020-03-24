@@ -31,29 +31,29 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
     <div class="processes-page">
       <h5 class="card-title">Processes</h5>
 
-      <div class="card mb-4">
-        <div class="card-body">
-          <form phx-change="select_limit" class="form-inline">
-            <div class="form-row align-items-center">
-              <div class="col-auto">Showing at most</div>
-              <div class="col-auto">
-                <div class="input-group input-group-sm">
-                  <select name="limit" class="custom-select" id="limit-select">
-                    <%= options_for_select(limit_options(), @params.limit) %>
-                  </select>
-                </div>
-              </div>
-              <div class="col-auto">
-                processes out of <%= @total %>
-              </div>
+      <form phx-change="select_limit" class="form-inline">
+        <div class="form-row align-items-center">
+          <div class="col-auto">Showing at most</div>
+          <div class="col-auto">
+            <div class="input-group input-group-sm">
+              <select name="limit" class="custom-select" id="limit-select">
+                <%= options_for_select(limit_options(), @params.limit) %>
+              </select>
             </div>
-          </form>
+          </div>
+          <div class="col-auto">
+            processes out of <%= @total %>
+          </div>
+        </div>
+      </form>
 
+      <div class="card processes-card mb-4 mt-4">
+        <div class="card-body p-0">
           <div class="processes-table-wrapper">
-            <table class="table table-hover mt-4 processes-table">
+            <table class="table table-hover mt-0 processes-table">
               <thead>
                 <tr>
-                  <th>PID</th>
+                  <th class="pl-4">PID</th>
                   <th>Name or initial call</th>
                   <th class="text-right">
                     <%= sort_link(@socket, @params, :memory, "Memory") %>
@@ -70,12 +70,12 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
               <tbody>
                 <%= for process <- @processes do %>
                   <tr>
-                    <td><%= :erlang.pid_to_list(process[:pid]) %></td>
-                    <td><%= format_name_or_initial_call(process[:name_or_initial_call]) %></td>
+                    <td class="pl-4"><%= :erlang.pid_to_list(process[:pid]) %></td>
+                    <td class="processes-column-name"><%= format_name_or_initial_call(process[:name_or_initial_call]) %></td>
                     <td class="text-right"><%= process[:memory] %></td>
                     <td class="text-right"><%= process[:reductions] %></td>
                     <td class="text-right"><%= process[:message_queue_len] %></td>
-                    <td><%= format_name_or_initial_call(process[:current_function]) %></td>
+                    <td class="processes-column-current"><%= format_name_or_initial_call(process[:current_function]) %></td>
                   </tr>
                 <% end %>
               </tbody>

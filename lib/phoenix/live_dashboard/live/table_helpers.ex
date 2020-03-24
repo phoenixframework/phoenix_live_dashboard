@@ -52,7 +52,7 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   defp sort_link_icon(:asc) do
     ~E"""
     <div class="processes-icon">
-      <span class="icon-asc"></span>
+      <span class="icon-sort icon-asc"></span>
     </div>
     """
   end
@@ -60,7 +60,7 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   defp sort_link_icon(:desc) do
     ~E"""
     <div class="processes-icon">
-      <span class="icon-desc"></span>
+      <span class="icon-sort icon-desc"></span>
     </div>
     """
   end
