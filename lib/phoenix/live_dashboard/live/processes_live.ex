@@ -149,4 +149,16 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   defp row_class(process_info, active_pid) do
     if process_info[:pid] == active_pid, do: "active", else: ""
   end
+
+  @doc false
+  def encode_pid(pid) do
+    pid
+    |> :erlang.pid_to_list()
+    |> tl()
+    |> Enum.drop(-1)
+    |> List.to_string()
+  end
+
+  @doc false
+  def decode_pid(list_pid), do: :erlang.list_to_pid([?< | String.to_charlist(list_pid)] ++ [?>])
 end
