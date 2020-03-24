@@ -33,7 +33,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
       <table class="table table-hover mt-4">
         <thead>
           <tr>
-            <th class="border-top-0" colspan="2"><%= inspect @pid %></th>
+            <th class="border-top-0" colspan="2"><%= inspect @pid %><%= unless @alive do %> (dead)<% end %></th>
           </tr>
         </thead>
         <tbody>
@@ -55,7 +55,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
           <tr><td>reductions</td><td><pre><%= @reductions %></pre></td></tr>
           <tr><td>garbage_collection</td><td><pre><%= @garbage_collection %></pre></td></tr>
           <tr><td>suspending</td><td><pre><%= @suspending %></pre></td></tr>
-          <tr><td>current_stacktrac</td><td><pre><%= @current_stacktrace %></pre></td></tr>
+          <tr><td>current_stacktrace</td><td><pre><%= @current_stacktrace %></pre></td></tr>
         </tbody>
       </table>
     </div>
@@ -64,7 +64,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
   @impl true
   def mount(socket) do
-    {:ok, socket}
+    {:ok, Enum.reduce(@info_keys, socket, &assign(&2, &1, nil))}
   end
 
   @impl true
@@ -77,11 +77,16 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   end
 
   defp assign_info(%{assigns: assigns} = socket) do
-    assigns.pid
-    |> SystemInfo.fetch_process_info(@info_keys)
-    |> Enum.reduce(socket, fn {key, val}, acc ->
-      assign(acc, key, inspect_info(key, val, assigns.pid_link_builder))
-    end)
+    case SystemInfo.fetch_process_info(assigns.pid, @info_keys) do
+      {:ok, info} ->
+        Enum.reduce(info, socket, fn {key, val}, acc ->
+          assign(acc, key, inspect_info(key, val, assigns.pid_link_builder))
+        end)
+        |> assign(alive: true)
+
+      :error ->
+        assign(socket, alive: false)
+    end
   end
 
   defp inspect_info(key, val, link_builder)

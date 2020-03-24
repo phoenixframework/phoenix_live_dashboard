@@ -16,15 +16,15 @@
 
   .modal-content {
     background-color: #fefefe;
-    margin: 15% auto;
+    margin: 5% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
     .modal-close {
       color: #aaa;
-      float: right;
       font-size: 28px;
       font-weight: bold;
+      text-align: right;
 
       &:hover, &:focus {
         color: black;
