@@ -1,3 +1,7 @@
 table.clickable-rows tbody tr:hover{
   cursor: pointer;
 }
+
+table.table-hover tbody tr:hover {
+  background-color: $color-gray-100;
+}
