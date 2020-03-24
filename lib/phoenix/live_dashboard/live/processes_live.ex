@@ -160,5 +160,5 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   end
 
   @doc false
-  def decode_pid(list_pid), do: :erlang.list_to_pid([?< | String.to_charlist(list_pid)] ++ [?>])
+  def decode_pid(list_pid), do: :erlang.list_to_pid([?<] ++ String.to_charlist(list_pid) ++ [?>])
 end
