@@ -60,8 +60,8 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
 
       <div class="card processes-card mb-4 mt-4">
         <div class="card-body p-0">
-          <div class="processes-table-wrapper">
-            <table class="table table-hover mt-0 processes-table clickable-rows">
+          <div class="dash-table-wrapper">
+            <table class="table table-hover mt-0 dash-table clickable-rows">
               <thead>
                 <tr>
                   <th class="pl-4">PID</th>
@@ -83,7 +83,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
                   <tr phx-click="show_info" phx-value-pid="<%= list_pid %>" phx-page-loading class="<%= row_class(process, @pid) %>">
                     <td class="processes-column-pid pl-4"><%= list_pid %></td>
                     <td class="processes-column-name"><%= format_name_or_initial_call(process[:name_or_initial_call]) %></td>
-                    <td class="text-right"><%= process[:memory] %></td>
+                    <td class="text-right"><%= SystemInfo.format_bytes(process[:memory]) %></td>
                     <td class="text-right"><%= process[:reductions] %></td>
                     <td class="text-right"><%= process[:message_queue_len] %></td>
                     <td class="processes-column-current"><%= SystemInfo.format_call(process[:current_function]) %></td>
