@@ -32,71 +32,66 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <div>
+    <div class="processes-page">
       <h5 class="card-title">Processes</h5>
 
-      <div class="card mb-4">
-        <div class="card-body">
-          <form phx-change="select_limit" class="form-inline">
+      <form phx-change="select_limit" class="form-inline">
+        <div class="form-row align-items-center">
+          <div class="col-auto">Showing at most</div>
+          <div class="col-auto">
             <div class="input-group input-group-sm">
-              Showing at most <select name="limit" class="custom-select" id="limit-select">
+              <select name="limit" class="custom-select" id="limit-select">
                 <%= options_for_select(limit_options(), @params.limit) %>
-              </select> processes out of <%= @total %>:
+              </select>
             </div>
-          </form>
+          </div>
+          <div class="col-auto">
+            processes out of <%= @total %>
+          </div>
+        </div>
+      </form>
 
-          <%= if @pid do %>
-            <%= live_modal @socket, ProcessInfoComponent,
-              id: @pid,
-              return_to: return_path(@socket, @menu, @params),
-              pid_link_builder: &process_info_path(@socket, &1, @params) %>
-          <% end %>
+      <%= if @pid do %>
+        <%= live_modal @socket, ProcessInfoComponent,
+          id: @pid,
+          return_to: return_path(@socket, @menu, @params),
+          pid_link_builder: &process_info_path(@socket, &1, @params) %>
+      <% end %>
 
-          <table class="table table-hover mt-4 clickable-rows">
-            <thead>
-              <tr>
-                <th class="border-top-0">PID</th>
-                <th class="border-top-0">Name or initial call</th>
-                <th class="border-top-0">
-                  Memory
-
-                  (
-                    <%= sort_link(@socket, @params, :memory, :asc) %> |
-                    <%= sort_link(@socket, @params, :memory, :desc) %>
-                  )
-                </th>
-                <th class="border-top-0">
-                  Reductions
-
-                  (
-                    <%= sort_link(@socket, @params, :reductions, :asc) %> |
-                    <%= sort_link(@socket, @params, :reductions, :desc) %>
-                  )
-                </th>
-                <th class="border-top-0">
-                  MsgQ
-
-                  (
-                    <%= sort_link(@socket, @params, :message_queue_len, :asc) %> |
-                    <%= sort_link(@socket, @params, :message_queue_len, :desc) %>
-                  )
-                </th>
-                <th class="border-top-0">Current function</td>
-              </tr>
-            </thead>
-            <tbody>
-              <%= for process <- @processes, list_pid = encode_pid(process[:pid]) do %>
-                <tr phx-click="show_info" phx-value-pid="<%= list_pid %>" phx-page-loading class="<%= row_class(process, @pid) %>">
-                  <td><%= list_pid %></td>
-                  <td><%= format_name_or_initial_call(process[:name_or_initial_call]) %></td>
-                  <td><%= process[:memory] %></td>
-                  <td><%= process[:reductions] %></td>
-                  <td><%= process[:message_queue_len] %></td>
-                  <td><%= SystemInfo.format_call(process[:current_function]) %></td>
+      <div class="card processes-card mb-4 mt-4">
+        <div class="card-body p-0">
+          <div class="dash-table-wrapper">
+            <table class="table table-hover mt-0 dash-table clickable-rows">
+              <thead>
+                <tr>
+                  <th class="pl-4">PID</th>
+                  <th>Name or initial call</th>
+                  <th class="text-right">
+                    <%= sort_link(@socket, @params, :memory, "Memory") %>
+                  </th>
+                  <th class="text-right">
+                    <%= sort_link(@socket, @params, :reductions, "Reductions") %>
+                  </th>
+                  <th class="text-right">
+                    <%= sort_link(@socket, @params, :message_queue_len, "MsgQ") %>
+                  </th>
+                  <th>Current function</td>
                 </tr>
-              <% end %>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <%= for process <- @processes, list_pid = encode_pid(process[:pid]) do %>
+                  <tr phx-click="show_info" phx-value-pid="<%= list_pid %>" phx-page-loading class="<%= row_class(process, @pid) %>">
+                    <td class="processes-column-pid pl-4"><%= list_pid %></td>
+                    <td class="processes-column-name"><%= format_name_or_initial_call(process[:name_or_initial_call]) %></td>
+                    <td class="text-right"><%= SystemInfo.format_bytes(process[:memory]) %></td>
+                    <td class="text-right"><%= process[:reductions] %></td>
+                    <td class="text-right"><%= process[:message_queue_len] %></td>
+                    <td class="processes-column-current"><%= SystemInfo.format_call(process[:current_function]) %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

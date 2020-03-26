@@ -14,6 +14,13 @@
   background-color: rgb(0,0,0);
   background-color: rgba(0,0,0,0.4);
 
+  pre {
+    margin-bottom: 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    min-width: 200px;
+  }
+
   .modal-content {
     background-color: #fefefe;
     margin: 5% auto;

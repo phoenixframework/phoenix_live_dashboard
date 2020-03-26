@@ -1,3 +1,63 @@
 table.clickable-rows tbody tr:hover{
   cursor: pointer;
 }
+
+table.table-hover tbody tr:hover {
+  background-color: $color-gray-100;
+}
+
+/*
+ * `dash-table` adds extra styling on top of regular Bootstrap table css.
+ *
+ * `.dash-table-wrapper` can be used to add horizontal scrolling:
+ *
+ * ```
+ * <div class="dash-table-wrapper">
+ *   <table class="dash-table">
+ *   ...
+ *   </table>
+ * </div>
+ * ```
+ *
+ */
+
+.dash-table {
+  color: $color-gray-900;
+
+  th {
+    background-color: $color-gray-100;
+    white-space: nowrap;
+  }
+
+  .dash-table-icon {
+    padding-left: 0.25rem;
+    display: inline-block;
+  }
+
+  .icon-sort {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    line-height: 6px;
+    position: relative;
+    top: -1px;
+    vertical-align: middle;
+  }
+
+  .icon-asc {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid $color-gray-800;
+  }
+
+  .icon-desc {
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid $color-gray-800;
+  }
+}
+
+.dash-table-wrapper {
+  border-radius: $border-radius $border-radius 0 0;
+  overflow-x: auto;
+}
