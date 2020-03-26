@@ -22,23 +22,21 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
 
   def limit_options(), do: @limit
 
-  def sort_link(socket, params, sort_by, link_name) do
-    %{live_action: live_action, menu: %{node: node}} = socket.assigns
-
+  def sort_link(socket, live_action, menu, params, sort_by, link_name) do
     case params do
       %{sort_by: ^sort_by, sort_dir: sort_dir} ->
         params = %{params | sort_dir: opposite_sort_dir(params), sort_by: sort_by}
 
         link_name
         |> sort_link_body(sort_dir)
-        |> live_patch(to: live_dashboard_path(socket, live_action, node, [], params))
+        |> live_patch(to: live_dashboard_path(socket, live_action, menu.node, [], params))
 
       %{} ->
         params = %{params | sort_dir: :desc, sort_by: sort_by}
 
         link_name
         |> sort_link_body()
-        |> live_patch(to: live_dashboard_path(socket, live_action, node, [], params))
+        |> live_patch(to: live_dashboard_path(socket, live_action, menu.node, [], params))
     end
   end
 

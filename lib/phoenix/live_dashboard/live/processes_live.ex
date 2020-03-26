@@ -67,13 +67,13 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
                   <th class="pl-4">PID</th>
                   <th>Name or initial call</th>
                   <th class="text-right">
-                    <%= sort_link(@socket, @params, :memory, "Memory") %>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :memory, "Memory") %>
                   </th>
                   <th class="text-right">
-                    <%= sort_link(@socket, @params, :reductions, "Reductions") %>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :reductions, "Reductions") %>
                   </th>
                   <th class="text-right">
-                    <%= sort_link(@socket, @params, :message_queue_len, "MsgQ") %>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :message_queue_len, "MsgQ") %>
                   </th>
                   <th>Current function</td>
                 </tr>

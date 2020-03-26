@@ -20,10 +20,10 @@ defmodule Phoenix.LiveDashboard.MenuLive do
   def render(assigns) do
     ~L"""
     <nav id="menu-bar">
-      <%= maybe_active_live_redirect @socket, "Home", :home, @node %>
-      <%= maybe_enabled_live_redirect @socket, "Metrics", :metrics, @node %>
-      <%= maybe_enabled_live_redirect @socket, "Request Logger", :request_logger, @node %>
-      <%= maybe_active_live_redirect @socket, "Processes", :processes, @node %>
+      <%= maybe_active_live_redirect @socket, @menu, "Home", :home, @node %>
+      <%= maybe_enabled_live_redirect @socket, @menu, "Metrics", :metrics, @node %>
+      <%= maybe_enabled_live_redirect @socket, @menu, "Request Logger", :request_logger, @node %>
+      <%= maybe_active_live_redirect @socket, @menu, "Processes", :processes, @node %>
     </nav>
 
     <form id="node-selection" phx-change="select_node" class="d-inline">
@@ -62,8 +62,8 @@ defmodule Phoenix.LiveDashboard.MenuLive do
     @supported_refresh
   end
 
-  defp maybe_active_live_redirect(socket, text, action, node) do
-    if socket.assigns.menu.action == action do
+  defp maybe_active_live_redirect(socket, menu, text, action, node) do
+    if menu.action == action do
       ~E"""
       <div class='menu-item active'><%= text %></div>
       """
@@ -72,9 +72,9 @@ defmodule Phoenix.LiveDashboard.MenuLive do
     end
   end
 
-  defp maybe_enabled_live_redirect(socket, text, action, node) do
-    if socket.assigns.menu[action] do
-      maybe_active_live_redirect(socket, text, action, node)
+  defp maybe_enabled_live_redirect(socket, menu, text, action, node) do
+    if menu[action] do
+      maybe_active_live_redirect(socket, menu, text, action, node)
     else
       ~E"""
       <div class="menu-item menu-item-disabled">
