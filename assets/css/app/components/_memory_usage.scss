@@ -20,7 +20,7 @@
   }
 
   .memory-usage-section-atom {
-    background-color: #4e4b4b;
+    background-color: #4db167;
   }
 
   .memory-usage-section-binary {
@@ -36,12 +36,13 @@
   }
 
   .memory-usage-section-other {
-    background: linear-gradient(40deg, $color-phoenix, adjust-color($color-phoenix, $lightness: +8%));
     // #399ce9
+    //background-color: #4e4b4b;
+    background: linear-gradient(40deg, $color-gray-warm-800, adjust-color($color-gray-warm-800, $lightness: +10%));
   }
 
   .memory-usage-section-process {
-    background-color: #4db167;
+    background: linear-gradient(40deg, $color-phoenix, adjust-color($color-phoenix, $lightness: +8%));
   }
 
   // Legend
@@ -50,5 +51,34 @@
     display: inline-block;
     height: 16px;
     width: 16px;
+  }
+
+  .memory-usage-legend-entries {
+    height: 100px;
+  }
+
+  .memory-usage-legend-entry {
+    flex-basis: 33%;
+  }
+
+  .memory-usage-total {
+    background-color: $color-gray-100;
+    color: $color-gray-800;
+  }
+
+  .memory-usage-total-value {
+    color: $text-color
+  }
+}
+
+@media (max-width: map-get($grid-breakpoints, lg)) {
+  .memory-usage {
+    .memory-usage-legend-entries {
+      height: auto;
+    }
+
+    .memory-usage-legend-entry {
+      flex-basis: auto;
+    }
   }
 }
