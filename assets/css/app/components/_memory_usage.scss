@@ -1,3 +1,4 @@
+// Memory usage visualization
 .memory-usage {
   .progress {
     border-radius: 2px;
@@ -19,31 +20,31 @@
     border-left-width: 0;
   }
 
+  // Section colors
   .memory-usage-section-atom {
-    background-color: #4db167;
+    background-color: $color-data-1;
   }
 
   .memory-usage-section-binary {
-    background-color: #5d89c7;
+    background-color: $color-data-2;
   }
 
   .memory-usage-section-code {
-    background: linear-gradient(40deg, $color-elixir, adjust-color($color-elixir, $lightness: +10%));
+    background: linear-gradient(40deg, $color-data-3, adjust-color($color-data-3, $lightness: +10%));
   }
 
   .memory-usage-section-ets {
-    background-color: #f9bc14;
-  }
-
-  .memory-usage-section-other {
-    // #399ce9
-    //background-color: #4e4b4b;
-    background: linear-gradient(40deg, $color-gray-warm-800, adjust-color($color-gray-warm-800, $lightness: +10%));
+    background-color: $color-data-4;
   }
 
   .memory-usage-section-process {
-    background: linear-gradient(40deg, $color-phoenix, adjust-color($color-phoenix, $lightness: +8%));
+    background: linear-gradient(40deg, $color-data-5, adjust-color($color-data-5, $lightness: +8%));
   }
+
+  .memory-usage-section-other {
+    background: linear-gradient(40deg, $color-data-6, adjust-color($color-data-6, $lightness: +10%));
+  }
+
 
   // Legend
   .memory-usage-legend-color {

@@ -23,7 +23,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     {:code, "Code"},
     {:ets, "ETS"},
     {:process, "Processes"},
-    {:other, "Oher"},
+    {:other, "Other"}
   ]
 
   @impl true
@@ -222,7 +222,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   defp percentage(_value, 0, _options), do: 0
 
   defp percentage(value, total, options) do
-    percent = Float.round(value/total * 100, 2)
+    percent = Float.round(value / total * 100, 2)
 
     if options[:round], do: round(percent), else: percent
   end
