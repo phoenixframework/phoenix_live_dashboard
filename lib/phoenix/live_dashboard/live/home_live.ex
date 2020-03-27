@@ -171,28 +171,30 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         <div class="card mb-4">
           <div class="card-body memory-usage">
 
-
             <div class="progress flex-grow-1 mb-3">
               <%= for {section_key, section_name, section_value} <- memory_usage_sections(@system_usage.memory) do %>
                 <div
                   title="<%=section_name %> - <%=percentage(section_value, @system_usage.memory.total, round: true) %>%"
                   class="progress-bar memory-usage-section-<%=section_key %>"
                   role="progressbar"
-                  aria-valuenow="0"
+                  aria-valuenow="<%=section_value %>"
                   aria-valuemin="0"
-                  aria-valuemax="100"
+                  aria-valuemax="<%=@system_usage.memory.total %>"
                   style="width: <%=percentage(section_value, @system_usage.memory.total) %>%">
                 </div>
               <% end %>
             </div>
 
             <div class="memory-usage-legend">
+
               <div class="memory-usage-legend-entries row flex-column flex-wrap">
                 <%= for {section_key, section_name, section_value} <- memory_usage_sections(@system_usage.memory) do %>
                   <div class="col-lg-6 memory-usage-legend-entry d-flex align-items-center py-1 flex-grow-0">
                     <div class="memory-usage-legend-color memory-usage-section-<%=section_key %> mr-2"></div>
                     <span><%=section_name %></span>
-                    <span class="flex-grow-1 text-right text-muted"><%=SystemInfo.format_bytes(section_value) %></span>
+                    <span class="flex-grow-1 text-right text-muted">
+                      <%=SystemInfo.format_bytes(section_value) %>
+                    </span>
                   </div>
                 <% end %>
               </div>
