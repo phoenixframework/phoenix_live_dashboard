@@ -38,4 +38,18 @@ defmodule Phoenix.LiveDashboard.HomeLiveTest do
     send(live.pid, {:node_redirect, "foo@bar"})
     assert_redirect(live, "/dashboard/foo%40bar")
   end
+
+  test "shows memory usage information" do
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost")
+    rendered = render(live)
+
+    assert rendered =~ ~r|<span>Atoms</span><span class="[a-z0-9- ]+">\s+\d+.\d+ \w+\s+</span>|
+    assert rendered =~ ~r|<span>Binary</span><span class="[a-z0-9- ]+">\s+\d+.\d+ \w+\s+</span>|
+    assert rendered =~ ~r|<span>Code</span><span class="[a-z0-9- ]+">\s+\d+.\d+ \w+\s+</span>|
+    assert rendered =~ ~r|<span>ETS</span><span class="[a-z0-9- ]+">\s+\d+.\d+ \w+\s+</span>|
+    assert rendered =~ ~r|<span>Processes</span><span class="[a-z0-9- ]+">\s+\d+.\d+ \w+\s+</span>|
+    assert rendered =~ ~r|<span>Other</span><span class="[a-z0-9- ]+">\s+\d+.\d+ \w+\s+</span>|
+
+    assert rendered =~ ~r|Total usage: \d+.\d+|
+  end
 end
