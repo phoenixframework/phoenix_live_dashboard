@@ -1,0 +1,54 @@
+.memory-usage {
+  .progress {
+    border-radius: 2px;
+    height: 1.5rem;
+    background-color: transparent;
+  }
+
+  .progress-bar {
+    border-color: white;
+    border-style: solid;
+    border-width: 0 1px;
+  }
+
+  .progress-bar:last-child {
+    border-right-width: 0;
+  }
+
+  .progress-bar:first-child {
+    border-left-width: 0;
+  }
+
+  .memory-usage-section-atom {
+    background-color: #4e4b4b;
+  }
+
+  .memory-usage-section-binary {
+    background-color: #5d89c7;
+  }
+
+  .memory-usage-section-code {
+    background: linear-gradient(40deg, $color-elixir, adjust-color($color-elixir, $lightness: +10%));
+  }
+
+  .memory-usage-section-ets {
+    background-color: #f9bc14;
+  }
+
+  .memory-usage-section-other {
+    background: linear-gradient(40deg, $color-phoenix, adjust-color($color-phoenix, $lightness: +8%));
+    // #399ce9
+  }
+
+  .memory-usage-section-process {
+    background-color: #4db167;
+  }
+
+  // Legend
+  .memory-usage-legend-color {
+    border-radius: 3px;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+  }
+}

@@ -142,7 +142,15 @@ defmodule Phoenix.LiveDashboard.HomeLive do
                 </div>
 
                 <div class="progress flex-grow-1 mt-2">
-                  <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: <%= used(section, @system_usage, @system_limits) %>%"></div>
+                  <div
+                    class="progress-bar"
+                    role="progressbar"
+                    aria-valuenow="<%= used(section, @system_usage, @system_limits) %>"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    style="width: <%= used(section, @system_usage, @system_limits) %>%"
+                  >
+                  </div>
                 </div>
               </section>
             </div>
@@ -152,8 +160,31 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         <h5 class="card-title">Memory</h5>
 
         <div class="card mb-4">
-          <div class="card-body">
-            <%= inspect(@system_usage.memory) %>
+          <div class="card-body memory-usage">
+            <div class="progress flex-grow-1 mb-3">
+              <%= for {section_name, section_value} <- memory_usage_sections(@system_usage.memory) do %>
+                <div
+                  class="progress-bar memory-usage-section-<%=section_name %>"
+                  role="progressbar"
+                  aria-valuenow="0"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  style="width: <%=percentage(section_value, @system_usage.memory.total) %>%">
+                </div>
+              <% end %>
+            </div>
+
+            <div class="memory-usage-legend">
+              <div class="row">
+                <%= for {section_name, section_value} <- memory_usage_sections(@system_usage.memory) do %>
+                  <div class="col-lg-6 d-flex align-items-center py-1">
+                    <div class="memory-usage-legend-color memory-usage-section-<%=section_name %> mr-2"></div>
+                    <span><%=section_name %></span>
+                    <span class="flex-grow-1 text-right text-muted"><%=SystemInfo.format_bytes(section_value) %></span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -163,6 +194,16 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
   defp used(attr, usage, limit) do
     trunc(Map.fetch!(usage, attr) / Map.fetch!(limit, attr) * 100)
+  end
+
+  defp percentage(_value, 0), do: 0
+
+  defp percentage(value, total) do
+    Float.round(value/total * 100, 2)
+  end
+
+  defp memory_usage_sections(memory_usage) do
+    Map.delete(memory_usage, :total)
   end
 
   @impl true
