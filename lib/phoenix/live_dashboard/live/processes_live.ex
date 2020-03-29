@@ -54,6 +54,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
       <%= if @pid do %>
         <%= live_modal @socket, ProcessInfoComponent,
           id: @pid,
+          title: inspect(@pid),
           return_to: return_path(@socket, @menu, @params),
           pid_link_builder: &process_info_path(@socket, &1, @params) %>
       <% end %>

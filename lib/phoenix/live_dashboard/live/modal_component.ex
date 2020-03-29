@@ -3,16 +3,24 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
 
   def render(assigns) do
     ~L"""
-    <div id="<%= @id %>" class="dash-modal"
+    <div id="<%= @id %>" class="dash-modal modal"
+      tabindex="-1"
       phx-capture-click="close"
       phx-window-keydown="close"
       phx-key="escape"
       phx-target="#<%= @id %>"
       phx-page-loading>
 
-      <div class="modal-content">
-        <%= live_patch raw("&times;"), to: @return_to, class: "modal-close" %>
-        <%= live_component @socket, @component, @opts %>
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title"><%=@title %></h6>
+            <%= live_patch raw("&times;"), to: @return_to, class: "close" %>
+          </div>
+          <div class="modal-body">
+            <%= live_component @socket, @component, @opts %>
+          </div>
+        </div>
       </div>
     </div>
     """
