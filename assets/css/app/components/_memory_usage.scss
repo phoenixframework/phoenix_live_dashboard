@@ -1,0 +1,85 @@
+// Memory usage visualization
+.memory-usage {
+  .progress {
+    border-radius: 2px;
+    height: 1.5rem;
+    background-color: transparent;
+  }
+
+  .progress-bar {
+    border-color: white;
+    border-style: solid;
+    border-width: 0 1px;
+  }
+
+  .progress-bar:last-child {
+    border-right-width: 0;
+  }
+
+  .progress-bar:first-child {
+    border-left-width: 0;
+  }
+
+  // Section colors
+  .memory-usage-section-atom {
+    background-color: $color-data-1;
+  }
+
+  .memory-usage-section-binary {
+    background-color: $color-data-2;
+  }
+
+  .memory-usage-section-code {
+    background: linear-gradient(40deg, $color-data-3, adjust-color($color-data-3, $lightness: +10%));
+  }
+
+  .memory-usage-section-ets {
+    background-color: $color-data-4;
+  }
+
+  .memory-usage-section-process {
+    background: linear-gradient(40deg, $color-data-5, adjust-color($color-data-5, $lightness: +8%));
+  }
+
+  .memory-usage-section-other {
+    background: linear-gradient(40deg, $color-data-6, adjust-color($color-data-6, $lightness: +10%));
+  }
+
+
+  // Legend
+  .memory-usage-legend-color {
+    border-radius: 3px;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+  }
+
+  .memory-usage-legend-entries {
+    height: 100px;
+  }
+
+  .memory-usage-legend-entry {
+    flex-basis: 33%;
+  }
+
+  .memory-usage-total {
+    background-color: $color-gray-100;
+    color: $color-gray-800;
+  }
+
+  .memory-usage-total-value {
+    color: $text-color
+  }
+}
+
+@media (max-width: map-get($grid-breakpoints, lg)) {
+  .memory-usage {
+    .memory-usage-legend-entries {
+      height: auto;
+    }
+
+    .memory-usage-legend-entry {
+      flex-basis: auto;
+    }
+  }
+}

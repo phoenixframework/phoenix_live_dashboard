@@ -73,6 +73,14 @@ $grid-breakpoints: (
   xl: 1200px
 ) !default;
 
+// Colors used when visualising data
+$color-data-1: #4db167;
+$color-data-2: #5d89c7;
+$color-data-3: $color-elixir;
+$color-data-4: #f9bc14;
+$color-data-5: $color-phoenix;
+$color-data-6: $color-gray-warm-700;
+
 // Bootstrap variable overrides
 $text-muted: change-color($text-color, $alpha: 0.5);
 $grid-gutter-width: 24px;
