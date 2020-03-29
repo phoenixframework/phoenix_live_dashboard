@@ -88,8 +88,6 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
     end
   end
 
-  defp inspect_info(_key, "", _), do: {:safe, ~s'<span class="text-muted">---</span>"'}
-
   defp inspect_info(key, val, link_builder)
        when key in [:links, :monitors, :monitored_by],
        do: inspect_list(val, link_builder)
