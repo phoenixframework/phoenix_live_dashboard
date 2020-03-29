@@ -25,8 +25,9 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
         {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
-      first_group && first_group != params["group"] ->
-        {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node(), [first_group]))}
+      first_group && is_nil(group) ->
+        {:ok,
+         push_redirect(socket, to: live_dashboard_path(socket, :metrics, node(), [first_group]))}
 
       true ->
         {:ok, assign(socket, metrics: nil)}
