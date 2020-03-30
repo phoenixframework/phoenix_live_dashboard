@@ -34,7 +34,21 @@ defmodule DemoWeb.Telemetry do
   def metrics do
     [
       # Phoenix Metrics
+      last_value("phoenix.endpoint.stop.duration",
+        unit: {:native, :millisecond}
+      ),
+      counter("phoenix.endpoint.stop.duration",
+        unit: {:native, :millisecond}
+      ),
       summary("phoenix.endpoint.stop.duration",
+        unit: {:native, :microsecond}
+      ),
+      last_value("phoenix.router_dispatch.stop.duration",
+        tags: [:route],
+        unit: {:native, :millisecond}
+      ),
+      counter("phoenix.router_dispatch.stop.duration",
+        tags: [:route],
         unit: {:native, :millisecond}
       ),
       summary("phoenix.router_dispatch.stop.duration",

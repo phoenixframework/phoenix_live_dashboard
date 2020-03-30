@@ -15,7 +15,9 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
         assign(socket,
           title: chart_title(metric),
           kind: chart_kind(metric.__struct__),
-          label: chart_label(metric)
+          label: chart_label(metric),
+          tags: Enum.join(metric.tags, "-"),
+          unit: chart_unit(metric.unit)
         )
       else
         socket
@@ -31,14 +33,16 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
       <div id="chart-<%= @id %>" class="card">
         <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" style="display:none;">
         <%= for {x, y, z} <- @data do %>
-          <span data-x="<%= x || @title %>" data-y="<%= y %>" data-z="<%= z %>"></span>
+          <span data-x="<%= x || @label %>" data-y="<%= y %>" data-z="<%= z %>"></span>
         <% end %>
         </div>
-        <div class="chart" phx-update="ignore">
-          <canvas id="chart-<%= @id %>--canvas"
-          data-label="<%= @label %>"
-          data-metric="<%= @kind %>"
-          data-title="<%= @title %>"></canvas>
+        <div class="chart"
+             phx-update="ignore"
+             data-label="<%= @label %>"
+             data-metric="<%= @kind %>"
+             data-title="<%= @title %>"
+             data-tags="<%= @tags %>"
+             data-unit="<%= @unit %>">
         </div>
       </div>
     </div>
@@ -64,16 +68,15 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
     metric.name
     |> List.last()
     |> Phoenix.Naming.humanize()
-    |> Kernel.<>("#{humanize_unit(metric.unit)}")
   end
 
-  defp humanize_unit(:byte), do: " (bytes)"
-  defp humanize_unit(:kilobyte), do: " (KB)"
-  defp humanize_unit(:megabyte), do: " (MB)"
-  defp humanize_unit(:nanosecond), do: " (ns)"
-  defp humanize_unit(:microsecond), do: " (µs)"
-  defp humanize_unit(:millisecond), do: " (ms)"
-  defp humanize_unit(:second), do: " s"
-  defp humanize_unit(:unit), do: ""
-  defp humanize_unit(unit) when is_atom(unit), do: " (#{unit})"
+  defp chart_unit(:byte), do: "bytes"
+  defp chart_unit(:kilobyte), do: "KB"
+  defp chart_unit(:megabyte), do: "MB"
+  defp chart_unit(:nanosecond), do: "ns"
+  defp chart_unit(:microsecond), do: "µs"
+  defp chart_unit(:millisecond), do: "ms"
+  defp chart_unit(:second), do: "s"
+  defp chart_unit(:unit), do: ""
+  defp chart_unit(unit) when is_atom(unit), do: unit
 end
