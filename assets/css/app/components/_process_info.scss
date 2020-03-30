@@ -1,0 +1,27 @@
+.process-info {
+  .process-info-dead {
+    border-radius: $border-radius;
+    color: white;
+    background-color: $color-gray-700;
+    padding: 1rem 1.5rem;
+  }
+
+  .process-info-table {
+    td:empty, pre:empty {
+      &::after {
+        font-family: $font-family-sans-serif;
+        content: "---";
+        opacity: 0.5;
+        font-size: 1rem;
+      }
+    }
+
+    td:first-child {
+      font-weight: 700;
+    }
+
+    td:last-child {
+      width: 70%;
+    }
+  }
+}

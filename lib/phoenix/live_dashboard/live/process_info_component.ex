@@ -29,33 +29,32 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="col-md-12 charts-col">
-      <table class="table table-hover mt-4">
-        <thead>
-          <tr>
-            <th class="border-top-0" colspan="2"><%= inspect @pid %><%= unless @alive do %> (dead)<% end %></th>
-          </tr>
-        </thead>
+    <div class="process-info">
+      <%= unless @alive do %>
+        <div class="process-info-dead mt-1 mb-3">Process is dead.</div>
+      <% end %>
+
+      <table class="table table-hover process-info-table">
         <tbody>
-          <tr><td>registered_name</td><td><pre><%= @registered_name %></pre></td></tr>
-          <tr><td>current_function</td><td><pre><%= @current_function %></pre></td></tr>
-          <tr><td>initial_call</td><td><pre><%= @initial_call %></pre></td></tr>
-          <tr><td>status</td><td><pre><%= @status %></pre></td></tr>
-          <tr><td>message_queue_len</td><td><pre><%= @message_queue_len %></pre></td></tr>
-          <tr><td>links</td><td><%= @links %></td></tr>
-          <tr><td>monitors</td><td><%= @monitors %></td></tr>
-          <tr><td>monitored_by</td><td><%= @monitored_by %></td></tr>
-          <tr><td>trap_exit</td><td><pre><%= @trap_exit %></pre></td></tr>
-          <tr><td>error_handler</td><td><pre><%= @error_handler %></pre></td></tr>
-          <tr><td>priority</td><td><pre><%= @priority %></pre></td></tr>
-          <tr><td>group_leader</td><td><pre><%= @group_leader %></pre></td></tr>
-          <tr><td>total_heap_size</td><td><pre><%= @total_heap_size %></pre></td></tr>
-          <tr><td>heap_size</td><td><pre><%= @heap_size %></pre></td></tr>
-          <tr><td>stack_size</td><td><pre><%= @stack_size %></pre></td></tr>
-          <tr><td>reductions</td><td><pre><%= @reductions %></pre></td></tr>
-          <tr><td>garbage_collection</td><td><pre><%= @garbage_collection %></pre></td></tr>
-          <tr><td>suspending</td><td><pre><%= @suspending %></pre></td></tr>
-          <tr><td>current_stacktrace</td><td><pre><%= @current_stacktrace %></pre></td></tr>
+          <tr><td class="border-top-0">Registered name</td><td class="border-top-0"><pre><%= @registered_name %></pre></td></tr>
+          <tr><td>Current function</td><td><pre><%= @current_function %></pre></td></tr>
+          <tr><td>Initial call</td><td><pre><%= @initial_call %></pre></td></tr>
+          <tr><td>Status</td><td><pre><%= @status %></pre></td></tr>
+          <tr><td>Message queue length</td><td><pre><%= @message_queue_len %></pre></td></tr>
+          <tr><td>Links</td><td><pre><%= @links %></pre></td></tr>
+          <tr><td>Monitors</td><td><%= @monitors %></td></tr>
+          <tr><td>Monitored by</td><td><pre><%= @monitored_by %></pre></td></tr>
+          <tr><td>Trap exit</td><td><pre><%= @trap_exit %></pre></td></tr>
+          <tr><td>Error handler</td><td><pre><%= @error_handler %></pre></td></tr>
+          <tr><td>Priority</td><td><pre><%= @priority %></pre></td></tr>
+          <tr><td>Group leader</td><td><pre><%= @group_leader %></pre></td></tr>
+          <tr><td>Total heap size</td><td><pre><%= @total_heap_size %></pre></td></tr>
+          <tr><td>Heap size</td><td><pre><%= @heap_size %></pre></td></tr>
+          <tr><td>Stack size</td><td><pre><%= @stack_size %></pre></td></tr>
+          <tr><td>Reductions</td><td><pre><%= @reductions %></pre></td></tr>
+          <tr><td>Garbage collection</td><td><pre><%= @garbage_collection %></pre></td></tr>
+          <tr><td>Suspending</td><td><pre><%= @suspending %></pre></td></tr>
+          <tr><td>Current stacktrace</td><td><pre><%= @current_stacktrace %></pre></td></tr>
         </tbody>
       </table>
     </div>

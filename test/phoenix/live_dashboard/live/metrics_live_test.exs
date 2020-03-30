@@ -5,12 +5,9 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
   import Phoenix.LiveViewTest
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
-  test "shows metrics groups" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics")
-    rendered = render(live)
-    assert rendered =~ "Updates automatically"
-    assert rendered =~ "&quot;phx&quot; metrics"
-    assert rendered =~ "&quot;ecto&quot; metrics"
+  test "redirects to the first metrics group if no metric group is provided" do
+    {:error, %{redirect: %{to: "/dashboard/nonode%40nohost/metrics/ecto"}}} =
+      live(build_conn(), "/dashboard/nonode@nohost/metrics")
   end
 
   test "shows given group metrics" do
@@ -37,9 +34,9 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
   end
 
   test "redirects to new node" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics")
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/ecto")
     send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/metrics")
+    assert_redirect(live, "/dashboard/foo%40bar/metrics/ecto")
 
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/phx")
     send(live.pid, {:node_redirect, "foo@bar"})
