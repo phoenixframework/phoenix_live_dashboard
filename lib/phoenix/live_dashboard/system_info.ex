@@ -76,7 +76,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     processes =
       for pid <- Process.list(), info = Process.info(pid, @process_info) do
-        [registered_name: name, initial_call: initial_call] ++ rest = info
+        [{:registered_name, name}, {:initial_call, initial_call} | rest] = info
         name_or_initial_call = if is_atom(name), do: name, else: initial_call
         sorter = info[sort_by] * multiplier
         {sorter, [pid: pid, name_or_initial_call: name_or_initial_call] ++ rest}
