@@ -19,7 +19,7 @@ In your `mix.exs`, add the following to your `deps`:
   {:telemetry_metrics, "~> 0.4"},
 ```
 
-If you are generated your Phoenix app in version v1.5+, these dependencies will already be installed. You can also skip the next section.
+If you generated your Phoenix app in version v1.5+, these dependencies will already be installed. You can also skip the next section.
 
 ### Define your telemetry module
 
@@ -123,7 +123,7 @@ Now refresh the "/dashboard" page and the metrics functionality should be enable
 
 ## More about telemetry
 
-Now that you have metrics up andd running, you can begin exploring the rest of the telemetry ecosystem! Here are a few links to get you started:
+Now that you have metrics up and running, you can begin exploring the rest of the telemetry ecosystem! Here are a few links to get you started:
 
 * The [`Telemetry.Metrics`](https://hexdocs.pm/telemetry_metrics)
   module documentation contains more information on:
