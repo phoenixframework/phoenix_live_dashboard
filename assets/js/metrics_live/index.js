@@ -1,229 +1,252 @@
-import ColorWheel from './color_wheel'
-import Chart from 'chart.js'
+import { ColorWheel, LineColor } from './color_wheel'
+import _css from 'uplot/dist/uPlot.min.css'
+import uPlot from 'uplot'
 
-/** Chart.js Storage Adapters **/
+const SeriesValue = (options) => {
+  if (!options.unit) return {}
 
-export const DataFns = {
-  increment(labelIndex, { y: measurement }) {
-    this.data.datasets[0].data[labelIndex] += measurement
-  },
-  indexOf(label) {
-    return this.data.labels.indexOf(label)
-  },
-  pushDataset(label, { y: measurement }) {
-    const labelIndex = this.data.labels.push(label)
-    this.data.datasets[0].data.push(measurement)
-    this.data.datasets[0].backgroundColor.push(
-      ColorWheel.at(this.data.labels.length)
-    )
-    return labelIndex - 1
-  },
-  pushData(labelIndex, { y: measurement }) {
-    this.data.datasets[0].data[labelIndex] = measurement
-  }
-}
-
-const DatasetFns = {
-  increment(labelIndex, { z }) {
-    let { y } = this.data.datasets[labelIndex].data[this.data.datasets[labelIndex].length - 1]
-    DatasetFns.pushData.call(this, labelIndex, { y: y++, z })
-  },
-  indexOf(label) {
-    return this.data.datasets.findIndex(d => d.label === label)
-  },
-  pushDataset(label, { y, z: t }) {
-    const color = ColorWheel.at(this.data.datasets.length)
-    return this.data.datasets.push({
-      label: label,
-      data: [{ t, y }],
-      backgroundColor: color,
-      borderColor: color,
-      fill: false
-    })
-  },
-  pushData(labelIndex, { y, z: t }) {
-    this.data.datasets[labelIndex].data.push({ t, y })
-  }
-}
-
-/** Chart.js Configs **/
-
-const DoughnutConfig = (options) => {
   return {
-    type: 'doughnut',
-    data: {
-      labels: [],
-      datasets: [{
-        backgroundColor: [],
-        data: [],
-        label: options.title
-      }]
-    },
-    options: {
-      responsive: true,
-      title: {
-        display: true,
-        text: options.title
-      },
-      animation: {
-        animateScale: true,
-        animateRotate: true
-      },
-      circumference: Math.PI,
-      rotation: -Math.PI,
-      legend: {
-        position: 'bottom',
-        align: 'start'
-      }
-    }
+    value: (u, v) => v === null ? '' : v.toFixed(3) + options.unit
   }
 }
 
-const TimeseriesConfig = (options) => {
+const YAxisValue = (options) => {
+  if (!options.unit) return {}
+
   return {
-    type: 'line',
-    data: { datasets: [] },
-    options: {
-      responsive: true,
-      scales: {
-        xAxes: [{
-          type: 'time',
-          distribution: 'series'
-        }],
-        yAxes: [{
-          scaleLabel: {
-            display: true,
-            labelString: options.label
-          }
-        }]
-      },
-      elements: {
-        line: {
-          tension: 0
-        }
-      },
-      title: {
-        display: true,
-        text: options.title
-      },
-      legend: {
-        position: 'bottom',
-        align: 'start'
-      }
-    }
+    values: (u, vals, space) => vals.map(v => +v.toFixed(2) + ` ${options.unit}`)
   }
 }
 
-/** Chart.js Instrument **/
-
-const __INSTRUMENTS__ = {
-  doughnut: { config: DoughnutConfig, storage: DataFns },
-  timeseries: { config: TimeseriesConfig, storage: DatasetFns }
+const YAxis = (options) => {
+  return {
+    show: true,
+    size: 70,
+    space: 15,
+    ...YAxisValue(options)
+  }
 }
 
-class Instrument {
-  static create({ instrument, ...options }) {
-    return new Instrument(Object.assign({}, options, __INSTRUMENTS__[instrument]))
-  }
-
-  constructor({ config: configFn, storage: storageFns, ...options }) {
-    this.config = configFn.call(null, options)
-    this.storageFns = storageFns
-  }
-
-  increment({ x, y, z }) {
-    let labelIndex = this.indexOf(x)
-    if (labelIndex === -1) {
-      this.pushDataset(x, { y: 1, z })
-    } else {
-      this.storageFns.increment.call(this.config, labelIndex, { x, y, z })
-    }
-  }
-
-  indexOf(label) {
-    return this.storageFns.indexOf.call(this.config, label)
-  }
-
-  pushDataset(label, data) {
-    return this.storageFns.pushDataset.call(this.config, label, data)
-  }
-
-  pushData({ x: label, ...rest }) {
-    let labelIndex = this.indexOf(label)
-    if (labelIndex === -1) {
-      this.pushDataset(label, rest)
-    } else {
-      this.storageFns.pushData.call(this.config, labelIndex, rest)
-    }
+export const newSeriesConfig = (options, index = 0) => {
+  return {
+    ...LineColor.at(index),
+    ...SeriesValue(options),
+    label: options.label,
+    spanGaps: true
   }
 }
 
 /** Telemetry Metrics **/
 
-// Displays the last measurement received
-class LastValue {
-  constructor(instrument, _options) {
-    this.instrument = instrument
-  }
+// Maps an ordered list of dataset objects into an ordered list of data points.
+const dataForDatasets = (datasets) => datasets.slice(0).map(({ data }) => data)
 
-  pushData(data) {
-    data.forEach((item) => this.instrument.pushData(item))
-  }
+// Handler for an untagged CommonMetric
+function nextValueForCallback({ y, z }, callback) {
+  this.datasets[0].data.push(z)
+  let currentValue = this.datasets[1].data[this.datasets[1].data.length - 1] || 0
+  let nextValue = callback.call(this, y, currentValue)
+  this.datasets[1].data.push(nextValue)
 }
 
-// Displays a count of each event received
-class Counter {
-  constructor(instrument, _options) {
-    this.instrument = instrument
+const findLastNonNullValue = (data) => data.reduceRight((a, c) => (c != null && a == null ? c : a), null)
+
+// Handler for a tagged CommonMetric
+function nextTaggedValueForCallback({ x, y, z }, callback) {
+  // Find or create the series from the tag
+  let seriesIndex = this.datasets.findIndex(({ key }) => x === key)
+  if (seriesIndex === -1) {
+    seriesIndex = this.datasets.push({ key: x, data: Array(this.datasets[0].data.length).fill(null) }) - 1
+    this.chart.addSeries(newSeriesConfig({ label: x, unit: this.options.unit }, seriesIndex - 1), seriesIndex)
   }
 
-  pushData(data) {
-    data.forEach(({ x, z }) => this.instrument.increment({ x, y: 1, z }))
-  }
+  // Add the new timestamp + value, keeping datasets aligned
+  this.datasets = this.datasets.map((dataset, index) => {
+    if (index === 0) {
+      dataset.data.push(z)
+    } else if (index === seriesIndex) {
+      dataset.data.push(callback.call(this, y, findLastNonNullValue(dataset.data) || 0))
+    } else {
+      dataset.data.push(null)
+    }
+    return dataset
+  })
 }
 
-// Displays the sum of the values received
-class Sum {
-  constructor(instrument, _options) {
-    this.instrument = instrument
+// Handles the basic metrics like Counter, LastValue, and Sum.
+class CommonMetric {
+  static __projections() {
+    return {
+      counter: (y, value) => value + 1,
+      last_value: (y) => y,
+      sum: (y, value) => value + y
+    }
   }
 
-  pushData(data) {
-    data.forEach((item) => this.instrument.increment(item))
+  static getConfig(options) {
+    return {
+      class: options.kind,
+      title: options.title,
+      width: options.width,
+      height: options.height,
+      series: [
+        {},
+        newSeriesConfig(options, 0)
+      ],
+      scales: {
+        x: {
+          min: options.now - 60,
+          max: options.now
+        },
+        y: {
+          min: 0,
+          max: 1
+        },
+      },
+      axes: [
+        {},
+        YAxis(options)
+      ]
+    }
+  }
+
+  static initialData() {
+    return [[], []]
+  }
+
+  constructor(chart, options) {
+    this.__callback = this.constructor.__projections()[options.metric]
+    this.chart = chart
+    this.datasets = [{ key: "|x|", data: [] }]
+    this.options = options
+
+    if (options.tagged) {
+      this.chart.delSeries(1)
+      this.__handler = nextTaggedValueForCallback
+    } else {
+      this.datasets.push({ key: options.label, data: [] })
+      this.__handler = nextValueForCallback
+    }
+  }
+
+  handleMeasurements(measurements) {
+    measurements.forEach((measurement) => this.__handler.call(this, measurement, this.__callback))
+    this.chart.setData(dataForDatasets(this.datasets))
   }
 }
 
 // Displays a measurement summary
 class Summary {
-  constructor(instrument, _options) {
+  constructor(chart, options) {
     // TODO: Get percentiles from options
-    this.instrument = instrument
+    this.chart = chart
+    this.datasets = this.constructor.initialData()
+    this.options = options
+    this.min = null
+    this.max = null
+    this.total = 0
+    this.count = 0
   }
 
-  pushData(data) {
-    data.forEach((item) => this.instrument.pushData(item))
+  handleMeasurements(data) {
+    data.forEach(({ x, y, z }) => {
+      // Increment the new totals
+      this.count++
+      this.total += y
+
+      // Push the static values
+      this.datasets[0].push(z)
+      this.datasets[1].push(y)
+
+      // Push min/max/avg
+      if (this.min === null || y < this.min) { this.min = y }
+      this.datasets[2].push(this.min)
+
+      if (this.max === null || y > this.max) { this.max = y }
+      this.datasets[3].push(this.max)
+
+      this.datasets[4].push(this.total / this.count)
+    })
+
+    this.chart.setData(this.datasets)
+  }
+
+  static initialData() { return [[], [], [], [], []] }
+
+  static getConfig(options) {
+    return {
+      class: options.kind,
+      title: options.title,
+      width: options.width,
+      height: options.height,
+      series: [
+        {},
+        newSeriesConfig(options, 0),
+        {
+          label: "Min",
+          fill: "rgba(0, 0, 0, .07)",
+          band: true,
+          width: 0,
+          show: false,
+          ...SeriesValue(options)
+        },
+        {
+          label: "Max",
+          fill: "rgba(0, 0, 0, .07)",
+          band: true,
+          width: 0,
+          show: false,
+          ...SeriesValue(options)
+        },
+        {
+          label: "Avg",
+          fill: "rgba(0, 0, 0, .07)",
+          stroke: "red",
+          dash: [10, 10],
+          ...SeriesValue(options)
+        },
+      ],
+      scales: {
+        x: {
+          min: options.now - 60,
+          max: options.now
+        },
+        y: {
+          min: 0,
+          max: 1
+        },
+      },
+      axes: [
+        {},
+        YAxis(options)
+      ]
+    }
   }
 }
 
 const __METRICS__ = {
-  counter: Counter,
-  last_value: LastValue,
-  sum: Sum,
+  counter: CommonMetric,
+  last_value: CommonMetric,
+  sum: CommonMetric,
   summary: Summary
 }
 
-class TelemetryChart {
-  constructor(elementOrContext, { metric: metric, ...options }) {
-    let instrument = Instrument.create(options)
-    this.metric = new __METRICS__[metric](instrument, options)
-    this.chart = new Chart(elementOrContext, instrument.config)
+export class TelemetryChart {
+  constructor(chartEl, options) {
+    if (!options.metric) {
+      throw new TypeError(`No metric type was provided`)
+    } else if (options.metric && !__METRICS__[options.metric]) {
+      throw new TypeError(`No metric defined for type ${options.metric}`)
+    }
+
+    const metric = __METRICS__[options.metric]
+    const chart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)
+    this.metric = new metric(chart, options)
   }
 
-  pushData(data) {
-    // Gives the metric the opportunity to cancel the redraw.
-    if (this.metric.pushData(data) !== false) {
-      this.chart.update()
-    }
+  pushData(measurements) {
+    if (!measurements.length) return
+    this.metric.handleMeasurements(measurements)
   }
 }
 
@@ -231,15 +254,25 @@ class TelemetryChart {
 
 const PhxChartComponent = {
   mounted() {
-    let canvas = this.el.parentElement.getElementsByTagName('canvas')[0]
-    let options = Object.assign({}, canvas.dataset)
-    options['instrument'] = options['metric'] === 'summary' ? 'timeseries' : 'doughnut'
-    this.chart = new TelemetryChart(canvas.getContext('2d'), options)
+    let chartEl = this.el.parentElement.querySelector('.chart')
+    let size = chartEl.getBoundingClientRect()
+    let options = Object.assign({}, chartEl.dataset, {
+      tagged: (chartEl.dataset.tags && chartEl.dataset.tags !== "") || false,
+      width: size.width,
+      height: 300,
+      now: (new Date()).getTime() / 1000
+    })
+
+    this.chart = new TelemetryChart(chartEl, options)
   },
   updated() {
     const data = Array
       .from(this.el.children || [])
-      .map(({ dataset: { x, y, z } }) => { return { x, y, z } })
+      .map(({ dataset: { x, y, z } }) => {
+        let timeInSeconds = (new Date(z)).getTime() / 1000
+        let value = parseFloat(y)
+        return { x, y: value, z: timeInSeconds }
+      })
 
     if (data.length > 0) {
       this.chart.pushData(data)

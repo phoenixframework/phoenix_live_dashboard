@@ -4,6 +4,27 @@
 
   .card {
     padding: 0.5rem;
+
+    .uplot {
+      font-family: 'LiveDashboardFont';
+      max-width: 100%;
+
+      &.summary {
+        .legend {
+          tr:nth-child(n+3) {
+            display: table-row;
+          }
+        }
+      }
+
+      .title {
+        font-weight: 900;
+      }
+
+      .legend {
+        font-size: 0.75rem;
+      }
+    }
   }
 }
 

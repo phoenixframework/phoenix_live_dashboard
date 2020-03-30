@@ -1,64 +1,290 @@
-import { DataFns } from '../js/metrics_live'
+// Initialize the uPlot mocks
+const mockDelSeries = jest.fn()
+const mockAddSeries = jest.fn()
+const mockSetData = jest.fn()
 
-describe('DataFns', () => {
-  describe('pushDataset', () => {
-    test('pushes a new label and value', () => {
-      let config = dataConfig()
-      let { data: {
-        labels: labels,
-        datasets: [{ data: data }, ..._]
-      } } = config
-
-      const foo = DataFns.pushDataset.call(config, 'foo', { y: 123 })
-      expect(foo).toEqual(0)
-      expect(labels[foo]).toEqual('foo')
-      expect(data[foo]).toEqual(123)
-
-      const bar = DataFns.pushDataset.call(config, 'bar', { y: 456 })
-      expect(bar).toEqual(1)
-      expect(labels[bar]).toEqual('bar')
-      expect(data[bar]).toEqual(456)
+jest.mock('uplot', () => {
+  return {
+    __esModule: true,
+    default: jest.fn(() => {
+      return {
+        series: [],
+        addSeries: mockAddSeries,
+        delSeries: mockDelSeries,
+        setData: mockSetData
+      }
     })
+  }
+})
+
+import { TelemetryChart, newSeriesConfig } from '../js/metrics_live'
+import uPlot from 'uplot'
+
+beforeEach(() => {
+  // Clear all instances and calls to constructor and all methods:
+  uPlot.mockClear()
+  mockDelSeries.mockClear()
+  mockSetData.mockClear()
+})
+
+describe('TelemetryChart', () => {
+  test('instantiates uPlot', () => {
+    const chart = new TelemetryChart(document.body, { metric: 'counter', tagged: false })
+
+    expect(uPlot).toHaveBeenCalledTimes(1)
   })
 
-  describe('indexOf', () => {
-    test('returns position of a label by name', () => {
-      let config = dataConfig()
-      expect(DataFns.indexOf.call(config, 'foo')).toEqual(-1)
-
-      const expected = DataFns.pushDataset.call(config, 'foo', { y: 0.01 })
-      expect(DataFns.indexOf.call(config, 'foo')).toEqual(expected)
-    })
+  test('raises without metric', () => {
+    expect(() => {
+      new TelemetryChart(document.body, {})
+    }).toThrowError(new TypeError(`No metric type was provided`))
   })
 
-  describe('pushData', () => {
-    test('sets a value by index', () => {
-      let config = dataConfig()
-      let { data: { datasets: [{ data: actual }, ..._] } } = config
-      const index = DataFns.pushDataset.call(config, 'GET /', { y: 60 })
+  test('raises if metric is invalid', () => {
+    expect(() => {
+      new TelemetryChart(document.body, { metric: 'invalid' })
+    }).toThrowError(new TypeError(`No metric defined for type invalid`))
+  })
+})
 
-      DataFns.pushData.call(config, index, { y: 5 })
-      expect(actual[index]).toEqual(5)
-    })
+describe('Metrics no tags', () => {
+  test('Counter', () => {
+    const chart = new TelemetryChart(document.body, { metric: 'counter', tagged: false })
+
+    chart.pushData([{ x: 'a', y: 2, z: 1 }])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1],
+      [1]
+    ])
+
+    chart.pushData([{ x: 'b', y: 4, z: 3 }])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1, 3],
+      [1, 2]
+    ])
+
+    chart.pushData([
+      { x: 'c', y: 6, z: 5 },
+      { x: 'd', y: 8, z: 7 }
+    ])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1, 3, 5, 7],
+      [1, 2, 3, 4]
+    ])
   })
 
-  describe('increment', () => {
-    test('increments existing value', () => {
-      let config = dataConfig()
-      let { data: { datasets: [{ data: actual }, ..._] } } = config
-      const index = DataFns.pushDataset.call(config, 'GET /', { y: 60 })
+  test('LastValue', () => {
+    const chart = new TelemetryChart(document.body, { metric: 'last_value', tagged: false })
 
-      DataFns.increment.call(config, index, { y: 5 })
-      expect(actual[index]).toEqual(65)
+    chart.pushData([{ x: 'a', y: 2, z: 1 }])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1],
+      [2]
+    ])
+
+    chart.pushData([{ x: 'b', y: 4, z: 3 }])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1, 3],
+      [2, 4]
+    ])
+
+    chart.pushData([
+      { x: 'c', y: 6, z: 5 },
+      { x: 'd', y: 8, z: 7 }
+    ])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1, 3, 5, 7],
+      [2, 4, 6, 8]
+    ])
+  })
+
+  test('Sum', () => {
+    const chart = new TelemetryChart(document.body, { metric: 'sum', tagged: false })
+
+    chart.pushData([{ x: 'a', y: 2, z: 1 }])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1],
+      [2]
+    ])
+
+    chart.pushData([{ x: 'b', y: 4, z: 3 }])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1, 3],
+      [2, 6]
+    ])
+
+    chart.pushData([
+      { x: 'c', y: 6, z: 5 },
+      { x: 'd', y: 8, z: 7 }
+    ])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1, 3, 5, 7],
+      [2, 6, 12, 20]
+    ])
+  })
+
+  describe('Summary', () => {
+    test('initializes the chart', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: true })
+      expect(mockDelSeries).toHaveBeenCalledTimes(0)
+    })
+
+    test('pushes value/min/max/avg', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: true })
+      chart.pushData([{ x: 'a', y: 2, z: 1 }])
+
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1],
+        [2],
+        [2],
+        [2],
+        [2]
+      ])
+
+      chart.pushData([{ x: 'b', y: 4, z: 3 }])
+
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 3],
+        [2, 4],
+        [2, 2],
+        [2, 4],
+        [2, 3]
+      ])
+
+      chart.pushData([
+        { x: 'c', y: 6, z: 5 },
+        { x: 'd', y: 8, z: 7 }
+      ])
+
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 3, 5, 7],
+        [2, 4, 6, 8],
+        [2, 2, 2, 2],
+        [2, 4, 6, 8],
+        [2, 3, 4, 5]
+      ])
     })
   })
 })
 
-function dataConfig() {
-  return {
-    data: {
-      labels: [],
-      datasets: [{ backgroundColor: [], data: [] }]
-    }
-  }
-}
+describe('Metrics with tags', () => {
+  describe('LastValue', () => {
+    test('deletes initial dataset', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'last_value', tagged: true })
+      expect(mockDelSeries).toHaveBeenCalledWith(1)
+    })
+
+    test('aligns data by tag', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'last_value', tagged: true })
+
+      chart.pushData([{ x: 'a', y: 2, z: 1 }])
+      expect(mockAddSeries).toHaveBeenCalledWith(newSeriesConfig({ label: 'a' }, 0), 1)
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1],
+        [2]
+      ])
+
+      chart.pushData([{ x: 'b', y: 4, z: 3 }])
+      expect(mockAddSeries).toHaveBeenCalledWith(newSeriesConfig({ label: 'b' }, 1), 2)
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 3],
+        [2, null],
+        [null, 4]
+      ])
+
+      chart.pushData([
+        { x: 'b', y: 6, z: 5 },
+        { x: 'a', y: 8, z: 7 }
+      ])
+
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 3, 5, 7],
+        [2, null, null, 8],
+        [null, 4, 6, null]
+      ])
+    })
+  })
+
+  describe('Counter', () => {
+    test('deletes initial dataset', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'counter', tagged: true })
+      expect(mockDelSeries).toHaveBeenCalledWith(1)
+    })
+
+    test('aligns data by tag', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'counter', tagged: true })
+
+      chart.pushData([{ x: 'a', y: 2, z: 1 }])
+      expect(mockAddSeries).toHaveBeenCalledWith(newSeriesConfig({ label: 'a' }, 0), 1)
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1],
+        [1]
+      ])
+
+      chart.pushData([{ x: 'b', y: 4, z: 3 }])
+      expect(mockAddSeries).toHaveBeenCalledWith(newSeriesConfig({ label: 'b' }, 1), 2)
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 3],
+        [1, null],
+        [null, 1]
+      ])
+
+      chart.pushData([
+        { x: 'b', y: 6, z: 5 },
+        { x: 'a', y: 8, z: 7 }
+      ])
+
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 3, 5, 7],
+        [1, null, null, 2],
+        [null, 1, 2, null]
+      ])
+    })
+  })
+
+  describe('Sum', () => {
+    test('deletes initial dataset', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'sum', tagged: true })
+      expect(mockDelSeries).toHaveBeenCalledWith(1)
+    })
+
+    test('aligns data by tag', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'sum', tagged: true })
+
+      chart.pushData([{ x: 'a', y: 2, z: 1 }])
+      expect(mockAddSeries).toHaveBeenCalledWith(newSeriesConfig({ label: 'a' }, 0), 1)
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1],
+        [2]
+      ])
+
+      chart.pushData([{ x: 'b', y: 4, z: 3 }])
+      expect(mockAddSeries).toHaveBeenCalledWith(newSeriesConfig({ label: 'b' }, 1), 2)
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 3],
+        [2, null],
+        [null, 4]
+      ])
+
+      chart.pushData([
+        { x: 'b', y: 6, z: 5 },
+        { x: 'a', y: 8, z: 7 }
+      ])
+
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 3, 5, 7],
+        [2, null, null, 10],
+        [null, 4, 10, null]
+      ])
+    })
+  })
+})
