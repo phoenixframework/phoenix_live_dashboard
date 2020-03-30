@@ -1,5 +1,6 @@
 import ColorWheel from './color_wheel'
-import Chart from 'chart.js'
+import _css from 'uplot/dist/uPlot.min.css'
+import uPlot from 'uplot'
 
 /** Chart.js Storage Adapters **/
 
@@ -81,36 +82,58 @@ const DoughnutConfig = (options) => {
 
 const TimeseriesConfig = (options) => {
   return {
-    type: 'line',
-    data: { datasets: [] },
-    options: {
-      responsive: true,
-      scales: {
-        xAxes: [{
-          type: 'time',
-          distribution: 'series'
-        }],
-        yAxes: [{
-          scaleLabel: {
-            display: true,
-            labelString: options.label
-          }
-        }]
+    title: options.title,
+    width: options.width, // configured?
+    height: options.height, // configured?
+    series: [
+      {},
+      {
+        stroke: ColorWheel.at(0),
+        width: 2
+      }
+    ],
+    scales: {
+      x: {
+        min: options.now - 60,
+        max: options.now,
       },
-      elements: {
-        line: {
-          tension: 0
+      y: {
+        min: 0,
+        max: 0.3,
+      },
+    },
+    axes: [
+      {
+        // Default for X
+        grid: {
+          show: true,
+          stroke: "#eee",
+          width: 1,
+          dash: [],
         }
       },
-      title: {
-        display: true,
-        text: options.title
+      // {
+      //   show: true,
+      //   label: options.label,
+      //   size: 70,
+      //   scale: 'kb',
+      //   values: (u, vals, space) => vals.map(v => +v.toFixed(2) + " KB"),
+      // },
+      {
+        show: true,
+        label: options.label,
+        size: 70,
+        auto: true,
+        values: (u, vals, space) => vals.map(v => +(v * 1000).toFixed(0) + " ms"),
+        space: 15,
+        grid: {
+          show: true,
+          stroke: "#eee",
+          width: 1,
+          dash: [],
+        }
       },
-      legend: {
-        position: 'bottom',
-        align: 'start'
-      }
-    }
+    ]
   }
 }
 
@@ -212,18 +235,75 @@ const __METRICS__ = {
   summary: Summary
 }
 
+function datasetToData(datasets) {
+  datasets = datasets.slice(0)
+  if (datasets.length < 2) {
+    datasets.push({ data: [] })
+  }
+  return datasets.map(({ data }) => data)
+}
+
+function datasetToSeries({ key }, index) {
+  return {
+    label: key,
+    value: (u, v) => v == null ? "-" : (v * 1000).toFixed(0) + " ms",
+    stroke: ColorWheel.at(index - 1),
+    width: 2
+  }
+}
+
 class TelemetryChart {
   constructor(elementOrContext, { metric: metric, ...options }) {
-    let instrument = Instrument.create(options)
-    this.metric = new __METRICS__[metric](instrument, options)
-    this.chart = new Chart(elementOrContext, instrument.config)
+    this.instrument = Instrument.create(options)
+    this.metric = new __METRICS__[metric](this.instrument, options)
+    this.datasets = [
+      { key: "time", data: [] }
+    ];
+    console.log(this.datasets, datasetToData(this.datasets))
+    this.elementOrContext = elementOrContext
+    this.chart = new uPlot(this.instrument.config, datasetToData(this.datasets), elementOrContext)
   }
 
   pushData(data) {
+    if (!data.length) return;
+
+    data.forEach((item) => {
+      let { z: dateString, y: valueString, x: key } = item;
+      let ts_seconds = (new Date(dateString)).getTime() / 1000;
+      let foundKey = false;
+      let value = parseFloat(valueString)
+
+      this.datasets = this.datasets.map((dataset, index) => {
+        if (index == 0) {
+          dataset.data.push(ts_seconds)
+        } else if (dataset.key == key && !foundKey) {
+          foundKey = true;
+          dataset.data.push(value)
+        } else {
+          dataset.data.push(null)
+        }
+        return dataset
+      })
+
+      if (!foundKey) {
+        let data = Array(this.datasets[0].data.length)
+          .fill(null)
+        data.splice(-1, 1, value)
+        this.datasets.push({ key, data })
+
+        this.elementOrContext.innerHTML = ''
+        this.chart = new uPlot(this.instrument.config, datasetToData(this.datasets), this.elementOrContext)
+      }
+    })
+
+    console.log(this.datasets, datasetToData(this.datasets), this.chart.series)
+
+    this.chart.setData(datasetToData(this.datasets))
+
     // Gives the metric the opportunity to cancel the redraw.
-    if (this.metric.pushData(data) !== false) {
-      this.chart.update()
-    }
+    // if (this.metric.pushData(data) !== false) {
+    //   this.chart.update()
+    // }
   }
 }
 
@@ -231,10 +311,14 @@ class TelemetryChart {
 
 const PhxChartComponent = {
   mounted() {
-    let canvas = this.el.parentElement.getElementsByTagName('canvas')[0]
-    let options = Object.assign({}, canvas.dataset)
+    let wrapper = this.el.parentElement.querySelector('.chart')
+    let size = wrapper.getBoundingClientRect();
+    let options = Object.assign({}, wrapper.dataset)
     options['instrument'] = options['metric'] === 'summary' ? 'timeseries' : 'doughnut'
-    this.chart = new TelemetryChart(canvas.getContext('2d'), options)
+    options['width'] = size.width;
+    options['height'] = 300;
+    options['now'] = (new Date()).getTime() / 1000;
+    this.chart = new TelemetryChart(wrapper, options)
   },
   updated() {
     const data = Array

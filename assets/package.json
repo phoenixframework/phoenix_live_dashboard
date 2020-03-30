@@ -14,11 +14,11 @@
   },
   "dependencies": {
     "bootstrap": "^4.4.1",
-    "chart.js": "^2.9.3",
     "nprogress": "^0.2.0",
     "phoenix": "../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
-    "phoenix_live_view": "file:../deps/phoenix_live_view"
+    "phoenix_live_view": "file:../deps/phoenix_live_view",
+    "uplot": "^1.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.3.4",

@@ -34,11 +34,11 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
           <span data-x="<%= x || @title %>" data-y="<%= y %>" data-z="<%= z %>"></span>
         <% end %>
         </div>
-        <div class="chart" phx-update="ignore">
-          <canvas id="chart-<%= @id %>--canvas"
-          data-label="<%= @label %>"
-          data-metric="<%= @kind %>"
-          data-title="<%= @title %>"></canvas>
+        <div class="chart"
+             phx-update="ignore"
+             data-label="<%= @label %>"
+             data-metric="<%= @kind %>"
+             data-title="<%= @title %>">
         </div>
       </div>
     </div>
