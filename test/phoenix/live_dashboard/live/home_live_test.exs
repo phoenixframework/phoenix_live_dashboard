@@ -21,15 +21,6 @@ defmodule Phoenix.LiveDashboard.HomeLiveTest do
                ~s|#{Application.spec(:phoenix_live_dashboard, :vsn)}</div>|
 
     assert rendered =~
-             ~r"Atoms\s+</div><div><small class=\"text-muted pr-2\">\s+\d+ / \d+\s+</small><strong>\s+\d+%"
-
-    assert rendered =~
-             ~r"Ports\s+</div><div><small class=\"text-muted pr-2\">\s+\d+ / \d+\s+</small><strong>\s+\d+%"
-
-    assert rendered =~
-             ~r"Processes\s+</div><div><small class=\"text-muted pr-2\">\s+\d+ / \d+\s+</small><strong>\s+\d+%"
-
-    assert rendered =~
              ~s|<h6 class=\"banner-card-title\">Uptime</h6><div class=\"banner-card-value\">0m</div>|
   end
 
