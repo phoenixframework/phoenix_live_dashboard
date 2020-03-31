@@ -1,0 +1,64 @@
+.hint {
+  display: inline-block;
+  position: relative;
+
+  .hint-text {
+    box-shadow: $box-shadow-darker;
+    display: none;
+  }
+
+  .hint-icon {
+    cursor: help;
+    height: 15px;
+    width: 15px;
+    position: relative;
+    top: -1px;
+  }
+
+  &:hover {
+    .hint-text {
+      border: 1px solid $color-gray-600;
+      border-radius: $border-radius;
+      background-color: $color-gray-100;
+      color: $color-gray-800;
+      display: block;
+      position: absolute;
+      transform: translateX(-50%);
+      font-size: 1rem;
+      bottom: 30px;
+      left: 18px;
+      width: 300px;
+      padding: 1rem 1.5rem;
+      z-index: 10;
+    }
+  }
+
+  .hint-icon-fill {
+    fill: $color-gray-600;
+  }
+
+  .hint-icon-stroke {
+    stroke: $color-gray-600;
+  }
+}
+
+.card-title .hint {
+  .hint-icon-fill {
+    fill: $color-gray-700;
+  }
+
+  .hint-icon-stroke {
+    stroke: $color-gray-700;
+  }
+}
+
+@media (max-width: map-get($grid-breakpoints, sm)) {
+  .hint{
+    &:hover {
+      .hint-text {
+        transform: none;
+        left: 0;
+      }
+    }
+  }
+}

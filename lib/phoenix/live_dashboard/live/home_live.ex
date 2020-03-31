@@ -2,6 +2,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   use Phoenix.LiveDashboard.Web, :live_view
 
   alias Phoenix.LiveDashboard.SystemInfo
+  import Phoenix.LiveDashboard.HintHelpers
 
   @temporary_assigns [system_info: nil, system_usage: nil]
 
@@ -139,6 +140,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
                 <div class="d-flex justify-content-between">
                   <div>
                     <%= title %>
+                    <%= hint("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi lectus turpis, tristique quis pretium sagittis, ultricies et leo. Integer tempus rhoncus lacinia.") %>
                   </div>
                   <div>
                     <small class="text-muted pr-2">
@@ -166,7 +168,9 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           </div>
         <% end %>
 
-        <h5 class="card-title">Memory</h5>
+        <h5 class="card-title">Memory
+          <%=hint("Lorem ipsum") %>
+        </h5>
 
         <div class="card mb-4">
           <div class="card-body memory-usage">
