@@ -1,16 +1,8 @@
 defmodule Phoenix.LiveDashboard.HomeLive do
   use Phoenix.LiveDashboard.Web, :live_view
-
-  alias Phoenix.LiveDashboard.SystemInfo
-  import Phoenix.LiveDashboard.HintHelpers
+  alias Phoenix.LiveDashboard.{SystemInfo, SystemLimitComponent}
 
   @temporary_assigns [system_info: nil, system_usage: nil]
-
-  @system_limits_sections [
-    {:atoms, "Atoms"},
-    {:ports, "Ports"},
-    {:processes, "Processes"}
-  ]
 
   @versions_sections [
     {:elixir, "Elixir"},
@@ -133,43 +125,32 @@ defmodule Phoenix.LiveDashboard.HomeLive do
       <div class="col-sm-6">
         <h5 class="card-title">System usage / limits</h5>
 
-        <%= for {section, title} <- system_limits_sections() do %>
-          <div class="card progress-section mb-4">
-            <div class="card-body">
-              <section>
-                <div class="d-flex justify-content-between">
-                  <div>
-                    <%= title %>
-                    <%= hint("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi lectus turpis, tristique quis pretium sagittis, ultricies et leo. Integer tempus rhoncus lacinia.") %>
-                  </div>
-                  <div>
-                    <small class="text-muted pr-2">
-                      <%= @system_usage[section] %> / <%= @system_limits[section] %>
-                    </small>
-                    <strong>
-                      <%= used(section, @system_usage, @system_limits) %>%
-                    </strong>
-                  </div>
-                </div>
-
-                <div class="progress flex-grow-1 mt-2">
-                  <div
-                    class="progress-bar"
-                    role="progressbar"
-                    aria-valuenow="<%= used(section, @system_usage, @system_limits) %>"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    style="width: <%= used(section, @system_usage, @system_limits) %>%"
-                  >
-                  </div>
-                </div>
-              </section>
-            </div>
-          </div>
+        <%= live_component @socket, SystemLimitComponent, id: :atoms, usage: @system_usage.atoms, limit: @system_limits.atoms do %>
+          Atoms
+          <%= hint do %>
+            If the number of atoms keeps growing even if the system load is stable, you may have a atom leak in your application.
+            You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
+          <% end %>
         <% end %>
 
-        <h5 class="card-title">Memory
-          <%=hint("Lorem ipsum") %>
+        <%= live_component @socket, SystemLimitComponent, id: :ports, usage: @system_usage.ports, limit: @system_limits.ports do %>
+          Ports
+          <%= hint do %>
+            If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
+            This means ports are being opened by a parent process that never exits or never closes them.
+          <% end %>
+        <% end %>
+
+        <%= live_component @socket, SystemLimitComponent, id: :processes, usage: @system_usage.processes, limit: @system_limits.processes do %>
+          Processes
+          <%= hint do %>
+            If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
+            This means processes are being spawned and they never exit.
+          <% end %>
+        <% end %>
+
+        <h5 class="card-title">
+          Memory
         </h5>
 
         <div class="card mb-4">
@@ -219,10 +200,6 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     """
   end
 
-  defp used(attr, usage, limit) do
-    trunc(Map.fetch!(usage, attr) / Map.fetch!(limit, attr) * 100)
-  end
-
   defp percentage(value, total, options \\ [])
 
   defp percentage(_value, 0, _options), do: 0
@@ -251,6 +228,5 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     {:noreply, assign(socket, system_usage: SystemInfo.fetch_usage(socket.assigns.menu.node))}
   end
 
-  defp system_limits_sections(), do: @system_limits_sections
   defp versions_sections(), do: @versions_sections
 end

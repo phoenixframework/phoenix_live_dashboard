@@ -46,14 +46,7 @@ defmodule Phoenix.LiveDashboard.Web do
       import Phoenix.LiveView.Helpers
 
       # Import dashboard built-in functions
-      import Phoenix.LiveDashboard.Web,
-        only: [
-          live_dashboard_path: 3,
-          live_dashboard_path: 4,
-          live_dashboard_path: 5,
-          assign_defaults: 3,
-          assign_defaults: 4
-        ]
+      import Phoenix.LiveDashboard.Helpers
     end
   end
 
@@ -62,39 +55,5 @@ defmodule Phoenix.LiveDashboard.Web do
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
-  end
-
-  @doc """
-  Computes a route path to the live dashboard.
-  """
-  def live_dashboard_path(socket, action, node, args \\ [], params \\ []) do
-    apply(
-      socket.router.__helpers__(),
-      :live_dashboard_path,
-      [socket, action, node | args] ++ [params]
-    )
-  end
-
-  @doc """
-  Assign default values on the socket.
-  """
-  def assign_defaults(socket, params, session, refresher? \\ false) do
-    param_node = Map.fetch!(params, "node")
-    found_node = Enum.find([node() | Node.list()], &(Atom.to_string(&1) == param_node))
-
-    socket =
-      Phoenix.LiveView.assign(socket, :menu, %{
-        refresher?: refresher?,
-        action: socket.assigns.live_action,
-        node: found_node || node(),
-        metrics: session["metrics"],
-        request_logger: session["request_logger"]
-      })
-
-    if found_node do
-      socket
-    else
-      Phoenix.LiveView.push_redirect(socket, to: live_dashboard_path(socket, :home, node()))
-    end
   end
 end

@@ -1,9 +1,11 @@
 defmodule Phoenix.LiveDashboard.TableHelpers do
+  # Helpers for pages that need to render tables
+
   @moduledoc false
   import Phoenix.HTML
   import Phoenix.LiveView
   import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.Web
+  import Phoenix.LiveDashboard.Helpers
 
   @limit ~w(50 100 500 1000 5000)
   @sort_dir ~w(desc asc)
