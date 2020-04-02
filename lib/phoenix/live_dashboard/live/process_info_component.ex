@@ -108,7 +108,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
     entries
     |> Enum.map(&inspect_val(&1, link_builder))
-    |> Kernel.++(if left_over == [], do: [], else: "...")
+    |> Kernel.++(if left_over == [], do: [], else: ["..."])
     |> Enum.intersperse({:safe, "<br />"})
   end
 
