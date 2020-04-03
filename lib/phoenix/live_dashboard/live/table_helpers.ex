@@ -14,7 +14,9 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
     sort_by = params |> get_in_or_first("sort_by", sort_by) |> String.to_atom()
     sort_dir = params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
     limit = params |> get_in_or_first("limit", @limit) |> String.to_integer()
-    assign(socket, :params, %{sort_by: sort_by, sort_dir: sort_dir, limit: limit})
+    search = params["search"]
+    search = if search == "", do: nil, else: search
+    assign(socket, :params, %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search})
   end
 
   defp get_in_or_first(params, key, valid) do

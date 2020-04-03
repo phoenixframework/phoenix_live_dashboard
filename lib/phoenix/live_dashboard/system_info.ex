@@ -40,8 +40,9 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Fetchers
 
-  def fetch_processes(node, sort_by, sort_dir, limit) do
-    :rpc.call(node, __MODULE__, :processes_callback, [sort_by, sort_dir, limit])
+  def fetch_processes(node, search, sort_by, sort_dir, limit) do
+    search = search && String.downcase(search)
+    :rpc.call(node, __MODULE__, :processes_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_process_info(pid, keys) do
@@ -71,19 +72,42 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   defp sort_dir_multipler(:desc), do: -1
 
   @doc false
-  def processes_callback(sort_by, sort_dir, limit) do
+  def processes_callback(search, sort_by, sort_dir, limit) do
     multiplier = sort_dir_multipler(sort_dir)
 
     processes =
-      for pid <- Process.list(), info = Process.info(pid, @process_info) do
-        [{:registered_name, name}, {:initial_call, initial_call} | rest] = info
-        name_or_initial_call = if is_atom(name), do: name, else: initial_call
+      for pid <- Process.list(), info = info(pid), show?(info, search) do
         sorter = info[sort_by] * multiplier
-        {sorter, [pid: pid, name_or_initial_call: name_or_initial_call] ++ rest}
+        {sorter, info}
       end
 
+    count = if search, do: length(processes), else: :erlang.system_info(:process_count)
     processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
-    {processes, :erlang.system_info(:process_count)}
+    {processes, count}
+  end
+
+  defp info(pid) do
+    if info = Process.info(pid, @process_info) do
+      [{:registered_name, name}, {:initial_call, initial_call} | rest] = info
+      name_or_initial_call = if is_atom(name), do: name, else: initial_call
+      [pid: pid, name_or_initial_call: name_or_initial_call] ++ rest
+    end
+  end
+
+  defp show?(_, nil) do
+    true
+  end
+
+  defp show?(info, search) do
+    pid = info[:pid] |> :erlang.pid_to_list() |> List.to_string()
+    name = info[:name_or_initial_call]
+
+    name =
+      if is_atom(name) do
+        name |> Atom.to_string() |> String.downcase()
+      end
+
+    pid =~ search or (name && name =~ search)
   end
 
   @doc false
