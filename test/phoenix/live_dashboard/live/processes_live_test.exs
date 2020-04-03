@@ -14,6 +14,25 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     assert rendered |> :binary.matches("</tr>") |> length() > 100
   end
 
+  test "search" do
+    Agent.start_link(fn -> :ok end, name: Foo1)
+    Agent.start_link(fn -> :ok end, name: Foo2)
+    {:ok, pid} = Agent.start_link(fn -> :ok end, name: Bar)
+
+    {:ok, live, _} = live(build_conn(), processes_path(1000, "FOO", :message_queue_len, :desc))
+    rendered = render(live)
+    assert rendered =~ ~r/Foo1.*Foo2/
+    refute rendered =~ "Bar"
+    assert rendered =~ "processes out of 2"
+    assert rendered =~ processes_href(1000, "FOO", :message_queue_len, :asc)
+
+    pid = pid |> :erlang.pid_to_list() |> List.to_string()
+    {:ok, live, _} = live(build_conn(), processes_path(1000, pid, :message_queue_len, :desc))
+    rendered = render(live)
+    assert rendered =~ ~r/Bar/
+    assert rendered =~ "processes out of 1"
+  end
+
   test "order processes by memory" do
     Agent.start_link(fn -> List.duplicate("a", 1) end, name: :process_live_test_low_memory)
     Agent.start_link(fn -> List.duplicate("a", 1000) end, name: :process_live_test_high_memory)
@@ -21,13 +40,13 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/processes?limit=1000")
     rendered = render(live)
     assert rendered =~ ~r/:process_live_test_high_memory.*:process_live_test_low_memory/
-    assert rendered =~ processes_href(1000, :memory, :asc)
-    refute rendered =~ processes_href(1000, :memory, :desc)
+    assert rendered =~ processes_href(1000, "", :memory, :asc)
+    refute rendered =~ processes_href(1000, "", :memory, :desc)
 
     rendered = render_patch(live, "/dashboard/nonode@nohost/processes?limit=1000&sort_dir=asc")
     assert rendered =~ ~r/:process_live_test_low_memory.*:process_live_test_high_memory/
-    assert rendered =~ processes_href(1000, :memory, :desc)
-    refute rendered =~ processes_href(1000, :memory, :asc)
+    assert rendered =~ processes_href(1000, "", :memory, :desc)
+    refute rendered =~ processes_href(1000, "", :memory, :asc)
   end
 
   test "order processes by reductions" do
@@ -35,16 +54,16 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
     Agent.start_link(fn -> List.duplicate("a", 1000) end, name: :process_live_test_high_reductions)
 
-    {:ok, live, _} = live(build_conn(), processes_path(1000, :reductions, :desc))
+    {:ok, live, _} = live(build_conn(), processes_path(1000, "", :reductions, :desc))
     rendered = render(live)
     assert rendered =~ ~r/:process_live_test_high_reductions.*:process_live_test_low_reductions/
-    assert rendered =~ processes_href(1000, :reductions, :asc)
-    refute rendered =~ processes_href(1000, :reductions, :desc)
+    assert rendered =~ processes_href(1000, "", :reductions, :asc)
+    refute rendered =~ processes_href(1000, "", :reductions, :desc)
 
-    rendered = render_patch(live, processes_path(1000, :reductions, :asc))
+    rendered = render_patch(live, processes_path(1000, "", :reductions, :asc))
     assert rendered =~ ~r/:process_live_test_low_reductions.*:process_live_test_high_reductions/
-    assert rendered =~ processes_href(1000, :reductions, :desc)
-    refute rendered =~ processes_href(1000, :reductions, :asc)
+    assert rendered =~ processes_href(1000, "", :reductions, :desc)
+    refute rendered =~ processes_href(1000, "", :reductions, :asc)
   end
 
   test "order processes by message queue len" do
@@ -54,16 +73,16 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     Process.register(pid, :process_live_test_high_msgq)
     Enum.each(1..1000, &send(pid, {:msg, &1}))
 
-    {:ok, live, _} = live(build_conn(), processes_path(1000, :message_queue_len, :desc))
+    {:ok, live, _} = live(build_conn(), processes_path(1000, "", :message_queue_len, :desc))
     rendered = render(live)
     assert rendered =~ ~r/:process_live_test_high_msgq.*:process_live_test_low_msgq/
-    assert rendered =~ processes_href(1000, :message_queue_len, :asc)
-    refute rendered =~ processes_href(1000, :message_queue_len, :desc)
+    assert rendered =~ processes_href(1000, "", :message_queue_len, :asc)
+    refute rendered =~ processes_href(1000, "", :message_queue_len, :desc)
 
-    rendered = render_patch(live, processes_path(1000, :message_queue_len, :asc))
+    rendered = render_patch(live, processes_path(1000, "", :message_queue_len, :asc))
     assert rendered =~ ~r/:process_live_test_low_msgq.*:process_live_test_high_msgq/
-    assert rendered =~ processes_href(1000, :message_queue_len, :desc)
-    refute rendered =~ processes_href(1000, :message_queue_len, :asc)
+    assert rendered =~ processes_href(1000, "", :message_queue_len, :desc)
+    refute rendered =~ processes_href(1000, "", :message_queue_len, :asc)
   end
 
   test "shows process info modal" do
@@ -72,19 +91,19 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
     {:ok, live, _} = live(build_conn(), process_info_path(pid, 1000, :message_queue_len, :desc))
     rendered = render(live)
-    assert rendered =~ processes_href(1000, :message_queue_len, :desc)
+    assert rendered =~ processes_href(1000, "", :message_queue_len, :desc)
 
     assert rendered =~ "modal-content"
     assert rendered =~ ~r/Registered name.*selected_process/
 
     render_click([live, "#modal"], "close")
 
-    return_path = processes_path(1000, :message_queue_len, :desc)
+    return_path = processes_path(1000, "", :message_queue_len, :desc)
     assert_redirect(live, ^return_path)
   end
 
-  defp processes_href(limit, sort_by, sort_dir) do
-    ~s|href="#{Plug.HTML.html_escape_to_iodata(processes_path(limit, sort_by, sort_dir))}"|
+  defp processes_href(limit, search, sort_by, sort_dir) do
+    ~s|href="#{Plug.HTML.html_escape_to_iodata(processes_path(limit, search, sort_by, sort_dir))}"|
   end
 
   defp process_info_path(pid, limit, sort_by, sort_dir) do
@@ -92,8 +111,8 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
       "limit=#{limit}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 
-  defp processes_path(limit, sort_by, sort_dir) do
+  defp processes_path(limit, search, sort_by, sort_dir) do
     "/dashboard/nonode%40nohost/processes?" <>
-      "limit=#{limit}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+      "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end

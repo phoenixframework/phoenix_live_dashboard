@@ -21,10 +21,10 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   end
 
   defp fetch_processes(socket) do
-    %{sort_by: sort_by, sort_dir: sort_dir, limit: limit} = socket.assigns.params
+    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = socket.assigns.params
 
     {processes, total} =
-      SystemInfo.fetch_processes(socket.assigns.menu.node, sort_by, sort_dir, limit)
+      SystemInfo.fetch_processes(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
 
     assign(socket, processes: processes, total: total)
   end
@@ -34,6 +34,16 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
     ~L"""
     <div class="processes-page">
       <h5 class="card-title">Processes</h5>
+
+      <div class="processes-search">
+        <form phx-change="search" phx-submit="search" class="form-inline">
+          <div class="form-row align-items-center">
+            <div class="col-auto">
+              <input type="text" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or PID" phx-debounce="300">
+            </div>
+          </div>
+        </form>
+      </div>
 
       <form phx-change="select_limit" class="form-inline">
         <div class="form-row align-items-center">
@@ -113,6 +123,11 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   end
 
   @impl true
+  def handle_event("search", %{"search" => search}, socket) do
+    %{menu: menu, params: params} = socket.assigns
+    {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | search: search}))}
+  end
+
   def handle_event("select_limit", %{"limit" => limit}, socket) do
     %{menu: menu, params: params} = socket.assigns
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
