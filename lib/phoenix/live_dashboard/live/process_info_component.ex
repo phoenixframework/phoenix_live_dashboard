@@ -42,7 +42,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
           <tr><td>Status</td><td><pre><%= @status %></pre></td></tr>
           <tr><td>Message queue length</td><td><pre><%= @message_queue_len %></pre></td></tr>
           <tr><td>Links</td><td><pre><%= @links %></pre></td></tr>
-          <tr><td>Monitors</td><td><%= @monitors %></td></tr>
+          <tr><td>Monitors</td><td><pre><%= @monitors %></pre></td></tr>
           <tr><td>Monitored by</td><td><pre><%= @monitored_by %></pre></td></tr>
           <tr><td>Trap exit</td><td><pre><%= @trap_exit %></pre></td></tr>
           <tr><td>Error handler</td><td><pre><%= @error_handler %></pre></td></tr>
@@ -99,6 +99,10 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
   defp inspect_val(pid, link_builder) when is_pid(pid) do
     live_redirect(inspect(pid), to: link_builder.(pid))
+  end
+
+  defp inspect_val({:process, pid}, link_builder) when is_pid(pid) do
+    inspect_val(pid, link_builder)
   end
 
   defp inspect_val(val, _link_builder), do: inspect(val, pretty: true, limit: 100)
