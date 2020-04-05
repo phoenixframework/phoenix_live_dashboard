@@ -14,8 +14,9 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/phx")
     rendered = render(live)
     assert rendered =~ "Updates automatically"
-    assert rendered =~ "&quot;phx&quot; metrics"
-    assert rendered =~ "&quot;ecto&quot; metrics"
+    assert rendered =~ "Phx"
+    assert rendered =~ "Ecto"
+    assert rendered =~ "MyApp"
     assert rendered =~ ~s|data-title="phx.b.c"|
     assert rendered =~ ~s|data-title="phx.b.d"|
 
