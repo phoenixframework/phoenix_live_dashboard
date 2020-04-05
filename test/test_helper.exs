@@ -22,7 +22,8 @@ defmodule Phoenix.LiveDashboardTest.Telemetry do
     [
       counter("phx.b.c"),
       counter("phx.b.d"),
-      counter("ecto.f.g")
+      counter("ecto.f.g"),
+      counter("my_app.h.i")
     ]
   end
 end

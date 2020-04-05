@@ -38,10 +38,8 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     to_string(metric.reporter_options[:group] || hd(metric.name))
   end
 
-  def format_group_name("phoenix"), do: "Phoenix metrics"
-  def format_group_name("vm"), do: "VM metrics"
-
-  def format_group_name(group_name), do: "#{inspect(group_name)} metrics"
+  defp format_group_name("vm"), do: "VM"
+  defp format_group_name(group), do: Phoenix.Naming.camelize(group)
 
   @impl true
   def render(assigns) do
