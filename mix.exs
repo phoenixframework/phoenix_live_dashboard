@@ -32,7 +32,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:phoenix_live_view, "~> 0.11.0", phoenix_live_view_opts()},
+      {:phoenix_live_view, "~> 0.11.1", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.4.0"},
       {:phoenix_html, "~> 2.14.1 or ~> 2.15"},
       {:telemetry_poller, "~> 0.4", only: :dev},

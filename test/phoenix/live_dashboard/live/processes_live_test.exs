@@ -77,7 +77,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     assert rendered =~ "modal-content"
     assert rendered =~ ~r/Registered name.*selected_process/
 
-    render_click([live, "modal"], "close")
+    render_click([live, "#modal"], "close")
 
     return_path = processes_path(1000, :message_queue_len, :desc)
     assert_redirect(live, ^return_path)
