@@ -81,7 +81,6 @@ defmodule DemoWeb.Router do
 
   pipeline :browser do
     plug :fetch_session
-    plug :fetch_flash
   end
 
   scope "/" do
