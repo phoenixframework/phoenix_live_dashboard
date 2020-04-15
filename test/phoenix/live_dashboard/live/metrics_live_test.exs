@@ -26,7 +26,7 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
     _ = render(live)
 
     # Guarantees the components have been updated
-    assert render(live) =~ ~s|<span data-x="phx.b.c" data-y="value"|
+    assert render(live) =~ ~s|<span data-x="C" data-y="value"|
   end
 
   test "redirects on unknown group" do
