@@ -33,17 +33,18 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
       assert result =~ ~s|data-title="a.b.c.count"|
     end
 
-    test "adds units to label" do
+    test "adds units" do
       result = render_chart(metric: last_value([:a, :b, :c, :size], unit: :megabyte))
-      assert result =~ ~s|data-label="Size (MB)"|
+      assert result =~ ~s|data-unit="MB"|
 
       result = render_chart(metric: last_value([:a, :b, :c, :size], unit: :whatever))
-      assert result =~ ~s|data-label="Size (whatever)"|
+      assert result =~ ~s|data-unit="whatever"|
     end
 
-    test "adds tags to title" do
+    test "adds tags to data and title" do
       result = render_chart(metric: last_value([:a, :b, :c, :size], tags: [:foo, :bar]))
       assert result =~ ~s|data-title="a.b.c.size (foo-bar)"|
+      assert result =~ ~s|data-tags="foo-bar"|
     end
 
     test "renders data" do
@@ -51,7 +52,7 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
       assert result =~ ~s|<span data-x="x" data-y="y" data-z="z">|
 
       result = render_chart(metric: last_value([:a, :b, :c, :count]), data: [{nil, "y", "z"}])
-      assert result =~ ~s|<span data-x="a.b.c.count" data-y="y" data-z="z">|
+      assert result =~ ~s|<span data-x="Count" data-y="y" data-z="z">|
     end
   end
 end
