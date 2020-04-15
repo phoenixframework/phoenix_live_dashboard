@@ -6,8 +6,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   test "shows processes with limit" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/processes")
-    rendered = render(live)
+    {:ok, live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/processes")
     assert rendered |> :binary.matches("</tr>") |> length() <= 100
 
     rendered = render_patch(live, "/dashboard/nonode@nohost/processes?limit=1000")
@@ -96,10 +95,9 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     assert rendered =~ "modal-content"
     assert rendered =~ ~r/Registered name.*selected_process/
 
-    render_click([live, "#modal"], "close")
-
+    refute live |> element("#modal .close") |> render_click() =~ "modal"
     return_path = processes_path(1000, "", :message_queue_len, :desc)
-    assert_redirect(live, ^return_path)
+    assert_patch(live, return_path)
   end
 
   defp processes_href(limit, search, sort_by, sort_dir) do

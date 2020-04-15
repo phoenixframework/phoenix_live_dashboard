@@ -37,6 +37,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
         <% end %>
         </div>
         <div class="chart"
+             id="chart-ignore-<%= @id %>"
              phx-update="ignore"
              data-label="<%= @label %>"
              data-metric="<%= @kind %>"
