@@ -144,14 +144,13 @@ The LiveDashboard integrates with `:telemetry` converting each  `Telemetry.Metri
 
 The following table shows how `Telemetry.Metrics` metrics map to LiveDashboard charts:
 
-| Telemetry.Metrics | Chart |
-|-------------------|-------|
-| `last_value`      | `Doughnut`, always set to an absolute value |
-| `counter`         | `Doughnut`, always increased by 1 |
-| `summary`         | `Line`, recording individual measurement using time scale |
-| `distribution`    | (Coming Soon) `Line`, recording measurement in individual buckets using time scale |
-
-Those are hardcoded and not configurable at the moment.
+| Telemetry.Metrics | Y-Axis Value(s)                                            |
+|-------------------|----------------------------------------------------------- |
+| `last_value`      | Always set to an absolute value                            |
+| `counter`         | Always increased by 1                                      |
+| `sum`             | Always increased/decreased by an absolute value            |
+| `summary`         | Value/Min/Max/Avg                                          |
+| `distribution`    | (Coming Soon) recording measurements in individual buckets |
 
 ### Reporter options
 
