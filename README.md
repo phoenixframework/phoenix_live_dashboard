@@ -31,7 +31,7 @@ Add the following to your `mix.exs` and run `mix deps.get`:
 ```elixir
 def deps do
   [
-    {:phoenix_live_dashboard, github: "phoenixframework/phoenix_live_dashboard"}
+    {:phoenix_live_dashboard, "~> 0.1.0"}
   ]
 end
 ```
