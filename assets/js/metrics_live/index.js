@@ -6,7 +6,17 @@ const SeriesValue = (options) => {
   if (!options.unit) return {}
 
   return {
-    value: (u, v) => v === null ? '' : v.toFixed(3) + options.unit
+    value: (u, v) => v === null ? '' : v.toFixed(3) + ` ${options.unit}`
+  }
+}
+
+const XSeriesValue = (options) => {
+  return {
+    value: (self, v) => {
+      if (v === null) return '';
+      let d = new Date(v * 1e3)
+      return uPlot.fmtDate('{YYYY}-{MM}-{DD} {HH}:{mm}:{ss}')(d)
+    }
   }
 }
 
@@ -15,6 +25,20 @@ const YAxisValue = (options) => {
 
   return {
     values: (u, vals, space) => vals.map(v => +v.toFixed(2) + ` ${options.unit}`)
+  }
+}
+
+const XAxis = (_options) => {
+  return {
+    space: 55,
+    values: [
+      [3600 * 24 * 365, "{YYYY}", 7, "{YYYY}"],
+      [3600 * 24 * 28, "{MMM}", 7, "{MMM}\n{YYYY}"],
+      [3600 * 24, "{MM}-{DD}", 7, "{MM}-{DD}\n{YYYY}"],
+      [3600, "{HH}:{mm}", 4, "{HH}:{mm}\n{YYYY}-{MM}-{DD}"],
+      [60, "{HH}:{mm}", 4, "{HH}:{mm}\n{YYYY}-{MM}-{DD}"],
+      [1, "{ss}", 2, "{HH}:{mm}:{ss}\n{YYYY}-{MM}-{DD}"],
+    ]
   }
 }
 
@@ -89,8 +113,9 @@ class CommonMetric {
       title: options.title,
       width: options.width,
       height: options.height,
+      tzDate: ts => uPlot.tzDate(new Date(ts * 1e3), 'Etc/UTC'),
       series: [
-        {},
+        { ...XSeriesValue() },
         newSeriesConfig(options, 0)
       ],
       scales: {
@@ -104,7 +129,7 @@ class CommonMetric {
         },
       },
       axes: [
-        {},
+        XAxis(),
         YAxis(options)
       ]
     }
@@ -179,8 +204,9 @@ class Summary {
       title: options.title,
       width: options.width,
       height: options.height,
+      tzDate: ts => uPlot.tzDate(new Date(ts * 1e3), 'Etc/UTC'),
       series: [
-        {},
+        { ...XSeriesValue() },
         newSeriesConfig(options, 0),
         {
           label: "Min",
@@ -217,7 +243,7 @@ class Summary {
         },
       },
       axes: [
-        {},
+        XAxis(),
         YAxis(options)
       ]
     }
