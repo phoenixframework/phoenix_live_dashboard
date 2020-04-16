@@ -12,6 +12,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       package: package(),
+      name: "LiveDashboard",
       docs: docs(),
       homepage_url: "http://www.phoenixframework.org",
       description: "Real-time performance monitor and tracer for Phoenix"
