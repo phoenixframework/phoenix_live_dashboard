@@ -30,10 +30,7 @@ const YAxisValue = (options) => {
 
 const XAxis = (_options) => {
   return {
-    space(_self, scaleMin, scaleMax, dim) {
-      console.log(scaleMin, scaleMax, dim)
-      return 55;
-    },
+    space: 55,
     values: [
       [3600 * 24 * 365, "{YYYY}", 7, "{YYYY}"],
       [3600 * 24 * 28, "{MMM}", 7, "{MMM}\n{YYYY}"],
