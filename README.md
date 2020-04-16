@@ -16,7 +16,7 @@ LiveDashboard provides real-time performance monitoring and debugging tools for 
 
 The dashboard also works across nodes. If your nodes are connected via Distributed Erlang, then you can access information from node B while accessing the dashboard on node A.
 
-![screenshot](screenshot.png)
+![screenshot](screenshot.jpg)
 
 ## Installation
 
