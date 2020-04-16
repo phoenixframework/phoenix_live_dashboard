@@ -1,6 +1,6 @@
 # Phoenix LiveDashboard
 
-[Online Documentation](https://hexdocs.pm/phoenix_live_dashboard).
+[Online Documentation](https://hexdocs.pm/phoenix_live_dashboard). [See the "announcement"](https://twitter.com/josevalim/status/1250846714665357315).
 
 <!-- MDOC !-->
 
@@ -16,7 +16,7 @@ LiveDashboard provides real-time performance monitoring and debugging tools for 
 
 The dashboard also works across nodes. If your nodes are connected via Distributed Erlang, then you can access information from node B while accessing the dashboard on node A.
 
-![screenshot](screenshot.png)
+![screenshot](https://github.com/phoenixframework/phoenix_live_dashboard/raw/master/screenshot.png)
 
 ## Installation
 
