@@ -100,7 +100,14 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         <div class="row">
           <div class="col-md-4 mb-4">
             <div class="banner-card">
-              <h6 class="banner-card-title">Total</h6>
+              <h6 class="banner-card-title">
+                Total
+                <%= hint do %>
+                  Each core in your machine gets a scheduler to process all instructions within the Erlang VM.
+                  Each scheduler has its own queue, which is measured by this number. If this number keeps on
+                  growing, it means the machine is overloaded. The queue sizes can also be broken into CPU and IO.
+                <% end %>
+              </h6>
               <div class="banner-card-value"><%= @system_usage.total_run_queue %></div>
             </div>
           </div>

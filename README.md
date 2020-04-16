@@ -12,6 +12,8 @@ LiveDashboard provides real-time performance monitoring and debugging tools for 
 
   * Request logging - See everything that was logged for certain requests
 
+  * Processes - See, filter, and search processes in your application
+
 The dashboard also works across nodes. If your nodes are connected via Distributed Erlang, then you can access information from node B while accessing the dashboard on node A.
 
 ## Installation
@@ -22,7 +24,7 @@ To start using LiveDashboard, you will need three steps:
   2. Configure LiveView
   3. Add dashboard access
 
-### Add the `phoenix_live_dashboard` dependency
+### 1. Add the `phoenix_live_dashboard` dependency
 
 Add the following to your `mix.exs` and run `mix deps.get`:
 
@@ -34,7 +36,7 @@ def deps do
 end
 ```
 
-### Configure LiveView
+### 2. Configure LiveView
 
 The LiveDashboard is built on top of LiveView. If LiveView is already installed in your app, feel free to skip this section.
 
@@ -53,7 +55,7 @@ Then add the `Phoenix.LiveView.Socket` declaration to your endpoint:
 
 And you are good to go!
 
-### Add dashboard access for development-only usage
+### 3. Add dashboard access for development-only usage
 
 Once installed, update your router's configuration to forward requests to a LiveDashboard with a unique `name` of your choosing:
 
@@ -74,7 +76,7 @@ end
 
 This is all. Run `mix phx.server` and access the "/dashboard" to configure the necessary modules.
 
-### Add dashboard access on all environments (including production)
+### Extra: Add dashboard access on all environments (including production)
 
 If you want to use the LiveDashboard in production, you should put it behind some authentication and allow only admins to access it. If your application does not have an admins-only section yet, you can use `Plug.BasicAuth` to set up some basic authentication as long as you are also using SSL (which you should anyway):
 

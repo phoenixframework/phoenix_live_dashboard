@@ -6,7 +6,7 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   test "redirects to the first metrics group if no metric group is provided" do
-    {:error, %{redirect: %{to: "/dashboard/nonode%40nohost/metrics/ecto"}}} =
+    {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics/ecto"}}} =
       live(build_conn(), "/dashboard/nonode@nohost/metrics")
   end
 
@@ -30,7 +30,7 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
   end
 
   test "redirects on unknown group" do
-    {:error, %{redirect: %{to: "/dashboard/nonode%40nohost/metrics"}}} =
+    {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics"}}} =
       live(build_conn(), "/dashboard/nonode@nohost/metrics/unknown")
   end
 
