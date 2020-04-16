@@ -12,11 +12,7 @@ const SeriesValue = (options) => {
 
 const XSeriesValue = (options) => {
   return {
-    value: (self, v) => {
-      if (v === null) return '';
-      let d = new Date(v * 1e3)
-      return uPlot.fmtDate('{YYYY}-{MM}-{DD} {HH}:{mm}:{ss}')(d)
-    }
+    value: '{YYYY}-{MM}-{DD} {HH}:{mm}:{ss}'
   }
 }
 
