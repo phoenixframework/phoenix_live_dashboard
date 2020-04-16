@@ -93,7 +93,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
                 <%= for process <- @processes, list_pid = encode_pid(process[:pid]) do %>
                   <tr phx-click="show_info" phx-value-pid="<%= list_pid %>" phx-page-loading class="<%= row_class(process, @pid) %>">
                     <td class="processes-column-pid pl-4"><%= list_pid %></td>
-                    <td class="processes-column-name"><%= format_name_or_initial_call(process[:name_or_initial_call]) %></td>
+                    <td class="processes-column-name"><%= process[:name_or_initial_call] %></td>
                     <td class="text-right"><%= SystemInfo.format_bytes(process[:memory]) %></td>
                     <td class="text-right"><%= process[:reductions] %></td>
                     <td class="text-right"><%= process[:message_queue_len] %></td>
@@ -108,9 +108,6 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
     </div>
     """
   end
-
-  defp format_name_or_initial_call(name) when is_atom(name), do: inspect(name)
-  defp format_name_or_initial_call(call), do: SystemInfo.format_call(call)
 
   @impl true
   def handle_info({:node_redirect, node}, socket) do

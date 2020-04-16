@@ -89,7 +89,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   defp info(pid) do
     if info = Process.info(pid, @process_info) do
       [{:registered_name, name}, {:initial_call, initial_call} | rest] = info
-      name_or_initial_call = if is_atom(name), do: name, else: initial_call
+      name_or_initial_call = if is_atom(name), do: inspect(name), else: format_call(initial_call)
       [pid: pid, name_or_initial_call: name_or_initial_call] ++ rest
     end
   end
@@ -100,14 +100,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   defp show?(info, search) do
     pid = info[:pid] |> :erlang.pid_to_list() |> List.to_string()
-    name = info[:name_or_initial_call]
-
-    name =
-      if is_atom(name) do
-        name |> Atom.to_string() |> String.downcase()
-      end
-
-    pid =~ search or (name && name =~ search)
+    name_or_call = info[:name_or_initial_call]
+    pid =~ search or String.downcase(name_or_call) =~ search
   end
 
   @doc false

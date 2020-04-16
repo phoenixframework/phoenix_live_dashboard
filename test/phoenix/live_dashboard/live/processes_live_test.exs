@@ -16,19 +16,24 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
   test "search" do
     Agent.start_link(fn -> :ok end, name: Foo1)
     Agent.start_link(fn -> :ok end, name: Foo2)
-    {:ok, pid} = Agent.start_link(fn -> :ok end, name: Bar)
+    {:ok, pid} = Agent.start_link(fn -> :ok end, name: :erlang_bar)
 
     {:ok, live, _} = live(build_conn(), processes_path(1000, "FOO", :message_queue_len, :desc))
     rendered = render(live)
     assert rendered =~ ~r/Foo1.*Foo2/
-    refute rendered =~ "Bar"
+    refute rendered =~ ":erlang_bar"
     assert rendered =~ "processes out of 2"
     assert rendered =~ processes_href(1000, "FOO", :message_queue_len, :asc)
+
+    {:ok, live, _} = live(build_conn(), processes_path(1000, ":erlang_bar", :message_queue_len, :desc))
+    rendered = render(live)
+    assert rendered =~ ~r/:erlang_bar/
+    assert rendered =~ "processes out of 1"
 
     pid = pid |> :erlang.pid_to_list() |> List.to_string()
     {:ok, live, _} = live(build_conn(), processes_path(1000, pid, :message_queue_len, :desc))
     rendered = render(live)
-    assert rendered =~ ~r/Bar/
+    assert rendered =~ ":erlang_bar"
     assert rendered =~ "processes out of 1"
   end
 
