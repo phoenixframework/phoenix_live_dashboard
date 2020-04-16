@@ -47,13 +47,16 @@ This guide only covers the minimum steps necessary for the LiveDashboard itself 
 
 First, update your endpoint's configuration to include a signing salt. You can generate a signing salt by running `mix phx.gen.secret 32` (note Phoenix v1.5+ apps already have this configuration):
 
-    # config/config.exs
-    config :my_app, MyAppWeb.Endpoint,
-       live_view: [signing_salt: "SECRET_SALT"]
-
+```elixir
+# config/config.exs
+config :my_app, MyAppWeb.Endpoint,
+  live_view: [signing_salt: "SECRET_SALT"]
+```
 Then add the `Phoenix.LiveView.Socket` declaration to your endpoint:
 
-    socket "/live", Phoenix.LiveView.Socket
+```elixir
+socket "/live", Phoenix.LiveView.Socket
+```
 
 And you are good to go!
 
