@@ -67,7 +67,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   @impl true
   def handle_info({:telemetry, entries}, socket) do
     for {id, label, measurement, time} <- entries do
-      data = [{label, measurement, DateTime.from_unix!(time, :millisecond)}]
+      data = [{label, measurement, time}]
       send_update(ChartComponent, id: id, data: data)
     end
 

@@ -16,7 +16,7 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
   end
 
   def handle_metrics(_event_name, measurements, metadata, {parent, metrics}) do
-    time = System.system_time(:millisecond)
+    time = System.system_time(:second)
 
     entries =
       for {metric, index} <- metrics do

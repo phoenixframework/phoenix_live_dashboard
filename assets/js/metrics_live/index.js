@@ -109,7 +109,7 @@ class CommonMetric {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: ts => uPlot.tzDate(new Date(ts * 1e3), 'Etc/UTC'),
+      tzDate: ts => uPlot.tzDate(new Date(ts * 1e3)),
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0)
@@ -200,7 +200,7 @@ class Summary {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: ts => uPlot.tzDate(new Date(ts * 1e3), 'Etc/UTC'),
+      tzDate: ts => uPlot.tzDate(new Date(ts * 1e3)),
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0),
@@ -291,9 +291,7 @@ const PhxChartComponent = {
     const data = Array
       .from(this.el.children || [])
       .map(({ dataset: { x, y, z } }) => {
-        let timeInSeconds = (new Date(z)).getTime() / 1000
-        let value = parseFloat(y)
-        return { x, y: value, z: timeInSeconds }
+        return { x, y: parseFloat(y), z: parseInt(z) }
       })
 
     if (data.length > 0) {
