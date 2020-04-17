@@ -85,7 +85,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
               <h6 class="banner-card-title">
                 Total input
                 <%= hint do %>
-                The total number of bytes received through ports.
+                  The total number of bytes received through ports/sockets.
                 <% end %>
               </h6>
               <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(0)) %></div>
@@ -97,7 +97,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
               <h6 class="banner-card-title">
                 Total output
                 <%= hint do %>
-                The total number of bytes output to ports.
+                  The total number of bytes output to ports/sockets.
                 <% end %>
               </h6>
               <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(1)) %></div>
