@@ -140,7 +140,7 @@ Now that you have metrics up and running, you can begin exploring the rest of th
 
 ## Configure Metrics
 
-The LiveDashboard integrates with `:telemetry` converting each  `Telemetry.Metrics` to a beatiful, real-time chart.
+The LiveDashboard integrates with `:telemetry` converting each  `Telemetry.Metrics` to a beautiful, real-time chart.
 
 The following table shows how `Telemetry.Metrics` metrics map to LiveDashboard charts:
 
