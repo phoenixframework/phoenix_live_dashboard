@@ -25,7 +25,9 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     assert rendered =~ "processes out of 2"
     assert rendered =~ processes_href(1000, "FOO", :message_queue_len, :asc)
 
-    {:ok, live, _} = live(build_conn(), processes_path(1000, ":erlang_bar", :message_queue_len, :desc))
+    {:ok, live, _} =
+      live(build_conn(), processes_path(1000, ":erlang_bar", :message_queue_len, :desc))
+
     rendered = render(live)
     assert rendered =~ ~r/:erlang_bar/
     assert rendered =~ "processes out of 1"

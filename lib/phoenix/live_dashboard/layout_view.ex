@@ -13,4 +13,8 @@ defmodule Phoenix.LiveDashboard.LayoutView do
 
   def render("app.js", _), do: @app_js
   def render("app.css", _), do: @app_css
+
+  def live_socket_path(conn) do
+    [Enum.map(conn.script_name, &["/" | &1]) | "/live"]
+  end
 end
