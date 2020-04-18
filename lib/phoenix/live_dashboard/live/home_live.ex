@@ -145,7 +145,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         <%= live_component @socket, SystemLimitComponent, id: :atoms, usage: @system_usage.atoms, limit: @system_limits.atoms do %>
           Atoms
           <%= hint do %>
-            If the number of atoms keeps growing even if the system load is stable, you may have a atom leak in your application.
+            If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
             You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
           <% end %>
         <% end %>
