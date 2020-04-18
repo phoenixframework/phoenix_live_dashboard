@@ -1,6 +1,6 @@
 # Phoenix LiveDashboard
 
-[Online Documentation](https://hexdocs.pm/phoenix_live_dashboard). [See the "announcement"](https://twitter.com/josevalim/status/1250846714665357315).
+[Online Documentation](https://hexdocs.pm/phoenix_live_dashboard).
 
 <!-- MDOC !-->
 

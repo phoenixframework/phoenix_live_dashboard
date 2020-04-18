@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.1.1"
 
   def project do
     [
@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       name: "LiveDashboard",
       docs: docs(),
       homepage_url: "http://www.phoenixframework.org",
-      description: "Real-time performance monitor and tracer for Phoenix"
+      description: "Real-time performance dashboard for Phoenix"
     ]
   end
 
