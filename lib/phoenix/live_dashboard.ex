@@ -1,5 +1,6 @@
 defmodule Phoenix.LiveDashboard do
-  @moduledoc "README.md"
+  @external_resource "README.md"
+  @moduledoc @external_resource
              |> File.read!()
              |> String.split("<!-- MDOC !-->")
              |> Enum.fetch!(1)
