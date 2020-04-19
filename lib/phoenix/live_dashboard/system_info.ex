@@ -119,8 +119,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   defp show_ets?(info, search) do
     id = info[:id] |> :erlang.ref_to_list() |> List.to_string()
-    name = info[:name] |> Atom.to_string()
-    id =~ search or String.downcase(name) =~ search
+    id =~ search or String.downcase(info[:name]) =~ search
   end
 
   @doc false
@@ -211,6 +210,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp info_ets(ref) do
-    :ets.info(ref)
+    info = :ets.info(ref)
+    name = inspect(info[:name])
+    [name: name] ++ info
   end
 end
