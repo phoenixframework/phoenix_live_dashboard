@@ -47,15 +47,25 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
   {ports, count} = fetch_ports(Node.self(), "", :input, :asc, 100)
     assert Enum.count(ports) == count
 
-    ls = Port.open({:spawn, "ls"}, [:binary])
+    cat = Port.open({:spawn, "cat"}, [:binary])
     {ports_1, count_1} = fetch_ports(Node.self(), "", :input, :asc, 100)
     assert count + 1 == count_1
     assert Enum.count(ports_1) == count_1
 
-    Port.close(ls)
+    Port.close(cat)
     {ports_2, count_2} = fetch_ports(Node.self(), "", :input, :asc, 100)
     assert count  == count_2
     assert Enum.count(ports_2) == count_2
+  end
+
+  test "port info callback" do
+    port = 
+      '#Port<0.0>'
+      |> :erlang.list_to_port()
+      |> Port.info()
+
+    assert port[:name] == 'forker'
+    assert inspect(port[:connected]) == "#PID<0.0.0>"
   end
 
 end

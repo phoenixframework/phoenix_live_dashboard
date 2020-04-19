@@ -136,7 +136,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
     {:noreply, push_patch(socket, to: process_info_path(socket, pid, socket.assigns.params))}
   end
 
-  defp process_info_path(socket, pid, params) when is_pid(pid) do
+  def process_info_path(socket, pid, params) when is_pid(pid) do
     live_dashboard_path(socket, :processes, node(pid), [encode_pid(pid)], params)
   end
 

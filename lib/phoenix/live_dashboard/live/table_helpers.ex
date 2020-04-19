@@ -71,6 +71,8 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   defp opposite_sort_dir(_), do: :desc
 
   def live_modal(socket, component, opts) do
+    IO.inspect(opts)
+    IO.inspect("----------------------------------------Live modal")
     path = Keyword.fetch!(opts, :return_to)
     title = Keyword.fetch!(opts, :title)
     modal_opts = [id: :modal, return_to: path, component: component, opts: opts, title: title]

@@ -45,13 +45,17 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :processes_callback, [search, sort_by, sort_dir, limit])
   end
 
+  def fetch_process_info(pid, keys) do
+    :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
+  end
+
   def fetch_ports(node, search, sort_by, sort_dir, limit) do
     search = search && String.downcase(search)
     :rpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
   end
 
-  def fetch_process_info(pid, keys) do
-    :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
+  def fetch_port_info(port, keys) do
+    :rpc.call(node(port), __MODULE__, :port_info_callback, [port, keys])
   end
 
   def fetch_info(node) do
@@ -132,6 +136,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     count = if search, do: length(ports), else: length(Port.list())
     ports = ports |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
     {ports, count}
+  end
+
+  @doc false
+  def port_info_callback(port, _keys) do
+    case Port.info(port) do
+      [_ | _] = info -> {:ok, info}
+      nil -> :error
+    end
   end
 
   defp port_info(port) do
