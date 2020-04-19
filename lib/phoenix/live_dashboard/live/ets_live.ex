@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.{SystemInfo}
+  alias Phoenix.LiveDashboard.{SystemInfo, EtsTableInfoComponent}
 
   @sort_by ~w(size)
 
@@ -39,7 +39,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or PID" phx-debounce="300">
+              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or REF" phx-debounce="300">
             </div>
           </div>
         </form>
@@ -60,6 +60,14 @@ defmodule Phoenix.LiveDashboard.EtsLive do
           </div>
         </div>
       </form>
+
+      <%= if @ref do %>
+        <%= live_modal @socket, EtsTableInfoComponent,
+          id: @ref,
+          title: inspect(@ref),
+          return_to: return_path(@socket, @menu, @params),
+          ref_link_builder: &ref_info_path(@socket, &1, @params) %>
+      <% end %>
 
       <div class="card processes-card mb-4 mt-4">
         <div class="card-body p-0">
@@ -116,11 +124,11 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   @impl true
   def handle_event("show_info", %{"ref" => list_ref}, socket) do
     ref = decode_reference(list_ref)
-    {:noreply, redirect(socket, to: ref_info_path(socket, ref, []))}
+    {:noreply, push_patch(socket, to: ref_info_path(socket, ref, socket.assigns.params))}
   end
 
   defp ref_info_path(socket, ref, params) when is_reference(ref) do
-    live_dashboard_path(socket, :ets_table, node(ref), [encode_reference(ref)], params)
+    live_dashboard_path(socket, :ets, node(ref), [encode_reference(ref)], params)
   end
 
   defp self_path(socket, node, params) do
@@ -132,6 +140,10 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   end
 
   defp assign_ref(socket, %{}), do: assign(socket, ref: nil)
+
+  defp return_path(socket, menu, params) do
+    self_path(socket, menu.node, params)
+  end
 
   @doc false
   def encode_reference(ref) do

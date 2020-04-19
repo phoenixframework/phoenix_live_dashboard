@@ -58,10 +58,6 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node(ref), __MODULE__, :table_info_callback, [ref])
   end
 
-  def fetch_table_entries(ref) do
-    :rpc.call(node(ref), __MODULE__, :table_entries_callback, [ref])
-  end
-
   def fetch_info(node) do
     :rpc.call(node, __MODULE__, :info_callback, [])
   end
@@ -140,14 +136,6 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     case :ets.info(ref) do
       :undefined -> :error
       info -> {:ok, info}
-    end
-  end
-
-  @doc false
-  def table_entries_callback(ref) do
-    case :ets.info(ref, :protection) do
-      :private -> {:error, :private}
-      _ -> {:ok, :ets.match_object(ref, :_)}
     end
   end
 
