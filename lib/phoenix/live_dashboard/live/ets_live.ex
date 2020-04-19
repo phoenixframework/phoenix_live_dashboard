@@ -160,11 +160,13 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   def encode_reference(ref) do
     ref
     |> :erlang.ref_to_list()
+    |> Enum.drop(5)
+    |> Enum.drop(-1)
     |> List.to_string()
   end
 
   @doc false
-  def decode_reference(list_ref), do: :erlang.list_to_ref(String.to_charlist(list_ref))
+  def decode_reference(list_ref), do: :erlang.list_to_ref(String.to_charlist("#Ref<") ++ String.to_charlist(list_ref) ++ [?>])
 
   @doc false
   def encode_pid(pid) do
