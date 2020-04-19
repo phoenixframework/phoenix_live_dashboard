@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
 
   alias Phoenix.LiveDashboard.{SystemInfo, EtsTableInfoComponent}
 
-  @sort_by ~w(size)
+  @sort_by ~w(size memory)
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
@@ -75,21 +75,27 @@ defmodule Phoenix.LiveDashboard.EtsLive do
             <table class="table table-hover mt-0 dash-table clickable-rows">
               <thead>
                 <tr>
-                  <th class="pl-4">Reference</th>
                   <th class="pl-4">Name or module</th>
+                  <th>Protection</th>
+                  <th>Type</th>
                   <th>
-                  <%= sort_link(@socket, @live_action, @menu, @params, :size, "Size") %>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :size, "Size") %>
                   </th>
-                  <th class="pl-4">Protection</th>
+                  <th>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :memory, "Memory") %>
+                  </th>
+                  <th>Owner</th>
                 </tr>
               </thead>
               <tbody>
-                <%= for table <- @tables, list_ref = encode_reference(table[:id]) do %>
+                <%= for table <- @tables, list_ref = encode_reference(table[:id]), pid = encode_pid(table[:owner]) do %>
                   <tr phx-click="show_info" phx-value-ref="<%= list_ref %>" phx-page-loading>
-                    <td class="table-column-ref pl-4"><%= list_ref %></td>
                     <td class="table-column-name pl-4"><%= table[:name] %></td>
-                    <td class="table-column-size"><%= table[:size] %></td>
                     <td class="table-column-size"><%= table[:protection] %></td>
+                    <td class="table-column-size"><%= table[:type] %></td>
+                    <td class="table-column-size"><%= table[:size] %></td>
+                    <td class="table-column-size"><%= table[:memory] %></td>
+                    <td class="table-column-size"><%= live_redirect(inspect(table[:owner]), to: pid_path(@socket, pid)) %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -135,6 +141,11 @@ defmodule Phoenix.LiveDashboard.EtsLive do
     live_dashboard_path(socket, :ets, node, [], params)
   end
 
+  def pid_path(socket, pid) do
+    node = node(decode_pid(pid))
+    live_dashboard_path(socket, :processes, node, [pid])
+  end
+
   defp assign_ref(socket, %{"ref" => ref_param}) do
     assign(socket, ref: decode_reference(ref_param))
   end
@@ -154,4 +165,16 @@ defmodule Phoenix.LiveDashboard.EtsLive do
 
   @doc false
   def decode_reference(list_ref), do: :erlang.list_to_ref(String.to_charlist(list_ref))
+
+  @doc false
+  def encode_pid(pid) do
+    pid
+    |> :erlang.pid_to_list()
+    |> tl()
+    |> Enum.drop(-1)
+    |> List.to_string()
+  end
+
+  @doc false
+  def decode_pid(list_pid), do: :erlang.list_to_pid([?<] ++ String.to_charlist(list_pid) ++ [?>])
 end
