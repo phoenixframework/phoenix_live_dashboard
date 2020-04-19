@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.{SystemInfo, PortInfoComponent}
+  alias Phoenix.LiveDashboard.{SystemInfo, ProcessInfoComponent}
 
   @sort_by ~w(id input output)
 
@@ -63,10 +63,10 @@ defmodule Phoenix.LiveDashboard.PortsLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="ports-page">
+    <div class="processes-page">
       <h5 class="card-title">Ports</h5>
 
-      <div class="ports-search">
+      <div class="processes-search">
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
@@ -93,14 +93,14 @@ defmodule Phoenix.LiveDashboard.PortsLive do
       </form>
 
       <%= if @pid do %>
-        <%= live_modal @socket, PortInfoComponent,
+        <%= live_modal @socket, ProcessInfoComponent,
           id: @pid,
           title: inspect(@pid),
           return_to: return_path(@socket, @menu, @params),
           pid_link_builder: &port_info_path(@socket, &1, @params) %>
       <% end %>
 
-      <div class="card ports-card mb-4 mt-4">
+      <div class="card processes-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
             <table class="table table-hover mt-0 dash-table clickable-rows">
@@ -124,9 +124,9 @@ defmodule Phoenix.LiveDashboard.PortsLive do
               <tbody>
                 <%= for port <- @ports, list_pid = encode_pid(port[:connected]) do %>
                   <tr phx-click="show_info" phx-value-pid="<%= list_pid %>" phx-page-loading class="<%= row_class(port, @pid) %>">
-                    <td class="ports-column-pid pl-4"><%= list_pid %></td>
-                    <td class="ports-column-name"><%= port[:name] %></td>
-                    <td class="ports-column-current">
+                    <td class="processes-column-pid pl-4"><%= list_pid %></td>
+                    <td class="processes-column-name"><%= port[:name] %></td>
+                    <td class="processes-column-current">
                       <%= unless port[:os_pid] == :undefined do %>
                         <%= port[:os_pid] %>
                       <% end %>
@@ -134,7 +134,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                     <td class="text-right"><%= port[:id] %></td>
                     <td class="text-right"><%= port[:input] %></td>
                     <td class="text-right"><%= port[:output] %></td>
-                    <td class="ports-column-links"><%= Enum.map(port[:links], &encode_pid(&1)) |> Enum.join(", ")  %></td>
+                    <td class="processes-column-links"><%= Enum.map(port[:links], &encode_pid(&1)) |> Enum.join(", ") %></td>
                   </tr>
                 <% end %>
               </tbody>
