@@ -24,9 +24,8 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
 
       <table class="table table-hover process-info-table">
         <tbody>
-          <tr><td class="border-top-0">Registered name</td><td class="border-top-0"><pre><%= @name %></pre></td></tr>
+          <tr><td class="border-top-0">Port ame</td><td class="border-top-0"><pre><%= @name %></pre></td></tr>
           <tr><td>Id</td><td><pre><%= @id %></pre></td></tr>
-          <tr><td>Name</td><td><pre><%= @name %></pre></td></tr>
           <tr><td>Connected</td><td><pre><%= @connected %></pre></td></tr>
           <tr><td>Input</td><td><pre><%= @input %></pre></td></tr>
           <tr><td>Output</td><td><pre><%= @output %></pre></td></tr>
@@ -52,11 +51,14 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
      |> assign_info()}
   end
 
+  defp link_builder(assigns, val) when is_port(val), do: assigns.port_link_builder.(val)
+  defp link_builder(assigns, val) when is_pid(val), do: assigns.pid_link_builder.(val)
+
   defp assign_info(%{assigns: assigns} = socket) do
     case SystemInfo.fetch_port_info(assigns.port, @info_keys) do
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
-          assign(acc, key, inspect_info(key, val, assigns.port_link_builder))
+          assign(acc, key, inspect_info(key, val, &_link_builder(assigns, &1)))
         end)
         |> assign(alive: true)
 
@@ -75,12 +77,12 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
 
   defp inspect_info(_key, val, link_builder), do: inspect_val(val, link_builder)
 
-  defp inspect_val(pid, _link_builder) when is_pid(pid) do
-    inspect(pid)
-  end
-
   defp inspect_val(pid, link_builder) when is_pid(pid) do
     live_redirect(inspect(pid), to: link_builder.(pid))
+  end
+
+  defp inspect_val(pid, _link_builder) when is_pid(pid) do
+    inspect(pid)
   end
 
   defp inspect_val({:process, pid}, link_builder) when is_pid(pid) do

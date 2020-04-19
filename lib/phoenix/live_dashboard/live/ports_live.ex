@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.{SystemInfo, PortInfoComponent}
+  alias Phoenix.LiveDashboard.{SystemInfo, ProcessesLive, PortInfoComponent}
 
   @sort_by ~w(id input output)
 
@@ -65,7 +65,8 @@ defmodule Phoenix.LiveDashboard.PortsLive do
           port: @port,
           title: inspect(@port),
           return_to: return_path(@socket, @menu, @params),
-          port_link_builder: &port_info_path(@socket, &1, @params) %>
+          pid_link_builder: &ProcessesLive.process_info_path(@socket, &1, @params) %>,
+          port_link_builder: &port_info_path(@socket, &1, @params) %>,
       <% end %>
 
       <div class="card processes-card mb-4 mt-4">
@@ -141,12 +142,12 @@ defmodule Phoenix.LiveDashboard.PortsLive do
     {:noreply, push_patch(socket, to: port_info_path(socket, port, socket.assigns.params))}
   end
 
-  defp port_info_path(socket, port, params) when is_port(port) do
+  def port_info_path(socket, port, params) when is_port(port) do
     socket
     |> assign_port(%{"port" => port})
     |> live_dashboard_path(:ports, node(port), [encode_port(port)], params)
   end
-  defp port_info_path(socket, port, params) do
+  def port_info_path(socket, port, params) do
     port_info_path(socket, decode_port(port), params)
   end
 
