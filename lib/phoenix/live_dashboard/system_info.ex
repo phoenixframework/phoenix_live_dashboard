@@ -45,6 +45,11 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :processes_callback, [search, sort_by, sort_dir, limit])
   end
 
+  def fetch_ports(node, search, sort_by, sort_dir, limit) do
+    search = search && String.downcase(search)
+    :rpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
+  end
+
   def fetch_process_info(pid, keys) do
     :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
   end
@@ -56,6 +61,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   def fetch_usage(node) do
     :rpc.call(node, __MODULE__, :usage_callback, [])
   end
+
 
   ## Callbacks
 
@@ -110,6 +116,41 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       [_ | _] = info -> {:ok, info}
       nil -> :error
     end
+  end
+
+  @doc false
+  def ports_callback(search, sort_by, sort_dir, limit) do
+    multiplier = sort_dir_multipler(sort_dir)
+
+    ports =
+      for port <- Port.list(), port_info = port_info(port), show_port?(port_info, search) do
+        sorter = port_info[sort_by]
+        sorter = if is_integer(sorter), do: sorter * multiplier, else: 0
+        {sorter, port_info}
+      end
+
+    count = if search, do: length(ports), else: length(Port.list())
+    ports = ports |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
+    {ports, count}
+  end
+
+  defp port_info(port) do
+    if port_info = Port.info(port) do
+      [{:name, name} | rest] = port_info
+      [port_str: inspect(port), name: to_string(name), port: port] ++ rest
+    end
+  end
+
+  defp show_port?(_, nil) do
+    true
+  end
+
+  defp show_port?(port_info, search) do
+    pid = port_info[:connected] |> :erlang.pid_to_list() |> List.to_string()
+    name = port_info[:name] |> to_string()
+    port_str = port_info[:port_str]
+
+    pid =~ search or String.downcase(name) =~ search or port_str =~ search
   end
 
   @doc false

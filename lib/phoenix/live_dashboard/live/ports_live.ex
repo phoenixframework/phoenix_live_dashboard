@@ -22,42 +22,10 @@ defmodule Phoenix.LiveDashboard.PortsLive do
 
   defp fetch_ports(socket) do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = socket.assigns.params
-    search = search && String.downcase(search)
-    {ports, count} = ports_callback(search, sort_by, sort_dir, limit)
+    {ports, count} = 
+      SystemInfo.fetch_ports(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
 
     assign(socket, ports: ports, total: count)
-  end
-
-  def ports_callback(search, sort_by, sort_dir, limit) do
-    multiplier = sort_dir_multipler(sort_dir)
-
-    ports =
-      for port <- Port.list(), info = info(port), show?(info, search) do
-        sorter = info[sort_by]
-        sorter = if is_integer(sorter), do: sorter * multiplier, else: 0
-        {sorter, info}
-      end
-
-    count = if search, do: length(ports), else: length(Port.list())
-    ports = ports |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
-    {ports, count}
-  end
-
-  defp info(pid) do
-    if info = Port.info(pid) do
-      [{:name, name} | rest] = info
-      [pid: pid, name: name] ++ rest
-    end
-  end
-
-  defp show?(_, nil) do
-    true
-  end
-
-  defp show?(info, search) do
-    pid = info[:connected] |> :erlang.pid_to_list() |> List.to_string()
-    name = info[:name] |> to_string()
-    pid =~ search or String.downcase(name) =~ search
   end
 
   @impl true
@@ -70,7 +38,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or PID" phx-debounce="300">
+              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by port, name or PID" phx-debounce="300">
             </div>
           </div>
         </form>
@@ -106,7 +74,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
             <table class="table table-hover mt-0 dash-table clickable-rows">
               <thead>
                 <tr>
-                  <th class="pl-4">PID</th>
+                  <th class="pl-4">Port</th>
                   <th>Name or initial call</th>
                   <th>OS pid</td>
                   <th class="text-right">
@@ -118,13 +86,13 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                   <th class="text-right">
                     <%= sort_link(@socket, @live_action, @menu, @params, :output, "output") %>
                   </th>
-                  <th>Links</td>
+                  <th>PID</td>
                 </tr>
               </thead>
               <tbody>
                 <%= for port <- @ports, list_pid = encode_pid(port[:connected]) do %>
                   <tr phx-click="show_info" phx-value-pid="<%= list_pid %>" phx-page-loading class="<%= row_class(port, @pid) %>">
-                    <td class="processes-column-pid pl-4"><%= list_pid %></td>
+                    <td class="processes-column-pid pl-4"><%= port[:port_str] %></td>
                     <td class="processes-column-name"><%= port[:name] %></td>
                     <td class="processes-column-current">
                       <%= unless port[:os_pid] == :undefined do %>
@@ -134,7 +102,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                     <td class="text-right"><%= port[:id] %></td>
                     <td class="text-right"><%= port[:input] %></td>
                     <td class="text-right"><%= port[:output] %></td>
-                    <td class="processes-column-links"><%= Enum.map(port[:links], &encode_pid(&1)) |> Enum.join(", ") %></td>
+                    <td class="processes-column-links"><%= list_pid %></td>
                   </tr>
                 <% end %>
               </tbody>
