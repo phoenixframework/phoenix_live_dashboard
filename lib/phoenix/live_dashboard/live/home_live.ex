@@ -242,7 +242,8 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   end
 
   def handle_info(:refresh, socket) do
-    {:noreply, assign(socket, system_usage: SystemInfo.fetch_system_usage(socket.assigns.menu.node))}
+    {:noreply,
+     assign(socket, system_usage: SystemInfo.fetch_system_usage(socket.assigns.menu.node))}
   end
 
   defp versions_sections(), do: @versions_sections

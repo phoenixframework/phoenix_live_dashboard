@@ -78,7 +78,7 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
 
   @doc """
   Builds a modal.
-  """  
+  """
   def live_modal(socket, component, opts) do
     path = Keyword.fetch!(opts, :return_to)
     title = Keyword.fetch!(opts, :title)
