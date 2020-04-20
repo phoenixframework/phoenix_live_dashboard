@@ -45,8 +45,17 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :processes_callback, [search, sort_by, sort_dir, limit])
   end
 
+  def fetch_tables(node, search, sort_by, sort_dir, limit) do
+    search = search && String.downcase(search)
+    :rpc.call(node, __MODULE__, :ets_callback, [search, sort_by, sort_dir, limit])
+  end
+
   def fetch_process_info(pid, keys) do
     :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
+  end
+
+  def fetch_table_info(ref) do
+    :rpc.call(node(ref), __MODULE__, :table_info_callback, [ref])
   end
 
   def fetch_info(node) do
@@ -76,7 +85,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     multiplier = sort_dir_multipler(sort_dir)
 
     processes =
-      for pid <- Process.list(), info = info(pid), show?(info, search) do
+      for pid <- Process.list(), info = info(pid), show_process?(info, search) do
         sorter = info[sort_by] * multiplier
         {sorter, info}
       end
@@ -94,14 +103,23 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
-  defp show?(_, nil) do
+  defp show_process?(_, nil) do
     true
   end
 
-  defp show?(info, search) do
+  defp show_process?(info, search) do
     pid = info[:pid] |> :erlang.pid_to_list() |> List.to_string()
     name_or_call = info[:name_or_initial_call]
     pid =~ search or String.downcase(name_or_call) =~ search
+  end
+
+  defp show_ets?(_, nil) do
+    true
+  end
+
+  defp show_ets?(info, search) do
+    id = info[:id] |> :erlang.ref_to_list() |> List.to_string()
+    id =~ search or String.downcase(info[:name]) =~ search
   end
 
   @doc false
@@ -109,6 +127,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     case Process.info(pid, keys) do
       [_ | _] = info -> {:ok, info}
       nil -> :error
+    end
+  end
+
+  @doc false
+  def table_info_callback(ref) do
+    case :ets.info(ref) do
+      :undefined -> :error
+      info -> {:ok, info}
     end
   end
 
@@ -168,5 +194,24 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       ets: ets,
       other: total - process - atom - binary - code - ets
     }
+  end
+
+  def ets_callback(search, sort_by, sort_dir, limit) do
+    multiplier = sort_dir_multipler(sort_dir)
+
+    tables =
+      for ref <- :ets.all(), info = info_ets(ref), show_ets?(info, search) do
+        sorter = info[sort_by] * multiplier
+        {sorter, info}
+      end
+
+    tables = tables |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
+    {tables, length(tables)}
+  end
+
+  defp info_ets(ref) do
+    info = :ets.info(ref)
+    name = inspect(info[:name])
+    [name: name] ++ info
   end
 end

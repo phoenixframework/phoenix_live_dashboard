@@ -1,11 +1,11 @@
-.processes-page {
+.tabular-page {
   .custom-select {
     background-color: $color-gray;
     border-radius: $border-radius;
     border-width: 0;
   }
 
-  .processes-column-name {
+  .tabular-column-name {
     padding-right: 0;
     max-width: 350px;
     white-space: nowrap;
@@ -13,11 +13,11 @@
     text-overflow: ellipsis;
   }
 
-  .processes-column-pid {
+  .tabular-column-pid {
     color: $color-gray-800;
   }
 
-  .processes-search {
+  .tabular-search {
     float: right;
 
     ::placeholder {
@@ -27,7 +27,7 @@
 }
 
 @media (max-width: map-get($grid-breakpoints, xl)) {
-  [data-phx-view="LiveDashboard.ProcessesLive"] {
+  [data-phx-view="LiveDashboard.ProcessesLive"], [data-phx-view="LiveDashboard.EtsLive"] {
     .container {
       max-width: 100%;
       padding-left: 2rem;
@@ -37,18 +37,18 @@
 }
 
 @media (max-width: map-get($grid-breakpoints, lg)) {
-  [data-phx-view="LiveDashboard.ProcessesLive"] {
-    .processes-card {
+  [data-phx-view="LiveDashboard.ProcessesLive"], [data-phx-view="LiveDashboard.EtsLive"] {
+    .tabular-card {
       border-radius: 0;
       margin-left: -2rem;
       margin-right: -2rem;
     }
 
-    .processes-table {
+    .tabular-table {
       font-size: 0.85rem;
     }
 
-    .processes-column-name {
+    .tabular-column-name {
       max-width: 150px;
     }
   }

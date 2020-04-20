@@ -1,10 +1,10 @@
-defmodule Phoenix.LiveDashboard.ProcessesLive do
+defmodule Phoenix.LiveDashboard.EtsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.{SystemInfo, ProcessInfoComponent}
+  alias Phoenix.LiveDashboard.{SystemInfo, EtsTableInfoComponent}
 
-  @sort_by ~w(memory reductions message_queue_len)
+  @sort_by ~w(size memory)
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
@@ -16,30 +16,30 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
     {:noreply,
      socket
      |> assign_params(params, @sort_by)
-     |> assign_pid(params)
-     |> fetch_processes()}
+     |> assign_ref(params)
+     |> fetch_tables()}
   end
 
-  defp fetch_processes(socket) do
+  defp fetch_tables(socket) do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = socket.assigns.params
 
-    {processes, total} =
-      SystemInfo.fetch_processes(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
+    {tables, total} =
+      SystemInfo.fetch_tables(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
 
-    assign(socket, processes: processes, total: total)
+    assign(socket, tables: tables, total: total)
   end
 
   @impl true
   def render(assigns) do
     ~L"""
     <div class="tabular-page">
-      <h5 class="card-title">Processes</h5>
+      <h5 class="card-title">ETS</h5>
 
       <div class="tabular-search">
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or PID" phx-debounce="300">
+              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or module" phx-debounce="300">
             </div>
           </div>
         </form>
@@ -56,17 +56,17 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
             </div>
           </div>
           <div class="col-auto">
-            processes out of <%= @total %>
+            tables out of <%= @total %>
           </div>
         </div>
       </form>
 
-      <%= if @pid do %>
-        <%= live_modal @socket, ProcessInfoComponent,
-          id: @pid,
-          title: inspect(@pid),
+      <%= if @ref do %>
+        <%= live_modal @socket, EtsTableInfoComponent,
+          id: @ref,
+          title: inspect(@ref),
           return_to: return_path(@socket, @menu, @params),
-          pid_link_builder: &process_info_path(@socket, &1, @params) %>
+          ref_link_builder: &ref_info_path(@socket, &1, @params) %>
       <% end %>
 
       <div class="card tabular-card mb-4 mt-4">
@@ -75,29 +75,27 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
             <table class="table table-hover mt-0 dash-table clickable-rows">
               <thead>
                 <tr>
-                  <th class="pl-4">PID</th>
-                  <th>Name or initial call</th>
-                  <th class="text-right">
+                  <th class="pl-4">Name or module</th>
+                  <th>Protection</th>
+                  <th>Type</th>
+                  <th>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :size, "Size") %>
+                  </th>
+                  <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :memory, "Memory") %>
                   </th>
-                  <th class="text-right">
-                    <%= sort_link(@socket, @live_action, @menu, @params, :reductions, "Reductions") %>
-                  </th>
-                  <th class="text-right">
-                    <%= sort_link(@socket, @live_action, @menu, @params, :message_queue_len, "MsgQ") %>
-                  </th>
-                  <th>Current function</td>
+                  <th>Owner</th>
                 </tr>
               </thead>
               <tbody>
-                <%= for process <- @processes, list_pid = encode_pid(process[:pid]) do %>
-                  <tr phx-click="show_info" phx-value-pid="<%= list_pid %>" phx-page-loading class="<%= row_class(process, @pid) %>">
-                    <td class="tabular-column-pid pl-4"><%= list_pid %></td>
-                    <td class="tabular-column-name"><%= process[:name_or_initial_call] %></td>
-                    <td class="text-right"><%= SystemInfo.format_bytes(process[:memory]) %></td>
-                    <td class="text-right"><%= process[:reductions] %></td>
-                    <td class="text-right"><%= process[:message_queue_len] %></td>
-                    <td class="tabular-column-current"><%= SystemInfo.format_call(process[:current_function]) %></td>
+                <%= for table <- @tables, list_ref = encode_reference(table[:id]), pid = encode_pid(table[:owner]) do %>
+                  <tr phx-click="show_info" phx-value-ref="<%= list_ref %>" phx-page-loading>
+                    <td class="tabular-column-name pl-4"><%= table[:name] %></td>
+                    <td><%= table[:protection] %></td>
+                    <td><%= table[:type] %></td>
+                    <td><%= table[:size] %></td>
+                    <td><%= table[:memory] %></td>
+                    <td class="tabular-column-pid"><%= live_redirect(inspect(table[:owner]), to: pid_path(@socket, pid)) %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -115,8 +113,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   end
 
   def handle_info(:refresh, socket) do
-    if pid = socket.assigns.pid, do: send_update(ProcessInfoComponent, id: pid)
-    {:noreply, fetch_processes(socket)}
+    {:noreply, fetch_tables(socket)}
   end
 
   @impl true
@@ -131,32 +128,45 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   end
 
   @impl true
-  def handle_event("show_info", %{"pid" => list_pid}, socket) do
-    pid = decode_pid(list_pid)
-    {:noreply, push_patch(socket, to: process_info_path(socket, pid, socket.assigns.params))}
+  def handle_event("show_info", %{"ref" => list_ref}, socket) do
+    ref = decode_reference(list_ref)
+    {:noreply, push_patch(socket, to: ref_info_path(socket, ref, socket.assigns.params))}
   end
 
-  defp process_info_path(socket, pid, params) when is_pid(pid) do
-    live_dashboard_path(socket, :processes, node(pid), [encode_pid(pid)], params)
+  defp ref_info_path(socket, ref, params) when is_reference(ref) do
+    live_dashboard_path(socket, :ets, node(ref), [encode_reference(ref)], params)
   end
 
   defp self_path(socket, node, params) do
-    live_dashboard_path(socket, :processes, node, [], params)
+    live_dashboard_path(socket, :ets, node, [], params)
   end
 
-  defp assign_pid(socket, %{"pid" => pid_param}) do
-    assign(socket, pid: decode_pid(pid_param))
+  def pid_path(socket, pid) do
+    node = node(decode_pid(pid))
+    live_dashboard_path(socket, :processes, node, [pid])
   end
 
-  defp assign_pid(socket, %{}), do: assign(socket, pid: nil)
+  defp assign_ref(socket, %{"ref" => ref_param}) do
+    assign(socket, ref: decode_reference(ref_param))
+  end
+
+  defp assign_ref(socket, %{}), do: assign(socket, ref: nil)
 
   defp return_path(socket, menu, params) do
     self_path(socket, menu.node, params)
   end
 
-  defp row_class(process_info, active_pid) do
-    if process_info[:pid] == active_pid, do: "active", else: ""
+  @doc false
+  def encode_reference(ref) do
+    ref
+    |> :erlang.ref_to_list()
+    |> Enum.drop(5)
+    |> Enum.drop(-1)
+    |> List.to_string()
   end
+
+  @doc false
+  def decode_reference(list_ref), do: :erlang.list_to_ref(String.to_charlist("#Ref<") ++ String.to_charlist(list_ref) ++ [?>])
 
   @doc false
   def encode_pid(pid) do
