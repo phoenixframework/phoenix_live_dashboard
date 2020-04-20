@@ -243,18 +243,26 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ## Socket callbacks
 
   def sockets_callback(search, sort_by, sort_dir, limit) do
-    ports = :erlang.ports()
+    multiplier = sort_dir_multipler(sort_dir)
 
     sockets =
-      ports
-      |> Enum.filter(fn port -> :erlang.port_info(port, :name) == {:name, 'tcp_inet'} end)
+      :erlang.ports()
+      |> Enum.filter(&show_socket?/1)
       |> Enum.map(fn port ->
         {:id, value} = :erlang.port_info(port, :id)
         {:ok, stats} = :inet.getstat(port, [:send_oct, :recv_oct])
         Keyword.put(stats, :id, value)
       end)
+      |> Enum.sort_by(fn x ->
+        Keyword.fetch!(x, sort_by) * multiplier
+      end)
 
     {sockets, length(sockets)}
+  end
+
+  defp show_socket?(port) do
+    {:name, name} = :erlang.port_info(port, :name)
+    name in ['tcp_inet', 'udp_inet']
   end
 
   ## Helpers

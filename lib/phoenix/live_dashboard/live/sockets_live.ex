@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @sort_by ~w(recv sent state)
+  @sort_by ~w(recv_oct send_oct)
 
   @tttt """
     port
@@ -32,7 +32,9 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
   The connection state.
 
   type
+  STREAM or DGRAM or SEQPACKET.
   """
+
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
     {:ok, assign_defaults(socket, params, session, true)}
@@ -43,7 +45,6 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
     {:noreply,
      socket
      |> assign_params(params, @sort_by)
-     |> assign_ref(params)
      |> fetch_sockets()}
   end
 
@@ -98,17 +99,17 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                   <th>x</th>
                   <th>x</th>
                   <th>
-                    <%= sort_link(@socket, @live_action, @menu, @params, :sent, "Sent") %>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :send_oct, "Send") %>
                   </th>
                   <th>
-                    <%= sort_link(@socket, @live_action, @menu, @params, :recv, "Received") %>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :recv_oct, "Received") %>
                   </th>
                   <th>x</th>
                 </tr>
               </thead>
               <tbody>
-                <%= for socket <- @sockets, list_ref = socket[:id] do %>
-                  <tr phx-click="show_info" phx-value-ref="<%= list_ref %>" phx-page-loading>
+                <%= for socket <- @sockets do %>
+                  <tr phx-page-loading>
                     <td class="tabular-column-name pl-4"><%= socket[:id] %></td>
                     <td></td>
                     <td></td>
@@ -155,28 +156,9 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
     live_dashboard_path(socket, :processes, node, [pid])
   end
 
-  defp assign_ref(socket, %{"ref" => ref_param}) do
-    assign(socket, ref: decode_reference(ref_param))
-  end
-
-  defp assign_ref(socket, %{}), do: assign(socket, ref: nil)
-
   defp return_path(socket, menu, params) do
     self_path(socket, menu.node, params)
   end
-
-  @doc false
-  def encode_reference(ref) do
-    ref
-    |> :erlang.ref_to_list()
-    |> Enum.drop(5)
-    |> Enum.drop(-1)
-    |> List.to_string()
-  end
-
-  @doc false
-  def decode_reference(list_ref),
-    do: :erlang.list_to_ref(String.to_charlist("#Ref<") ++ String.to_charlist(list_ref) ++ [?>])
 
   @doc false
   def encode_pid(pid) do
