@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.PortsInfoComponent do
+defmodule Phoenix.LiveDashboard.PortsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
@@ -31,10 +31,10 @@ defmodule Phoenix.LiveDashboard.PortsInfoComponent do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="processes-page">
+    <div class="tabular-page">
       <h5 class="card-title">Ports</h5>
 
-      <div class="processes-search">
+      <div class="tabular-search">
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
@@ -64,17 +64,18 @@ defmodule Phoenix.LiveDashboard.PortsInfoComponent do
         <%= live_modal @socket, PortInfoComponent,
           port: @port,
           title: inspect(@port),
-          return_to: return_path(@socket, @menu, @params)%>
+          return_to: self_path(@socket, @menu.node, @params),
+          live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3, @params) %>
       <% end %>
 
-      <div class="card processes-card mb-4 mt-4">
+      <div class="card table-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
             <table class="table table-hover mt-0 dash-table clickable-rows">
               <thead>
                 <tr>
                   <th class="pl-4">Port</th>
-                  <th>Name or initial call</th>
+                  <th>Name or path</th>
                   <th>OS pid</td>
                   <th class="text-right">
                     <%= sort_link(@socket, @live_action, @menu, @params, :id, "id") %>
@@ -91,9 +92,9 @@ defmodule Phoenix.LiveDashboard.PortsInfoComponent do
               <tbody>
                 <%= for port <- @ports, port_num = encode_port(port[:port_str]) do %>
                   <tr phx-click="show_info" phx-value-port="<%= port_num %>" phx-page-loading class="<%= row_class(port, @port) %>">
-                    <td class="processes-column-pid pl-4"><%= port_num %></td>
-                    <td class="processes-column-name"><%= port[:name] %></td>
-                    <td class="processes-column-current">
+                    <td class="tabular-column-pid pl-4"><%= port_num %></td>
+                    <td class="tabular-column-name"><%= port[:name] %></td>
+                    <td class="tabular-column-current">
                       <%= unless port[:os_pid] == :undefined do %>
                         <%= port[:os_pid] %>
                       <% end %>
@@ -101,7 +102,7 @@ defmodule Phoenix.LiveDashboard.PortsInfoComponent do
                     <td class="text-right"><%= port[:id] %></td>
                     <td class="text-right"><%= port[:input] %></td>
                     <td class="text-right"><%= port[:output] %></td>
-                    <td class="processes-column-links"><%= port_num %></td>
+                    <td class="table-column-current"><%= port[:connected] %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -158,10 +159,6 @@ defmodule Phoenix.LiveDashboard.PortsInfoComponent do
   defp assign_port(socket, %{"port" => port}), do: assign(socket, port: decode_port(port))
   defp assign_port(socket, params) do
     assign(socket, port: nil)
-  end
-
-  defp return_path(socket, menu, params) do
-    self_path(socket, menu.node, params)
   end
 
   defp row_class(port_info, active_port) do
