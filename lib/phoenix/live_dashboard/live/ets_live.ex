@@ -32,14 +32,14 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="processes-page">
+    <div class="tabular-page">
       <h5 class="card-title">ETS</h5>
 
-      <div class="processes-search">
+      <div class="tabular-search">
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or REF" phx-debounce="300">
+              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or module" phx-debounce="300">
             </div>
           </div>
         </form>
@@ -69,7 +69,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
           ref_link_builder: &ref_info_path(@socket, &1, @params) %>
       <% end %>
 
-      <div class="card processes-card mb-4 mt-4">
+      <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
             <table class="table table-hover mt-0 dash-table clickable-rows">
@@ -90,12 +90,12 @@ defmodule Phoenix.LiveDashboard.EtsLive do
               <tbody>
                 <%= for table <- @tables, list_ref = encode_reference(table[:id]), pid = encode_pid(table[:owner]) do %>
                   <tr phx-click="show_info" phx-value-ref="<%= list_ref %>" phx-page-loading>
-                    <td class="table-column-name pl-4"><%= table[:name] %></td>
-                    <td class="table-column-size"><%= table[:protection] %></td>
-                    <td class="table-column-size"><%= table[:type] %></td>
-                    <td class="table-column-size"><%= table[:size] %></td>
-                    <td class="table-column-size"><%= table[:memory] %></td>
-                    <td class="table-column-size"><%= live_redirect(inspect(table[:owner]), to: pid_path(@socket, pid)) %></td>
+                    <td class="tabular-column-name pl-4"><%= table[:name] %></td>
+                    <td><%= table[:protection] %></td>
+                    <td><%= table[:type] %></td>
+                    <td><%= table[:size] %></td>
+                    <td><%= table[:memory] %></td>
+                    <td class="tabular-column-pid"><%= live_redirect(inspect(table[:owner]), to: pid_path(@socket, pid)) %></td>
                   </tr>
                 <% end %>
               </tbody>

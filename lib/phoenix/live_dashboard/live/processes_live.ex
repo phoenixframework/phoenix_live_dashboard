@@ -32,10 +32,10 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="processes-page">
+    <div class="tabular-page">
       <h5 class="card-title">Processes</h5>
 
-      <div class="processes-search">
+      <div class="tabular-search">
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
@@ -69,7 +69,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
           pid_link_builder: &process_info_path(@socket, &1, @params) %>
       <% end %>
 
-      <div class="card processes-card mb-4 mt-4">
+      <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
             <table class="table table-hover mt-0 dash-table clickable-rows">
@@ -92,12 +92,12 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
               <tbody>
                 <%= for process <- @processes, list_pid = encode_pid(process[:pid]) do %>
                   <tr phx-click="show_info" phx-value-pid="<%= list_pid %>" phx-page-loading class="<%= row_class(process, @pid) %>">
-                    <td class="processes-column-pid pl-4"><%= list_pid %></td>
-                    <td class="processes-column-name"><%= process[:name_or_initial_call] %></td>
+                    <td class="tabular-column-pid pl-4"><%= list_pid %></td>
+                    <td class="tabular-column-name"><%= process[:name_or_initial_call] %></td>
                     <td class="text-right"><%= SystemInfo.format_bytes(process[:memory]) %></td>
                     <td class="text-right"><%= process[:reductions] %></td>
                     <td class="text-right"><%= process[:message_queue_len] %></td>
-                    <td class="processes-column-current"><%= SystemInfo.format_call(process[:current_function]) %></td>
+                    <td class="tabular-column-current"><%= SystemInfo.format_call(process[:current_function]) %></td>
                   </tr>
                 <% end %>
               </tbody>

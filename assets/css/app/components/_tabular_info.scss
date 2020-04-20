@@ -1,12 +1,12 @@
-.process-info {
-  .process-info-dead {
+.tabular-info {
+  .tabular-info-not-exists {
     border-radius: $border-radius;
     color: white;
     background-color: $color-gray-700;
     padding: 1rem 1.5rem;
   }
 
-  .process-info-table {
+  .tabular-info-table {
     td:empty, pre:empty {
       &::after {
         font-family: $font-family-sans-serif;

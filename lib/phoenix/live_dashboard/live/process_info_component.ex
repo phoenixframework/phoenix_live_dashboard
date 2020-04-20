@@ -29,12 +29,12 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="process-info">
+    <div class="tabular-info">
       <%= unless @alive do %>
-        <div class="process-info-dead mt-1 mb-3">Process is dead.</div>
+        <div class="tabular-info-not-exists mt-1 mb-3">Process is dead.</div>
       <% end %>
 
-      <table class="table table-hover process-info-table">
+      <table class="table table-hover tabular-info-table">
         <tbody>
           <tr><td class="border-top-0">Registered name</td><td class="border-top-0"><pre><%= @registered_name %></pre></td></tr>
           <tr><td>Current function</td><td><pre><%= @current_function %></pre></td></tr>

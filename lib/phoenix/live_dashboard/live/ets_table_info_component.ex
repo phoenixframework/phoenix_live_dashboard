@@ -24,12 +24,12 @@ defmodule Phoenix.LiveDashboard.EtsTableInfoComponent do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="process-info">
+    <div class="tabular-info">
       <%= unless @alive do %>
-        <div class="process-info-dead mt-1 mb-3">Process is dead.</div>
+        <div class="tabular-info-not-exists mt-1 mb-3">Table not exists.</div>
       <% end %>
 
-      <table class="table ets-table-info-table">
+      <table class="table tabular-table-info-table">
         <tbody>
           <tr><td class="border-top-0">ID</td><td class="border-top-0"><pre><%= @id %></pre></td></tr>
           <tr><td class="border-top-0">Name</td><td class="border-top-0"><pre><%= @name %></pre></td></tr>
@@ -72,6 +72,7 @@ defmodule Phoenix.LiveDashboard.EtsTableInfoComponent do
           assign(acc, key, inspect_info(key, val, assigns.ref_link_builder))
         end)
         |> assign(alive: true)
+
       :error ->
         assign(socket, alive: false)
     end
