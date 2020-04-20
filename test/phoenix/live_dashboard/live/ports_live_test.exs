@@ -96,7 +96,7 @@ defmodule Phoenix.LiveDashboard.PortsLiveTest do
   end
 
   defp ports_info_path(port, limit, sort_by, sort_dir) do
-    "/dashboard/nonode%40nohost/ports/#{Phoenix.LiveDashboard.PortsLive.encode_port(port)}?" <>
+    "/dashboard/nonode%40nohost/ports/#{Phoenix.LiveDashboard.ViewHelpers.encode_port(port)}?" <>
       "limit=#{limit}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 

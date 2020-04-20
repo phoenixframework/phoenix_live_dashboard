@@ -64,9 +64,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
         <%= live_modal @socket, PortInfoComponent,
           port: @port,
           title: inspect(@port),
-          return_to: return_path(@socket, @menu, @params),
-          pid_link_builder: &ProcessesLive.process_info_path(@socket, &1, @params) %>,
-          port_link_builder: &port_info_path(@socket, &1, @params) %>,
+          return_to: return_path(@socket, @menu, @params)%>
       <% end %>
 
       <div class="card processes-card mb-4 mt-4">
@@ -168,25 +166,5 @@ defmodule Phoenix.LiveDashboard.PortsLive do
 
   defp row_class(port_info, active_port) do
     if port_info[:port_str] == active_port, do: "active", else: ""
-  end
-
-  @doc false
-  def encode_port("#Port<" <> trimmed = port) when is_bitstring(port) do
-    trimmed
-    |> String.to_charlist()
-    |> Enum.drop(-1)
-    |> List.to_string()
-  end
-
-  def encode_port(port) when is_port(port) do
-    port |> inspect() |> encode_port()
-  end
-
-  @doc false
-  def decode_port(port) when is_port(port),do: port
-  def decode_port(port_str) do
-    "#Port<" <> port_str <> ">"
-    |> String.to_charlist()
-    |> :erlang.list_to_port()
   end
 end

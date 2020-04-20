@@ -40,6 +40,28 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   def decode_pid(list_pid), do: :erlang.list_to_pid([?<] ++ String.to_charlist(list_pid) ++ [?>])
 
   @doc """
+  Encodes Port for URLs.
+  """ 
+  def encode_port(port) when is_port(port) do
+    port |> inspect() |> encode_port()
+  end
+  def encode_port("#Port<" <> trimmed = port) when is_bitstring(port) do
+    trimmed
+    |> String.to_charlist()
+    |> Enum.drop(-1)
+    |> List.to_string()
+  end
+
+  @doc """
+  Decodes the PID from URL.
+  """
+  def decode_port(port_str) do
+    "#Port<" <> port_str <> ">"
+    |> String.to_charlist()
+    |> :erlang.list_to_port()
+  end
+
+  @doc """
   Formats any value.
   """
   def format_value(pid, live_dashboard_path) when is_pid(pid) do
