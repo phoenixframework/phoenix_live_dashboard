@@ -1,7 +1,7 @@
-defmodule Phoenix.LiveDashboard.SystemInfoTest do
+defmodule Phoenix.LiveDashboard.ViewHelpersTest do
   use ExUnit.Case, async: true
 
-  import Phoenix.LiveDashboard.SystemInfo
+  import Phoenix.LiveDashboard.ViewHelpers
 
   test "format_uptime/1" do
     assert format_uptime(1000) == "0m"

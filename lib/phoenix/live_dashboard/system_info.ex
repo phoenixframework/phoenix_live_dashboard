@@ -2,42 +2,6 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   # Helpers for fetching and formatting system info.
   @moduledoc false
 
-  ## Formatters
-
-  def format_call({m, f, a}), do: Exception.format_mfa(m, f, a)
-
-  def format_uptime(uptime) do
-    {d, {h, m, _s}} = :calendar.seconds_to_daystime(div(uptime, 1000))
-
-    cond do
-      d > 0 -> "#{d}d#{h}h#{m}m"
-      h > 0 -> "#{h}h#{m}m"
-      true -> "#{m}m"
-    end
-  end
-
-  def format_bytes(bytes) when is_integer(bytes) do
-    cond do
-      bytes >= memory_unit(:TB) -> format_bytes(bytes, :TB)
-      bytes >= memory_unit(:GB) -> format_bytes(bytes, :GB)
-      bytes >= memory_unit(:MB) -> format_bytes(bytes, :MB)
-      bytes >= memory_unit(:KB) -> format_bytes(bytes, :KB)
-      true -> format_bytes(bytes, :B)
-    end
-  end
-
-  defp format_bytes(bytes, :B) when is_integer(bytes), do: "#{bytes} B"
-
-  defp format_bytes(bytes, unit) when is_integer(bytes) do
-    value = bytes / memory_unit(unit)
-    "#{:erlang.float_to_binary(value, decimals: 1)} #{unit}"
-  end
-
-  defp memory_unit(:TB), do: 1024 * 1024 * 1024 * 1024
-  defp memory_unit(:GB), do: 1024 * 1024 * 1024
-  defp memory_unit(:MB), do: 1024 * 1024
-  defp memory_unit(:KB), do: 1024
-
   ## Fetchers
 
   def fetch_processes(node, search, sort_by, sort_dir, limit) do
@@ -45,7 +9,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :processes_callback, [search, sort_by, sort_dir, limit])
   end
 
-  def fetch_tables(node, search, sort_by, sort_dir, limit) do
+  def fetch_ets(node, search, sort_by, sort_dir, limit) do
     search = search && String.downcase(search)
     :rpc.call(node, __MODULE__, :ets_callback, [search, sort_by, sort_dir, limit])
   end
@@ -54,15 +18,15 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
   end
 
-  def fetch_table_info(ref) do
+  def fetch_ets_info(ref) do
     :rpc.call(node(ref), __MODULE__, :table_info_callback, [ref])
   end
 
-  def fetch_info(node) do
+  def fetch_system_info(node) do
     :rpc.call(node, __MODULE__, :info_callback, [])
   end
 
-  def fetch_usage(node) do
+  def fetch_system_usage(node) do
     :rpc.call(node, __MODULE__, :usage_callback, [])
   end
 
@@ -210,8 +174,15 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp info_ets(ref) do
-    info = :ets.info(ref)
-    name = inspect(info[:name])
-    [name: name] ++ info
+    case :ets.info(ref) do
+      :undefined ->
+        nil
+
+      info ->
+        name = inspect(info[:name])
+        [name: name] ++ Keyword.delete(info, :name)
+    end
   end
+
+  defp format_call({m, f, a}), do: Exception.format_mfa(m, f, a)
 end

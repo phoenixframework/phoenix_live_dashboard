@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.{SystemInfo, EtsTableInfoComponent}
+  alias Phoenix.LiveDashboard.{SystemInfo, EtsInfoComponent}
 
   @sort_by ~w(size memory)
 
@@ -17,14 +17,14 @@ defmodule Phoenix.LiveDashboard.EtsLive do
      socket
      |> assign_params(params, @sort_by)
      |> assign_ref(params)
-     |> fetch_tables()}
+     |> fetch_ets()}
   end
 
-  defp fetch_tables(socket) do
+  defp fetch_ets(socket) do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = socket.assigns.params
 
     {tables, total} =
-      SystemInfo.fetch_tables(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
+      SystemInfo.fetch_ets(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
 
     assign(socket, tables: tables, total: total)
   end
@@ -62,9 +62,9 @@ defmodule Phoenix.LiveDashboard.EtsLive do
       </form>
 
       <%= if @ref do %>
-        <%= live_modal @socket, EtsTableInfoComponent,
+        <%= live_modal @socket, EtsInfoComponent,
           id: @ref,
-          title: inspect(@ref),
+          title: "ETS - #{inspect(@ref)}",
           return_to: return_path(@socket, @menu, @params),
           ref_link_builder: &ref_info_path(@socket, &1, @params) %>
       <% end %>
@@ -113,7 +113,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   end
 
   def handle_info(:refresh, socket) do
-    {:noreply, fetch_tables(socket)}
+    {:noreply, fetch_ets(socket)}
   end
 
   @impl true

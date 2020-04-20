@@ -1,9 +1,8 @@
-defmodule Phoenix.LiveDashboard.EtsTableInfoComponent do
+defmodule Phoenix.LiveDashboard.EtsInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @max_list_length 100
   @info_keys [
     :id,
     :name,
@@ -66,7 +65,7 @@ defmodule Phoenix.LiveDashboard.EtsTableInfoComponent do
   end
 
   defp assign_info(%{assigns: assigns} = socket) do
-    case SystemInfo.fetch_table_info(assigns.ref) do
+    case SystemInfo.fetch_ets_info(assigns.ref) do
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
           assign(acc, key, inspect_info(key, val, assigns.ref_link_builder))
@@ -78,39 +77,11 @@ defmodule Phoenix.LiveDashboard.EtsTableInfoComponent do
     end
   end
 
-  defp inspect_info(key, val, link_builder)
-       when key in [:links, :monitors, :monitored_by],
-       do: inspect_list(val, link_builder)
-
-  defp inspect_info(:current_function, val, _), do: SystemInfo.format_call(val)
-  defp inspect_info(:initial_call, val, _), do: SystemInfo.format_call(val)
-  defp inspect_info(:current_stacktrace, val, _), do: format_stack(val)
   defp inspect_info(_key, val, link_builder), do: inspect_val(val, link_builder)
 
   defp inspect_val(ref, link_builder) when is_reference(ref) do
     live_redirect(inspect(ref), to: link_builder.(ref))
   end
 
-  defp inspect_val({:process, pid}, link_builder) when is_pid(pid) do
-    inspect_val(pid, link_builder)
-  end
-
   defp inspect_val(val, _link_builder), do: inspect(val, pretty: true, limit: 100)
-
-  defp inspect_list(list, link_builder) do
-    {entries, left_over} = Enum.split(list, @max_list_length)
-
-    entries
-    |> Enum.map(&inspect_val(&1, link_builder))
-    |> Kernel.++(if left_over == [], do: [], else: ["..."])
-    |> Enum.intersperse({:safe, "<br />"})
-  end
-
-  defp format_stack(stacktrace) do
-    stacktrace
-    |> Exception.format_stacktrace()
-    |> String.split("\n")
-    |> Enum.map(&String.replace_prefix(&1, "   ", ""))
-    |> Enum.join("\n")
-  end
 end

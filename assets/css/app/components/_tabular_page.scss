@@ -27,29 +27,25 @@
 }
 
 @media (max-width: map-get($grid-breakpoints, xl)) {
-  [data-phx-view="LiveDashboard.ProcessesLive"], [data-phx-view="LiveDashboard.EtsLive"] {
-    .container {
-      max-width: 100%;
-      padding-left: 2rem;
-      padding-right: 2rem;
-    }
+  .container {
+    max-width: 100%;
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 }
 
 @media (max-width: map-get($grid-breakpoints, lg)) {
-  [data-phx-view="LiveDashboard.ProcessesLive"], [data-phx-view="LiveDashboard.EtsLive"] {
-    .tabular-card {
-      border-radius: 0;
-      margin-left: -2rem;
-      margin-right: -2rem;
-    }
+  .tabular-card {
+    border-radius: 0;
+    margin-left: -2rem;
+    margin-right: -2rem;
+  }
 
-    .tabular-table {
-      font-size: 0.85rem;
-    }
+  .tabular-table {
+    font-size: 0.85rem;
+  }
 
-    .tabular-column-name {
-      max-width: 150px;
-    }
+  .tabular-column-name {
+    max-width: 150px;
   }
 }

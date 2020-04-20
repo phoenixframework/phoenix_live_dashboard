@@ -30,7 +30,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
       system_limits: system_limits,
       # Updated periodically
       system_usage: system_usage
-    } = SystemInfo.fetch_info(socket.assigns.menu.node)
+    } = SystemInfo.fetch_system_info(socket.assigns.menu.node)
 
     socket =
       assign(socket,
@@ -76,7 +76,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           <div class="col-lg-4 mb-4">
             <div class="banner-card">
               <h6 class="banner-card-title">Uptime</h6>
-              <div class="banner-card-value"><%= SystemInfo.format_uptime(@system_usage.uptime) %></div>
+              <div class="banner-card-value"><%= format_uptime(@system_usage.uptime) %></div>
             </div>
           </div>
 
@@ -88,7 +88,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
                   The total number of bytes received through ports/sockets.
                 <% end %>
               </h6>
-              <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(0)) %></div>
+              <div class="banner-card-value"><%= format_bytes(@system_usage.io |> elem(0)) %></div>
             </div>
           </div>
 
@@ -100,7 +100,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
                   The total number of bytes output to ports/sockets.
                 <% end %>
               </h6>
-              <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(1)) %></div>
+              <div class="banner-card-value"><%= format_bytes(@system_usage.io |> elem(1)) %></div>
             </div>
           </div>
         </div>
@@ -195,7 +195,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
                     <div class="memory-usage-legend-color memory-usage-section-<%=section_key %> mr-2"></div>
                     <span><%=section_name %></span>
                     <span class="flex-grow-1 text-right text-muted">
-                      <%=SystemInfo.format_bytes(section_value) %>
+                      <%= format_bytes(section_value) %>
                     </span>
                   </div>
                 <% end %>
@@ -204,7 +204,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
               <div class="row">
                 <div class="col">
                   <div class="memory-usage-total text-center py-1 mt-3">
-                    Total usage: <%=SystemInfo.format_bytes(@system_usage.memory[:total]) %>
+                    Total usage: <%= format_bytes(@system_usage.memory[:total]) %>
                   </div>
                 </div>
               </div>
@@ -242,7 +242,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   end
 
   def handle_info(:refresh, socket) do
-    {:noreply, assign(socket, system_usage: SystemInfo.fetch_usage(socket.assigns.menu.node))}
+    {:noreply, assign(socket, system_usage: SystemInfo.fetch_system_usage(socket.assigns.menu.node))}
   end
 
   defp versions_sections(), do: @versions_sections

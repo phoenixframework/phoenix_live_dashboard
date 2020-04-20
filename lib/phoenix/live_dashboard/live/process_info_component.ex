@@ -92,9 +92,9 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
        when key in [:links, :monitors, :monitored_by],
        do: inspect_list(val, link_builder)
 
-  defp inspect_info(:current_function, val, _), do: SystemInfo.format_call(val)
-  defp inspect_info(:initial_call, val, _), do: SystemInfo.format_call(val)
-  defp inspect_info(:current_stacktrace, val, _), do: format_stack(val)
+  defp inspect_info(:current_function, val, _), do: format_call(val)
+  defp inspect_info(:initial_call, val, _), do: format_call(val)
+  defp inspect_info(:current_stacktrace, val, _), do: format_stacktrace(val)
   defp inspect_info(_key, val, link_builder), do: inspect_val(val, link_builder)
 
   defp inspect_val(pid, link_builder) when is_pid(pid) do
@@ -114,13 +114,5 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
     |> Enum.map(&inspect_val(&1, link_builder))
     |> Kernel.++(if left_over == [], do: [], else: ["..."])
     |> Enum.intersperse({:safe, "<br />"})
-  end
-
-  defp format_stack(stacktrace) do
-    stacktrace
-    |> Exception.format_stacktrace()
-    |> String.split("\n")
-    |> Enum.map(&String.replace_prefix(&1, "   ", ""))
-    |> Enum.join("\n")
   end
 end
