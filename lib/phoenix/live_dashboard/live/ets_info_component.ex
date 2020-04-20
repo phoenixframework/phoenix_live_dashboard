@@ -68,7 +68,7 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
     case SystemInfo.fetch_ets_info(assigns.ref) do
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
-          assign(acc, key, inspect_info(key, val, assigns.ref_link_builder))
+          assign(acc, key, format_info(key, val, assigns.live_dashboard_path))
         end)
         |> assign(alive: true)
 
@@ -77,11 +77,6 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
     end
   end
 
-  defp inspect_info(_key, val, link_builder), do: inspect_val(val, link_builder)
-
-  defp inspect_val(ref, link_builder) when is_reference(ref) do
-    live_redirect(inspect(ref), to: link_builder.(ref))
-  end
-
-  defp inspect_val(val, _link_builder), do: inspect(val, pretty: true, limit: 100)
+  defp format_info(:memory, val, _live_dashboard_path), do: format_bytes(val)
+  defp format_info(_key, val, live_dashboard_path), do: format_value(val, live_dashboard_path)
 end

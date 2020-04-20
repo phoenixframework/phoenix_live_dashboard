@@ -65,8 +65,8 @@ defmodule Phoenix.LiveDashboard.EtsLive do
         <%= live_modal @socket, EtsInfoComponent,
           id: @ref,
           title: "ETS - #{inspect(@ref)}",
-          return_to: return_path(@socket, @menu, @params),
-          ref_link_builder: &ref_info_path(@socket, &1, @params) %>
+          return_to: self_path(@socket, @menu.node, @params),
+          live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3, @params) %>
       <% end %>
 
       <div class="card tabular-card mb-4 mt-4">
@@ -88,14 +88,14 @@ defmodule Phoenix.LiveDashboard.EtsLive do
                 </tr>
               </thead>
               <tbody>
-                <%= for table <- @tables, list_ref = encode_reference(table[:id]), pid = encode_pid(table[:owner]) do %>
+                <%= for table <- @tables, list_ref = encode_reference(table[:id]) do %>
                   <tr phx-click="show_info" phx-value-ref="<%= list_ref %>" phx-page-loading>
                     <td class="tabular-column-name pl-4"><%= table[:name] %></td>
                     <td><%= table[:protection] %></td>
                     <td><%= table[:type] %></td>
                     <td><%= table[:size] %></td>
-                    <td><%= table[:memory] %></td>
-                    <td class="tabular-column-pid"><%= live_redirect(inspect(table[:owner]), to: pid_path(@socket, pid)) %></td>
+                    <td><%= format_bytes(table[:memory]) %></td>
+                    <td><%= inspect(table[:owner]) %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -127,23 +127,12 @@ defmodule Phoenix.LiveDashboard.EtsLive do
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
   end
 
-  @impl true
-  def handle_event("show_info", %{"ref" => list_ref}, socket) do
-    ref = decode_reference(list_ref)
-    {:noreply, push_patch(socket, to: ref_info_path(socket, ref, socket.assigns.params))}
-  end
-
-  defp ref_info_path(socket, ref, params) when is_reference(ref) do
-    live_dashboard_path(socket, :ets, node(ref), [encode_reference(ref)], params)
+  def handle_event("show_info", %{"ref" => ref}, socket) do
+    {:noreply, push_patch(socket, to: live_dashboard_path(socket, :ets, node(), [ref], socket.assigns.params))}
   end
 
   defp self_path(socket, node, params) do
     live_dashboard_path(socket, :ets, node, [], params)
-  end
-
-  def pid_path(socket, pid) do
-    node = node(decode_pid(pid))
-    live_dashboard_path(socket, :processes, node, [pid])
   end
 
   defp assign_ref(socket, %{"ref" => ref_param}) do
@@ -151,33 +140,4 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   end
 
   defp assign_ref(socket, %{}), do: assign(socket, ref: nil)
-
-  defp return_path(socket, menu, params) do
-    self_path(socket, menu.node, params)
-  end
-
-  @doc false
-  def encode_reference(ref) do
-    ref
-    |> :erlang.ref_to_list()
-    |> Enum.drop(5)
-    |> Enum.drop(-1)
-    |> List.to_string()
-  end
-
-  @doc false
-  def decode_reference(list_ref),
-    do: :erlang.list_to_ref(String.to_charlist("#Ref<") ++ String.to_charlist(list_ref) ++ [?>])
-
-  @doc false
-  def encode_pid(pid) do
-    pid
-    |> :erlang.pid_to_list()
-    |> tl()
-    |> Enum.drop(-1)
-    |> List.to_string()
-  end
-
-  @doc false
-  def decode_pid(list_pid), do: :erlang.list_to_pid([?<] ++ String.to_charlist(list_pid) ++ [?>])
 end

@@ -4,6 +4,58 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
 
   import Phoenix.HTML
   import Phoenix.LiveView.Helpers
+  @format_limit 100
+
+  @doc """
+  Encodes references for URLs.
+  """
+  def encode_reference(ref) do
+    ref
+    |> :erlang.ref_to_list()
+    |> Enum.drop(5)
+    |> Enum.drop(-1)
+    |> List.to_string()
+  end
+
+  @doc """
+  Decodes the reference from URL.
+  """
+  def decode_reference(list_ref),
+    do: :erlang.list_to_ref(String.to_charlist("#Ref<") ++ String.to_charlist(list_ref) ++ [?>])
+
+  @doc """
+  Encodes PIDs for URLs.
+  """
+  def encode_pid(pid) do
+    pid
+    |> :erlang.pid_to_list()
+    |> tl()
+    |> Enum.drop(-1)
+    |> List.to_string()
+  end
+
+  @doc """
+  Decodes the PID from URL.
+  """
+  def decode_pid(list_pid), do: :erlang.list_to_pid([?<] ++ String.to_charlist(list_pid) ++ [?>])
+
+  @doc """
+  Formats any value.
+  """
+  def format_value(pid, live_dashboard_path) when is_pid(pid) do
+    live_redirect(inspect(pid), to: live_dashboard_path.(:processes, node(pid), [encode_pid(pid)]))
+  end
+
+  def format_value([_ | _] = list, live_dashboard_path) do
+    {entries, left_over} = Enum.split(list, @format_limit)
+
+    entries
+    |> Enum.map(&format_value(&1, live_dashboard_path))
+    |> Kernel.++(if left_over == [], do: [], else: ["..."])
+    |> Enum.intersperse({:safe, "<br />"})
+  end
+
+  def format_value(other, _link_builder), do: inspect(other, pretty: true, limit: @format_limit)
 
   @doc """
   Formats MFAs.
@@ -17,7 +69,7 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
     stacktrace
     |> Exception.format_stacktrace()
     |> String.split("\n")
-    |> Enum.map(&String.replace_prefix(&1, "   ", ""))
+    |> Enum.map(&String.replace_prefix(&1, "    ", ""))
     |> Enum.join("\n")
   end
 

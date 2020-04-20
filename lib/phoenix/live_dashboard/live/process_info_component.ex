@@ -3,7 +3,6 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @max_list_length 100
   @info_keys [
     :registered_name,
     :current_function,
@@ -79,7 +78,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
     case SystemInfo.fetch_process_info(assigns.pid, @info_keys) do
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
-          assign(acc, key, inspect_info(key, val, assigns.pid_link_builder))
+          assign(acc, key, format_info(key, val, assigns.live_dashboard_path))
         end)
         |> assign(alive: true)
 
@@ -88,31 +87,12 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
     end
   end
 
-  defp inspect_info(key, val, link_builder)
+  defp format_info(key, val, live_dashboard_path)
        when key in [:links, :monitors, :monitored_by],
-       do: inspect_list(val, link_builder)
+       do: format_value(val, live_dashboard_path)
 
-  defp inspect_info(:current_function, val, _), do: format_call(val)
-  defp inspect_info(:initial_call, val, _), do: format_call(val)
-  defp inspect_info(:current_stacktrace, val, _), do: format_stacktrace(val)
-  defp inspect_info(_key, val, link_builder), do: inspect_val(val, link_builder)
-
-  defp inspect_val(pid, link_builder) when is_pid(pid) do
-    live_redirect(inspect(pid), to: link_builder.(pid))
-  end
-
-  defp inspect_val({:process, pid}, link_builder) when is_pid(pid) do
-    inspect_val(pid, link_builder)
-  end
-
-  defp inspect_val(val, _link_builder), do: inspect(val, pretty: true, limit: 100)
-
-  defp inspect_list(list, link_builder) do
-    {entries, left_over} = Enum.split(list, @max_list_length)
-
-    entries
-    |> Enum.map(&inspect_val(&1, link_builder))
-    |> Kernel.++(if left_over == [], do: [], else: ["..."])
-    |> Enum.intersperse({:safe, "<br />"})
-  end
+  defp format_info(:current_function, val, _), do: format_call(val)
+  defp format_info(:initial_call, val, _), do: format_call(val)
+  defp format_info(:current_stacktrace, val, _), do: format_stacktrace(val)
+  defp format_info(_key, val, live_dashboard_path), do: format_value(val, live_dashboard_path)
 end
