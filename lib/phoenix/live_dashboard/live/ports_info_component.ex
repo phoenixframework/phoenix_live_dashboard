@@ -1,8 +1,8 @@
-defmodule Phoenix.LiveDashboard.PortsLive do
+defmodule Phoenix.LiveDashboard.PortsInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.{SystemInfo, ProcessesLive, PortInfoComponent}
+  alias Phoenix.LiveDashboard.{SystemInfo, PortInfoComponent}
 
   @sort_by ~w(id input output)
 
