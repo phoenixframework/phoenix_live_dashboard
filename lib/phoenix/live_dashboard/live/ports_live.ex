@@ -77,32 +77,32 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                   <th class="pl-4">Port</th>
                   <th>Name or path</th>
                   <th>OS pid</td>
-                  <th class="text-right">
-                    <%= sort_link(@socket, @live_action, @menu, @params, :id, "id") %>
+                  <th>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :id, "Id") %>
                   </th>
-                  <th class="text-right">
-                    <%= sort_link(@socket, @live_action, @menu, @params, :input, "input") %>
+                  <th>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :input, "Input") %>
                   </th>
-                  <th class="text-right">
-                    <%= sort_link(@socket, @live_action, @menu, @params, :output, "output") %>
+                  <th>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :output, "Output") %>
                   </th>
-                  <th>PID</td>
+                  <th>Connected PID</td>
                 </tr>
               </thead>
               <tbody>
                 <%= for port <- @ports, port_num = encode_port(port[:port_str]) do %>
                   <tr phx-click="show_info" phx-value-port="<%= port_num %>" phx-page-loading class="<%= row_class(port, @port) %>">
-                    <td class="tabular-column-pid pl-4"><%= port_num %></td>
-                    <td class="tabular-column-name"><%= port[:name] %></td>
-                    <td class="tabular-column-current">
+                    <td class="tabular-column-name pl-4"><%= port_num %></td>
+                    <td><%= port[:name] %></td>
+                    <td>
                       <%= unless port[:os_pid] == :undefined do %>
                         <%= port[:os_pid] %>
                       <% end %>
                     </td>
-                    <td class="text-right"><%= port[:id] %></td>
-                    <td class="text-right"><%= port[:input] %></td>
-                    <td class="text-right"><%= port[:output] %></td>
-                    <td class="table-column-current"><%= port[:connected] %></td>
+                    <td><%= port[:id] %></td>
+                    <td><%= port[:input] %></td>
+                    <td><%= port[:output] %></td>
+                    <td><%= inspect(port[:connected]) %></td>
                   </tr>
                 <% end %>
               </tbody>
