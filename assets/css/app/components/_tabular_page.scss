@@ -26,14 +26,6 @@
   }
 }
 
-@media (max-width: map-get($grid-breakpoints, xl)) {
-  .container {
-    max-width: 100%;
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-}
-
 @media (max-width: map-get($grid-breakpoints, lg)) {
   .tabular-card {
     border-radius: 0;
