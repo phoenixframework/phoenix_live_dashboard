@@ -14,6 +14,11 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ets_callback, [search, sort_by, sort_dir, limit])
   end
 
+  def fetch_sockets(node, search, sort_by, sort_dir, limit) do
+    search = search && String.downcase(search)
+    :rpc.call(node, __MODULE__, :sockets_callback, [search, sort_by, sort_dir, limit])
+  end
+
   def fetch_process_info(pid, keys) do
     :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
   end
@@ -213,7 +218,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     {tables, count}
   end
 
-  defp ets_info(ref) do
+  defp info_ets(ref) do
     case :ets.info(ref) do
       :undefined -> nil
       info -> [name: inspect(info[:name])] ++ Keyword.delete(info, :name)
@@ -233,6 +238,23 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       :undefined -> :error
       info -> {:ok, info}
     end
+  end
+
+  ## Socket callbacks
+
+  def sockets_callback(search, sort_by, sort_dir, limit) do
+    ports = :erlang.ports()
+
+    sockets =
+      ports
+      |> Enum.filter(fn port -> :erlang.port_info(port, :name) == {:name, 'tcp_inet'} end)
+      |> Enum.map(fn port ->
+        {:id, value} = :erlang.port_info(port, :id)
+        {:ok, stats} = :inet.getstat(port, [:send_oct, :recv_oct])
+        Keyword.put(stats, :id, value)
+      end)
+
+    {sockets, length(sockets)}
   end
 
   ## Helpers
