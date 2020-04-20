@@ -64,6 +64,9 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   @doc """
   Formats any value.
   """
+  def format_value(port, live_dashboard_path) when is_port(port) do
+    live_redirect(inspect(port), to: live_dashboard_path.(:ports, node(port), [encode_port(port)]))
+  end
   def format_value(pid, live_dashboard_path) when is_pid(pid) do
     live_redirect(inspect(pid), to: live_dashboard_path.(:processes, node(pid), [encode_pid(pid)]))
   end
