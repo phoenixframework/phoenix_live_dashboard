@@ -58,7 +58,7 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
     case SystemInfo.fetch_port_info(assigns.port, @info_keys) do
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
-          assign(acc, key, inspect_info(key, val, &_link_builder(assigns, &1)))
+          assign(acc, key, inspect_info(key, val, &link_builder(assigns, &1)))
         end)
         |> assign(alive: true)
 
