@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @sort_by ~w(recv_oct send_oct local_address foreign_address)
+  @sort_by ~w(connected recv_oct send_oct local_address foreign_address)
 
   @tttt """
     port
@@ -97,13 +97,13 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                 <tr>
                   <th class="pl-4">Port ID</th>
                   <th>x</th>
-                  <th>x</th>
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :send_oct, "Sent") %>
                   </th>
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :recv_oct, "Received") %>
                   </th>
+                  <th>Owner</th>
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :local_address, "Local Address") %>
                   </th>
@@ -117,9 +117,9 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                   <tr phx-page-loading>
                     <td class="tabular-column-name pl-4"><%= socket[:id] %></td>
                     <td></td>
-                    <td></td>
-                    <td><%= socket[:send_oct] %></td>
-                    <td><%= socket[:recv_oct] %></td>
+                    <td><%= format_bytes(socket[:send_oct]) %></td>
+                    <td><%= format_bytes(socket[:recv_oct]) %></td>
+                    <td><%= format_value(socket[:connected], &live_dashboard_path(@socket, &1, &2, &3, @params)) %></td>
                     <td><%= socket[:local_address] %></td>
                     <td><%= socket[:foreign_address] %></td>
                   </tr>

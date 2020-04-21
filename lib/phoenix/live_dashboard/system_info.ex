@@ -249,12 +249,15 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       :erlang.ports()
       |> Enum.filter(&show_socket?/1)
       |> Enum.map(fn port ->
-        {:id, id} = :erlang.port_info(port, :id)
+        info = :erlang.port_info(port)
         {:ok, stats} = :inet.getstat(port, [:send_oct, :recv_oct])
         local_address = format_address(:inet.sockname(port))
         foreign_address = format_address(:inet.peername(port))
+        IO.inspect(:prim_inet.getstatus(port))
 
-        Keyword.merge(stats, [id: id, local_address: local_address, foreign_address: foreign_address])
+        info
+        |> Keyword.merge(stats)
+        |> Keyword.merge([local_address: local_address, foreign_address: foreign_address])
       end)
       |> Enum.sort_by(fn x ->
         Keyword.fetch!(x, sort_by)
