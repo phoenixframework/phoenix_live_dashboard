@@ -218,7 +218,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     {tables, count}
   end
 
-  defp info_ets(ref) do
+  defp ets_info(ref) do
     case :ets.info(ref) do
       :undefined -> nil
       info -> [name: inspect(info[:name])] ++ Keyword.delete(info, :name)
@@ -284,7 +284,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     {sockets, length(sockets)}
   end
 
-  defp show_socket?(port) do
+  defp show_socket?(info) do
     info[:name] in ['tcp_inet', 'udp_inet']
   end
 
