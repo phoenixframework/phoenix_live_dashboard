@@ -246,11 +246,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     sorter = if sort_dir == :asc, do: &<=/2, else: &>=/2
 
     sockets =
-      Port.list()
-      |> Enum.map(fn port ->
-        with info when not is_nil(info) <- Port.info(port),
-             true <- show_socket?(info),
-             {:ok, stat} <- :inet.getstat(port, [:send_oct, :recv_oct]),
+      for port <- Port.list(), info = Port.info(port), show_socket?(info) do
+        with {:ok, stat} <- :inet.getstat(port, [:send_oct, :recv_oct]),
              {:ok, state} <- :prim_inet.getstatus(port),
              {:ok, {_, type}} <- :prim_inet.gettype(port),
              module <- inet_module_lookup(port) do
@@ -258,29 +255,24 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
           |> Keyword.merge(stat)
           |> Keyword.merge(
             module: module,
-            local_address: :inet.sockname(port),
-            foreign_address: :inet.peername(port),
+            local_address: format_address(:inet.sockname(port)),
+            foreign_address: format_address(:inet.peername(port)),
             state: state,
             type: type
           )
         else
           _ -> nil
         end
-      end)
-      |> Enum.reject(&is_nil/1)
-      |> Enum.sort_by(
-        fn socket ->
-          Keyword.fetch!(socket, sort_by)
-        end,
-        sorter
-      )
+      end
+      |> Enum.filter(&apply_socket_search(&1, search))
+      |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter)
+      |> Enum.take(limit)
 
     {sockets, length(sockets)}
   end
 
-  defp show_socket?(info) do
-    info[:name] in @inet_ports
-  end
+  defp show_socket?(nil), do: false
+  defp show_socket?(info), do: info[:name] in @inet_ports
 
   defp inet_module_lookup(port) do
     case :inet_db.lookup_socket(port) do
@@ -289,9 +281,31 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
+  defp apply_socket_search(nil, _), do: false
+  defp apply_socket_search(socket, nil), do: true
+
+  defp apply_socket_search(socket, search) do
+    socket[:local_address] =~ search || socket[:foreign_address] =~ search
+  end
+
   ## Helpers
 
   defp format_call({m, f, a}), do: Exception.format_mfa(m, f, a)
+
+  # The address is formatted based on the implementation of `:inet.fmt_addr/2`
+  defp format_address({:error, :enotconn}), do: "*:*"
+  defp format_address({:error, _}), do: " "
+
+  defp format_address({:ok, address}) do
+    case address do
+      {{0, 0, 0, 0}, port} -> "*:#{port}"
+      {{0, 0, 0, 0, 0, 0, 0, 0}, port} -> "*:#{port}"
+      {{127, 0, 0, 1}, port} -> "localhost:#{port}"
+      {{0, 0, 0, 0, 0, 0, 0, 1}, port} -> "localhost:#{port}"
+      {:local, path} -> "local:#{path}"
+      {ip, port} -> "#{:inet.ntoa(ip)}:#{port}"
+    end
+  end
 
   defp sort_dir_multipler(:asc), do: 1
   defp sort_dir_multipler(:desc), do: -1

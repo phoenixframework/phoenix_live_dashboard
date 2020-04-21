@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @sort_by ~w(module recv_oct send_oct connected local_address foreign_address state type)
+  @sort_by ~w(send_oct recv_oct module connected local_address foreign_address state type)
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
@@ -38,7 +38,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or module" phx-debounce="300">
+              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by local or foreign address" phx-debounce="300">
             </div>
           </div>
         </form>
@@ -55,7 +55,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
             </div>
           </div>
           <div class="col-auto">
-            tables out of <%= @total %>
+            sockets out of <%= @total %>
           </div>
         </div>
       </form>
@@ -99,8 +99,8 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                     <td><%= format_bytes(socket[:send_oct]) %></td>
                     <td><%= format_bytes(socket[:recv_oct]) %></td>
                     <td><%= format_value(socket[:connected], &live_dashboard_path(@socket, &1, &2, &3, @params)) %></td>
-                    <td><%= format_address(socket[:local_address]) %></td>
-                    <td><%= format_address(socket[:foreign_address]) %></td>
+                    <td><%= socket[:local_address] %></td>
+                    <td><%= socket[:foreign_address] %></td>
                     <td><%= format_state(socket[:state]) %></td>
                     <td><%= socket[:type] %></td>
                   </tr>
@@ -136,20 +136,6 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   defp self_path(socket, node, params) do
     live_dashboard_path(socket, :sockets, node, [], params)
-  end
-
-  defp format_address({:error, :enotconn}), do: "*:*"
-  defp format_address({:error, _}), do: " "
-
-  defp format_address({:ok, address}) do
-    case address do
-      {{0, 0, 0, 0}, port} -> "*:#{port}"
-      {{0, 0, 0, 0, 0, 0, 0, 0}, port} -> "*:#{port}"
-      {{127, 0, 0, 1}, port} -> "localhost:#{port}"
-      {{0, 0, 0, 0, 0, 0, 0, 1}, port} -> "localhost:#{port}"
-      {:local, path} -> "local:#{path}"
-      {ip, port} -> "#{:inet.ntoa(ip)}:#{port}"
-    end
   end
 
   defp format_state(flags) do
