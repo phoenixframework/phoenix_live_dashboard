@@ -1,6 +1,5 @@
 defmodule Phoenix.LiveDashboard.SocketInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_component
-  import Phoenix.LiveDashboard.TableHelpers
   alias Phoenix.LiveDashboard.SystemInfo
 
   @info_keys [
@@ -24,6 +23,8 @@ defmodule Phoenix.LiveDashboard.SocketInfoComponent do
             <tr><td class="border-top-0">Module</td><td class="border-top-0"><%= @module %></td></tr>
             <tr><td>Sent</td><td><%= @send_oct %></td></tr>
             <tr><td>Received</td><td><%= @recv_oct %></td></tr>
+            <tr><td>Local Address</td><td><%= @local_address %></td></tr>
+            <tr><td>Foreign Address</td><td><%= @foreign_address %></td></tr>
             <tr><td>State</td><td><%= @state %></td></tr>
             <tr><td>Type</td><td><%= @type %></td></tr>
             <tr><td>Owner</td><td><%= @connected %></td></tr>
@@ -63,7 +64,7 @@ defmodule Phoenix.LiveDashboard.SocketInfoComponent do
     end
   end
 
-  defp format_info(key, val, live_dashboard_path)
+  defp format_info(key, val, _live_dashboard_path)
        when key in [:send_oct, :recv_oct],
        do: format_bytes(val)
 
