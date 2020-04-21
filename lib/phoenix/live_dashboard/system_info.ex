@@ -285,7 +285,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp show_socket?(info) do
-    info[:name] in ['tcp_inet', 'udp_inet']
+    info[:name] in @inet_ports
   end
 
   ## Helpers
