@@ -141,13 +141,13 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
   defp format_state(flags) do
     case Enum.sort(flags) do
       [:accepting | _] -> "ACCEPTING"
-      [:bound, :busy, :connected | _] -> "CONNECTED(BB)"
-      [:bound, :connected | _] -> "CONNECTED(B)"
+      [:bound, :busy, :connected | _] -> "BUSY"
+      [:bound, :connected | _] -> "CONNECTED"
       [:bound, :listen, :listening | _] -> "LISTENING"
       [:bound, :listen | _] -> "LISTEN"
       [:bound, :connecting | _] -> "CONNECTING"
       [:bound, :open] -> "BOUND"
-      [:connected, :open] -> "CONNECTED(O)"
+      [:connected, :open] -> "CONNECTED"
       [:open] -> "IDLE"
       [] -> "CLOSED"
       sorted -> inspect(sorted)
