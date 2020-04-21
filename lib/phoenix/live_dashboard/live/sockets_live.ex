@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.SystemInfo
+  alias Phoenix.LiveDashboard.{SystemInfo, SocketInfoComponent}
 
   @sort_by ~w(send_oct recv_oct module connected local_address foreign_address state type)
 
@@ -16,6 +16,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
     {:noreply,
      socket
      |> assign_params(params, @sort_by)
+     |> assign_port(params)
      |> fetch_sockets()}
   end
 
@@ -60,13 +61,21 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
         </div>
       </form>
 
+      <%= if @port do %>
+        <%= live_modal @socket, SocketInfoComponent,
+          port: @port,
+          title: inspect(@port),
+          return_to: self_path(@socket, @menu.node, @params),
+          live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3, @params) %>
+      <% end %>
+
       <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
             <table class="table table-hover mt-0 dash-table clickable-rows">
               <thead>
                 <tr>
-                  <th class="pl-4">Port ID</th>
+                  <th class="pl-4">Port</th>
                   <th>
                   <%= sort_link(@socket, @live_action, @menu, @params, :module, "Module") %>
                   </th>
@@ -92,17 +101,17 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                 </tr>
               </thead>
               <tbody>
-                <%= for socket <- @sockets do %>
-                  <tr phx-page-loading>
-                    <td class="tabular-column-name pl-4"><%= socket[:id] %></td>
+                <%= for socket <- @sockets, port_num = encode_port(socket[:port]) do %>
+                  <tr phx-click="show_info" phx-value-port="<%= port_num %>" phx-page-loading>
+                    <td class="tabular-column-name pl-4"><pre><%= inspect(socket[:port]) %></pre></td>
                     <td><%= socket[:module] %></td>
                     <td><%= format_bytes(socket[:send_oct]) %></td>
                     <td><%= format_bytes(socket[:recv_oct]) %></td>
                     <td><%= socket[:local_address] %></td>
                     <td><%= socket[:foreign_address] %></td>
-                    <td><%= format_state(socket[:state]) %></td>
+                    <td><%= socket[:state] %></td>
                     <td><%= socket[:type] %></td>
-                    <td><%= format_value(socket[:connected], &live_dashboard_path(@socket, &1, &2, &3, @params)) %></td>
+                    <td><pre><%= inspect(socket[:connected]) %></pre></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -134,23 +143,18 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
   end
 
+  def handle_event("show_info", %{"port" => port}, socket) do
+    to = live_dashboard_path(socket, :sockets, node(), [port], socket.assigns.params)
+    {:noreply, push_patch(socket, to: to)}
+  end
+
   defp self_path(socket, node, params) do
     live_dashboard_path(socket, :sockets, node, [], params)
   end
 
-  defp format_state(flags) do
-    case Enum.sort(flags) do
-      [:accepting | _] -> "ACCEPTING"
-      [:bound, :busy, :connected | _] -> "BUSY"
-      [:bound, :connected | _] -> "CONNECTED"
-      [:bound, :listen, :listening | _] -> "LISTENING"
-      [:bound, :listen | _] -> "LISTEN"
-      [:bound, :connecting | _] -> "CONNECTING"
-      [:bound, :open] -> "BOUND"
-      [:connected, :open] -> "CONNECTED"
-      [:open] -> "IDLE"
-      [] -> "CLOSED"
-      sorted -> inspect(sorted)
-    end
+  defp assign_port(socket, %{"port" => port_param}) do
+    assign(socket, port: decode_port(port_param))
   end
+
+  defp assign_port(socket, %{}), do: assign(socket, port: nil)
 end

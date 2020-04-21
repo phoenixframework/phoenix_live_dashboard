@@ -19,6 +19,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :sockets_callback, [search, sort_by, sort_dir, limit])
   end
 
+  def fetch_socket_info(port, keys) do
+    :rpc.call(node(port), __MODULE__, :socket_info_callback, [port, keys])
+  end
+
   def fetch_process_info(pid, keys) do
     :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
   end
@@ -258,6 +262,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     {sockets, count}
   end
 
+  def socket_info_callback(port, keys) do
+    port |> socket_info() |> Keyword.take(keys)
+  end
+
   defp socket_info(port) do
     with info when not is_nil(info) <- Port.info(port),
          {:ok, stat} <- :inet.getstat(port, [:send_oct, :recv_oct]),
@@ -265,12 +273,13 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
          {:ok, {_, type}} <- :prim_inet.gettype(port),
          module <- inet_module_lookup(port) do
       info
+      |> Keyword.put(:port, port)
       |> Keyword.merge(stat)
       |> Keyword.merge(
         module: module,
         local_address: format_address(:inet.sockname(port)),
         foreign_address: format_address(:inet.peername(port)),
-        state: state,
+        state: format_socket_state(state),
         type: type
       )
     else
@@ -309,6 +318,23 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       {{0, 0, 0, 0, 0, 0, 0, 1}, port} -> "localhost:#{port}"
       {:local, path} -> "local:#{path}"
       {ip, port} -> "#{:inet.ntoa(ip)}:#{port}"
+    end
+  end
+
+  # See `:inet.fmt_status`
+  defp format_socket_state(flags) do
+    case Enum.sort(flags) do
+      [:accepting | _] -> "ACCEPTING"
+      [:bound, :busy, :connected | _] -> "BUSY"
+      [:bound, :connected | _] -> "CONNECTED"
+      [:bound, :listen, :listening | _] -> "LISTENING"
+      [:bound, :listen | _] -> "LISTEN"
+      [:bound, :connecting | _] -> "CONNECTING"
+      [:bound, :open] -> "BOUND"
+      [:connected, :open] -> "CONNECTED"
+      [:open] -> "IDLE"
+      [] -> "CLOSED"
+      sorted -> inspect(sorted)
     end
   end
 
