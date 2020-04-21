@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
 
   alias Phoenix.LiveDashboard.{SystemInfo, PortInfoComponent}
 
-  @sort_by ~w(id input output)
+  @sort_by ~w(output input)
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
@@ -22,7 +22,8 @@ defmodule Phoenix.LiveDashboard.PortsLive do
 
   defp fetch_ports(socket) do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = socket.assigns.params
-    {ports, count} = 
+
+    {ports, count} =
       SystemInfo.fetch_ports(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
 
     assign(socket, ports: ports, total: count)
@@ -38,7 +39,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by port, name or PID" phx-debounce="300">
+              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or port" phx-debounce="300">
             </div>
           </div>
         </form>
@@ -78,30 +79,28 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                   <th>Name or path</th>
                   <th>OS pid</td>
                   <th>
-                    <%= sort_link(@socket, @live_action, @menu, @params, :id, "Id") %>
-                  </th>
-                  <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :input, "Input") %>
                   </th>
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :output, "Output") %>
                   </th>
+                  <th>Id</th>
                   <th>Connected PID</td>
                 </tr>
               </thead>
               <tbody>
-                <%= for port <- @ports, port_num = encode_port(port[:port_str]) do %>
+                <%= for port <- @ports, port_num = encode_port(port[:port]) do %>
                   <tr phx-click="show_info" phx-value-port="<%= port_num %>" phx-page-loading class="<%= row_class(port, @port) %>">
                     <td class="tabular-column-name pl-4"><%= port_num %></td>
-                    <td><%= port[:name] %></td>
+                    <td class="w-50"><%= port[:name] %></td>
                     <td>
                       <%= if port[:os_pid] != :undefined do %>
                         <%= port[:os_pid] %>
                       <% end %>
                     </td>
-                    <td><%= port[:id] %></td>
                     <td><%= format_bytes(port[:input]) %></td>
                     <td><%= format_bytes(port[:output]) %></td>
+                    <td><%= port[:id] %></td>
                     <td><%= inspect(port[:connected]) %></td>
                   </tr>
                 <% end %>
@@ -135,32 +134,22 @@ defmodule Phoenix.LiveDashboard.PortsLive do
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
   end
 
-  def handle_event("show_info", %{"port" => port_num}, socket) do
-    port = decode_port(port_num)
-    {:noreply, push_patch(socket, to: port_info_path(socket, port, socket.assigns.params))}
-  end
-
-  def port_info_path(socket, port, params) when is_port(port) do
-    socket
-    |> assign_port(%{"port" => port})
-    |> live_dashboard_path(:ports, node(port), [encode_port(port)], params)
-  end
-  def port_info_path(socket, port, params) do
-    port_info_path(socket, decode_port(port), params)
+  def handle_event("show_info", %{"port" => port}, socket) do
+    to = live_dashboard_path(socket, :ports, node(), [port], socket.assigns.params)
+    {:noreply, push_patch(socket, to: to)}
   end
 
   defp self_path(socket, node, params) do
     live_dashboard_path(socket, :ports, node, [], params)
   end
 
-  defp assign_port(socket, %{"port" => port}) when is_port(port), do: assign(socket, port: port)
-  defp assign_port(socket, %{"port" => nil}), do: assign(socket, port: nil)
-  defp assign_port(socket, %{"port" => port}), do: assign(socket, port: decode_port(port))
-  defp assign_port(socket, _params) do
-    assign(socket, port: nil)
+  defp assign_port(socket, %{"port" => port_param}) do
+    assign(socket, port: decode_port(port_param))
   end
 
+  defp assign_port(socket, %{}), do: assign(socket, port: nil)
+
   defp row_class(port_info, active_port) do
-    if port_info[:port_str] == active_port, do: "active", else: ""
+    if port_info[:port] == active_port, do: "active", else: ""
   end
 end

@@ -14,95 +14,71 @@ defmodule Phoenix.LiveDashboard.PortsInfoComponent do
   end
 
   test "search" do
-    sleep = Port.open({:spawn, "sleep 15"}, [:binary])
-    sh = Port.open({:spawn, "sh"}, [:binary])
+    Port.open({:spawn, "sleep 15"}, [:binary])
+    Port.open({:spawn, "cat"}, [:binary])
 
     {:ok, live, _} = live(build_conn(), ports_path(50, "", :input, :desc))
     rendered = render(live)
-    assert rendered =~ ~r/sh/
-    assert rendered =~ ~r/sleep/
+    assert rendered =~ "cat"
+    assert rendered =~ "sleep"
     assert rendered =~ "ports out of 5"
     assert rendered =~ ports_href(50, "", :input, :asc)
 
     {:ok, live, _} = live(build_conn(), ports_path(50, "sleep", :input, :desc))
 
     rendered = render(live)
-    assert rendered =~ ~r/sleep/
-    refute rendered =~ ~r/\/bin\/sh/
+    assert rendered =~ "sleep"
+    refute rendered =~ "cat"
     assert rendered =~ "ports out of 1"
     assert rendered =~ ports_href(50, "sleep", :input, :asc)
 
-    #pid = pid |> :erlang.pid_to_list() |> List.to_string()
-    {:ok, live, _} = live(build_conn(), ports_path(50, "sh", :input, :desc))
+    {:ok, live, _} = live(build_conn(), ports_path(50, "cat", :input, :desc))
     rendered = render(live)
-    assert rendered =~ ~r/sh/
-    refute rendered =~ ~r/sleep/
+    assert rendered =~ "cat"
+    refute rendered =~ "sleep"
     assert rendered =~ "ports out of 1"
-    assert rendered =~ ports_href(50, "sh", :input, :asc)
-
-    Port.close(sleep)
-    Port.close(sh)
-  end
-
-  test "order ports by id" do
-    sleep = Port.open({:spawn, "sleep 15"}, [:binary])
-
-    {:ok, live, _} = live(build_conn(), ports_path(50, "", :id, :asc))
-    rendered = render(live)
-    assert rendered =~ ~r/forker.*sleep/s
-    assert rendered =~ ports_href(50, "", :id, :desc)
-    refute rendered =~ ports_href(50, "", :id, :asc)
-
-    rendered = render_patch(live, "/dashboard/nonode@nohost/ports?limit=50&sort_dir=desc")
-    assert rendered =~ ~r/sleep.*forker/s
-    refute rendered =~ ~r/forker.*sleep/s
-    assert rendered =~ ports_href(50, "", :id, :asc)
-    refute rendered =~ ports_href(50, "", :id, :desc)
-    
-    rendered = render_patch(live, "/dashboard/nonode@nohost/ports?limit=50&sort_dir=asc")
-    assert rendered =~ ~r/forker.*sleep/s
-    refute rendered =~ ~r/sleep.*forker/s
-    assert rendered =~ ports_href(50, "", :id, :desc)
-    refute rendered =~ ports_href(50, "", :id, :asc)
-    Port.close(sleep)
+    assert rendered =~ ports_href(50, "cat", :input, :asc)
   end
 
   test "order ports by output" do
-    #We got already forker running as #Port<0.0>
-    #And we need something thats on all systems and stays attached to the port
-    sleep = Port.open({:spawn, "sleep 15"}, [:binary])
-    send(sleep, {self(), {:command, "increase output"}})
+    # We got already forker running as #Port<0.0>
+    # And we need something thats on all systems and stays attached to the port
+    cat = Port.open({:spawn, "cat"}, [:binary])
+    send(cat, {self(), {:command, "increase output"}})
 
     {:ok, live, _} = live(build_conn(), ports_path(50, "", :output, :asc))
     rendered = render(live)
-    assert rendered =~ ~r/forker.*sleep/s
+    assert rendered =~ ~r/forker.*cat/s
     assert rendered =~ ports_href(50, "", :output, :desc)
     refute rendered =~ ports_href(50, "", :output, :asc)
 
-    rendered = render_patch(live, "/dashboard/nonode@nohost/ports?limit=50&sort_dir=desc&sort_by=output")
-    assert rendered =~ ~r/sleep.*forker/s
-    refute rendered =~ ~r/forker.*sleep/s
+    rendered =
+      render_patch(live, "/dashboard/nonode@nohost/ports?limit=50&sort_dir=desc&sort_by=output")
+
+    assert rendered =~ ~r/cat.*forker/s
+    refute rendered =~ ~r/forker.*cat/s
     assert rendered =~ ports_href(50, "", :output, :asc)
     refute rendered =~ ports_href(50, "", :output, :desc)
-    
-    rendered = render_patch(live, "/dashboard/nonode@nohost/ports?limit=50&sort_dir=asc&sort_by=output")
-    assert rendered =~ ~r/forker.*sleep/s
-    refute rendered =~ ~r/sleep.*forker/s
+
+    rendered =
+      render_patch(live, "/dashboard/nonode@nohost/ports?limit=50&sort_dir=asc&sort_by=output")
+
+    assert rendered =~ ~r/forker.*cat/s
+    refute rendered =~ ~r/cat.*forker/s
     assert rendered =~ ports_href(50, "", :output, :desc)
     refute rendered =~ ports_href(50, "", :output, :asc)
-    Port.close(sleep)
   end
 
   test "shows port info modal" do
-    {:ok, live, _} = live(build_conn(), port_info_path("#Port<0.0>", 50, :id, :asc))
+    {:ok, live, _} = live(build_conn(), port_info_path(hd(Port.list()), 50, :output, :asc))
     rendered = render(live)
-    assert rendered =~ ports_href(50, "", :id, :asc)
+    assert rendered =~ ports_href(50, "", :output, :asc)
 
     assert rendered =~ "modal-content"
     assert rendered =~ ~r/Port Name.*forker/
 
     refute live |> element("#modal .close") |> render_click() =~ "modal"
-    return_path = ports_path(50, "", :id, :asc)
+    return_path = ports_path(50, "", :output, :asc)
     assert_patch(live, return_path)
   end
 
@@ -119,6 +95,4 @@ defmodule Phoenix.LiveDashboard.PortsInfoComponent do
     "/dashboard/nonode%40nohost/ports?" <>
       "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
-
 end
-

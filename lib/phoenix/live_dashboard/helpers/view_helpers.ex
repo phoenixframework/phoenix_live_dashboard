@@ -20,8 +20,9 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   @doc """
   Decodes the reference from URL.
   """
-  def decode_reference(list_ref),
-    do: :erlang.list_to_ref(String.to_charlist("#Ref<") ++ String.to_charlist(list_ref) ++ [?>])
+  def decode_reference(list_ref) do
+    :erlang.list_to_ref('#Ref<' ++ String.to_charlist(list_ref) ++ '>')
+  end
 
   @doc """
   Encodes PIDs for URLs.
@@ -37,17 +38,17 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   @doc """
   Decodes the PID from URL.
   """
-  def decode_pid(list_pid), do: :erlang.list_to_pid([?<] ++ String.to_charlist(list_pid) ++ [?>])
+  def decode_pid(list_pid) do
+    :erlang.list_to_pid([?<] ++ String.to_charlist(list_pid) ++ [?>])
+  end
 
   @doc """
   Encodes Port for URLs.
-  """ 
+  """
   def encode_port(port) when is_port(port) do
-    port |> inspect() |> encode_port()
-  end
-  def encode_port("#Port<" <> trimmed = port) when is_bitstring(port) do
-    trimmed
-    |> String.to_charlist()
+    port
+    |> :erlang.port_to_list()
+    |> Enum.drop(6)
     |> Enum.drop(-1)
     |> List.to_string()
   end
@@ -56,9 +57,7 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   Decodes the PID from URL.
   """
   def decode_port(port_str) do
-    "#Port<" <> port_str <> ">"
-    |> String.to_charlist()
-    |> :erlang.list_to_port()
+    :erlang.list_to_port('#Port<' ++ String.to_charlist(port_str) ++ '>')
   end
 
   @doc """
@@ -67,6 +66,7 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   def format_value(port, live_dashboard_path) when is_port(port) do
     live_redirect(inspect(port), to: live_dashboard_path.(:ports, node(port), [encode_port(port)]))
   end
+
   def format_value(pid, live_dashboard_path) when is_pid(pid) do
     live_redirect(inspect(pid), to: live_dashboard_path.(:processes, node(pid), [encode_pid(pid)]))
   end

@@ -39,7 +39,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or module" phx-debounce="300">
+              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name" phx-debounce="300">
             </div>
           </div>
         </form>
@@ -128,7 +128,10 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   end
 
   def handle_event("show_info", %{"ref" => ref}, socket) do
-    {:noreply, push_patch(socket, to: live_dashboard_path(socket, :ets, node(), [ref], socket.assigns.params))}
+    {:noreply,
+     push_patch(socket,
+       to: live_dashboard_path(socket, :ets, node(), [ref], socket.assigns.params)
+     )}
   end
 
   defp self_path(socket, node, params) do

@@ -26,8 +26,8 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
           <tr><td class="border-top-0">Port Name</td><td class="border-top-0"><pre><%= @name %></pre></td></tr>
           <tr><td>Id</td><td><pre><%= @id %></pre></td></tr>
           <tr><td>Connected</td><td><pre><%= @connected %></pre></td></tr>
-          <tr><td>Input</td><td><pre><%= @input %></pre></td></tr>
-          <tr><td>Output</td><td><pre><%= @output %></pre></td></tr>
+          <tr><td>Input</td><td><pre><%= format_bytes(@input) %></pre></td></tr>
+          <tr><td>Output</td><td><pre><%= format_bytes(@output) %></pre></td></tr>
           <tr><td>OS pid</td><td><pre><%= @os_pid %></pre></td></tr>
           <tr><td>Links</td><td><pre><%= @links %></pre></td></tr>
         </tbody>
@@ -69,6 +69,7 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
 
   defp format_info(key, val, _live_dashboard_path)
        when key in [:name, :id, :input, :output, :os_pid],
-       do: val 
+       do: val
+
   defp format_info(_key, val, live_dashboard_path), do: format_value(val, live_dashboard_path)
 end

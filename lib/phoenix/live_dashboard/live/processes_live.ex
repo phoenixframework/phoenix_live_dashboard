@@ -131,7 +131,8 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   end
 
   def handle_event("show_info", %{"pid" => pid}, socket) do
-    {:noreply, push_patch(socket, to: live_dashboard_path(socket, :processes, node(), [pid], socket.assigns.params))}
+    to = live_dashboard_path(socket, :processes, node(), [pid], socket.assigns.params)
+    {:noreply, push_patch(socket, to: to)}
   end
 
   defp self_path(socket, node, params) do
