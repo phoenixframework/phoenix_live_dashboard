@@ -38,6 +38,8 @@ defmodule Phoenix.LiveDashboard.Router do
         live "/:node", Phoenix.LiveDashboard.HomeLive, :home, opts
         live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
         live "/:node/metrics/:group", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
+        live "/:node/ports", Phoenix.LiveDashboard.PortsLive, :ports, opts
+        live "/:node/ports/:port", Phoenix.LiveDashboard.PortsLive, :ports, opts
         live "/:node/processes", Phoenix.LiveDashboard.ProcessesLive, :processes, opts
         live "/:node/processes/:pid", Phoenix.LiveDashboard.ProcessesLive, :processes, opts
         live "/:node/ets", Phoenix.LiveDashboard.EtsLive, :ets, opts
