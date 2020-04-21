@@ -3,6 +3,20 @@ defmodule Phoenix.LiveDashboard.ViewHelpersTest do
 
   import Phoenix.LiveDashboard.ViewHelpers
 
+  test "encode/decode pid" do
+    assert decode_pid(encode_pid(self())) == self()
+  end
+
+  test "encode/decode port" do
+    port = hd(Port.list())
+    assert decode_port(encode_port(port)) == port
+  end
+
+  test "encode/decode refs" do
+    ref = make_ref()
+    assert decode_reference(encode_reference(ref)) == ref
+  end
+
   test "format_uptime/1" do
     assert format_uptime(1000) == "0m"
     assert format_uptime(60000) == "1m"

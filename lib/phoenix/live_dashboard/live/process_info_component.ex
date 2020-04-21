@@ -30,7 +30,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
     ~L"""
     <div class="tabular-info">
       <%= unless @alive do %>
-        <div class="tabular-info-not-exists mt-1 mb-3">Process is dead.</div>
+        <div class="tabular-info-not-exists mt-1 mb-3">Process is not alive or does not exist.</div>
       <% end %>
 
       <table class="table table-hover tabular-info-table">

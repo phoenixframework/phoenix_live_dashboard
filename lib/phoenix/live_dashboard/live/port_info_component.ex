@@ -18,7 +18,7 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
     ~L"""
     <div class="tabular-info">
       <%= unless @alive do %>
-        <div class="tabular-info-exits mt-1 mb-3">Process is dead.</div>
+        <div class="tabular-info-exits mt-1 mb-3">Port was closed or does not exist.</div>
       <% end %>
 
       <table class="table table-hover tabular-info-table">

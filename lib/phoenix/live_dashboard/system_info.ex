@@ -27,8 +27,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node(port), __MODULE__, :port_info_callback, [port, keys])
   end
 
-  def fetch_ets_info(ref) do
-    :rpc.call(node(ref), __MODULE__, :ets_info_callback, [ref])
+  def fetch_ets_info(node, ref) do
+    :rpc.call(node, __MODULE__, :ets_info_callback, [ref])
   end
 
   def fetch_system_info(node) do
@@ -156,16 +156,17 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   @doc false
   def ports_callback(search, sort_by, sort_dir, limit) do
+    all_ports = for port <- Port.list(), port_info = port_info(port), do: port_info
     multiplier = sort_dir_multipler(sort_dir)
 
     ports =
-      for port <- Port.list(), port_info = port_info(port), show_port?(port_info, search) do
+      for port_info <- all_ports, show_port?(port_info, search) do
         sorter = port_info[sort_by]
         sorter = if is_integer(sorter), do: sorter * multiplier, else: 0
         {sorter, port_info}
       end
 
-    count = if search, do: length(ports), else: length(Port.list())
+    count = if search, do: length(ports), else: length(all_ports)
     ports = ports |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
     {ports, count}
   end
@@ -198,16 +199,18 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ## ETS callbacks
 
   def ets_callback(search, sort_by, sort_dir, limit) do
+    all_ets = :ets.all()
     multiplier = sort_dir_multipler(sort_dir)
 
     tables =
-      for ref <- :ets.all(), info = ets_info(ref), show_ets?(info, search) do
+      for ref <- all_ets, info = ets_info(ref), show_ets?(info, search) do
         sorter = info[sort_by] * multiplier
         {sorter, info}
       end
 
+    count = if search, do: length(tables), else: length(all_ets)
     tables = tables |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
-    {tables, length(tables)}
+    {tables, count}
   end
 
   defp ets_info(ref) do

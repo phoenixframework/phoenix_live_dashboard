@@ -25,25 +25,25 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
     ~L"""
     <div class="tabular-info">
       <%= unless @alive do %>
-        <div class="tabular-info-not-exists mt-1 mb-3">Table not exists.</div>
+        <div class="tabular-info-not-exists mt-1 mb-3">ETS does not exist.</div>
       <% end %>
 
       <table class="table tabular-table-info-table">
         <tbody>
           <tr><td class="border-top-0">ID</td><td class="border-top-0"><pre><%= @id %></pre></td></tr>
-          <tr><td class="border-top-0">Name</td><td class="border-top-0"><pre><%= @name %></pre></td></tr>
-          <tr><td class="border-top-0">Size</td><td class="border-top-0"><pre><%= @size %></pre></td></tr>
-          <tr><td class="border-top-0">Node</td><td class="border-top-0"><pre><%= @node %></pre></td></tr>
-          <tr><td class="border-top-0">Named table</td><td class="border-top-0"><pre><%= @named_table %></pre></td></tr>
-          <tr><td class="border-top-0">Read concurrency</td><td class="border-top-0"><pre><%= @read_concurrency %></pre></td></tr>
-          <tr><td class="border-top-0">Write concurrency</td><td class="border-top-0"><pre><%= @write_concurrency %></pre></td></tr>
-          <tr><td class="border-top-0">Compressed</td><td class="border-top-0"><pre><%= @compressed %></pre></td></tr>
-          <tr><td class="border-top-0">Memory</td><td class="border-top-0"><pre><%= @memory %></pre></td></tr>
-          <tr><td class="border-top-0">Owner</td><td class="border-top-0"><pre><%= @owner %></pre></td></tr>
-          <tr><td class="border-top-0">Heir</td><td class="border-top-0"><pre><%= @heir %></pre></td></tr>
-          <tr><td class="border-top-0">Type</td><td class="border-top-0"><pre><%= @type %></pre></td></tr>
-          <tr><td class="border-top-0">Keypos</td><td class="border-top-0"><pre><%= @keypos %></pre></td></tr>
-          <tr><td class="border-top-0">Protection</td><td class="border-top-0"><pre><%= @protection %></pre></td></tr>
+          <tr><td>Name</td><td><pre><%= @name %></pre></td></tr>
+          <tr><td>Size</td><td><pre><%= @size %></pre></td></tr>
+          <tr><td>Node</td><td><pre><%= @node %></pre></td></tr>
+          <tr><td>Named table</td><td><pre><%= @named_table %></pre></td></tr>
+          <tr><td>Read concurrency</td><td><pre><%= @read_concurrency %></pre></td></tr>
+          <tr><td>Write concurrency</td><td><pre><%= @write_concurrency %></pre></td></tr>
+          <tr><td>Compressed</td><td><pre><%= @compressed %></pre></td></tr>
+          <tr><td>Memory</td><td><pre><%= @memory %></pre></td></tr>
+          <tr><td>Owner</td><td><pre><%= @owner %></pre></td></tr>
+          <tr><td>Heir</td><td><pre><%= @heir %></pre></td></tr>
+          <tr><td>Type</td><td><pre><%= @type %></pre></td></tr>
+          <tr><td>Keypos</td><td><pre><%= @keypos %></pre></td></tr>
+          <tr><td>Protection</td><td><pre><%= @protection %></pre></td></tr>
         </tbody>
       </table>
     </div>
@@ -65,7 +65,7 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
   end
 
   defp assign_info(%{assigns: assigns} = socket) do
-    case SystemInfo.fetch_ets_info(assigns.ref) do
+    case SystemInfo.fetch_ets_info(socket.assigns.node, assigns.ref) do
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
           assign(acc, key, format_info(key, val, assigns.live_dashboard_path))

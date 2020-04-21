@@ -65,6 +65,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
         <%= live_modal @socket, EtsInfoComponent,
           id: @ref,
           title: "ETS - #{inspect(@ref)}",
+          node: @menu.node,
           return_to: self_path(@socket, @menu.node, @params),
           live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3, @params) %>
       <% end %>
