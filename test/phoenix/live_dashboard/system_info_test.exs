@@ -73,4 +73,37 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       assert ets[:name] == :ac_tab
     end
   end
+
+  describe "sockets" do
+    test "all with limit" do
+      open_socket(fn ->
+        open_socket(fn ->
+          {sockets, count} = SystemInfo.fetch_sockets(node(), "", :input, :asc, 100)
+          assert Enum.count(sockets) == count
+          {sockets, count} = SystemInfo.fetch_sockets(node(), "", :input, :asc, 1)
+          assert Enum.count(sockets) == 1
+          assert count > 1
+        end)
+      end)
+    end
+
+    test "all with search" do
+      open_socket(fn ->
+        {[socket], _count} = SystemInfo.fetch_sockets(node(), "*:*", :input, :asc, 100)
+        assert socket[:foreign_address] == "*:*"
+        {sockets, _count} = SystemInfo.fetch_sockets(node(), "impossible", :input, :asc, 100)
+        assert Enum.empty?(sockets)
+      end)
+    end
+  end
+
+  defp open_socket(fun) do
+    {:ok, socket} = :gen_tcp.listen(0, [])
+
+    try do
+      fun.()
+    after
+      :gen_tcp.close(socket)
+    end
+  end
 end

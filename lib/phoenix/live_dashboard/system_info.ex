@@ -266,9 +266,11 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       end
       |> Enum.filter(&apply_socket_search(&1, search))
       |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter)
-      |> Enum.take(limit)
 
-    {sockets, length(sockets)}
+    count = length(sockets)
+    sockets = Enum.take(sockets, limit)
+
+    {sockets, count}
   end
 
   defp show_socket?(nil), do: false
@@ -281,8 +283,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
-  defp apply_socket_search(nil, _), do: false
-  defp apply_socket_search(socket, nil), do: true
+  defp apply_socket_search(nil, _search), do: false
+  defp apply_socket_search(_socket, nil), do: true
 
   defp apply_socket_search(socket, search) do
     socket[:local_address] =~ search || socket[:foreign_address] =~ search
