@@ -77,6 +77,6 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
     end
   end
 
-  defp format_info(:memory, val, _live_dashboard_path), do: format_bytes(val)
+  defp format_info(:memory, val, _live_dashboard_path), do: format_words(val)
   defp format_info(_key, val, live_dashboard_path), do: format_value(val, live_dashboard_path)
 end

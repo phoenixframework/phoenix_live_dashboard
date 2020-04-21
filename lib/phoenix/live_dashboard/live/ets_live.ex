@@ -94,7 +94,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
                     <td><%= table[:protection] %></td>
                     <td><%= table[:type] %></td>
                     <td><%= table[:size] %></td>
-                    <td><%= format_bytes(table[:memory]) %></td>
+                    <td><%= format_words(table[:memory]) %></td>
                     <td><%= inspect(table[:owner]) %></td>
                   </tr>
                 <% end %>

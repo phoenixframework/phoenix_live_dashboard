@@ -87,6 +87,13 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   end
 
   @doc """
+  Formats words as bytes.
+  """
+  def format_words(words) when is_integer(words) do
+    format_bytes(words * :erlang.system_info(:wordsize))
+  end
+
+  @doc """
   Formats bytes.
   """
   def format_bytes(bytes) when is_integer(bytes) do

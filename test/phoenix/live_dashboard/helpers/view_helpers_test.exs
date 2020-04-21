@@ -26,4 +26,9 @@ defmodule Phoenix.LiveDashboard.ViewHelpersTest do
     assert format_bytes(1024 * 1024 * 1024 * 1024) == "1.0 TB"
     assert format_bytes(1024 * 1024 * 1024 * 1024 * 1024) == "1024.0 TB"
   end
+
+  test "format_words/1" do
+    formatted = format_words(4)
+    assert formatted == "16 B" or formatted == "32 B"
+  end
 end
