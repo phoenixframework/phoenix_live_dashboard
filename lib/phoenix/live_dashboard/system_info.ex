@@ -243,19 +243,22 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ## Socket callbacks
 
   def sockets_callback(search, sort_by, sort_dir, limit) do
-    multiplier = sort_dir_multipler(sort_dir)
+    sorter = if sort_dir == :asc, do: &<=/2, else: &>=/2
 
     sockets =
       :erlang.ports()
       |> Enum.filter(&show_socket?/1)
       |> Enum.map(fn port ->
-        {:id, value} = :erlang.port_info(port, :id)
+        {:id, id} = :erlang.port_info(port, :id)
         {:ok, stats} = :inet.getstat(port, [:send_oct, :recv_oct])
-        Keyword.put(stats, :id, value)
+        local_address = format_address(:inet.sockname(port))
+        foreign_address = format_address(:inet.peername(port))
+
+        Keyword.merge(stats, [id: id, local_address: local_address, foreign_address: foreign_address])
       end)
       |> Enum.sort_by(fn x ->
-        Keyword.fetch!(x, sort_by) * multiplier
-      end)
+        Keyword.fetch!(x, sort_by)
+      end, sorter)
 
     {sockets, length(sockets)}
   end
@@ -271,4 +274,17 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   defp sort_dir_multipler(:asc), do: 1
   defp sort_dir_multipler(:desc), do: -1
+
+  defp format_address({:error, :enotconn}), do: "*:*"
+  defp format_address({:error, _}), do: " "
+  defp format_address({:ok, address}) do
+    case address do
+      {{0,0,0,0}, port} -> "*:#{port}"
+      {{0,0,0,0,0,0,0,0}, port} -> "*:#{port}"
+      {{127,0,0,1}, port} -> "localhost:#{port}"
+      {{0,0,0,0,0,0,0,1}, port} -> "localhost:#{port}"
+      {:local, path} -> "local:#{path}"
+      {ip, port} -> "#{:inet.ntoa(ip)}:#{port}"
+    end
+  end
 end
