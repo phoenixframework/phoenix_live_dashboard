@@ -178,12 +178,13 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   defp format_address({:error, :enotconn}), do: "*:*"
   defp format_address({:error, _}), do: " "
+
   defp format_address({:ok, address}) do
     case address do
-      {{0,0,0,0}, port} -> "*:#{port}"
-      {{0,0,0,0,0,0,0,0}, port} -> "*:#{port}"
-      {{127,0,0,1}, port} -> "localhost:#{port}"
-      {{0,0,0,0,0,0,0,1}, port} -> "localhost:#{port}"
+      {{0, 0, 0, 0}, port} -> "*:#{port}"
+      {{0, 0, 0, 0, 0, 0, 0, 0}, port} -> "*:#{port}"
+      {{127, 0, 0, 1}, port} -> "localhost:#{port}"
+      {{0, 0, 0, 0, 0, 0, 0, 1}, port} -> "localhost:#{port}"
       {:local, path} -> "local:#{path}"
       {ip, port} -> "#{:inet.ntoa(ip)}:#{port}"
     end
@@ -191,17 +192,17 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   defp format_state(flags) do
     case Enum.sort(flags) do
-      [:accepting | _]                  -> "ACCEPTING"
-      [:bound, :busy, :connected | _]   -> "CONNECTED(BB)"
-      [:bound, :connected | _]          -> "CONNECTED(B)"
+      [:accepting | _] -> "ACCEPTING"
+      [:bound, :busy, :connected | _] -> "CONNECTED(BB)"
+      [:bound, :connected | _] -> "CONNECTED(B)"
       [:bound, :listen, :listening | _] -> "LISTENING"
-      [:bound, :listen | _]             -> "LISTEN"
-      [:bound, :connecting | _]         -> "CONNECTING"
-      [:bound, :open]                   -> "BOUND"
-      [:connected, :open]               -> "CONNECTED(O)"
-      [:open]                           -> "IDLE"
-      []                                -> "CLOSED"
-      sorted                            -> inspect(sorted)
+      [:bound, :listen | _] -> "LISTEN"
+      [:bound, :connecting | _] -> "CONNECTING"
+      [:bound, :open] -> "BOUND"
+      [:connected, :open] -> "CONNECTED(O)"
+      [:open] -> "IDLE"
+      [] -> "CLOSED"
+      sorted -> inspect(sorted)
     end
   end
 end

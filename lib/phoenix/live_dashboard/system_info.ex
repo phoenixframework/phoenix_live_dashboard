@@ -248,36 +248,38 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     sockets =
       :erlang.ports()
       |> Enum.map(fn port ->
-        with info when not(is_nil(info)) <- Port.info(port),
-            true <- show_socket?(info),
-            {:ok, stats} <- :inet.getstat(port, [:send_oct, :recv_oct]),
-            {:ok, state} <- :prim_inet.getstatus(port),
-            {:ok, {_, type}} <- :prim_inet.gettype(port),
-            lookup_value <- :inet_db.lookup_socket(port) do
+        with info when not is_nil(info) <- Port.info(port),
+             true <- show_socket?(info),
+             {:ok, stats} <- :inet.getstat(port, [:send_oct, :recv_oct]),
+             {:ok, state} <- :prim_inet.getstatus(port),
+             {:ok, {_, type}} <- :prim_inet.gettype(port),
+             lookup_value <- :inet_db.lookup_socket(port) do
+          module =
+            case lookup_value do
+              {:ok, module} -> module
+              _ -> "prim_inet"
+            end
 
-              module = case lookup_value do
-                {:ok, module} -> module
-                _ -> "prim_inet"
-              end
-
-            info
-            |> Keyword.merge(stats)
-            |> Keyword.merge([
-              module: module,
-              local_address: :inet.sockname(port),
-              foreign_address: :inet.peername(port),
-              state: state,
-              type: type
-            ])
-
-            else
-              _ -> nil
-          end
+          info
+          |> Keyword.merge(stats)
+          |> Keyword.merge(
+            module: module,
+            local_address: :inet.sockname(port),
+            foreign_address: :inet.peername(port),
+            state: state,
+            type: type
+          )
+        else
+          _ -> nil
+        end
       end)
       |> Enum.reject(&is_nil/1)
-      |> Enum.sort_by(fn x ->
-        Keyword.fetch!(x, sort_by)
-      end, sorter)
+      |> Enum.sort_by(
+        fn socket ->
+          Keyword.fetch!(socket, sort_by)
+        end,
+        sorter
+      )
 
     {sockets, length(sockets)}
   end
