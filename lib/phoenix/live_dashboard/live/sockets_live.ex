@@ -76,7 +76,6 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :recv_oct, "Received") %>
                   </th>
-                  <th>Owner</th>
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :local_address, "Local Address") %>
                   </th>
@@ -89,6 +88,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :type, "Type") %>
                   </th>
+                  <th>Owner</th>
                 </tr>
               </thead>
               <tbody>
@@ -98,11 +98,11 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                     <td><%= socket[:module] %></td>
                     <td><%= format_bytes(socket[:send_oct]) %></td>
                     <td><%= format_bytes(socket[:recv_oct]) %></td>
-                    <td><%= format_value(socket[:connected], &live_dashboard_path(@socket, &1, &2, &3, @params)) %></td>
                     <td><%= socket[:local_address] %></td>
                     <td><%= socket[:foreign_address] %></td>
                     <td><%= format_state(socket[:state]) %></td>
                     <td><%= socket[:type] %></td>
+                    <td><%= format_value(socket[:connected], &live_dashboard_path(@socket, &1, &2, &3, @params)) %></td>
                   </tr>
                 <% end %>
               </tbody>
