@@ -246,48 +246,51 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     sorter = if sort_dir == :asc, do: &<=/2, else: &>=/2
 
     sockets =
-      for port <- Port.list(), info = Port.info(port), show_socket?(info) do
-        with {:ok, stat} <- :inet.getstat(port, [:send_oct, :recv_oct]),
-             {:ok, state} <- :prim_inet.getstatus(port),
-             {:ok, {_, type}} <- :prim_inet.gettype(port),
-             module <- inet_module_lookup(port) do
-          info
-          |> Keyword.merge(stat)
-          |> Keyword.merge(
-            module: module,
-            local_address: format_address(:inet.sockname(port)),
-            foreign_address: format_address(:inet.peername(port)),
-            state: state,
-            type: type
-          )
-        else
-          _ -> nil
-        end
-      end
-      |> Enum.filter(&apply_socket_search(&1, search))
-      |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter)
+      for port <- Port.list(), info = socket_info(port), show_socket?(info, search), do: info
 
     count = length(sockets)
-    sockets = Enum.take(sockets, limit)
+
+    sockets =
+      sockets
+      |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter)
+      |> Enum.take(limit)
 
     {sockets, count}
   end
 
-  defp show_socket?(nil), do: false
-  defp show_socket?(info), do: info[:name] in @inet_ports
+  defp socket_info(port) do
+    with info when not is_nil(info) <- Port.info(port),
+         {:ok, stat} <- :inet.getstat(port, [:send_oct, :recv_oct]),
+         {:ok, state} <- :prim_inet.getstatus(port),
+         {:ok, {_, type}} <- :prim_inet.gettype(port),
+         module <- inet_module_lookup(port) do
+      info
+      |> Keyword.merge(stat)
+      |> Keyword.merge(
+        module: module,
+        local_address: format_address(:inet.sockname(port)),
+        foreign_address: format_address(:inet.peername(port)),
+        state: state,
+        type: type
+      )
+    else
+      _ -> :error
+    end
+  end
+
+  defp show_socket?(:error, _search), do: false
+  defp show_socket?(info, nil), do: info
+
+  defp show_socket?(info, search) do
+    (info[:name] in @inet_ports && info[:local_address] =~ search) ||
+      info[:foreign_address] =~ search
+  end
 
   defp inet_module_lookup(port) do
     case :inet_db.lookup_socket(port) do
       {:ok, module} -> module
       _ -> "prim_inet"
     end
-  end
-
-  defp apply_socket_search(nil, _search), do: false
-  defp apply_socket_search(_socket, nil), do: true
-
-  defp apply_socket_search(socket, search) do
-    socket[:local_address] =~ search || socket[:foreign_address] =~ search
   end
 
   ## Helpers
