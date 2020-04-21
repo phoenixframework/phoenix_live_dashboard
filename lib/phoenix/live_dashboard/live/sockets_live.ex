@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @sort_by ~w(connected recv_oct send_oct local_address foreign_address)
+  @sort_by ~w(connected recv_oct send_oct local_address foreign_address state)
 
   @tttt """
     port
@@ -110,6 +110,9 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :foreign_address, "Foreign Address") %>
                   </th>
+                  <th>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :state, "State") %>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -120,8 +123,9 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                     <td><%= format_bytes(socket[:send_oct]) %></td>
                     <td><%= format_bytes(socket[:recv_oct]) %></td>
                     <td><%= format_value(socket[:connected], &live_dashboard_path(@socket, &1, &2, &3, @params)) %></td>
-                    <td><%= socket[:local_address] %></td>
-                    <td><%= socket[:foreign_address] %></td>
+                    <td><%= format_address(socket[:local_address]) %></td>
+                    <td><%= format_address(socket[:foreign_address]) %></td>
+                    <td><%= format_state(socket[:state]) %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -165,4 +169,76 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
   defp return_path(socket, menu, params) do
     self_path(socket, menu.node, params)
   end
+
+  defp format_address({:error, :enotconn}), do: "*:*"
+  defp format_address({:error, _}), do: " "
+  defp format_address({:ok, address}) do
+    case address do
+      {{0,0,0,0}, port} -> "*:#{port}"
+      {{0,0,0,0,0,0,0,0}, port} -> "*:#{port}"
+      {{127,0,0,1}, port} -> "localhost:#{port}"
+      {{0,0,0,0,0,0,0,1}, port} -> "localhost:#{port}"
+      {:local, path} -> "local:#{path}"
+      {ip, port} -> "#{:inet.ntoa(ip)}:#{port}"
+    end
+  end
+
+  defp format_state(flags) do
+    case Enum.sort(flags) do
+      [:accepting | _]                  -> "ACCEPTING"
+      [:bound, :busy, :connected | _]   -> "CONNECTED(BB)"
+      [:bound, :connected | _]          -> "CONNECTED(B)"
+      [:bound, :listen, :listening | _] -> "LISTENING"
+      [:bound, :listen | _]             -> "LISTEN"
+      [:bound, :connecting | _]         -> "CONNECTING"
+      [:bound, :open]                   -> "BOUND"
+      [:connected, :open]               -> "CONNECTED(O)"
+      [:open]                           -> "IDLE"
+      []                                -> "CLOSED"
+      sorted                            -> inspect(sorted)
+    end
+  end
 end
+
+
+# %% Possible flags: (sorted)
+# %% [accepting,bound,busy,connected,connecting,listen,listening,open]
+# %% Actually, we no longer gets listening...
+# fmt_status(Flags) ->
+#     case lists:sort(Flags) of
+# 	[accepting | _]               -> "ACCEPTING";
+# 	[bound,busy,connected|_]      -> "CONNECTED(BB)";
+# 	[bound,connected|_]           -> "CONNECTED(B)";
+# 	[bound,listen,listening | _]  -> "LISTENING";
+# 	[bound,listen | _]            -> "LISTEN";
+# 	[bound,connecting | _]        -> "CONNECTING";
+# 	[bound,open]                  -> "BOUND";
+# 	[connected,open]              -> "CONNECTED(O)";
+# 	[open]                        -> "IDLE";
+# 	[]                            -> "CLOSED";
+# 	Sorted                        -> fmt_status2(Sorted)
+#     end.
+
+# fmt_status2([H]) ->
+#     fmt_status3(H);
+# fmt_status2([H|T]) ->
+#     fmt_status3(H) ++ ":"  ++ fmt_status2(T).
+
+# fmt_status3(accepting) ->
+#     "A";
+# fmt_status3(bound) ->
+#     "BD";
+# fmt_status3(busy) ->
+#     "BY";
+# fmt_status3(connected) ->
+#     "CD";
+# fmt_status3(connecting) ->
+#     "CG";
+# fmt_status3(listen) ->
+#     "LN";
+# fmt_status3(listening) ->
+#     "LG";
+# fmt_status3(open) ->
+#     "O";
+# fmt_status3(X) when is_atom(X) ->
+#     string:uppercase(atom_to_list(X)).

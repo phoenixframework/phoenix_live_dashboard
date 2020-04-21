@@ -247,18 +247,21 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     sockets =
       :erlang.ports()
-      |> Enum.filter(&show_socket?/1)
       |> Enum.map(fn port ->
-        info = :erlang.port_info(port)
-        {:ok, stats} = :inet.getstat(port, [:send_oct, :recv_oct])
-        local_address = format_address(:inet.sockname(port))
-        foreign_address = format_address(:inet.peername(port))
-        IO.inspect(:prim_inet.getstatus(port))
+        with info when not(is_nil(info)) <- Port.info(port),
+            true <- show_socket?(info),
+            {:ok, stats} <- :inet.getstat(port, [:send_oct, :recv_oct]),
+            {:ok, state} <- :prim_inet.getstatus(port) do
 
-        info
-        |> Keyword.merge(stats)
-        |> Keyword.merge([local_address: local_address, foreign_address: foreign_address])
+            info
+            |> Keyword.merge(stats)
+            |> Keyword.merge([local_address: :inet.sockname(port), foreign_address: :inet.peername(port), state: state])
+
+            else
+              _ -> nil
+          end
       end)
+      |> Enum.reject(&is_nil/1)
       |> Enum.sort_by(fn x ->
         Keyword.fetch!(x, sort_by)
       end, sorter)
@@ -267,8 +270,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp show_socket?(port) do
-    {:name, name} = :erlang.port_info(port, :name)
-    name in ['tcp_inet', 'udp_inet']
+    info[:name] in ['tcp_inet', 'udp_inet']
   end
 
   ## Helpers
@@ -277,17 +279,4 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   defp sort_dir_multipler(:asc), do: 1
   defp sort_dir_multipler(:desc), do: -1
-
-  defp format_address({:error, :enotconn}), do: "*:*"
-  defp format_address({:error, _}), do: " "
-  defp format_address({:ok, address}) do
-    case address do
-      {{0,0,0,0}, port} -> "*:#{port}"
-      {{0,0,0,0,0,0,0,0}, port} -> "*:#{port}"
-      {{127,0,0,1}, port} -> "localhost:#{port}"
-      {{0,0,0,0,0,0,0,1}, port} -> "localhost:#{port}"
-      {:local, path} -> "local:#{path}"
-      {ip, port} -> "#{:inet.ntoa(ip)}:#{port}"
-    end
-  end
 end
