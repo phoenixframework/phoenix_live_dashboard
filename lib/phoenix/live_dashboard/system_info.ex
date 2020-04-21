@@ -156,17 +156,16 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   @doc false
   def ports_callback(search, sort_by, sort_dir, limit) do
-    all_ports = for port <- Port.list(), port_info = port_info(port), do: port_info
     multiplier = sort_dir_multipler(sort_dir)
 
     ports =
-      for port_info <- all_ports, show_port?(port_info, search) do
+      for port <- Port.list(), port_info = port_info(port), show_port?(port_info, search) do
         sorter = port_info[sort_by]
         sorter = if is_integer(sorter), do: sorter * multiplier, else: 0
         {sorter, port_info}
       end
 
-    count = if search, do: length(ports), else: length(all_ports)
+    count = length(ports)
     ports = ports |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
     {ports, count}
   end
@@ -199,16 +198,15 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ## ETS callbacks
 
   def ets_callback(search, sort_by, sort_dir, limit) do
-    all_ets = :ets.all()
     multiplier = sort_dir_multipler(sort_dir)
 
     tables =
-      for ref <- all_ets, info = ets_info(ref), show_ets?(info, search) do
+      for ref <- :ets.all(), info = ets_info(ref), show_ets?(info, search) do
         sorter = info[sort_by] * multiplier
         {sorter, info}
       end
 
-    count = if search, do: length(tables), else: length(all_ets)
+    count = length(tables)
     tables = tables |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
     {tables, count}
   end

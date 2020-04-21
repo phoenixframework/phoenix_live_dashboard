@@ -17,21 +17,21 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
   def render(assigns) do
     ~L"""
     <div class="tabular-info">
-      <%= unless @alive do %>
+      <%= if @alive do %>
+        <table class="table table-hover tabular-info-table">
+          <tbody>
+            <tr><td class="border-top-0">Port Name</td><td class="border-top-0"><pre><%= @name %></pre></td></tr>
+            <tr><td>Id</td><td><pre><%= @id %></pre></td></tr>
+            <tr><td>Connected</td><td><pre><%= @connected %></pre></td></tr>
+            <tr><td>Input</td><td><pre><%= format_bytes(@input) %></pre></td></tr>
+            <tr><td>Output</td><td><pre><%= format_bytes(@output) %></pre></td></tr>
+            <tr><td>OS pid</td><td><pre><%= @os_pid %></pre></td></tr>
+            <tr><td>Links</td><td><pre><%= @links %></pre></td></tr>
+          </tbody>
+        </table>
+      <% else %>
         <div class="tabular-info-exits mt-1 mb-3">Port was closed or does not exist.</div>
       <% end %>
-
-      <table class="table table-hover tabular-info-table">
-        <tbody>
-          <tr><td class="border-top-0">Port Name</td><td class="border-top-0"><pre><%= @name %></pre></td></tr>
-          <tr><td>Id</td><td><pre><%= @id %></pre></td></tr>
-          <tr><td>Connected</td><td><pre><%= @connected %></pre></td></tr>
-          <tr><td>Input</td><td><pre><%= format_bytes(@input) %></pre></td></tr>
-          <tr><td>Output</td><td><pre><%= format_bytes(@output) %></pre></td></tr>
-          <tr><td>OS pid</td><td><pre><%= @os_pid %></pre></td></tr>
-          <tr><td>Links</td><td><pre><%= @links %></pre></td></tr>
-        </tbody>
-      </table>
     </div>
     """
   end

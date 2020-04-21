@@ -29,33 +29,33 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   def render(assigns) do
     ~L"""
     <div class="tabular-info">
-      <%= unless @alive do %>
+      <%= if @alive do %>
+        <table class="table table-hover tabular-info-table">
+          <tbody>
+            <tr><td class="border-top-0">Registered name</td><td class="border-top-0"><pre><%= @registered_name %></pre></td></tr>
+            <tr><td>Current function</td><td><pre><%= @current_function %></pre></td></tr>
+            <tr><td>Initial call</td><td><pre><%= @initial_call %></pre></td></tr>
+            <tr><td>Status</td><td><pre><%= @status %></pre></td></tr>
+            <tr><td>Message queue length</td><td><pre><%= @message_queue_len %></pre></td></tr>
+            <tr><td>Links</td><td><pre><%= @links %></pre></td></tr>
+            <tr><td>Monitors</td><td><pre><%= @monitors %></pre></td></tr>
+            <tr><td>Monitored by</td><td><pre><%= @monitored_by %></pre></td></tr>
+            <tr><td>Trap exit</td><td><pre><%= @trap_exit %></pre></td></tr>
+            <tr><td>Error handler</td><td><pre><%= @error_handler %></pre></td></tr>
+            <tr><td>Priority</td><td><pre><%= @priority %></pre></td></tr>
+            <tr><td>Group leader</td><td><pre><%= @group_leader %></pre></td></tr>
+            <tr><td>Total heap size</td><td><pre><%= @total_heap_size %></pre></td></tr>
+            <tr><td>Heap size</td><td><pre><%= @heap_size %></pre></td></tr>
+            <tr><td>Stack size</td><td><pre><%= @stack_size %></pre></td></tr>
+            <tr><td>Reductions</td><td><pre><%= @reductions %></pre></td></tr>
+            <tr><td>Garbage collection</td><td><pre><%= @garbage_collection %></pre></td></tr>
+            <tr><td>Suspending</td><td><pre><%= @suspending %></pre></td></tr>
+            <tr><td>Current stacktrace</td><td><pre><%= @current_stacktrace %></pre></td></tr>
+          </tbody>
+        </table>
+      <% else %>
         <div class="tabular-info-not-exists mt-1 mb-3">Process is not alive or does not exist.</div>
       <% end %>
-
-      <table class="table table-hover tabular-info-table">
-        <tbody>
-          <tr><td class="border-top-0">Registered name</td><td class="border-top-0"><pre><%= @registered_name %></pre></td></tr>
-          <tr><td>Current function</td><td><pre><%= @current_function %></pre></td></tr>
-          <tr><td>Initial call</td><td><pre><%= @initial_call %></pre></td></tr>
-          <tr><td>Status</td><td><pre><%= @status %></pre></td></tr>
-          <tr><td>Message queue length</td><td><pre><%= @message_queue_len %></pre></td></tr>
-          <tr><td>Links</td><td><pre><%= @links %></pre></td></tr>
-          <tr><td>Monitors</td><td><pre><%= @monitors %></pre></td></tr>
-          <tr><td>Monitored by</td><td><pre><%= @monitored_by %></pre></td></tr>
-          <tr><td>Trap exit</td><td><pre><%= @trap_exit %></pre></td></tr>
-          <tr><td>Error handler</td><td><pre><%= @error_handler %></pre></td></tr>
-          <tr><td>Priority</td><td><pre><%= @priority %></pre></td></tr>
-          <tr><td>Group leader</td><td><pre><%= @group_leader %></pre></td></tr>
-          <tr><td>Total heap size</td><td><pre><%= @total_heap_size %></pre></td></tr>
-          <tr><td>Heap size</td><td><pre><%= @heap_size %></pre></td></tr>
-          <tr><td>Stack size</td><td><pre><%= @stack_size %></pre></td></tr>
-          <tr><td>Reductions</td><td><pre><%= @reductions %></pre></td></tr>
-          <tr><td>Garbage collection</td><td><pre><%= @garbage_collection %></pre></td></tr>
-          <tr><td>Suspending</td><td><pre><%= @suspending %></pre></td></tr>
-          <tr><td>Current stacktrace</td><td><pre><%= @current_stacktrace %></pre></td></tr>
-        </tbody>
-      </table>
     </div>
     """
   end
