@@ -20,14 +20,14 @@ defmodule Phoenix.LiveDashboard.SocketInfoComponent do
       <%= if @alive do %>
         <table class="table table-hover tabular-info-table">
           <tbody>
-            <tr><td class="border-top-0">Module</td><td class="border-top-0"><%= @module %></td></tr>
+            <tr><td class="border-top-0">Module</td><td class="border-top-0"><pre><%= @module %></pre></td></tr>
             <tr><td>Sent</td><td><%= @send_oct %></td></tr>
             <tr><td>Received</td><td><%= @recv_oct %></td></tr>
             <tr><td>Local Address</td><td><%= @local_address %></td></tr>
             <tr><td>Foreign Address</td><td><%= @foreign_address %></td></tr>
             <tr><td>State</td><td><%= @state %></td></tr>
             <tr><td>Type</td><td><%= @type %></td></tr>
-            <tr><td>Owner</td><td><%= @connected %></td></tr>
+            <tr><td>Owner</td><td><pre><%= @connected %></pre></td></tr>
           </tbody>
         </table>
       <% else %>

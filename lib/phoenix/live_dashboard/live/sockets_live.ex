@@ -104,7 +104,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                 <%= for socket <- @sockets, port_num = encode_port(socket[:port]) do %>
                   <tr phx-click="show_info" phx-value-port="<%= port_num %>" phx-page-loading>
                     <td class="tabular-column-name pl-4"><pre><%= inspect(socket[:port]) %></pre></td>
-                    <td><%= socket[:module] %></td>
+                    <td><pre><%= socket[:module] %></pre></td>
                     <td><%= format_bytes(socket[:send_oct]) %></td>
                     <td><%= format_bytes(socket[:recv_oct]) %></td>
                     <td><%= socket[:local_address] %></td>

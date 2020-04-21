@@ -263,7 +263,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   def socket_info_callback(port, keys) do
-    port |> socket_info() |> Keyword.take(keys)
+    case socket_info(port) do
+      :error -> :error
+      info -> Keyword.take(info, keys)
+    end
   end
 
   defp socket_info(port) do
