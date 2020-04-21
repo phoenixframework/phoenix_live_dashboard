@@ -251,11 +251,24 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
         with info when not(is_nil(info)) <- Port.info(port),
             true <- show_socket?(info),
             {:ok, stats} <- :inet.getstat(port, [:send_oct, :recv_oct]),
-            {:ok, state} <- :prim_inet.getstatus(port) do
+            {:ok, state} <- :prim_inet.getstatus(port),
+            {:ok, {_, type}} <- :prim_inet.gettype(port),
+            lookup_value <- :inet_db.lookup_socket(port) do
+
+              module = case lookup_value do
+                {:ok, module} -> module
+                _ -> "prim_inet"
+              end
 
             info
             |> Keyword.merge(stats)
-            |> Keyword.merge([local_address: :inet.sockname(port), foreign_address: :inet.peername(port), state: state])
+            |> Keyword.merge([
+              module: module,
+              local_address: :inet.sockname(port),
+              foreign_address: :inet.peername(port),
+              state: state,
+              type: type
+            ])
 
             else
               _ -> nil

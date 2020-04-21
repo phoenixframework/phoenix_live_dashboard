@@ -4,35 +4,35 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @sort_by ~w(connected recv_oct send_oct local_address foreign_address state)
+  @sort_by ~w(module recv_oct send_oct connected local_address foreign_address state type)
 
   @tttt """
     port
-  The internal index of the port.
+    The internal index of the port.
 
-  module
-  The callback module of the socket.
+    module
+    The callback module of the socket.
 
-  recv
-  Number of bytes received by the socket.
+    recv
+    Number of bytes received by the socket.
 
-  sent
-  Number of bytes sent from the socket.
+    sent
+    Number of bytes sent from the socket.
 
-  owner
-  The socket owner process.
+    owner
+    The socket owner process.
 
-  local_address
-  The local address of the socket.
+    local_address
+    The local address of the socket.
 
-  foreign_address
-  The address and port of the other end of the connection.
+    foreign_address
+    The address and port of the other end of the connection.
 
-  state
-  The connection state.
+    state
+    The connection state.
 
-  type
-  STREAM or DGRAM or SEQPACKET.
+    type
+    STREAM or DGRAM or SEQPACKET.
   """
 
   @impl true
@@ -96,7 +96,9 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
               <thead>
                 <tr>
                   <th class="pl-4">Port ID</th>
-                  <th>x</th>
+                  <th>
+                  <%= sort_link(@socket, @live_action, @menu, @params, :module, "Module") %>
+                  </th>
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :send_oct, "Sent") %>
                   </th>
@@ -113,19 +115,23 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :state, "State") %>
                   </th>
+                  <th>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :type, "Type") %>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <%= for socket <- @sockets do %>
                   <tr phx-page-loading>
                     <td class="tabular-column-name pl-4"><%= socket[:id] %></td>
-                    <td></td>
+                    <td><%= socket[:module] %></td>
                     <td><%= format_bytes(socket[:send_oct]) %></td>
                     <td><%= format_bytes(socket[:recv_oct]) %></td>
                     <td><%= format_value(socket[:connected], &live_dashboard_path(@socket, &1, &2, &3, @params)) %></td>
                     <td><%= format_address(socket[:local_address]) %></td>
                     <td><%= format_address(socket[:foreign_address]) %></td>
                     <td><%= format_state(socket[:state]) %></td>
+                    <td><%= socket[:type] %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -199,46 +205,3 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
     end
   end
 end
-
-
-# %% Possible flags: (sorted)
-# %% [accepting,bound,busy,connected,connecting,listen,listening,open]
-# %% Actually, we no longer gets listening...
-# fmt_status(Flags) ->
-#     case lists:sort(Flags) of
-# 	[accepting | _]               -> "ACCEPTING";
-# 	[bound,busy,connected|_]      -> "CONNECTED(BB)";
-# 	[bound,connected|_]           -> "CONNECTED(B)";
-# 	[bound,listen,listening | _]  -> "LISTENING";
-# 	[bound,listen | _]            -> "LISTEN";
-# 	[bound,connecting | _]        -> "CONNECTING";
-# 	[bound,open]                  -> "BOUND";
-# 	[connected,open]              -> "CONNECTED(O)";
-# 	[open]                        -> "IDLE";
-# 	[]                            -> "CLOSED";
-# 	Sorted                        -> fmt_status2(Sorted)
-#     end.
-
-# fmt_status2([H]) ->
-#     fmt_status3(H);
-# fmt_status2([H|T]) ->
-#     fmt_status3(H) ++ ":"  ++ fmt_status2(T).
-
-# fmt_status3(accepting) ->
-#     "A";
-# fmt_status3(bound) ->
-#     "BD";
-# fmt_status3(busy) ->
-#     "BY";
-# fmt_status3(connected) ->
-#     "CD";
-# fmt_status3(connecting) ->
-#     "CG";
-# fmt_status3(listen) ->
-#     "LN";
-# fmt_status3(listening) ->
-#     "LG";
-# fmt_status3(open) ->
-#     "O";
-# fmt_status3(X) when is_atom(X) ->
-#     string:uppercase(atom_to_list(X)).
