@@ -152,6 +152,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Ports callbacks
 
+  @inet_ports ['tcp_inet', 'udp_inet', 'sctp_inet']
+
   @doc false
   def ports_callback(search, sort_by, sort_dir, limit) do
     multiplier = sort_dir_multipler(sort_dir)
@@ -177,7 +179,9 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp port_info(port) do
-    if info = Port.info(port) do
+    info = Port.info(port)
+
+    if info && info[:name] not in @inet_ports do
       [port: port] ++ info
     end
   end
