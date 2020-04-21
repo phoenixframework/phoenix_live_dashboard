@@ -85,7 +85,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                     <%= sort_link(@socket, @live_action, @menu, @params, :output, "Output") %>
                   </th>
                   <th>Id</th>
-                  <th>Connected PID</td>
+                  <th>Owner</td>
                 </tr>
               </thead>
               <tbody>
