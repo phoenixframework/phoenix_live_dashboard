@@ -246,7 +246,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     sorter = if sort_dir == :asc, do: &<=/2, else: &>=/2
 
     sockets =
-      :erlang.ports()
+      Port.list()
       |> Enum.map(fn port ->
         with info when not is_nil(info) <- Port.info(port),
              true <- show_socket?(info),
