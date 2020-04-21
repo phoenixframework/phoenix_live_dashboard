@@ -95,7 +95,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                     <td class="tabular-column-name pl-4"><%= port_num %></td>
                     <td><%= port[:name] %></td>
                     <td>
-                      <%= unless port[:os_pid] == :undefined do %>
+                      <%= if port[:os_pid] != :undefined do %>
                         <%= port[:os_pid] %>
                       <% end %>
                     </td>
