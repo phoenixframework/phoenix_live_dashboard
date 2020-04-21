@@ -6,35 +6,6 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   @sort_by ~w(module recv_oct send_oct connected local_address foreign_address state type)
 
-  @tttt """
-    port
-    The internal index of the port.
-
-    module
-    The callback module of the socket.
-
-    recv
-    Number of bytes received by the socket.
-
-    sent
-    Number of bytes sent from the socket.
-
-    owner
-    The socket owner process.
-
-    local_address
-    The local address of the socket.
-
-    foreign_address
-    The address and port of the other end of the connection.
-
-    state
-    The connection state.
-
-    type
-    STREAM or DGRAM or SEQPACKET.
-  """
-
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
     {:ok, assign_defaults(socket, params, session, true)}
