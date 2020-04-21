@@ -100,8 +100,8 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                       <% end %>
                     </td>
                     <td><%= port[:id] %></td>
-                    <td><%= port[:input] %></td>
-                    <td><%= port[:output] %></td>
+                    <td><%= format_bytes(port[:input]) %></td>
+                    <td><%= format_bytes(port[:output]) %></td>
                     <td><%= inspect(port[:connected]) %></td>
                   </tr>
                 <% end %>
@@ -135,7 +135,6 @@ defmodule Phoenix.LiveDashboard.PortsLive do
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
   end
 
-  @impl true
   def handle_event("show_info", %{"port" => port_num}, socket) do
     port = decode_port(port_num)
     {:noreply, push_patch(socket, to: port_info_path(socket, port, socket.assigns.params))}
@@ -157,7 +156,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
   defp assign_port(socket, %{"port" => port}) when is_port(port), do: assign(socket, port: port)
   defp assign_port(socket, %{"port" => nil}), do: assign(socket, port: nil)
   defp assign_port(socket, %{"port" => port}), do: assign(socket, port: decode_port(port))
-  defp assign_port(socket, params) do
+  defp assign_port(socket, _params) do
     assign(socket, port: nil)
   end
 
