@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.SystemInfoTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
   alias Phoenix.LiveDashboard.SystemInfo
 
   describe "processes" do

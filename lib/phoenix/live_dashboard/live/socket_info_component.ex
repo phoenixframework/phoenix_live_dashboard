@@ -56,7 +56,7 @@ defmodule Phoenix.LiveDashboard.SocketInfoComponent do
       :error ->
         assign(socket, alive: false)
 
-      info ->
+      {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
           assign(acc, key, format_info(key, val, assigns.live_dashboard_path))
         end)

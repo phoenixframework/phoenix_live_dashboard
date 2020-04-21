@@ -264,38 +264,35 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def socket_info_callback(port, keys) do
     case socket_info(port) do
-      :error -> :error
-      info -> Keyword.take(info, keys)
+      nil -> :error
+      info -> {:ok, Keyword.take(info, keys)}
     end
   end
 
   defp socket_info(port) do
     with info when not is_nil(info) <- Port.info(port),
+         true <- info[:name] in @inet_ports,
          {:ok, stat} <- :inet.getstat(port, [:send_oct, :recv_oct]),
          {:ok, state} <- :prim_inet.getstatus(port),
          {:ok, {_, type}} <- :prim_inet.gettype(port),
          module <- inet_module_lookup(port) do
-      info
-      |> Keyword.put(:port, port)
-      |> Keyword.merge(stat)
-      |> Keyword.merge(
+      [
+        port: port,
         module: module,
         local_address: format_address(:inet.sockname(port)),
         foreign_address: format_address(:inet.peername(port)),
         state: format_socket_state(state),
         type: type
-      )
+      ] ++ info ++ stat
     else
-      _ -> :error
+      _ -> nil
     end
   end
 
-  defp show_socket?(:error, _search), do: false
-  defp show_socket?(info, nil), do: info
+  defp show_socket?(_info, nil), do: true
 
   defp show_socket?(info, search) do
-    (info[:name] in @inet_ports && info[:local_address] =~ search) ||
-      info[:foreign_address] =~ search
+    info[:local_address] =~ search || info[:foreign_address] =~ search
   end
 
   defp inet_module_lookup(port) do
