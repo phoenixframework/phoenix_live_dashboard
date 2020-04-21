@@ -167,15 +167,6 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
     live_dashboard_path(socket, :sockets, node, [], params)
   end
 
-  def pid_path(socket, pid) do
-    node = node(decode_pid(pid))
-    live_dashboard_path(socket, :processes, node, [pid])
-  end
-
-  defp return_path(socket, menu, params) do
-    self_path(socket, menu.node, params)
-  end
-
   defp format_address({:error, :enotconn}), do: "*:*"
   defp format_address({:error, _}), do: " "
 
