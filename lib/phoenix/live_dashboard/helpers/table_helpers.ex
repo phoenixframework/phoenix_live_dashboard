@@ -50,19 +50,21 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   end
 
   defp sort_link_icon(:asc) do
-    """
-    <div class="dash-table-icon">
-      <span class="icon-sort icon-asc"></span>
-    </div>
-    """
+    {:safe,
+     """
+     <div class="dash-table-icon">
+       <span class="icon-sort icon-asc"></span>
+     </div>
+     """}
   end
 
   defp sort_link_icon(:desc) do
-    """
-    <div class="dash-table-icon">
-      <span class="icon-sort icon-desc"></span>
-    </div>
-    """
+    {:safe,
+     """
+     <div class="dash-table-icon">
+       <span class="icon-sort icon-desc"></span>
+     </div>
+     """}
   end
 
   defp opposite_sort_dir(%{sort_dir: :desc}), do: :asc
