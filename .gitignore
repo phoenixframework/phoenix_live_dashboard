@@ -23,3 +23,6 @@ erl_crash.dump
 phoenix_live_dashboard-*.tar
 
 node_modules
+
+# Ignore elixir ls files from vscode extension
+.elixir_ls
