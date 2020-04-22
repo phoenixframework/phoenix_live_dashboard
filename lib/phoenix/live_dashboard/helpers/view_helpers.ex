@@ -2,7 +2,6 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   # General helpers for all views (rendering related).
   @moduledoc false
 
-  import Phoenix.HTML
   import Phoenix.LiveView.Helpers
   @format_limit 100
 
@@ -147,7 +146,9 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   Shows a hint.
   """
   def hint(do: block) do
-    ~E"""
+    assigns = %{block: block}
+
+    ~L"""
     <div class="hint">
       <svg class="hint-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="44" height="44" fill="none"/>
@@ -155,7 +156,7 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
         <rect x="19" y="20" width="6" height="14" rx="1" class="hint-icon-fill"/>
         <circle cx="22" cy="22" r="20" class="hint-icon-stroke" stroke-width="4"/>
       </svg>
-      <div class="hint-text"><%= block %></div>
+      <div class="hint-text"><%= @block %></div>
     </div>
     """
   end

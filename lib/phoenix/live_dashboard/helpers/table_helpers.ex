@@ -2,7 +2,6 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   # Helpers for pages that need to render tables
   @moduledoc false
 
-  import Phoenix.HTML
   import Phoenix.LiveView
   import Phoenix.LiveView.Helpers
   import Phoenix.LiveDashboard.LiveHelpers
@@ -51,7 +50,7 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   end
 
   defp sort_link_icon(:asc) do
-    ~E"""
+    """
     <div class="dash-table-icon">
       <span class="icon-sort icon-asc"></span>
     </div>
@@ -59,7 +58,7 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   end
 
   defp sort_link_icon(:desc) do
-    ~E"""
+    """
     <div class="dash-table-icon">
       <span class="icon-sort icon-desc"></span>
     </div>
