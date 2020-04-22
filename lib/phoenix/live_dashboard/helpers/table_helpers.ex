@@ -1,11 +1,10 @@
 defmodule Phoenix.LiveDashboard.TableHelpers do
   # Helpers for pages that need to render tables
-
   @moduledoc false
-  import Phoenix.HTML
+
   import Phoenix.LiveView
   import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.Helpers
+  import Phoenix.LiveDashboard.LiveHelpers
 
   @limit ~w(50 100 500 1000 5000)
   @sort_dir ~w(desc asc)
@@ -51,7 +50,7 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   end
 
   defp sort_link_icon(:asc) do
-    ~E"""
+    """
     <div class="dash-table-icon">
       <span class="icon-sort icon-asc"></span>
     </div>
@@ -59,7 +58,7 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   end
 
   defp sort_link_icon(:desc) do
-    ~E"""
+    """
     <div class="dash-table-icon">
       <span class="icon-sort icon-desc"></span>
     </div>
@@ -69,11 +68,4 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   defp opposite_sort_dir(%{sort_dir: :desc}), do: :asc
 
   defp opposite_sort_dir(_), do: :desc
-
-  def live_modal(socket, component, opts) do
-    path = Keyword.fetch!(opts, :return_to)
-    title = Keyword.fetch!(opts, :title)
-    modal_opts = [id: :modal, return_to: path, component: component, opts: opts, title: title]
-    live_component(socket, Phoenix.LiveDashboard.ModalComponent, modal_opts)
-  end
 end

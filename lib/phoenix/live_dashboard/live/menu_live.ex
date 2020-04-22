@@ -24,6 +24,9 @@ defmodule Phoenix.LiveDashboard.MenuLive do
       <%= maybe_enabled_live_redirect @socket, @menu, "Metrics", :metrics, @node %>
       <%= maybe_enabled_live_redirect @socket, @menu, "Request Logger", :request_logger, @node %>
       <%= maybe_active_live_redirect @socket, @menu, "Processes", :processes, @node %>
+      <%= maybe_active_live_redirect @socket, @menu, "Ports", :ports, @node %>
+      <%= maybe_active_live_redirect @socket, @menu, "Sockets", :sockets, @node %>
+      <%= maybe_active_live_redirect @socket, @menu, "ETS", :ets, @node %>
     </nav>
 
     <form id="node-selection" phx-change="select_node" class="d-inline">
@@ -64,9 +67,7 @@ defmodule Phoenix.LiveDashboard.MenuLive do
 
   defp maybe_active_live_redirect(socket, menu, text, action, node) do
     if menu.action == action do
-      ~E"""
-      <div class='menu-item active'><%= text %></div>
-      """
+      content_tag(:div, text, class: "menu-item active")
     else
       live_redirect(text, to: live_dashboard_path(socket, action, node), class: "menu-item")
     end
@@ -76,9 +77,11 @@ defmodule Phoenix.LiveDashboard.MenuLive do
     if menu[action] do
       maybe_active_live_redirect(socket, menu, text, action, node)
     else
-      ~E"""
+      assigns = %{action: action, text: text}
+
+      ~L"""
       <div class="menu-item menu-item-disabled">
-        <%= text %> <%= link "Enable", to: guide(action), class: "menu-item-enable-button" %>
+        <%= @text %> <%= link "Enable", to: guide(@action), class: "menu-item-enable-button" %>
       </div>
       """
     end

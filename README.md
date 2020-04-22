@@ -14,6 +14,12 @@ LiveDashboard provides real-time performance monitoring and debugging tools for 
 
   * Processes - See, filter, and search processes in your application
 
+  * Ports - See, filter, and search ports (responsible for I/O) in your application
+
+  * Sockets - See, filter, and search sockets (responsible for tcp/udp) in your application
+
+  * ETS - See, filter, and search ETS tables (in-memory storage) in your application
+
 The dashboard also works across nodes. If your nodes are connected via Distributed Erlang, then you can access information from node B while accessing the dashboard on node A.
 
 ![screenshot](https://github.com/phoenixframework/phoenix_live_dashboard/raw/master/screenshot.png)

@@ -112,7 +112,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
   end
 
   defp process_info_path(pid, limit, sort_by, sort_dir) do
-    "/dashboard/nonode%40nohost/processes/#{Phoenix.LiveDashboard.ProcessesLive.encode_pid(pid)}?" <>
+    "/dashboard/nonode%40nohost/processes/#{Phoenix.LiveDashboard.ViewHelpers.encode_pid(pid)}?" <>
       "limit=#{limit}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 
