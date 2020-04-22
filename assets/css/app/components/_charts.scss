@@ -46,47 +46,36 @@
             white-space: nowrap;
             min-width: 0;
           }
-        }
-      }
-    }
-  }
-}
 
-
-.charts-col {
-  .card {
-    .uplot {
-      .legend {
-
-
-        .series:first-child {
-          background-color: $color-gray-100;
-          color: $color-gray-800;
-          flex-basis: 100%;
-          margin: 1.75rem 0 0.25rem 0;
-          order: 1;
-          text-align: center;
-          display: inline-block;
-
-          th {
+          &:first-child {
+            background-color: $color-gray-100;
+            color: $color-gray-800;
+            flex-basis: 100%;
+            margin: 1.75rem 0 0.5rem 0;
+            order: 1;
+            text-align: center;
             display: inline-block;
+
+            th {
+              display: inline-block;
+            }
+
+            .ident {
+              display: none;
+            }
           }
 
-          .ident {
-            display: none;
+          &:nth-child(2) {
+            order: 2;
           }
-        }
 
-        .series:nth-child(2) {
-          order: 2;
-        }
+          &:nth-child(5) {
+            order: 4;
+          }
 
-        .series:nth-child(5) {
-          order: 4;
-        }
-
-        .series:nth-child(3) {
-          order: 3;
+          &:nth-child(3) {
+            order: 3;
+          }
         }
       }
     }
