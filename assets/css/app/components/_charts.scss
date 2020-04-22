@@ -19,10 +19,75 @@
 
       .title {
         font-weight: 900;
+        margin-bottom: 0.75rem;
       }
 
       .legend {
         font-size: 0.75rem;
+        display: flex;
+        flex-wrap: wrap;
+        text-align: left;
+        width: 100%;
+
+        .series {
+          display: flex;
+          flex-basis: 45%;
+          order: 10;
+
+          th {
+            align-items: center;
+            display: flex;
+            flex-basis: 55px;
+          }
+
+          td {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            min-width: 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.charts-col {
+  .card {
+    .uplot {
+      .legend {
+
+
+        .series:first-child {
+          background-color: $color-gray-100;
+          color: $color-gray-800;
+          flex-basis: 100%;
+          margin: 1.75rem 0 0.25rem 0;
+          order: 1;
+          text-align: center;
+          display: inline-block;
+
+          th {
+            display: inline-block;
+          }
+
+          .ident {
+            display: none;
+          }
+        }
+
+        .series:nth-child(2) {
+          order: 2;
+        }
+
+        .series:nth-child(5) {
+          order: 4;
+        }
+
+        .series:nth-child(3) {
+          order: 3;
+        }
       }
     }
   }
