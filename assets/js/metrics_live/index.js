@@ -69,6 +69,21 @@ function nextValueForCallback({ y, z }, callback) {
   this.datasets[1].data.push(nextValue)
 }
 
+// Limits how often a funtion is invoked
+function throttle(cb, limit) {
+  var wait = false;
+
+  return () => {
+    if (!wait) {
+      requestAnimationFrame(cb);
+      wait = true;
+      setTimeout(() => {
+        wait = false;
+      }, limit);
+    }
+  }
+}
+
 const findLastNonNullValue = (data) => data.reduceRight((a, c) => (c != null && a == null ? c : a), null)
 
 // Handler for a tagged CommonMetric
@@ -262,8 +277,12 @@ export class TelemetryChart {
     }
 
     const metric = __METRICS__[options.metric]
-    const chart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)
-    this.metric = new metric(chart, options)
+    this.uplotChart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)
+    this.metric = new metric(this.uplotChart, options)
+  }
+
+  resize(boundingBox) {
+    this.uplotChart.setSize({width: Math.max(boundingBox.width, 100), height: 300});
   }
 
   pushData(measurements) {
@@ -286,6 +305,14 @@ const PhxChartComponent = {
     })
 
     this.chart = new TelemetryChart(chartEl, options)
+
+    
+    window.addEventListener("resize", throttle(() => {
+      size = chartEl.getBoundingClientRect()
+      console.log("resizing", size)
+      this.chart.resize(size)
+    }))
+    
   },
   updated() {
     const data = Array
