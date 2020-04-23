@@ -55,7 +55,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     </ul>
 
     <%= if @metrics do %>
-      <div class="phx-dashboard-metrics-grid row" data-group-name="<%= @group %>">
+      <div class="phx-dashboard-metrics-grid row">
       <%= for {metric, id} <- @metrics do %>
         <%= live_component @socket, ChartComponent, id: id, metric: metric %>
       <% end %>

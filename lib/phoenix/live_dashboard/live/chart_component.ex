@@ -29,7 +29,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="col-sm-12 col-lg-6 charts-col">
+    <div class="col-xl-6 charts-col">
       <div id="chart-<%= @id %>" class="card">
         <div class="card-body">
           <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" style="display:none;">
