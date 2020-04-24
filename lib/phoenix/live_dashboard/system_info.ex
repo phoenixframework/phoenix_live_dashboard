@@ -32,6 +32,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
   end
 
+  def fetch_apps(node) do
+    :rpc.call(node, __MODULE__, :applications_info_callback, [])
+  end
+
   def fetch_port_info(port, keys) do
     :rpc.call(node(port), __MODULE__, :port_info_callback, [port, keys])
   end
@@ -157,6 +161,13 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       [_ | _] = info -> {:ok, info}
       nil -> :error
     end
+  end
+
+  ## Ports callbacks
+  #
+  def applications_info_callback() do
+    #Application.loaded_applications
+    Application.started_applications
   end
 
   ## Ports callbacks
