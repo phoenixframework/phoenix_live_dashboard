@@ -6,7 +6,7 @@ const SeriesValue = (options) => {
   if (!options.unit) return {}
 
   return {
-    value: (u, v) => v === null ? '' : v.toFixed(3) + ` ${options.unit}`
+    value: (u, v) => v == null ? '--' : v.toFixed(3) + ` ${options.unit}`
   }
 }
 
