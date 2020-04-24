@@ -20,50 +20,6 @@
     border-left-width: 0;
   }
 
-  // Section colors
-  .solid-green {
-    background-color: $color-green;
-  }
-  .solid-blue {
-    background-color: $color-blue;
-  }
-  .solid-purple {
-    background-color: $color-purple;
-  }
-  .solid-yellow {
-    background-color: $color-yellow;
-  }
-  .solid-orange {
-    background-color: $color-orange;
-  }
-  .solid-dark-gray {
-    background-color: $color-dark-gray;
-  }
-
-  .gradient-green {
-    background: linear-gradient(40deg, $color-green, adjust-color($color-green, $lightness: +10%));
-  }
-
-  .gradient-blue {
-    background: linear-gradient(40deg, $color-blue, adjust-color($color-blue, $lightness: +10%));
-  }
-
-  .gradient-purple {
-    background: linear-gradient(40deg, $color-purple, adjust-color($color-purple, $lightness: +10%));
-  }
-
-  .gradient-yellow {
-    background: linear-gradient(40deg, $color-yellow, adjust-color($color-yellow, $lightness: +10%));
-  }
-
-  .gradient-orange {
-    background: linear-gradient(40deg, $color-orange, adjust-color($color-orange, $lightness: +8%));
-  }
-
-  .gradient-dark-gray {
-    background: linear-gradient(40deg, $color-dark-gray, adjust-color($color-dark-gray, $lightness: +10%));
-  }
-
   // Legend
   .resource-usage-legend-color {
     border-radius: 3px;
