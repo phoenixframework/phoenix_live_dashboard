@@ -102,3 +102,13 @@
     opacity: 1;
   }
 }
+
+@media (min-width: map-get($grid-breakpoints, xxl)) {
+  [data-phx-view="LiveDashboard.MetricsLive"] #main.container{
+    max-width: 95%;
+
+    .charts-nav {
+      max-width: map-get($container-max-widths, xl);
+    }
+  }
+}

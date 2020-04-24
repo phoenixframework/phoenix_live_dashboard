@@ -72,7 +72,8 @@ $grid-breakpoints: (
   md: 768px,
   lg: 992px,
   xl: 1200px,
-  xxl: 1600px
+  xxl: 1600px,
+  xxxl: 2600px
 );
 
 $container-max-widths: (
@@ -80,7 +81,8 @@ $container-max-widths: (
   md: 720px,
   lg: 960px,
   xl: 1140px,
-  xxl: 1400px
+  xxl: 1140px,
+  xxxl: 1140px
 );
 
 // Colors used when visualising data
