@@ -11,12 +11,12 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   ]
 
   @memory_usage_sections [
-    {:atom, "Atoms"},
-    {:binary, "Binary"},
-    {:code, "Code"},
-    {:ets, "ETS"},
-    {:process, "Processes"},
-    {:other, "Other"}
+    {:atom, "Atoms", 1},
+    {:binary, "Binary", 2},
+    {:code, "Code", 3},
+    {:ets, "ETS", 4},
+    {:process, "Processes", 5},
+    {:other, "Other", 6}
   ]
 
   @impl true
@@ -174,10 +174,10 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           <div class="card-body resource-usage">
 
             <div class="progress flex-grow-1 mb-3">
-              <%= for {section_key, section_name, section_value} <- memory_usage_sections(@system_usage.memory) do %>
+              <%= for {_, section_name, section_value, color} <- memory_usage_sections(@system_usage.memory) do %>
                 <div
                   title="<%=section_name %> - <%=percentage(section_value, @system_usage.memory.total, round: true) %>%"
-                  class="progress-bar resource-usage-section-<%=section_key %>"
+                  class="progress-bar resource-usage-solid-<%= color %>"
                   role="progressbar"
                   aria-valuenow="<%=section_value %>"
                   aria-valuemin="0"
@@ -190,9 +190,9 @@ defmodule Phoenix.LiveDashboard.HomeLive do
             <div class="resource-usage-legend">
 
               <div class="resource-usage-legend-entries row flex-column flex-wrap">
-                <%= for {section_key, section_name, section_value} <- memory_usage_sections(@system_usage.memory) do %>
+                <%= for {_, section_name, section_value, color} <- memory_usage_sections(@system_usage.memory) do %>
                   <div class="col-lg-6 resource-usage-legend-entry d-flex align-items-center py-1 flex-grow-0">
-                    <div class="resource-usage-legend-color resource-usage-section-<%=section_key %> mr-2"></div>
+                    <div class="resource-usage-legend-color resource-usage-gradient-<%= color %> mr-2"></div>
                     <span><%=section_name %></span>
                     <span class="flex-grow-1 text-right text-muted">
                       <%= format_bytes(section_value) %>
@@ -229,10 +229,10 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
   defp memory_usage_sections(memory_usage) do
     @memory_usage_sections
-    |> Enum.map(fn {section_key, section_name} ->
+    |> Enum.map(fn {section_key, section_name, color} ->
       value = Map.fetch!(memory_usage, section_key)
 
-      {section_key, section_name, value}
+      {section_key, section_name, value, color}
     end)
   end
 
