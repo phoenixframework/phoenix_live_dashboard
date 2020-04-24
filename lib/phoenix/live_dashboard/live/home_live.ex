@@ -11,12 +11,12 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   ]
 
   @memory_usage_sections [
-    {:atom, "Atoms", 1},
-    {:binary, "Binary", 2},
-    {:code, "Code", 3},
-    {:ets, "ETS", 4},
-    {:process, "Processes", 5},
-    {:other, "Other", 6}
+    {:atom, "Atoms", "green"},
+    {:binary, "Binary", "blue"},
+    {:code, "Code", "purple"},
+    {:ets, "ETS", "yellow"},
+    {:process, "Processes", "orange"},
+    {:other, "Other", "dark-gray"}
   ]
 
   @impl true
@@ -177,7 +177,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
               <%= for {_, section_name, section_value, color} <- memory_usage_sections(@system_usage.memory) do %>
                 <div
                   title="<%=section_name %> - <%=percentage(section_value, @system_usage.memory.total, round: true) %>%"
-                  class="progress-bar resource-usage-solid-<%= color %>"
+                  class="progress-bar solid-<%= color %>"
                   role="progressbar"
                   aria-valuenow="<%=section_value %>"
                   aria-valuemin="0"
@@ -192,7 +192,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
               <div class="resource-usage-legend-entries row flex-column flex-wrap">
                 <%= for {_, section_name, section_value, color} <- memory_usage_sections(@system_usage.memory) do %>
                   <div class="col-lg-6 resource-usage-legend-entry d-flex align-items-center py-1 flex-grow-0">
-                    <div class="resource-usage-legend-color resource-usage-gradient-<%= color %> mr-2"></div>
+                    <div class="resource-usage-legend-color gradient-<%= color %> mr-2"></div>
                     <span><%=section_name %></span>
                     <span class="flex-grow-1 text-right text-muted">
                       <%= format_bytes(section_value) %>

@@ -21,47 +21,47 @@
   }
 
   // Section colors
-  .resource-usage-solid-1 {
-    background-color: $color-data-1;
+  .solid-green {
+    background-color: $color-green;
   }
-  .resource-usage-solid-2 {
-    background-color: $color-data-2;
+  .solid-blue {
+    background-color: $color-blue;
   }
-  .resource-usage-solid-3 {
-    background-color: $color-data-3;
+  .solid-purple {
+    background-color: $color-purple;
   }
-  .resource-usage-solid-4 {
-    background-color: $color-data-4;
+  .solid-yellow {
+    background-color: $color-yellow;
   }
-  .resource-usage-solid-5 {
-    background-color: $color-data-5;
+  .solid-orange {
+    background-color: $color-orange;
   }
-  .resource-usage-solid-6 {
-    background-color: $color-data-6;
-  }
-
-  .resource-usage-gradient-1 {
-    background: linear-gradient(40deg, $color-data-1, adjust-color($color-data-1, $lightness: +10%));
+  .solid-dark-gray {
+    background-color: $color-dark-gray;
   }
 
-  .resource-usage-gradient-2 {
-    background: linear-gradient(40deg, $color-data-2, adjust-color($color-data-2, $lightness: +10%));
+  .gradient-green {
+    background: linear-gradient(40deg, $color-green, adjust-color($color-green, $lightness: +10%));
   }
 
-  .resource-usage-gradient-3 {
-    background: linear-gradient(40deg, $color-data-3, adjust-color($color-data-3, $lightness: +10%));
+  .gradient-blue {
+    background: linear-gradient(40deg, $color-blue, adjust-color($color-blue, $lightness: +10%));
   }
 
-  .resource-usage-gradient-4 {
-    background: linear-gradient(40deg, $color-data-4, adjust-color($color-data-4, $lightness: +10%));
+  .gradient-purple {
+    background: linear-gradient(40deg, $color-purple, adjust-color($color-purple, $lightness: +10%));
   }
 
-  .resource-usage-gradient-5 {
-    background: linear-gradient(40deg, $color-data-5, adjust-color($color-data-5, $lightness: +8%));
+  .gradient-yellow {
+    background: linear-gradient(40deg, $color-yellow, adjust-color($color-yellow, $lightness: +10%));
   }
 
-  .resource-usage-gradient-6 {
-    background: linear-gradient(40deg, $color-data-6, adjust-color($color-data-6, $lightness: +10%));
+  .gradient-orange {
+    background: linear-gradient(40deg, $color-orange, adjust-color($color-orange, $lightness: +8%));
+  }
+
+  .gradient-dark-gray {
+    background: linear-gradient(40deg, $color-dark-gray, adjust-color($color-dark-gray, $lightness: +10%));
   }
 
   // Legend
