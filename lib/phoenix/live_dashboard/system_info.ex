@@ -32,8 +32,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
   end
 
-  def fetch_apps(node) do
-    :rpc.call(node, __MODULE__, :applications_info_callback, [])
+  def fetch_applications(node, search, sort_by, sort_dir, limit) do
+    :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_port_info(port, keys) do
@@ -163,11 +163,36 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
-  ## Ports callbacks
+  ## Applications callbacks
   #
-  def applications_info_callback() do
-    #Application.loaded_applications
-    Application.started_applications
+  defp show_application?(_, nil) do
+    true
+  end
+
+  defp show_application?(info, search) do
+    name = info |> elem(0) |> Atom.to_string()
+    desc = info |> elem(1) |> List.to_string() |> String.downcase()
+    version = info |> elem(2) |> List.to_string()
+
+    name =~ search or desc =~ search or version =~ search
+  end
+
+  def applications_info_callback(search, sort_by, sort_dir, limit) do
+    multiplier = sort_dir_multipler(sort_dir)
+    applications =
+      for application <- Application.loaded_applications(), show_application?(application, search) do
+        sorter = elem(application, %{name: 0, version: 2}[sort_by])
+        sorter = cond do
+          is_atom(sorter) -> hd(Atom.to_charlist(sorter)) * multiplier
+          is_list(sorter) -> hd(sorter) * multiplier
+          true -> 0
+        end
+        {sorter, application}
+      end
+
+    count = length(applications)
+    applications = applications |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
+    {applications, count}
   end
 
   ## Ports callbacks

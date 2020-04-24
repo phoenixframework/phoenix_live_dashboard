@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @sort_by ~w(output input)
+  @sort_by ~w(name version)
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
@@ -16,14 +16,16 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
     {:noreply,
      socket
      |> assign_params(params, @sort_by)
-     |> fetch_apps()}
+     |> fetch_applications()}
   end
 
-  defp fetch_apps(socket) do
+  defp fetch_applications(socket) do
+    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = socket.assigns.params
 
-    apps = SystemInfo.fetch_apps(socket.assigns.menu.node)
+    {applications, count} =
+      SystemInfo.fetch_applications(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
 
-    assign(socket, apps: apps)
+    assign(socket, applications: applications, count: count)
   end
 
   @impl true
@@ -53,7 +55,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
             </div>
           </div>
           <div class="col-auto">
-            applications out of <%= Enum.count(@apps) %>
+            applications out of <%= @count %>
           </div>
         </div>
       </form>
@@ -64,13 +66,17 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
             <table class="table table-hover mt-0 dash-table clickable-rows">
               <thead>
                 <tr>
-                  <th class="pl-4">Application</th>
+                  <th class="pl-4">
+                    <%= sort_link(@socket, @live_action, @menu, @params, :name, "Name") %>
+                  </th>
                   <th>Description</th>
-                  <th>Version</td>
+                  <th>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :version, "Version") %>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                <%= for {name, desc, ver} <- @apps do %>
+                <%= for {name, desc, ver} <- @applications do %>
                   <tr phx-page-loading>
                     <td><%= name %></td>
                     <td><%= desc %></td>
@@ -89,7 +95,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   def handle_info({:node_redirect, node}, socket) do
     {:noreply, push_redirect(socket, to: self_path(socket, node, socket.assigns.params))}
   end
-  def handle_info({:refresh, _node}, socket) do
+  def handle_info(:refresh, socket) do
     {:noreply, socket}
   end
 
@@ -98,6 +104,12 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
     %{menu: menu, params: params} = socket.assigns
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | search: search}))}
   end
+
+  def handle_event("select_limit", %{"limit" => limit}, socket) do
+    %{menu: menu, params: params} = socket.assigns
+    {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
+  end
+
 
   defp self_path(socket, node, params) do
     live_dashboard_path(socket, :applications, node, [], params)
