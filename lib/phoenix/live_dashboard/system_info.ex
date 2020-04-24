@@ -48,10 +48,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :usage_callback, [])
   end
 
+  def fetch_os_mon_info(node) do
+    :rpc.call(node, __MODULE__, :os_mon_callback, [])
+  end
   ## System callbacks
 
   @doc false
   def info_callback do
+    start_os_mon()
     %{
       system_info: %{
         banner: :erlang.system_info(:system_version),
@@ -65,7 +69,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
         ports: :erlang.system_info(:port_limit),
         processes: :erlang.system_info(:process_limit)
       },
-      system_usage: usage_callback()
+      system_usage: usage_callback(),
+      os_mon_info: os_mon_callback()
     }
   end
 
@@ -300,6 +305,38 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
+  ### OS_Mon callbacks
+
+  defp start_os_mon() do
+    :application.start(:sasl)
+    :application.start(:os_mon)
+  end
+
+  def os_mon_callback() do
+    system_mem = :memsup.get_system_memory_data()
+    mem = :memsup.get_memory_data()
+    disk = :disksup.get_disk_data()
+    cpu_avg1 = :cpu_sup.avg1()
+    cpu_avg5 = :cpu_sup.avg5()
+    cpu_avg15 = :cpu_sup.avg15()
+    cpu_nprocs = :cpu_sup.nprocs()
+    cpu_total = :cpu_sup.util([:detailed])
+    cpu_per_core = :cpu_sup.util([:per_cpu, :detailed])
+    cpu_count = Enum.count(cpu_per_core)
+    %{
+      system_mem: system_mem,
+      mem: mem,
+      disk: disk,
+      cpu_avg1: cpu_avg1,
+      cpu_avg5: cpu_avg5,
+      cpu_avg15: cpu_avg15,
+      cpu_nprocs: cpu_nprocs,
+      cpu_total: cpu_total,
+      cpu_count: cpu_count,
+      cpu_per_core: cpu_per_core,
+    }
+  end
+
   ## Helpers
 
   defp format_call({m, f, a}), do: Exception.format_mfa(m, f, a)
@@ -339,3 +376,4 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   defp sort_dir_multipler(:asc), do: 1
   defp sort_dir_multipler(:desc), do: -1
 end
+

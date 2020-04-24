@@ -111,6 +111,16 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   end
 
   @doc """
+  Formats percent.
+  """
+  def format_percent(percent) when is_integer(percent) do
+    "#{percent}%"
+  end
+  def format_percent(percent) when is_float(percent) do
+    "#{Float.floor(percent, 1)}%"
+  end
+  def format_percent(nil), do: "0%"
+  @doc """
   Formats words as bytes.
   """
   def format_words(words) when is_integer(words) do
