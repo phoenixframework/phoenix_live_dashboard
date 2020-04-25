@@ -116,10 +116,25 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
 
     test "started or loaded" do
 
-      {applications, count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :started)
-      IO.inspect(count)
-      {applications, count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :loaded)
-      IO.inspect(count)
+      {started, count_started} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :started)
+      {loaded, count_loaded} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :loaded)
+
+      assert count_loaded == count_started
+      assert Enum.count(started) == Enum.count(loaded)
+
+      Application.load(:sasl) #Load only dont start
+      {started, count_started} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :started)
+      {loaded, count_loaded} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :loaded)
+
+      assert count_loaded == count_started + 1
+      assert Enum.count(loaded) == Enum.count(started) + 1
+
+      Application.unload(:sasl) #Load only dont start
+      {started, count_started} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :started)
+      {loaded, count_loaded} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :loaded)
+
+      assert count_loaded == count_started
+      assert Enum.count(started) == Enum.count(loaded)
     end
   end
 

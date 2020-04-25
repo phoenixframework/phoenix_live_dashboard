@@ -69,6 +69,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLiveTest do
     count_loaded =  rendered |> :binary.matches("</tr>") |> length()
 
     assert count_loaded == count_started + 1
+    Application.unload(:sasl)
   end
 
   defp applications_href(limit, search, sort_by, sort_dir, filter) do
