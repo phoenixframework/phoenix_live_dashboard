@@ -37,7 +37,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLiveTest do
     assert rendered =~ applications_href(50, "kernel", :name, :asc)
   end
 
-  test "12" do
+  test "not started applications have different status in table" do
     #Load only dont start
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
