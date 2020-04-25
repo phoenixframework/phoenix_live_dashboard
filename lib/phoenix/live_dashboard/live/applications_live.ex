@@ -5,7 +5,6 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   alias Phoenix.LiveDashboard.SystemInfo
 
   @sort_by ~w(name version)
-  @filter ~w(started loaded)
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
@@ -19,22 +18,14 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
     {:noreply, 
         socket
         |> assign_params(params, @sort_by)
-        |> assign_filter(params, @filter)
         |> fetch_applications()}
   end
 
-  defp assign_filter(socket, params, @filter) do
-     filter = params |> get_in_or_first("filter", @filter) |> String.to_atom()
-      socket
-     |> assign(:params, Map.put_new(socket.assigns.params, :filter, filter))
-
-  end
-
   defp fetch_applications(%{assigns: %{params: params, menu: menu}} = socket) do
-    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit, filter: filter} = params
+    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
 
     {applications, count} =
-      SystemInfo.fetch_applications(menu.node, search, sort_by, sort_dir, limit, filter)
+      SystemInfo.fetch_applications(menu.node, search, sort_by, sort_dir, limit)
 
     assign(socket, applications: applications, count: count)
   end
@@ -43,7 +34,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   def render(assigns) do
     ~L"""
     <div class="tabular-page">
-      <h5 class="card-title">Applications</h5>
+      <h5 class="card-title">Loaded Applications</h5>
       <div class="tabular-search">
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
@@ -69,14 +60,6 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
           </div>
         </div>
       </form>
-      <ul class="nav nav-tabs mt-4">
-        <li class="nav-item">
-          <%= filter_tab(@socket, @live_action, @menu, @params, :started, "Started") %>
-        </li>
-        <li class="nav-item">
-          <%= filter_tab(@socket, @live_action, @menu, @params, :loaded, "Loaded") %>
-        </li>
-      </ul>
       <div class="card table-card mb-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
@@ -87,16 +70,18 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
                     <%= sort_link(@socket, @live_action, @menu, @params, :name, "Name") %>
                   </th>
                   <th>Description</th>
+                  <th>Started</th>
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :version, "Version") %>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <%= for {name, desc, ver} <- @applications do %>
-                  <tr phx-page-loading>
+                <%= for {name, desc, ver, is_started?} <- @applications do %>
+                  <tr class="<%= unless is_started?, do: "text-muted" %>">
                     <td><%= name %></td>
                     <td><%= desc %></td>
+                  <td><%= if is_started?, do: "Yes", else: "No" %></td>
                     <td><%= ver %></td>
                   </tr>
                 <% end %>

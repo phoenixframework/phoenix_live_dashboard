@@ -32,8 +32,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
   end
 
-  def fetch_applications(node, search, sort_by, sort_dir, limit, filter) do
-    :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit, filter])
+  def fetch_applications(node, search, sort_by, sort_dir, limit) do
+    :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_port_info(port, keys) do
@@ -176,17 +176,25 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     name =~ search or desc =~ search or version =~ search
   end
+  def started_apps_set() do
+    Application.started_applications()
+    |> Enum.map(fn {name, _, _} -> name end)
+    |> MapSet.new()
+  end
 
-  def applications_info_callback(search, sort_by, sort_dir, limit, filter) do
+  def applications_info_callback(search, sort_by, sort_dir, limit) do
     multiplier = sort_dir_multipler(sort_dir)
-    application_getter_fun =
-      cond do
-        filter == :started -> fn() -> Application.started_applications() end
-        true -> fn() -> Application.loaded_applications() end
-      end
+    started_apps_set = started_apps_set()
 
-    applications =
-      for application <- application_getter_fun.(), show_application?(application, search) do
+    loaded_apps = 
+      Application.loaded_applications()
+      |> Enum.map(fn {name, desc, ver} -> 
+        is_started? =  MapSet.member?(started_apps_set, name)
+        {name, desc, ver, is_started?}
+      end) 
+
+    apps =
+      for application <- loaded_apps, show_application?(application, search) do
         sorter = elem(application, %{name: 0, version: 2}[sort_by])
         sorter = cond do
           # sorts only on first character
@@ -197,9 +205,9 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
         {sorter, application}
       end
 
-    count = length(applications)
-    applications = applications |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
-    {applications, count}
+    count = length(apps)
+    apps = apps |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
+    {apps, count}
   end
 
   ## Ports callbacks

@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.SystemInfoTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
   alias Phoenix.LiveDashboard.SystemInfo
 
   describe "processes" do
@@ -99,42 +99,35 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
   describe "applications" do
     test "all with limit" do
 
-      {applications, count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :started)
+      {applications, count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100)
       assert Enum.count(applications) == count
-      {applications, count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 1, :started)
+      {applications, count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 1)
       assert Enum.count(applications) == 1
       assert count > 1
     end
 
     test "all with search" do
 
-      {[applications], _count} = SystemInfo.fetch_applications(node(), "ex_unit", :name, :asc, 100, :started)
+      {[applications], _count} = SystemInfo.fetch_applications(node(), "ex_unit", :name, :asc, 100)
       assert elem(applications, 0) == :ex_unit
-      {applications, _count} = SystemInfo.fetch_applications(node(), "impossible", :name, :asc, 100, :started)
+      {applications, _count} = SystemInfo.fetch_applications(node(), "impossible", :name, :asc, 100)
       assert Enum.empty?(applications)
     end
 
-    test "started or loaded" do
-
-      {started, count_started} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :started)
-      {loaded, count_loaded} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :loaded)
-
-      assert count_loaded == count_started
-      assert Enum.count(started) == Enum.count(loaded)
-
+    test "test started status" do
       Application.load(:sasl) #Load only dont start
-      {started, count_started} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :started)
-      {loaded, count_loaded} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :loaded)
 
-      assert count_loaded == count_started + 1
-      assert Enum.count(loaded) == Enum.count(started) + 1
+      {applications, _count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100)
+
+      Enum.each(applications, fn {name, _, _, is_started?} -> 
+      if name == :sasl do
+        assert is_started? == false
+      else
+        assert is_started? == true
+      end
+      end)
 
       Application.unload(:sasl) #Load only dont start
-      {started, count_started} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :started)
-      {loaded, count_loaded} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :loaded)
-
-      assert count_loaded == count_started
-      assert Enum.count(started) == Enum.count(loaded)
     end
   end
 
