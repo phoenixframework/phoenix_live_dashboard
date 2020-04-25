@@ -51,11 +51,11 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   def fetch_os_mon_info(node) do
     :rpc.call(node, __MODULE__, :os_mon_callback, [])
   end
+
   ## System callbacks
 
   @doc false
   def info_callback do
-    start_os_mon()
     %{
       system_info: %{
         banner: :erlang.system_info(:system_version),
@@ -69,8 +69,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
         ports: :erlang.system_info(:port_limit),
         processes: :erlang.system_info(:process_limit)
       },
-      system_usage: usage_callback(),
-      os_mon_info: os_mon_callback()
+      system_usage: usage_callback()
     }
   end
 
@@ -307,12 +306,31 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ### OS_Mon callbacks
 
-  defp start_os_mon() do
-    :application.start(:sasl)
-    :application.start(:os_mon)
+  defp sum_cpu_usage(map, key) do
+    map
+    |> Enum.map(fn {_n, values} -> values[key] end)
+    |> Enum.sum()
+  end
+
+  def calculate_cpu_total([{_, core}] = per_core) when length(per_core) == 1, do: core
+
+  def calculate_cpu_total(per_core) do
+    first = per_core |> hd() |> elem(1)
+
+    first
+    |> Map.keys()
+    |> Enum.map(fn key -> {key, sum_cpu_usage(per_core, key)} end)
+    |> Map.new()
   end
 
   def os_mon_callback() do
+    cpu_per_core =
+      :cpu_sup.util([:detailed, :per_cpu])
+      |> Enum.map(fn {n, busy, non_b, _} ->
+        {n, Map.new(busy ++ non_b)}
+      end)
+
+    cpu_total = calculate_cpu_total(cpu_per_core)
     system_mem = :memsup.get_system_memory_data()
     mem = :memsup.get_memory_data()
     disk = :disksup.get_disk_data()
@@ -320,20 +338,21 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     cpu_avg5 = :cpu_sup.avg5()
     cpu_avg15 = :cpu_sup.avg15()
     cpu_nprocs = :cpu_sup.nprocs()
-    cpu_total = :cpu_sup.util([:detailed])
-    cpu_per_core = :cpu_sup.util([:per_cpu, :detailed])
     cpu_count = Enum.count(cpu_per_core)
+
     %{
       system_mem: system_mem,
       mem: mem,
       disk: disk,
-      cpu_avg1: cpu_avg1,
-      cpu_avg5: cpu_avg5,
-      cpu_avg15: cpu_avg15,
+      cpu_usage: %{
+        avg1: cpu_avg1,
+        avg5: cpu_avg5,
+        avg15: cpu_avg15
+      },
       cpu_nprocs: cpu_nprocs,
-      cpu_total: cpu_total,
       cpu_count: cpu_count,
       cpu_per_core: cpu_per_core,
+      cpu_total: cpu_total
     }
   end
 
@@ -376,4 +395,3 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   defp sort_dir_multipler(:asc), do: 1
   defp sort_dir_multipler(:desc), do: -1
 end
-
