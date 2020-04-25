@@ -176,6 +176,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     name =~ search or desc =~ search or version =~ search
   end
+
   def started_apps_set() do
     Application.started_applications()
     |> Enum.map(fn {name, _, _} -> name end)
@@ -186,22 +187,25 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     multiplier = sort_dir_multipler(sort_dir)
     started_apps_set = started_apps_set()
 
-    loaded_apps = 
+    loaded_apps =
       Application.loaded_applications()
-      |> Enum.map(fn {name, desc, ver} -> 
-        is_started? =  MapSet.member?(started_apps_set, name)
+      |> Enum.map(fn {name, desc, ver} ->
+        is_started? = MapSet.member?(started_apps_set, name)
         {name, desc, ver, is_started?}
-      end) 
+      end)
 
     apps =
       for application <- loaded_apps, show_application?(application, search) do
         sorter = elem(application, %{name: 0, version: 2}[sort_by])
-        sorter = cond do
-          # sorts only on first character
-          is_atom(sorter) -> hd(Atom.to_charlist(sorter)) * multiplier
-          is_list(sorter) -> hd(sorter) * multiplier
-          true -> 0
-        end
+
+        sorter =
+          cond do
+            # sorts only on first character
+            is_atom(sorter) -> hd(Atom.to_charlist(sorter)) * multiplier
+            is_list(sorter) -> hd(sorter) * multiplier
+            true -> 0
+          end
+
         {sorter, application}
       end
 

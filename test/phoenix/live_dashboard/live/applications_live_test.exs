@@ -8,9 +8,6 @@ defmodule Phoenix.LiveDashboard.ApplicationsLiveTest do
   test "shows applications with limit" do
     {:ok, _live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/applications")
     assert rendered |> :binary.matches("</tr>") |> length() <= 100
-
-    #rendered = render_patch(live, "/dashboard/nonode@nohost/applications?limit=5")
-    #assert rendered |> :binary.matches("</tr>") |> length() ==  4
   end
 
   test "search" do
@@ -38,7 +35,6 @@ defmodule Phoenix.LiveDashboard.ApplicationsLiveTest do
   end
 
   test "not started applications have different status in table" do
-    #Load only dont start
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
 
@@ -59,7 +55,9 @@ defmodule Phoenix.LiveDashboard.ApplicationsLiveTest do
   end
 
   defp applications_href(limit, search, sort_by, sort_dir) do
-    ~s|href="#{Plug.HTML.html_escape_to_iodata(applications_path(limit, search, sort_by, sort_dir))}"|
+    ~s|href="#{
+      Plug.HTML.html_escape_to_iodata(applications_path(limit, search, sort_by, sort_dir))
+    }"|
   end
 
   defp applications_path(limit, search, sort_by, sort_dir) do

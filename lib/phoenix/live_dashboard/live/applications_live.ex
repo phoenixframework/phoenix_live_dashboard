@@ -8,17 +8,17 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, 
-    socket
-    |> assign_defaults(params, session, true)}
+    {:ok,
+     socket
+     |> assign_defaults(params, session, true)}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply, 
-        socket
-        |> assign_params(params, @sort_by)
-        |> fetch_applications()}
+    {:noreply,
+     socket
+     |> assign_params(params, @sort_by)
+     |> fetch_applications()}
   end
 
   defp fetch_applications(%{assigns: %{params: params, menu: menu}} = socket) do
@@ -93,10 +93,12 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
     </div>
     """
   end
+
   @impl true
   def handle_info({:node_redirect, node}, socket) do
     {:noreply, push_redirect(socket, to: self_path(socket, node, socket.assigns.params))}
   end
+
   def handle_info(:refresh, socket) do
     {:noreply, socket}
   end
@@ -112,9 +114,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
   end
 
-
   defp self_path(socket, node, params) do
     live_dashboard_path(socket, :applications, node, [], params)
   end
-
 end

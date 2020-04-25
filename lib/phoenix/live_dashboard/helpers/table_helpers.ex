@@ -25,15 +25,17 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
 
   def limit_options(), do: @limit
 
-
   def filter_tab(socket, live_action, menu, params, filter, link_name) do
     current_filter = Map.get(params, :filter, :started)
     params = Map.put(params, :filter, filter)
 
     class = if filter == current_filter, do: "nav-link active", else: "nav-link"
 
-    link_name 
-    |> live_patch(to: live_dashboard_path(socket, live_action, menu.node, [], params), class: class)
+    link_name
+    |> live_patch(
+      to: live_dashboard_path(socket, live_action, menu.node, [], params),
+      class: class
+    )
   end
 
   def sort_link(socket, live_action, menu, params, sort_by, link_name) do
