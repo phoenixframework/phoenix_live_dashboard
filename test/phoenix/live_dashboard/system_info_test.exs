@@ -113,22 +113,6 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       {applications, _count} = SystemInfo.fetch_applications(node(), "impossible", :name, :asc, 100)
       assert Enum.empty?(applications)
     end
-
-    test "test started status" do
-      Application.load(:sasl) #Load only dont start
-
-      {applications, _count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100)
-
-      Enum.each(applications, fn {name, _, _, is_started?} -> 
-      if name == :sasl do
-        assert is_started? == false
-      else
-        assert is_started? == true
-      end
-      end)
-
-      Application.unload(:sasl) #Load only dont start
-    end
   end
 
   defp open_socket() do
