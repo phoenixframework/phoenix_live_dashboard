@@ -189,6 +189,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       for application <- application_getter_fun.(), show_application?(application, search) do
         sorter = elem(application, %{name: 0, version: 2}[sort_by])
         sorter = cond do
+          # sorts only on first character
           is_atom(sorter) -> hd(Atom.to_charlist(sorter)) * multiplier
           is_list(sorter) -> hd(sorter) * multiplier
           true -> 0

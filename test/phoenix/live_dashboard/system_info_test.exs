@@ -96,6 +96,33 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
   end
 
+  describe "applications" do
+    test "all with limit" do
+
+      {applications, count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :started)
+      assert Enum.count(applications) == count
+      {applications, count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 1, :started)
+      assert Enum.count(applications) == 1
+      assert count > 1
+    end
+
+    test "all with search" do
+
+      {[applications], _count} = SystemInfo.fetch_applications(node(), "ex_unit", :name, :asc, 100, :started)
+      assert elem(applications, 0) == :ex_unit
+      {applications, _count} = SystemInfo.fetch_applications(node(), "impossible", :name, :asc, 100, :started)
+      assert Enum.empty?(applications)
+    end
+
+    test "started or loaded" do
+
+      {applications, count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :started)
+      IO.inspect(count)
+      {applications, count} = SystemInfo.fetch_applications(node(), "", :name, :asc, 100, :loaded)
+      IO.inspect(count)
+    end
+  end
+
   defp open_socket() do
     {:ok, socket} = :gen_tcp.listen(0, ip: {127, 0, 0, 1})
     socket
