@@ -40,18 +40,18 @@ defmodule Phoenix.LiveDashboard.ApplicationsLiveTest do
 
     refute rendered =~ ~s|<td>sasl|
 
-    Application.load(:sasl)
+    Application.load(:ssh)
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
-    assert rendered =~ ~s|<tr class="text-muted"><td>sasl|
-    refute rendered =~ ~s|<tr class=""><td>sasl|
+    assert rendered =~ ~s|<tr class="text-muted"><td>ssh|
+    refute rendered =~ ~s|<tr class=""><td>ssh|
 
-    Application.start(:sasl)
+    Application.start(:ssh)
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
-    refute rendered =~ ~s|<tr class="text-muted"><td>sasl|
-    assert rendered =~ ~s|<tr class=""><td>sasl|
-    Application.unload(:sasl)
+    refute rendered =~ ~s|<tr class="text-muted"><td>ssh|
+    assert rendered =~ ~s|<tr class=""><td>ssh|
+    Application.unload(:ssh)
   end
 
   defp applications_href(limit, search, sort_by, sort_dir) do
