@@ -18,7 +18,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLiveTest do
     rendered = render(live)
     assert rendered =~ "ex_unit"
     assert rendered =~ "kernel"
-    assert rendered =~ "applications out of 27"
+    refute rendered =~ "applications out of 1"
     assert rendered =~ applications_href(50, "", :name, :asc, :started)
 
     {:ok, live, _} = live(build_conn(), applications_path(50, "unit", :name, :desc, :started))
