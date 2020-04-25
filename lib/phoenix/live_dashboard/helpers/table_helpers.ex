@@ -18,12 +18,23 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
     assign(socket, :params, %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search})
   end
 
-  defp get_in_or_first(params, key, valid) do
+  def get_in_or_first(params, key, valid) do
     value = params[key]
     if value in valid, do: value, else: hd(valid)
   end
 
   def limit_options(), do: @limit
+
+
+  def filter_tab(socket, live_action, menu, params, filter, link_name) do
+    current_filter = Map.get(params, :filter, :started)
+    params = Map.put(params, :filter, filter)
+
+    class = if filter == current_filter, do: "nav-link active", else: "nav-link"
+
+    link_name 
+    |> live_patch(to: live_dashboard_path(socket, live_action, menu.node, [], params), class: class)
+  end
 
   def sort_link(socket, live_action, menu, params, sort_by, link_name) do
     case params do

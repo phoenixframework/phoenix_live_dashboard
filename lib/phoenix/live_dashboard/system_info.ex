@@ -32,8 +32,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
   end
 
-  def fetch_applications(node, search, sort_by, sort_dir, limit) do
-    :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
+  def fetch_applications(node, search, sort_by, sort_dir, limit, filter) do
+    :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit, filter])
   end
 
   def fetch_port_info(port, keys) do
@@ -177,10 +177,16 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     name =~ search or desc =~ search or version =~ search
   end
 
-  def applications_info_callback(search, sort_by, sort_dir, limit) do
+  def applications_info_callback(search, sort_by, sort_dir, limit, filter) do
     multiplier = sort_dir_multipler(sort_dir)
+    application_getter_fun =
+      cond do
+        filter == :started -> fn() -> Application.started_applications() end
+        true -> fn() -> Application.loaded_applications() end
+      end
+
     applications =
-      for application <- Application.loaded_applications(), show_application?(application, search) do
+      for application <- application_getter_fun.(), show_application?(application, search) do
         sorter = elem(application, %{name: 0, version: 2}[sort_by])
         sorter = cond do
           is_atom(sorter) -> hd(Atom.to_charlist(sorter)) * multiplier

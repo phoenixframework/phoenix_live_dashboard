@@ -5,25 +5,36 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   alias Phoenix.LiveDashboard.SystemInfo
 
   @sort_by ~w(name version)
+  @filter ~w(started loaded)
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, params, session, true)}
+    {:ok, 
+    socket
+    |> assign_defaults(params, session, true)}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply,
-     socket
-     |> assign_params(params, @sort_by)
-     |> fetch_applications()}
+    {:noreply, 
+        socket
+        |> assign_params(params, @sort_by)
+        |> assign_filter(params, @filter)
+        |> fetch_applications()}
   end
 
-  defp fetch_applications(socket) do
-    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = socket.assigns.params
+  defp assign_filter(socket, params, @filter) do
+     filter = params |> get_in_or_first("filter", @filter) |> String.to_atom()
+      socket
+     |> assign(:params, Map.put_new(socket.assigns.params, :filter, filter))
+
+  end
+
+  defp fetch_applications(%{assigns: %{params: params, menu: menu}} = socket) do
+    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit, filter: filter} = params
 
     {applications, count} =
-      SystemInfo.fetch_applications(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
+      SystemInfo.fetch_applications(menu.node, search, sort_by, sort_dir, limit, filter)
 
     assign(socket, applications: applications, count: count)
   end
@@ -33,7 +44,6 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
     ~L"""
     <div class="tabular-page">
       <h5 class="card-title">Applications</h5>
-
       <div class="tabular-search">
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
@@ -59,8 +69,15 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
           </div>
         </div>
       </form>
-
-      <div class="card table-card mb-4 mt-4">
+      <ul class="nav nav-tabs mt-4">
+        <li class="nav-item">
+          <%= filter_tab(@socket, @live_action, @menu, @params, :started, "Started") %>
+        </li>
+        <li class="nav-item">
+          <%= filter_tab(@socket, @live_action, @menu, @params, :loaded, "Loaded") %>
+        </li>
+      </ul>
+      <div class="card table-card mb-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
             <table class="table table-hover mt-0 dash-table clickable-rows">
