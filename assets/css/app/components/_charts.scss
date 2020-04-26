@@ -5,6 +5,11 @@
   .card {
     padding: 0.5rem;
 
+    .hint {
+      position: absolute;
+      right: 14px;
+    }
+
     .uplot {
       font-family: 'LiveDashboardFont';
       max-width: 100%;

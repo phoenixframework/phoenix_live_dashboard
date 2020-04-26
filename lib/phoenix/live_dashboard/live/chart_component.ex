@@ -14,6 +14,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
       if metric do
         assign(socket,
           title: chart_title(metric),
+          description: metric.description,
           kind: chart_kind(metric.__struct__),
           label: chart_label(metric),
           tags: Enum.join(metric.tags, "-"),
@@ -47,6 +48,11 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
               data-unit="<%= @unit %>">
           </div>
         </div>
+        <%= if @description do %>
+          <%= hint do %>
+            <%= @description %>
+          <% end %>
+        <% end %>
       </div>
     </div>
     """
