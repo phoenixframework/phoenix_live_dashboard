@@ -15,7 +15,8 @@ defmodule Phoenix.LiveDashboard.MixProject do
       name: "LiveDashboard",
       docs: docs(),
       homepage_url: "http://www.phoenixframework.org",
-      description: "Real-time performance dashboard for Phoenix"
+      description: "Real-time performance dashboard for Phoenix",
+      aliases: aliases()
     ]
   end
 
@@ -27,6 +28,12 @@ defmodule Phoenix.LiveDashboard.MixProject do
     [
       mod: {Phoenix.LiveDashboard.Application, []},
       extra_applications: [:logger]
+    ]
+  end
+
+  defp aliases do
+    [
+      dev: "run --no-halt dev.exs"
     ]
   end
 

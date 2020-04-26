@@ -125,7 +125,7 @@ For those planning to contribute to this project, you can run a dev version of t
 
     $ mix deps.get
     $ npm install --prefix assets
-    $ mix run --no-halt dev.exs
+    $ mix dev
 
 Alternatively, run `iex -S mix run dev.exs` if you also want a shell.
 
