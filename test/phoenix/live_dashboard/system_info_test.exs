@@ -112,10 +112,10 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       ~w(cpu_count cpu_nprocs)a
       |> Enum.each(fn key -> assert is_integer(os_data[key]) end)
 
-      ~w(system_mem cpu_per_core disk)a
+      ~w( cpu_per_core disk)a
       |> Enum.each(fn key -> assert is_list(os_data[key]) end)
 
-      ~w(cpu_total cpu_usage)a
+      ~w(cpu_total system_mem cpu_usage)a
       |> Enum.each(fn key -> assert is_map(os_data[key]) end)
     end
 
@@ -139,10 +139,10 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       ~w(cpu_count cpu_nprocs)a
       |> Enum.each(fn key -> assert is_integer(os_data[key]) end)
 
-      ~w(system_mem cpu_per_core disk)a
+      ~w(cpu_per_core disk)a
       |> Enum.each(fn key -> assert is_list(os_data[key]) end)
 
-      ~w(cpu_total cpu_usage)a
+      ~w(cpu_total system_mem cpu_usage)a
       |> Enum.each(fn key -> assert is_map(os_data[key]) end)
     end
   end

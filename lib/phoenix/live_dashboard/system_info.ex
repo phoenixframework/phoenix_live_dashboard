@@ -1,6 +1,6 @@
 defmodule Phoenix.LiveDashboard.SystemInfo do
   # Helpers for fetching and formatting system info.
-  @moduledoc false
+
 
   ## Fetchers
 
@@ -331,7 +331,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       end)
 
     cpu_total = calculate_cpu_total(cpu_per_core)
-    system_mem = :memsup.get_system_memory_data()
+    system_mem = :memsup.get_system_memory_data() |> Map.new()
     mem = :memsup.get_memory_data()
     disk = :disksup.get_disk_data()
     cpu_avg1 = :cpu_sup.avg1()
