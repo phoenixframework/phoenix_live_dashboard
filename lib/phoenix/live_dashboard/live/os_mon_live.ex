@@ -67,12 +67,11 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
         </h5>
         <div class="card mb-4">
           <div class="card-body resource-usage">
-            <%= for {num_cpu, usage} <- [{:all, @cpu_total} | @cpu_per_core] do %>
-              <%= format_cpu(num_cpu) %>
+            <%= for {num_cpu, usage} <- @cpu_per_core do %>
               <div class="progress flex-grow-1 mb-3">
               <%= for {_ , name, value, color} <- cpu_usage_sections(usage) do %>
                 <div
-                title="<%=name %> - <%= format_percent(value) %>"
+                title="CPU<%= num_cpu%>: <%=name %> - <%= format_percent(value) %>"
                 class="progress-bar resource-usage-section-1 bg-gradient-<%= color %>"
                 role="progressbar"
                 aria-valuenow="<%= Float.ceil(value, 1) %>"
@@ -112,7 +111,6 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
         </h5>
         <div class="card mb-4">
           <div class="card-body resource-usage">
-              CPU
               <div class="progress flex-grow-1 mb-3">
               <%= for {_ , name, value, color} <- cpu_usage_sections(@cpu_total) do %>
                 <div
@@ -222,6 +220,7 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
           </div>
         </div>
 
+      <!-- Memory component data -->
         <h5 class="card-title">Memory usage / limits</h5>
         <div class="card progress-section mb-4">
           <%= live_component @socket, BarComponent, id: :memory, percent: percent_memory(@system_mem), dir: :left, class: "card-body" do %>
@@ -233,6 +232,7 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
           <% end %>
         </div>
 
+      <!-- Swap component data -->
         <div class="card progress-section mb-4">
           <%= live_component @socket, BarComponent, id: :swap, percent: percent_swap(@system_mem), dir: :left, class: "card-body" do %>
             Swap
@@ -288,10 +288,6 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
   def percent_memory(%{free_memory: free, total_memory: total}) do
     (total - free) / total * 100
   end
-
-  defp format_cpu(cpu) when is_integer(cpu), do: cpu
-  defp format_cpu(cpu) when is_list(cpu), do: "all"
-  defp format_cpu(cpu), do: cpu
 
   defp memory_usage_sections(mem_usage) do
     @memory_usage_sections
