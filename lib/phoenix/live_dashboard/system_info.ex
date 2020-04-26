@@ -364,7 +364,6 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       end)
 
     cpu_total = calculate_cpu_total(cpu_per_core)
-    system_mem = :memsup.get_system_memory_data() |> Map.new()
     mem = :memsup.get_memory_data()
     disk = :disksup.get_disk_data()
     cpu_avg1 = :cpu_sup.avg1()
@@ -372,9 +371,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     cpu_avg15 = :cpu_sup.avg15()
     cpu_nprocs = :cpu_sup.nprocs()
     cpu_count = Enum.count(cpu_per_core)
+    sys_mem = :memsup.get_system_memory_data() |> Map.new()
+
+    in_use_memory =
+      sys_mem[:total_memory] - sys_mem[:cached_memory] - sys_mem[:buffered_memory] -
+        sys_mem[:free_memory]
 
     %{
-      system_mem: system_mem,
+      system_mem: Map.put(sys_mem, :in_use_memory, in_use_memory),
       mem: mem,
       disk: disk,
       cpu_usage: %{
