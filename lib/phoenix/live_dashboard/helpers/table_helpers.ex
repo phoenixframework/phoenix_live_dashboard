@@ -9,9 +9,9 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   @limit ~w(50 100 500 1000 5000)
   @sort_dir ~w(desc asc)
 
-  def assign_params(socket, params, sort_by) do
+  def assign_params(socket, params, sort_by, sort_dir \\ @sort_dir) do
     sort_by = params |> get_in_or_first("sort_by", sort_by) |> String.to_atom()
-    sort_dir = params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
+    sort_dir = params |> get_in_or_first("sort_dir", sort_dir) |> String.to_atom()
     limit = params |> get_in_or_first("limit", @limit) |> String.to_integer()
     search = params["search"]
     search = if search == "", do: nil, else: search

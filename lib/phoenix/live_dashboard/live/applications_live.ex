@@ -5,6 +5,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   alias Phoenix.LiveDashboard.SystemInfo
 
   @sort_by ~w(name version)
+  @sort_dir ~w(asc desc)
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
@@ -17,7 +18,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   def handle_params(params, _url, socket) do
     {:noreply,
      socket
-     |> assign_params(params, @sort_by)
+     |> assign_params(params, @sort_by, @sort_dir)
      |> fetch_applications()}
   end
 
@@ -34,7 +35,8 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   def render(assigns) do
     ~L"""
     <div class="tabular-page">
-      <h5 class="card-title">Loaded Applications</h5>
+      <h5 class="card-title">Applications</h5>
+
       <div class="tabular-search">
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
@@ -60,7 +62,8 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
           </div>
         </div>
       </form>
-      <div class="card table-card mb-4">
+
+      <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
             <table class="table table-hover mt-0 dash-table clickable-rows">
@@ -70,19 +73,19 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
                     <%= sort_link(@socket, @live_action, @menu, @params, :name, "Name") %>
                   </th>
                   <th>Description</th>
-                  <th>Started</th>
+                  <th>State</th>
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :version, "Version") %>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <%= for {name, desc, ver, is_started?} <- @applications do %>
-                  <tr class="<%= unless is_started?, do: "text-muted" %>">
-                    <td><%= name %></td>
-                    <td><%= desc %></td>
-                  <td><%= if is_started?, do: "Yes", else: "No" %></td>
-                    <td><%= ver %></td>
+                <%= for application <- @applications do %>
+                  <tr class="<%= if application[:state] == :loaded, do: "text-muted" %>">
+                    <td><%= application[:name] %></td>
+                    <td><%= application[:description] %></td>
+                    <td><%= application[:state] %></td>
+                    <td><%= application[:version] %></td>
                   </tr>
                 <% end %>
               </tbody>

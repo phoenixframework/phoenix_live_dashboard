@@ -109,12 +109,12 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       {[applications], _count} =
         SystemInfo.fetch_applications(node(), "ex_unit", :name, :asc, 100)
 
-      assert elem(applications, 0) == :ex_unit
+      assert applications[:name] == :ex_unit
 
       {applications, _count} =
         SystemInfo.fetch_applications(node(), "impossible", :name, :asc, 100)
 
-      assert Enum.empty?(applications)
+      assert applications == []
     end
   end
 
