@@ -1,5 +1,6 @@
 defmodule Phoenix.LiveDashboard.SystemInfo do
   # Helpers for fetching and formatting system info.
+  @moduledoc false
 
   ## Fetchers
 
