@@ -189,9 +189,9 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
             <div class="resource-usage-legend">
 
-              <div class="resource-usage-legend-entries row flex-column flex-wrap">
+              <div class="resource-usage-legend-entries-3 row flex-column flex-wrap">
                 <%= for {_, section_name, section_value, color} <- memory_usage_sections(@system_usage.memory) do %>
-                  <div class="col-lg-6 resource-usage-legend-entry d-flex align-items-center py-1 flex-grow-0">
+                  <div class="col-lg-6 resource-usage-legend-entry-3 d-flex align-items-center py-1 flex-grow-0">
                     <div class="resource-usage-legend-color bg-<%= color %> mr-2"></div>
                     <span><%=section_name %></span>
                     <span class="flex-grow-1 text-right text-muted">

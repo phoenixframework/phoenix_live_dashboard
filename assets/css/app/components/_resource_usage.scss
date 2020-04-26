@@ -28,12 +28,19 @@
     width: 16px;
   }
 
-  .resource-usage-legend-entries {
-    height: 100px;
+  .resource-usage-legend-entries-3 {
+    height: 96px;
   }
 
-  .resource-usage-legend-entry {
+  .resource-usage-legend-entries-4 {
+    height: 128px;
+  }
+
+  .resource-usage-legend-entry-3 {
     flex-basis: 33%;
+  }
+  .resource-usage-legend-entry-4 {
+    flex-basis: 25%;
   }
 
   .resource-usage-total {
@@ -48,11 +55,13 @@
 
 @media (max-width: map-get($grid-breakpoints, lg)) {
   .resource-usage {
-    .resource-usage-legend-entries {
+    .resource-usage-legend-entries-3,
+    .resource-usage-legend-entries-4 {
       height: auto;
     }
 
-    .resource-usage-legend-entry {
+    .resource-usage-legend-entry-3,
+    .resource-usage-legend-entry-4 {
       flex-basis: auto;
     }
   }

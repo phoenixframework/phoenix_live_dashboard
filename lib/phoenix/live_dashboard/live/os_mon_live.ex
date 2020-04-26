@@ -5,14 +5,14 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
   @temporary_assigns [system_info: nil, system_usage: nil]
 
   @cpu_usage_sections [
-    {:soft_irq, "Soft IRQ"},
-    {:hard_irq, "Hard IRQ"},
-    {:kernel, "Kernel"},
-    {:nice_user, "User nice"},
-    {:user, "User"},
-    {:steal, "Steal"},
-    {:idle, "Idle"},
-    {:wait, "Wait"}
+    {:kernel, "Kernel", "orange"},
+    {:user, "User", "purple"},
+    {:nice_user, "User nice", "green"},
+    #{:steal, "Steal", "dark-gray"},
+    {:soft_irq, "Soft IRQ", "blue"},
+    {:hard_irq, "Hard IRQ", "yellow"},
+    {:idle, "Idle", "dark-gray"},
+    #{:wait, "Wait", ""}
   ]
 
   @hidden ~w(/dev /win)
@@ -213,33 +213,35 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
 
     ~L"""
     <div class="row">
+      <!-- Left column -->
+      <!-- Cpu information -->
       <div class="col-sm-6">
         <h5 class="card-title">
           CPU
         </h5>
         <div class="card mb-4">
-          <div class="card-body memory-usage">
+          <div class="card-body resource-usage">
             <%= for {num_cpu, usage} <- [{:all, @cpu_total} | @cpu_per_core] do %>
               <%= format_cpu(num_cpu) %>
               <div class="progress flex-grow-1 mb-3">
-                <%= for {name, percent} <- usage do %>
-                  <div
-                  title="<%=name %> - <%= format_percent(percent) %>"
-                    class="progress-bar memory-usage-section-<%= format_cpu(num_cpu) %>"
-                    role="progressbar"
-                    aria-valuenow="<%= Float.ceil(percent, 1) %>"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    style="width: <%=percent %>%">
-                  </div>
+              <%= for {_ , name, value, color} <- cpu_usage_sections(usage) do %>
+                <div
+                title="<%=name %> - <%= format_percent(value) %>"
+                  class="progress-bar resource-usage-section-<%= format_cpu(num_cpu) %> bg-gradient-<%= color %>"
+                  role="progressbar"
+                  aria-valuenow="<%= Float.ceil(value, 1) %>"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  style="width: <%= value %>%">
+                </div>
                 <% end %>
               </div>
             <% end %>
-            <div class="memory-usage-legend">
-              <div class="memory-usage-legend-entries row flex-column flex-wrap">
-                <%= for {section_key, section_name, section_value} <- cpu_usage_sections(@cpu_total) do %>
-                  <div class="col-lg-6 memory-usage-legend-entry d-flex align-items-center py-1 flex-grow-0">
-                    <div class="memory-usage-legend-color memory-usage-section-<%= section_key %> mr-2"></div>
+            <div class="resource-usage-legend">
+              <div class="resource-usage-legend-entries-3 row flex-column flex-wrap">
+                <%= for {_ , section_name, section_value, color} <- cpu_usage_sections(@cpu_total) do %>
+                  <div class="col-lg-6 resource-usage-legend-entry-3 d-flex align-items-center py-1 flex-grow-0">
+                    <div class="resource-usage-legend-color bg-<%= color %> mr-2"></div>
                     <span><%=section_name %></span>
                     <span class="flex-grow-1 text-right text-muted">
                       <%= format_percent(section_value) %>
@@ -249,7 +251,7 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
               </div>
               <div class="row">
                 <div class="col">
-                  <div class="memory-usage-total text-center py-1 mt-3">
+                  <div class="resource-usage-total text-center py-1 mt-3">
                     Number of OS processes: <%= @cpu_nprocs %>
                   </div>
                 </div>
@@ -257,6 +259,7 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
             </div>
           </div>
         </div>
+      <!-- Usage over time data -->
         <h5 class="card-title">OS stats</h5>
         <div class="row">
           <div class="col-md-4 mb-4">
@@ -284,7 +287,11 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
             </div>
           </div>
         </div>
+      </div>
 
+      <!-- Right column -->
+      <!-- Memory data -->
+      <div class="col-sm-6">
         <h5 class="card-title">Memory usage / limits</h5>
         <div class="card progress-section mb-4">
           <%= live_component @socket, BarComponent, id: :memory, percent: percent_memory(@system_mem), dir: :left, class: "card-body" do %>
@@ -306,6 +313,7 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
           <% end %>
         </div>
 
+      <!-- Disk data -->
         <h5 class="card-title">Disk usage / limits</h5>
         <div class="card mb-4">
           <div class="card-body disk-usage">
@@ -367,10 +375,10 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
 
   defp cpu_usage_sections(cpu_usage) do
     @cpu_usage_sections
-    |> Enum.map(fn {section_key, section_name} ->
+    |> Enum.map(fn {section_key, section_name, color} ->
       value = cpu_usage[section_key]
 
-      {section_key, section_name, value}
+      {section_key, section_name, value, color}
     end)
   end
 
