@@ -24,6 +24,7 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   end
 
   def limit_options(), do: @limit
+
   def sort_link(socket, live_action, menu, params, sort_by, link_name) do
     case params do
       %{sort_by: ^sort_by, sort_dir: sort_dir} ->
