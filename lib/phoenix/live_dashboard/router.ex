@@ -36,6 +36,7 @@ defmodule Phoenix.LiveDashboard.Router do
         opts = Phoenix.LiveDashboard.Router.__options__(opts)
         live "/", Phoenix.LiveDashboard.HomeLive, :home, opts
         live "/:node", Phoenix.LiveDashboard.HomeLive, :home, opts
+        live "/:node/osmon", Phoenix.LiveDashboard.OsMonLive, :osmon, opts
         live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
         live "/:node/metrics/:group", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
         live "/:node/ports", Phoenix.LiveDashboard.PortsLive, :ports, opts

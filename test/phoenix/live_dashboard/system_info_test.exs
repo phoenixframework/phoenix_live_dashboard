@@ -96,6 +96,57 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
   end
 
+  describe "os_mon" do
+    Application.start(:sasl)
+    Application.start(:os_mon)
+
+    test "gimme all data" do
+      os_data = SystemInfo.os_mon_callback()
+      all_keys = Map.keys(os_data) |> Enum.sort()
+
+      required_keys =
+        ~w(cpu_count cpu_nprocs cpu_per_core cpu_total cpu_usage disk mem system_mem)a
+
+      assert all_keys == required_keys
+
+      ~w(cpu_count cpu_nprocs)a
+      |> Enum.each(fn key -> assert is_integer(os_data[key]) end)
+
+      ~w( cpu_per_core disk)a
+      |> Enum.each(fn key -> assert is_list(os_data[key]) end)
+
+      ~w(cpu_total system_mem cpu_usage)a
+      |> Enum.each(fn key -> assert is_map(os_data[key]) end)
+    end
+
+    test "total cpu" do
+      usage = %{val1: 1, val2: 2}
+      single_cpu = [{1, usage}]
+      double_cpu = [{1, usage}, {2, usage}]
+      assert SystemInfo.calculate_cpu_total(single_cpu) == %{val1: 1, val2: 2}
+      assert SystemInfo.calculate_cpu_total(double_cpu) == %{val1: 2, val2: 4}
+    end
+
+    test "rpc call all data" do
+      os_data = SystemInfo.fetch_os_mon_info(node())
+      all_keys = Map.keys(os_data) |> Enum.sort()
+
+      required_keys =
+        ~w(cpu_count cpu_nprocs cpu_per_core cpu_total cpu_usage disk mem system_mem)a
+
+      assert all_keys == required_keys
+
+      ~w(cpu_count cpu_nprocs)a
+      |> Enum.each(fn key -> assert is_integer(os_data[key]) end)
+
+      ~w(cpu_per_core disk)a
+      |> Enum.each(fn key -> assert is_list(os_data[key]) end)
+
+      ~w(cpu_total system_mem cpu_usage)a
+      |> Enum.each(fn key -> assert is_map(os_data[key]) end)
+    end
+  end
+
   defp open_socket() do
     {:ok, socket} = :gen_tcp.listen(0, ip: {127, 0, 0, 1})
     socket
