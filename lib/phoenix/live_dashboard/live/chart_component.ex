@@ -53,7 +53,13 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   end
 
   defp chart_title(metric) do
-    "#{Enum.join(metric.name, ".")}#{chart_tags(metric.tags)}"
+    "#{chart_type_name(metric)}(#{Enum.join(metric.name, ".")})#{chart_tags(metric.tags)}"
+  end
+
+  defp chart_type_name(%module{}) do
+    module
+    |> chart_kind()
+    |> to_string()
   end
 
   defp chart_tags([]), do: ""
