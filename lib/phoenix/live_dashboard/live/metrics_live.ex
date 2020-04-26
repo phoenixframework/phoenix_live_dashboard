@@ -44,15 +44,19 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   @impl true
   def render(assigns) do
     ~L"""
-    <ul class="nav nav-tabs mb-4 charts-nav">
-      <%= for group <- @groups do %>
-        <li class="nav-item">
-          <%= live_redirect(format_group_name(group),
-                to: live_dashboard_path(@socket, :metrics, @menu.node, [group]),
-                class: "nav-link #{if @group == group, do: "active"}") %>
-        </li>
-      <% end %>
-    </ul>
+    <div class="row">
+      <div class="container">
+        <ul class="nav nav-tabs mb-4 charts-nav">
+          <%= for group <- @groups do %>
+            <li class="nav-item">
+              <%= live_redirect(format_group_name(group),
+                    to: live_dashboard_path(@socket, :metrics, @menu.node, [group]),
+                    class: "nav-link #{if @group == group, do: "active"}") %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
 
     <%= if @metrics do %>
       <div class="phx-dashboard-metrics-grid row">
