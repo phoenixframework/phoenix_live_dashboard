@@ -109,6 +109,14 @@ scope "/" do
 end
 ```
 
+If you are running your application behind a proxy or a webserver, you also have to make sure they are configured for allowing WebSocket upgrades. For example, [here is an article](https://dennisreimann.de/articles/phoenix-nginx-config.html) on how to configure Nginx with Phoenix and WebSockets.
+
+Finally, you will also want to configure your `config/prod.exs` and use your domain name under the `check_origin` configuration:
+
+    check_origin: ["//myapp.com"]
+
+Then you should be good to go!
+
 <!-- MDOC !-->
 
 ## Contributing
