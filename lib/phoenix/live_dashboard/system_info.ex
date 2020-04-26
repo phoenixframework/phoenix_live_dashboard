@@ -32,6 +32,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
   end
 
+  def fetch_applications(node, search, sort_by, sort_dir, limit) do
+    :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
+  end
+
   def fetch_port_info(port, keys) do
     :rpc.call(node(port), __MODULE__, :port_info_callback, [port, keys])
   end
@@ -163,6 +167,40 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
+  ## Applications callbacks
+
+  def applications_info_callback(search, sort_by, sort_dir, limit) do
+    sorter = if sort_dir == :asc, do: &<=/2, else: &>=/2
+    started_apps_set = started_apps_set()
+
+    apps =
+      for {name, desc, version} <- Application.loaded_applications(),
+          description = List.to_string(desc),
+          version = List.to_string(version),
+          show_application?(name, description, version, search) do
+        state = if name in started_apps_set, do: :started, else: :loaded
+        [name: name, description: description, version: version, state: state]
+      end
+
+    count = length(apps)
+    apps = apps |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter) |> Enum.take(limit)
+    {apps, count}
+  end
+
+  defp show_application?(_, _, _, nil) do
+    true
+  end
+
+  defp show_application?(name, desc, version, search) do
+    Atom.to_string(name) =~ search or String.downcase(desc) =~ search or version =~ search
+  end
+
+  defp started_apps_set() do
+    Application.started_applications()
+    |> Enum.map(fn {name, _, _} -> name end)
+    |> MapSet.new()
+  end
+
   ## Ports callbacks
 
   @inet_ports ['tcp_inet', 'udp_inet', 'sctp_inet']
@@ -255,12 +293,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       for port <- Port.list(), info = socket_info(port), show_socket?(info, search), do: info
 
     count = length(sockets)
-
-    sockets =
-      sockets
-      |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter)
-      |> Enum.take(limit)
-
+    sockets = sockets |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter) |> Enum.take(limit)
     {sockets, count}
   end
 

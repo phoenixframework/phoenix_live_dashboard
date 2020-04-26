@@ -10,61 +10,64 @@ defmodule Phoenix.LiveDashboard.PortsLiveTest do
     assert rendered |> :binary.matches("</tr>") |> length() <= 100
 
     rendered = render_patch(live, "/dashboard/nonode@nohost/ports?limit=2")
-    assert rendered |> :binary.matches("</tr>") |> length() == 7
+    assert rendered |> :binary.matches("</tr>") |> length() > 2
   end
 
   test "search" do
-    Port.open({:spawn, "sleep 15"}, [:binary])
-    Port.open({:spawn, "cat"}, [:binary])
+    Port.open({:spawn, "sleep 5"}, [:binary])
 
     {:ok, live, _} = live(build_conn(), ports_path(50, "", :input, :desc))
     rendered = render(live)
-    assert rendered =~ "cat"
+    assert rendered =~ "forker"
     assert rendered =~ "sleep"
-    assert rendered =~ "ports out of 8"
+    assert rendered =~ "ports out of"
+    refute rendered =~ "ports out of 0"
+    refute rendered =~ "ports out of 1"
     assert rendered =~ ports_href(50, "", :input, :asc)
 
     {:ok, live, _} = live(build_conn(), ports_path(50, "sleep", :input, :desc))
 
     rendered = render(live)
     assert rendered =~ "sleep"
-    refute rendered =~ "cat"
+    refute rendered =~ "forker"
     assert rendered =~ "ports out of 1"
     assert rendered =~ ports_href(50, "sleep", :input, :asc)
+    refute rendered =~ ports_href(50, "forker", :input, :asc)
 
-    {:ok, live, _} = live(build_conn(), ports_path(50, "cat", :input, :desc))
+    {:ok, live, _} = live(build_conn(), ports_path(50, "forker", :input, :desc))
     rendered = render(live)
-    assert rendered =~ "cat"
+    assert rendered =~ "forker"
     refute rendered =~ "sleep"
     assert rendered =~ "ports out of 1"
-    assert rendered =~ ports_href(50, "cat", :input, :asc)
+    assert rendered =~ ports_href(50, "forker", :input, :asc)
+    refute rendered =~ ports_href(50, "sleep", :input, :asc)
   end
 
   test "order ports by output" do
     # We got already forker running as #Port<0.0>
     # And we need something thats on all systems and stays attached to the port
-    cat = Port.open({:spawn, "cat"}, [:binary])
-    send(cat, {self(), {:command, "increase output"}})
+    sleep = Port.open({:spawn, "sleep 5"}, [:binary])
+    send(sleep, {self(), {:command, "increase output"}})
 
     {:ok, live, _} = live(build_conn(), ports_path(50, "", :output, :asc))
     rendered = render(live)
-    assert rendered =~ ~r/forker.*cat/s
+    assert rendered =~ ~r/forker.*sleep/s
     assert rendered =~ ports_href(50, "", :output, :desc)
     refute rendered =~ ports_href(50, "", :output, :asc)
 
     rendered =
       render_patch(live, "/dashboard/nonode@nohost/ports?limit=50&sort_dir=desc&sort_by=output")
 
-    assert rendered =~ ~r/cat.*forker/s
-    refute rendered =~ ~r/forker.*cat/s
+    assert rendered =~ ~r/sleep.*forker/s
+    refute rendered =~ ~r/forker.*sleep/s
     assert rendered =~ ports_href(50, "", :output, :asc)
     refute rendered =~ ports_href(50, "", :output, :desc)
 
     rendered =
       render_patch(live, "/dashboard/nonode@nohost/ports?limit=50&sort_dir=asc&sort_by=output")
 
-    assert rendered =~ ~r/forker.*cat/s
-    refute rendered =~ ~r/cat.*forker/s
+    assert rendered =~ ~r/forker.*sleep/s
+    refute rendered =~ ~r/sleep.*forker/s
     assert rendered =~ ports_href(50, "", :output, :desc)
     refute rendered =~ ports_href(50, "", :output, :asc)
   end

@@ -79,8 +79,19 @@ $grid-breakpoints: (
   sm: 576px,
   md: 768px,
   lg: 992px,
-  xl: 1200px
-) !default;
+  xl: 1200px,
+  xxl: 1600px,
+  xxxl: 2600px
+);
+
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1140px,
+  xxxl: 1140px
+);
 
 // Bootstrap variable overrides
 $text-muted: change-color($text-color, $alpha: 0.5);
@@ -89,6 +100,6 @@ $font-family-sans-serif: 'LiveDashboardFont', -apple-system, BlinkMacSystemFont,
 $badge-border-radius: 3px;
 $btn-border-radius: 3px;
 $primary: $color-dashboard;
-
+@moduledoc false
 // Other
 $border-radius: 6px;
