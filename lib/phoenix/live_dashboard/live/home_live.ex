@@ -11,12 +11,12 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   ]
 
   @memory_usage_sections [
-    {:atom, "Atoms"},
-    {:binary, "Binary"},
-    {:code, "Code"},
-    {:ets, "ETS"},
-    {:process, "Processes"},
-    {:other, "Other"}
+    {:atom, "Atoms", "green"},
+    {:binary, "Binary", "blue"},
+    {:code, "Code", "purple"},
+    {:ets, "ETS", "yellow"},
+    {:process, "Processes", "orange"},
+    {:other, "Other", "dark-gray"}
   ]
 
   @impl true
@@ -64,7 +64,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         <div class="row">
           <%= for {section, title} <- versions_sections() do %>
             <div class="col mb-4">
-              <div class="banner-card background-<%= section %> text-white">
+              <div class="banner-card bg-<%= section %> text-white">
                 <h6 class="banner-card-title"><%= title %></h6>
                 <div class="banner-card-value"><%= @system_info[:"#{section}_version"] %></div>
               </div>
@@ -171,13 +171,13 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         </h5>
 
         <div class="card mb-4">
-          <div class="card-body memory-usage">
+          <div class="card-body resource-usage">
 
             <div class="progress flex-grow-1 mb-3">
-              <%= for {section_key, section_name, section_value} <- memory_usage_sections(@system_usage.memory) do %>
+              <%= for {_, section_name, section_value, color} <- memory_usage_sections(@system_usage.memory) do %>
                 <div
                   title="<%=section_name %> - <%=percentage(section_value, @system_usage.memory.total, round: true) %>%"
-                  class="progress-bar memory-usage-section-<%=section_key %>"
+                  class="progress-bar bg-gradient-<%= color %>"
                   role="progressbar"
                   aria-valuenow="<%=section_value %>"
                   aria-valuemin="0"
@@ -187,12 +187,12 @@ defmodule Phoenix.LiveDashboard.HomeLive do
               <% end %>
             </div>
 
-            <div class="memory-usage-legend">
+            <div class="resource-usage-legend">
 
-              <div class="memory-usage-legend-entries row flex-column flex-wrap">
-                <%= for {section_key, section_name, section_value} <- memory_usage_sections(@system_usage.memory) do %>
-                  <div class="col-lg-6 memory-usage-legend-entry d-flex align-items-center py-1 flex-grow-0">
-                    <div class="memory-usage-legend-color memory-usage-section-<%=section_key %> mr-2"></div>
+              <div class="resource-usage-legend-entries row flex-column flex-wrap">
+                <%= for {_, section_name, section_value, color} <- memory_usage_sections(@system_usage.memory) do %>
+                  <div class="col-lg-6 resource-usage-legend-entry d-flex align-items-center py-1 flex-grow-0">
+                    <div class="resource-usage-legend-color bg-<%= color %> mr-2"></div>
                     <span><%=section_name %></span>
                     <span class="flex-grow-1 text-right text-muted">
                       <%= format_bytes(section_value) %>
@@ -203,7 +203,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
               <div class="row">
                 <div class="col">
-                  <div class="memory-usage-total text-center py-1 mt-3">
+                  <div class="resource-usage-total text-center py-1 mt-3">
                     Total usage: <%= format_bytes(@system_usage.memory[:total]) %>
                   </div>
                 </div>
@@ -229,10 +229,10 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
   defp memory_usage_sections(memory_usage) do
     @memory_usage_sections
-    |> Enum.map(fn {section_key, section_name} ->
+    |> Enum.map(fn {section_key, section_name, color} ->
       value = Map.fetch!(memory_usage, section_key)
 
-      {section_key, section_name, value}
+      {section_key, section_name, value, color}
     end)
   end
 
