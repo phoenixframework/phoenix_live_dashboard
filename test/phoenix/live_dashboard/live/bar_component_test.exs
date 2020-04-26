@@ -5,7 +5,6 @@ defmodule Phoenix.LiveDashboard.BarComponentTest do
   alias Phoenix.LiveDashboard.BarComponent
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
-
   describe "rendering" do
     test "color bar component left" do
       result = render_bar(0.1, :left, "test-class")
@@ -14,6 +13,7 @@ defmodule Phoenix.LiveDashboard.BarComponentTest do
       assert result =~ "flex-row-reverse"
       assert result =~ "div class=\"test-class\""
     end
+
     test "color bar component" do
       result = render_bar(1.1, :right, "test-class")
       assert result =~ "123"
@@ -23,6 +23,12 @@ defmodule Phoenix.LiveDashboard.BarComponentTest do
   end
 
   defp render_bar(percent, dir, class) do
-    render_component(BarComponent, id: :id, percent: percent, dir: dir, class: class, inner_content: fn _ -> "123" end)
+    render_component(BarComponent,
+      id: :id,
+      percent: percent,
+      dir: dir,
+      class: class,
+      inner_content: fn _ -> "123" end
+    )
   end
 end
