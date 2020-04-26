@@ -123,8 +123,7 @@ Then you should be good to go!
 
 For those planning to contribute to this project, you can run a dev version of the dashboard with the following commands:
 
-    $ mix deps.get
-    $ npm install --prefix assets
+    $ mix setup
     $ mix dev
 
 Alternatively, run `iex -S mix run dev.exs` if you also want a shell.
