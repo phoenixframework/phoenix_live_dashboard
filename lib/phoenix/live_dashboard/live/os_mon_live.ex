@@ -105,6 +105,49 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
             </div>
           </div>
         </div>
+
+        <!-- Cpu total -->
+        <h5 class="card-title">
+          Total CPU
+        </h5>
+        <div class="card mb-4">
+          <div class="card-body resource-usage">
+              CPU
+              <div class="progress flex-grow-1 mb-3">
+              <%= for {_ , name, value, color} <- cpu_usage_sections(@cpu_total) do %>
+                <div
+                title="<%=name %> - <%= format_percent(value) %>"
+                class="progress-bar resource-usage-section-1 bg-gradient-<%= color %>"
+                role="progressbar"
+                aria-valuenow="<%= Float.ceil(value, 1) %>"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                style="width: <%= value %>%">
+                </div>
+                <% end %>
+              </div>
+            <div class="resource-usage-legend">
+              <div class="resource-usage-legend-entries-3 row flex-column flex-wrap">
+                <%= for {_ , name, value, color} <- cpu_usage_sections(@cpu_total) do %>
+                  <div class="col-lg-6 resource-usage-legend-entry-3 d-flex align-items-center py-1 flex-grow-0">
+                    <div class="resource-usage-legend-color bg-<%= color %> mr-2"></div>
+                    <span><%= name %></span>
+                    <span class="flex-grow-1 text-right text-muted">
+                      <%= format_percent(value) %>
+                    </span>
+                  </div>
+                <% end %>
+              </div>
+              <div class="row">
+                <div class="col">
+                  <div class="resource-usage-total text-center py-1 mt-3">
+                    Number of OS processes: <%= @cpu_nprocs %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       <!-- Usage over time data -->
         <h5 class="card-title">OS stats</h5>
         <div class="row">
