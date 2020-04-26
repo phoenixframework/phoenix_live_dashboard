@@ -69,12 +69,10 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
           <div class="card-body resource-usage">
             <%= for {num_cpu, usage} <- @cpu_per_core do %>
               <div class="progress flex-grow-1 mb-3">
-                <%= live_component @socket, ColorBarComponent, id: "c-#{num_cpu}", data: cpu_usage_sections(usage) do %>
-                <% end %>
+                <%= live_component @socket, ColorBarComponent, id: "c-#{num_cpu}", data: cpu_usage_sections(usage) %>
               </div>
             <% end %>
-            <%= live_component @socket, BarLegendComponent, id: :per_cpu_legend, data: cpu_usage_sections(@cpu_total), height: 3 do %>
-            <% end %>
+            <%= live_component @socket, BarLegendComponent, id: :per_cpu_legend, data: cpu_usage_sections(@cpu_total), height: 3 %>
             <div class="resource-usage-total text-center py-1 mt-3">
               Number of OS processes: <%= @cpu_nprocs %>
             </div>
@@ -87,10 +85,8 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
         </h5>
         <div class="card mb-4">
           <div class="card-body resource-usage">
-            <%= live_component @socket, ColorBarComponent, id: :total_cpu, data: cpu_usage_sections(@cpu_total) do %>
-            <% end %>
-            <%= live_component @socket, BarLegendComponent, id: :cpu_legend, data: cpu_usage_sections(@cpu_total), height: 3 do %>
-            <% end %>
+            <%= live_component @socket, ColorBarComponent, id: :total_cpu, data: cpu_usage_sections(@cpu_total) %>
+            <%= live_component @socket, BarLegendComponent, id: :cpu_legend, data: cpu_usage_sections(@cpu_total), height: 3 %>
             <div class="row">
               <div class="col">
                 <div class="resource-usage-total text-center py-1 mt-3">
@@ -139,10 +135,8 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
         </h5>
         <div class="card mb-4">
           <div class="card-body resource-usage">
-            <%= live_component @socket, ColorBarComponent, id: :memory_usage, data: memory_usage_sections(@system_mem) do %>
-            <% end %>
-            <%= live_component @socket, BarLegendComponent, id: :memory_legend, data: memory_usage_sections(@system_mem), height: 2 do %>
-            <% end %>
+            <%= live_component @socket, ColorBarComponent, id: :memory_usage, data: memory_usage_sections(@system_mem) %>
+            <%= live_component @socket, BarLegendComponent, id: :memory_legend, data: memory_usage_sections(@system_mem), height: 2 %>
             <div class="row">
               <div class="col">
                 <div class="resource-usage-total text-center py-1 mt-3">

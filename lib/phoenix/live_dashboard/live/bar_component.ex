@@ -9,14 +9,14 @@ defmodule Phoenix.LiveDashboard.BarComponent do
       </div>
       <div class="progress-section mb-4">
         <section>
-      <div class="progress <%= direction(@dir) %> flex-grow-1 mt-2">
+          <div class="progress <%= direction(@dir) %> flex-grow-1 mt-2">
             <div
-              class="progress-bar"
-              role="progressbar"
-              aria-valuenow="<%= @percent %>"
-              aria-valuemin="0"
-              aria-valuemax="100"
-              style="width: <%= @percent %>%"
+            class="progress-bar"
+            role="progressbar"
+            aria-valuenow="<%= @percent %>"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            style="width: <%= @percent %>%"
             >
             </div>
           </div>
