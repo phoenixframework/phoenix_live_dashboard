@@ -32,6 +32,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
   end
 
+  def fetch_applications(node, search, sort_by, sort_dir, limit) do
+    :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
+  end
+
   def fetch_port_info(port, keys) do
     :rpc.call(node(port), __MODULE__, :port_info_callback, [port, keys])
   end
@@ -157,6 +161,57 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       [_ | _] = info -> {:ok, info}
       nil -> :error
     end
+  end
+
+  ## Applications callbacks
+  #
+  defp show_application?(_, nil) do
+    true
+  end
+
+  defp show_application?(info, search) do
+    name = info |> elem(0) |> Atom.to_string()
+    desc = info |> elem(1) |> List.to_string() |> String.downcase()
+    version = info |> elem(2) |> List.to_string()
+
+    name =~ search or desc =~ search or version =~ search
+  end
+
+  def started_apps_set() do
+    Application.started_applications()
+    |> Enum.map(fn {name, _, _} -> name end)
+    |> MapSet.new()
+  end
+
+  def applications_info_callback(search, sort_by, sort_dir, limit) do
+    multiplier = sort_dir_multipler(sort_dir)
+    started_apps_set = started_apps_set()
+
+    loaded_apps =
+      Application.loaded_applications()
+      |> Enum.map(fn {name, desc, ver} ->
+        is_started? = MapSet.member?(started_apps_set, name)
+        {name, desc, ver, is_started?}
+      end)
+
+    apps =
+      for application <- loaded_apps, show_application?(application, search) do
+        sorter = elem(application, %{name: 0, version: 2}[sort_by])
+
+        sorter =
+          cond do
+            # sorts only on first character
+            is_atom(sorter) -> hd(Atom.to_charlist(sorter)) * multiplier
+            is_list(sorter) -> hd(sorter) * multiplier
+            true -> 0
+          end
+
+        {sorter, application}
+      end
+
+    count = length(apps)
+    apps = apps |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
+    {apps, count}
   end
 
   ## Ports callbacks

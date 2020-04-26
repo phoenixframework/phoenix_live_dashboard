@@ -23,6 +23,7 @@ defmodule Phoenix.LiveDashboard.MenuLive do
       <%= maybe_active_live_redirect @socket, @menu, "Home", :home, @node %>
       <%= maybe_enabled_live_redirect @socket, @menu, "Metrics", :metrics, @node %>
       <%= maybe_enabled_live_redirect @socket, @menu, "Request Logger", :request_logger, @node %>
+      <%= maybe_active_live_redirect @socket, @menu, "Applications", :applications, @node %>
       <%= maybe_active_live_redirect @socket, @menu, "Processes", :processes, @node %>
       <%= maybe_active_live_redirect @socket, @menu, "Ports", :ports, @node %>
       <%= maybe_active_live_redirect @socket, @menu, "Sockets", :sockets, @node %>
