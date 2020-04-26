@@ -25,6 +25,7 @@ defmodule Phoenix.LiveDashboard.BarComponent do
     </div>
     """
   end
+
   def direction(dir) when dir == :left, do: "flex-row-reverse"
   def direction(_), do: ""
 end

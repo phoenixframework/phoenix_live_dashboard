@@ -1,7 +1,6 @@
 defmodule Phoenix.LiveDashboard.SystemInfo do
   # Helpers for fetching and formatting system info.
 
-
   ## Fetchers
 
   def fetch_processes(node, search, sort_by, sort_dir, limit) do
