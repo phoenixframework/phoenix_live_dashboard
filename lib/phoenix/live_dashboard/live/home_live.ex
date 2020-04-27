@@ -1,6 +1,12 @@
 defmodule Phoenix.LiveDashboard.HomeLive do
   use Phoenix.LiveDashboard.Web, :live_view
-  alias Phoenix.LiveDashboard.{SystemInfo, SystemLimitComponent}
+
+  alias Phoenix.LiveDashboard.{
+    SystemInfo,
+    ColorBarComponent,
+    ColorBarLegendComponent,
+    SystemLimitComponent
+  }
 
   @temporary_assigns [system_info: nil, system_usage: nil]
 
@@ -172,59 +178,29 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
         <div class="card mb-4">
           <div class="card-body resource-usage">
-
-            <div class="progress flex-grow-1 mb-3">
-              <%= for {_, section_name, section_value, color} <- memory_usage_sections(@system_usage.memory) do %>
-                <div
-                  title="<%=section_name %> - <%=percentage(section_value, @system_usage.memory.total, round: true) %>%"
-                  class="progress-bar bg-gradient-<%= color %>"
-                  role="progressbar"
-                  aria-valuenow="<%=section_value %>"
-                  aria-valuemin="0"
-                  aria-valuemax="<%=@system_usage.memory.total %>"
-                  style="width: <%=percentage(section_value, @system_usage.memory.total) %>%">
-                </div>
-              <% end %>
-            </div>
-
-            <div class="resource-usage-legend">
-
-              <div class="resource-usage-legend-entries row flex-column flex-wrap">
-                <%= for {_, section_name, section_value, color} <- memory_usage_sections(@system_usage.memory) do %>
-                  <div class="col-lg-6 resource-usage-legend-entry d-flex align-items-center py-1 flex-grow-0">
-                    <div class="resource-usage-legend-color bg-<%= color %> mr-2"></div>
-                    <span><%=section_name %></span>
-                    <span class="flex-grow-1 text-right text-muted">
-                      <%= format_bytes(section_value) %>
-                    </span>
-                  </div>
-                <% end %>
-              </div>
-
-              <div class="row">
-                <div class="col">
-                  <div class="resource-usage-total text-center py-1 mt-3">
-                    Total usage: <%= format_bytes(@system_usage.memory[:total]) %>
-                  </div>
+            <%= live_component @socket, ColorBarComponent, id: :usage, data: memory_usage_sections_percent(@system_usage.memory, @system_usage.memory.total) %>
+            <%= live_component @socket, ColorBarLegendComponent, data: memory_usage_sections(@system_usage.memory), formatter: &format_bytes(&1) %>
+            <div class="row">
+              <div class="col">
+                <div class="resource-usage-total text-center py-1 mt-3">
+                  Total usage: <%= format_bytes(@system_usage.memory[:total]) %>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
+
       </div>
     </div>
     """
   end
 
-  defp percentage(value, total, options \\ [])
-
-  defp percentage(_value, 0, _options), do: 0
-
-  defp percentage(value, total, options) do
-    percent = Float.round(value / total * 100, 2)
-
-    if options[:round], do: round(percent), else: percent
+  defp memory_usage_sections_percent(memory_usage, total) do
+    memory_usage
+    |> memory_usage_sections()
+    |> Enum.map(fn {k, n, value, c} ->
+      {k, n, percentage(value, total), c}
+    end)
   end
 
   defp memory_usage_sections(memory_usage) do
