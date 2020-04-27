@@ -92,7 +92,6 @@ defmodule Phoenix.LiveDashboard.Router do
   def __session__(conn, metrics) do
     %{
       "metrics" => metrics,
-      "os_mon" => Application.get_application(:os_mon),
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
     }
   end

@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.OsMonLive do
+defmodule Phoenix.LiveDashboard.OSMonLive do
   use Phoenix.LiveDashboard.Web, :live_view
   alias Phoenix.LiveDashboard.{SystemInfo}
 
