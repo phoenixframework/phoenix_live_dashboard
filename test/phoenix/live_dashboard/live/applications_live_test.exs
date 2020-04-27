@@ -38,7 +38,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLiveTest do
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
 
-    refute rendered =~ ~s|<td>sasl|
+    refute rendered =~ ~s|<td>ssh|
 
     Application.load(:ssh)
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
