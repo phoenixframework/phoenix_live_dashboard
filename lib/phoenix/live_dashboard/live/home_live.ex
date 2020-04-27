@@ -179,7 +179,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         <div class="card mb-4">
           <div class="card-body resource-usage">
             <%= live_component @socket, ColorBarComponent, id: :usage, data: memory_usage_sections_percent(@system_usage.memory, @system_usage.memory.total) %>
-            <%= live_component @socket, ColorBarLegendComponent, id: :usage_legend, data: memory_usage_sections(@system_usage.memory), fn_format: &format_bytes(&1) %>
+            <%= live_component @socket, ColorBarLegendComponent, data: memory_usage_sections(@system_usage.memory), formatter: &format_bytes(&1) %>
             <div class="row">
               <div class="col">
                 <div class="resource-usage-total text-center py-1 mt-3">

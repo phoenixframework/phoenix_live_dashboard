@@ -3,7 +3,7 @@ defmodule Phoenix.LiveDashboard.ColorBarLegendComponent do
 
   def render(assigns) do
     height = if assigns[:height], do: assigns[:height], else: 3
-    fn_format = if assigns[:fn_format], do: assigns[:fn_format], else: &format_percent(&1)
+    formatter = if assigns[:formatter], do: assigns[:formatter], else: &format_percent(&1)
 
     ~L"""
     <div class="resource-usage-legend">
@@ -13,7 +13,7 @@ defmodule Phoenix.LiveDashboard.ColorBarLegendComponent do
           <div class="resource-usage-legend-color bg-<%= color %> mr-2"></div>
           <span><%= name %></span>
           <span class="flex-grow-1 text-right text-muted">
-          <%= fn_format.(value) %>
+          <%= formatter.(value) %>
           </span>
         </div>
         <% end %>
