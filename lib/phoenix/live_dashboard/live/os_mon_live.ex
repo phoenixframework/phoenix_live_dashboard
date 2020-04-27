@@ -1,18 +1,22 @@
 defmodule Phoenix.LiveDashboard.OSMonLive do
   use Phoenix.LiveDashboard.Web, :live_view
-  alias Phoenix.LiveDashboard.{SystemInfo, BarComponent, ColorBarComponent, ColorBarLegendComponent}
+
+  alias Phoenix.LiveDashboard.{
+    SystemInfo,
+    BarComponent,
+    ColorBarComponent,
+    ColorBarLegendComponent
+  }
 
   @temporary_assigns [system_info: nil, system_usage: nil]
 
   @cpu_usage_sections [
-    {:kernel, "Kernel", "orange"},
-    {:user, "User", "purple"},
+    {:kernel, "Kernel", "purple"},
+    {:user, "User", "blue"},
     {:nice_user, "User nice", "green"},
-    # {:steal, "Steal", "dark-gray"},
-    {:soft_irq, "Soft IRQ", "blue"},
+    {:soft_irq, "Soft IRQ", "orange"},
     {:hard_irq, "Hard IRQ", "yellow"},
     {:idle, "Idle", "dark-gray"}
-    # {:wait, "Wait", ""}
   ]
   @memory_usage_sections [
     {:in_use_memory, "In use", "purple"},
@@ -72,7 +76,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
                 <%= live_component @socket, ColorBarComponent, id: "c-#{num_cpu}", data: cpu_usage_sections(usage) %>
               </div>
             <% end %>
-            <%= live_component @socket, ColorBarLegendComponent, id: :per_cpu_legend, data: cpu_usage_sections(@cpu_total), options: [] %>
+            <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total) %>
             <div class="resource-usage-total text-center py-1 mt-3">
               Number of OS processes: <%= @cpu_nprocs %>
             </div>
@@ -86,7 +90,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
         <div class="card mb-4">
           <div class="card-body resource-usage">
             <%= live_component @socket, ColorBarComponent, id: :total_cpu, data: cpu_usage_sections(@cpu_total) %>
-            <%= live_component @socket, ColorBarLegendComponent, id: :cpu_legend, data: cpu_usage_sections(@cpu_total), options: [] %>
+            <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total) %>
             <div class="row">
               <div class="col">
                 <div class="resource-usage-total text-center py-1 mt-3">
@@ -136,7 +140,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
         <div class="card mb-4">
           <div class="card-body resource-usage">
             <%= live_component @socket, ColorBarComponent, id: :memory_usage, data: memory_usage_sections(@system_mem) %>
-            <%= live_component @socket, ColorBarLegendComponent, id: :memory_legend, data: memory_usage_sections(@system_mem), height: 2 %>
+            <%= live_component @socket, ColorBarLegendComponent, data: memory_usage_sections_bytes(@system_mem, @system_mem[:total_memory]), height: 2, formatter: &format_bytes(&1) %>
             <div class="row">
               <div class="col">
                 <div class="resource-usage-total text-center py-1 mt-3">
@@ -197,7 +201,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   end
 
   def swap_description(%{free_swap: free, total_swap: total}) do
-    "free #{format_bytes(free)} of #{format_bytes(total)}"
+    "Free #{format_bytes(free)} of #{format_bytes(total)}"
   end
 
   def percent_swap(%{free_swap: free, total_swap: total}) do
@@ -205,28 +209,41 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   end
 
   def memory_description(%{free_memory: free, total_memory: total}) do
-    "free #{format_bytes(free)} of #{format_bytes(total)}"
+    "Free #{format_bytes(free)} of #{format_bytes(total)}"
   end
 
   def percent_memory(%{free_memory: free, total_memory: total}) do
     (total - free) / total * 100
   end
 
+  defp bytes_from_percentage(percent, total) do
+    trunc(percent * total / 100)
+  end
+
+  defp memory_usage_sections_bytes(memory_usage, total_memory) do
+    memory_usage
+    |> memory_usage_sections()
+    |> Enum.map(fn {key, name, percent, color} ->
+      bytes = bytes_from_percentage(percent, total_memory)
+      {key, name, bytes, color}
+    end)
+  end
+
   defp memory_usage_sections(mem_usage) do
     @memory_usage_sections
-    |> Enum.map(fn {section_key, section_name, color} ->
-      value = percentage(mem_usage[section_key], mem_usage[:total_memory])
+    |> Enum.map(fn {key, name, color} ->
+      value = percentage(mem_usage[key], mem_usage[:total_memory])
 
-      {section_key, section_name, value, color}
+      {key, name, value, color}
     end)
   end
 
   defp cpu_usage_sections(cpu_usage) do
     @cpu_usage_sections
-    |> Enum.map(fn {section_key, section_name, color} ->
-      value = cpu_usage[section_key]
+    |> Enum.map(fn {key, name, color} ->
+      value = cpu_usage[key]
 
-      {section_key, section_name, value, color}
+      {key, name, value, color}
     end)
   end
 
