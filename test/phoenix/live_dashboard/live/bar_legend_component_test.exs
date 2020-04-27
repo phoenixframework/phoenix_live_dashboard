@@ -20,6 +20,6 @@ defmodule Phoenix.LiveDashboard.BarLegendComponentTest do
   end
 
   defp render_bar(data) do
-    render_component(BarLegendComponent, id: :id, data: data, height: 2)
+    render_component(BarLegendComponent, id: :id, data: data, options: [height: 2])
   end
 end

@@ -36,7 +36,7 @@ defmodule Phoenix.LiveDashboard.Router do
         opts = Phoenix.LiveDashboard.Router.__options__(opts)
         live "/", Phoenix.LiveDashboard.HomeLive, :home, opts
         live "/:node", Phoenix.LiveDashboard.HomeLive, :home, opts
-        live "/:node/osmon", Phoenix.LiveDashboard.OsMonLive, :osmon, opts
+        live "/:node/os_mon", Phoenix.LiveDashboard.OsMonLive, :os_mon, opts
         live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
         live "/:node/metrics/:group", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
         live "/:node/ports", Phoenix.LiveDashboard.PortsLive, :ports, opts
@@ -92,6 +92,7 @@ defmodule Phoenix.LiveDashboard.Router do
   def __session__(conn, metrics) do
     %{
       "metrics" => metrics,
+      "os_mon" => Application.get_application(:os_mon),
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
     }
   end
