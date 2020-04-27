@@ -16,6 +16,8 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     {:nice_user, "User nice", "green"},
     {:soft_irq, "Soft IRQ", "orange"},
     {:hard_irq, "Hard IRQ", "yellow"},
+    {:steal, "Steal", "purple"},
+    {:wait, "Wait", "orange"},
     {:idle, "Idle", "dark-gray"}
   ]
   @memory_usage_sections [
@@ -27,30 +29,10 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    socket = assign_defaults(socket, params, session, true)
-
-    %{
-      cpu_count: cpu_count,
-      cpu_nprocs: cpu_nprocs,
-      cpu_per_core: cpu_per_core,
-      cpu_total: cpu_total,
-      cpu_usage: cpu_usage,
-      disk: disk,
-      mem: mem,
-      system_mem: system_mem
-    } = SystemInfo.fetch_os_mon_info(socket.assigns.menu.node)
-
     socket =
-      assign(socket,
-        cpu_count: cpu_count,
-        cpu_nprocs: cpu_nprocs,
-        cpu_per_core: cpu_per_core,
-        cpu_total: cpu_total,
-        cpu_usage: cpu_usage,
-        disk: disk,
-        mem: mem,
-        system_mem: system_mem
-      )
+      socket
+      |> assign_defaults(params, session, true)
+      |> assign_system_info()
 
     {:ok, socket, temporary_assigns: @temporary_assigns}
   end
@@ -76,7 +58,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
                 <%= live_component @socket, ColorBarComponent, id: "c-#{num_cpu}", data: cpu_usage_sections(usage) %>
               </div>
             <% end %>
-            <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total) %>
+            <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total), height: 4 %>
             <div class="resource-usage-total text-center py-1 mt-3">
               Number of OS processes: <%= @cpu_nprocs %>
             </div>
@@ -90,7 +72,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
         <div class="card mb-4">
           <div class="card-body resource-usage">
             <%= live_component @socket, ColorBarComponent, id: :total_cpu, data: cpu_usage_sections(@cpu_total) %>
-            <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total) %>
+            <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total), height: 4 %>
             <div class="row">
               <div class="col">
                 <div class="resource-usage-total text-center py-1 mt-3">
@@ -247,15 +229,36 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     end)
   end
 
+  defp assign_system_info(socket) do
+    %{
+      cpu_count: cpu_count,
+      cpu_nprocs: cpu_nprocs,
+      cpu_per_core: cpu_per_core,
+      cpu_total: cpu_total,
+      cpu_usage: cpu_usage,
+      disk: disk,
+      mem: mem,
+      system_mem: system_mem
+    } = SystemInfo.fetch_os_mon_info(socket.assigns.menu.node)
+
+    assign(socket,
+      cpu_count: cpu_count,
+      cpu_nprocs: cpu_nprocs,
+      cpu_per_core: cpu_per_core,
+      cpu_total: cpu_total,
+      cpu_usage: cpu_usage,
+      disk: disk,
+      mem: mem,
+      system_mem: system_mem
+    )
+  end
+
   @impl true
   def handle_info({:node_redirect, node}, socket) do
     {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
   end
 
   def handle_info(:refresh, socket) do
-    socket
-    |> assign(os_mon_info: SystemInfo.fetch_os_mon_info(socket.assigns.menu.node))
-
-    {:noreply, socket}
+    {:noreply, assign_system_info(socket)}
   end
 end
