@@ -159,9 +159,9 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   defp memory_unit(:MB), do: 1024 * 1024
   defp memory_unit(:KB), do: 1024
 
-
   def percentage(value, total, options \\ [])
   def percentage(_value, 0, _options), do: 0
+
   def percentage(value, total, options) do
     percent = Float.round(value / total * 100, 2)
 

@@ -12,13 +12,15 @@ LiveDashboard provides real-time performance monitoring and debugging tools for 
 
   * Request logging - See everything that was logged for certain requests
 
-  * Processes - See, filter, and search processes in your application
+  * Applications - See, filter, and search applications in the current node
 
-  * Ports - See, filter, and search ports (responsible for I/O) in your application
+  * Processes - See, filter, and search processes in the current node
 
-  * Sockets - See, filter, and search sockets (responsible for tcp/udp) in your application
+  * Ports - See, filter, and search ports (responsible for I/O) in the current node
 
-  * ETS - See, filter, and search ETS tables (in-memory storage) in your application
+  * Sockets - See, filter, and search sockets (responsible for tcp/udp) in the current node
+
+  * ETS - See, filter, and search ETS tables (in-memory storage) in the current node
 
 The dashboard also works across nodes. If your nodes are connected via Distributed Erlang, then you can access information from node B while accessing the dashboard on node A.
 
@@ -123,11 +125,10 @@ Then you should be good to go!
 
 For those planning to contribute to this project, you can run a dev version of the dashboard with the following commands:
 
-    $ mix deps.get
-    $ npm install --prefix assets
-    $ mix run --no-halt dev.exs
+    $ mix setup
+    $ mix dev
 
-Alternatively, run `iex -S mix run dev.exs` if you also want a shell.
+Alternatively, run `iex -S mix dev` if you also want a shell.
 
 ## License
 

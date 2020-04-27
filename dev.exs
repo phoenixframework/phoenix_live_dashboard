@@ -35,6 +35,7 @@ defmodule DemoWeb.Telemetry do
     [
       # Phoenix Metrics
       last_value("phoenix.endpoint.stop.duration",
+        description: "Last value of phoenix.endpoint response time",
         unit: {:native, :millisecond}
       ),
       counter("phoenix.endpoint.stop.duration",

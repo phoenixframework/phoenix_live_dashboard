@@ -1,6 +1,12 @@
 defmodule Phoenix.LiveDashboard.HomeLive do
   use Phoenix.LiveDashboard.Web, :live_view
-  alias Phoenix.LiveDashboard.{SystemInfo, BarComponent, ColorBarComponent, BarLegendComponent, SystemLimitComponent}
+
+  alias Phoenix.LiveDashboard.{
+    SystemInfo,
+    ColorBarComponent,
+    ColorBarLegendComponent,
+    SystemLimitComponent
+  }
 
   @temporary_assigns [system_info: nil, system_usage: nil]
 
@@ -173,7 +179,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         <div class="card mb-4">
           <div class="card-body resource-usage">
             <%= live_component @socket, ColorBarComponent, id: :usage, data: memory_usage_sections_percent(@system_usage.memory, @system_usage.memory.total) %>
-            <%= live_component @socket, BarLegendComponent, id: :usage_legend, data: memory_usage_sections(@system_usage.memory), options: %{height: 3, fn_format: &format_bytes(&1)} %>
+            <%= live_component @socket, ColorBarLegendComponent, id: :usage_legend, data: memory_usage_sections(@system_usage.memory), fn_format: &format_bytes(&1) %>
             <div class="row">
               <div class="col">
                 <div class="resource-usage-total text-center py-1 mt-3">
@@ -189,11 +195,10 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     """
   end
 
-
   defp memory_usage_sections_percent(memory_usage, total) do
-  memory_usage
-  |> memory_usage_sections()
-  |> Enum.map(fn {k, n, value, c} ->
+    memory_usage
+    |> memory_usage_sections()
+    |> Enum.map(fn {k, n, value, c} ->
       {k, n, percentage(value, total), c}
     end)
   end
