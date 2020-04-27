@@ -136,7 +136,7 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
         <div class="card mb-4">
           <div class="card-body resource-usage">
             <%= live_component @socket, ColorBarComponent, id: :memory_usage, data: memory_usage_sections(@system_mem) %>
-            <%= live_component @socket, ColorBarLegendComponent, id: :memory_legend, data: memory_usage_sections(@system_mem), options: [height: 2] %>
+            <%= live_component @socket, ColorBarLegendComponent, id: :memory_legend, data: memory_usage_sections(@system_mem), height: 2 %>
             <div class="row">
               <div class="col">
                 <div class="resource-usage-total text-center py-1 mt-3">
