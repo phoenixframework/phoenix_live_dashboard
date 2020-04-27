@@ -199,7 +199,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     memory_usage
     |> memory_usage_sections()
     |> Enum.map(fn {k, n, value, c} ->
-      {k, n, percentage(value, total), c}
+      {k, n, percentage(value, total, 1), c}
     end)
   end
 
