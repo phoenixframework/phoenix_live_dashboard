@@ -52,6 +52,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :usage_callback, [])
   end
 
+  def fetch_os_mon_info(node) do
+    :rpc.call(node, __MODULE__, :os_mon_callback, [])
+  end
+
   ## System callbacks
 
   @doc false
@@ -331,6 +335,62 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       {:ok, module} -> module
       _ -> "prim_inet"
     end
+  end
+
+  ### OS_Mon callbacks
+
+  defp sum_cpu_usage(map, key) do
+    map
+    |> Enum.map(fn {_n, values} -> values[key] end)
+    |> Enum.sum()
+  end
+
+  def calculate_cpu_total([{_, core}] = per_core) when length(per_core) == 1, do: core
+
+  def calculate_cpu_total(per_core) do
+    first = per_core |> hd() |> elem(1)
+
+    first
+    |> Map.keys()
+    |> Enum.map(fn key -> {key, sum_cpu_usage(per_core, key)} end)
+    |> Map.new()
+  end
+
+  def os_mon_callback() do
+    cpu_per_core =
+      :cpu_sup.util([:detailed, :per_cpu])
+      |> Enum.map(fn {n, busy, non_b, _} ->
+        {n, Map.new(busy ++ non_b)}
+      end)
+
+    cpu_total = calculate_cpu_total(cpu_per_core)
+    mem = :memsup.get_memory_data()
+    disk = :disksup.get_disk_data()
+    cpu_avg1 = :cpu_sup.avg1()
+    cpu_avg5 = :cpu_sup.avg5()
+    cpu_avg15 = :cpu_sup.avg15()
+    cpu_nprocs = :cpu_sup.nprocs()
+    cpu_count = Enum.count(cpu_per_core)
+    sys_mem = :memsup.get_system_memory_data() |> Map.new()
+
+    in_use_memory =
+      sys_mem[:total_memory] - sys_mem[:cached_memory] - sys_mem[:buffered_memory] -
+        sys_mem[:free_memory]
+
+    %{
+      system_mem: Map.put(sys_mem, :in_use_memory, in_use_memory),
+      mem: mem,
+      disk: disk,
+      cpu_usage: %{
+        avg1: cpu_avg1,
+        avg5: cpu_avg5,
+        avg15: cpu_avg15
+      },
+      cpu_nprocs: cpu_nprocs,
+      cpu_count: cpu_count,
+      cpu_per_core: cpu_per_core,
+      cpu_total: cpu_total
+    }
   end
 
   ## Helpers
