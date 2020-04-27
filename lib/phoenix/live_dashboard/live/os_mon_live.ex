@@ -1,6 +1,6 @@
 defmodule Phoenix.LiveDashboard.OsMonLive do
   use Phoenix.LiveDashboard.Web, :live_view
-  alias Phoenix.LiveDashboard.{SystemInfo, BarComponent, ColorBarComponent, BarLegendComponent}
+  alias Phoenix.LiveDashboard.{SystemInfo, BarComponent, ColorBarComponent, ColorBarLegendComponent}
 
   @temporary_assigns [system_info: nil, system_usage: nil]
 
@@ -72,7 +72,7 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
                 <%= live_component @socket, ColorBarComponent, id: "c-#{num_cpu}", data: cpu_usage_sections(usage) %>
               </div>
             <% end %>
-            <%= live_component @socket, BarLegendComponent, id: :per_cpu_legend, data: cpu_usage_sections(@cpu_total), options: [] %>
+            <%= live_component @socket, ColorBarLegendComponent, id: :per_cpu_legend, data: cpu_usage_sections(@cpu_total), options: [] %>
             <div class="resource-usage-total text-center py-1 mt-3">
               Number of OS processes: <%= @cpu_nprocs %>
             </div>
@@ -86,7 +86,7 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
         <div class="card mb-4">
           <div class="card-body resource-usage">
             <%= live_component @socket, ColorBarComponent, id: :total_cpu, data: cpu_usage_sections(@cpu_total) %>
-            <%= live_component @socket, BarLegendComponent, id: :cpu_legend, data: cpu_usage_sections(@cpu_total), options: [] %>
+            <%= live_component @socket, ColorBarLegendComponent, id: :cpu_legend, data: cpu_usage_sections(@cpu_total), options: [] %>
             <div class="row">
               <div class="col">
                 <div class="resource-usage-total text-center py-1 mt-3">
@@ -136,7 +136,7 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
         <div class="card mb-4">
           <div class="card-body resource-usage">
             <%= live_component @socket, ColorBarComponent, id: :memory_usage, data: memory_usage_sections(@system_mem) %>
-            <%= live_component @socket, BarLegendComponent, id: :memory_legend, data: memory_usage_sections(@system_mem), options: [height: 2] %>
+            <%= live_component @socket, ColorBarLegendComponent, id: :memory_legend, data: memory_usage_sections(@system_mem), options: [height: 2] %>
             <div class="row">
               <div class="col">
                 <div class="resource-usage-total text-center py-1 mt-3">
@@ -192,10 +192,6 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
     """
   end
 
-  def get_percent(part, total) do
-    Float.ceil(part / total * 100, 1)
-  end
-
   def disk_description(percent, kbytes) do
     "#{format_percent(percent)} of #{format_k_bytes(kbytes)}"
   end
@@ -219,7 +215,7 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
   defp memory_usage_sections(mem_usage) do
     @memory_usage_sections
     |> Enum.map(fn {section_key, section_name, color} ->
-      value = get_percent(mem_usage[section_key], mem_usage[:total_memory])
+      value = percentage(mem_usage[section_key], mem_usage[:total_memory])
 
       {section_key, section_name, value, color}
     end)
@@ -241,7 +237,6 @@ defmodule Phoenix.LiveDashboard.OsMonLive do
 
   def handle_info(:refresh, socket) do
     socket
-    |> assign(system_usage: SystemInfo.fetch_system_usage(socket.assigns.menu.node))
     |> assign(os_mon_info: SystemInfo.fetch_os_mon_info(socket.assigns.menu.node))
 
     {:noreply, socket}

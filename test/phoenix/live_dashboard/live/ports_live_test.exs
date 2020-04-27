@@ -10,7 +10,7 @@ defmodule Phoenix.LiveDashboard.PortsLiveTest do
     assert rendered |> :binary.matches("</tr>") |> length() <= 100
 
     rendered = render_patch(live, "/dashboard/nonode@nohost/ports?limit=2")
-    assert rendered |> :binary.matches("</tr>") |> length() > 2
+    assert rendered |> :binary.matches("</tr>") |> length() > 1
   end
 
   test "search" do
@@ -21,8 +21,8 @@ defmodule Phoenix.LiveDashboard.PortsLiveTest do
     assert rendered =~ "forker"
     assert rendered =~ "sleep"
     assert rendered =~ "ports out of"
-    refute rendered =~ "ports out of 0"
     refute rendered =~ "ports out of 1"
+    refute rendered =~ "ports out of 0"
     assert rendered =~ ports_href(50, "", :input, :asc)
 
     {:ok, live, _} = live(build_conn(), ports_path(50, "sleep", :input, :desc))
