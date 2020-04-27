@@ -97,8 +97,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
   end
 
   describe "os_mon" do
-    Application.start(:sasl)
-    Application.start(:os_mon)
+    Application.ensure_all_started(:os_mon)
 
     test "gimme all data" do
       os_data = SystemInfo.os_mon_callback()
