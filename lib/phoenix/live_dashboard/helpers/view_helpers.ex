@@ -111,6 +111,19 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   end
 
   @doc """
+  Formats percent.
+  """
+  def format_percent(percent) when is_integer(percent) do
+    "#{percent}%"
+  end
+
+  def format_percent(percent) when is_float(percent) do
+    "#{Float.floor(percent, 1)}%"
+  end
+
+  def format_percent(nil), do: "0%"
+
+  @doc """
   Formats words as bytes.
   """
   def format_words(words) when is_integer(words) do
@@ -137,10 +150,23 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
     "#{:erlang.float_to_binary(value, decimals: 1)} #{unit}"
   end
 
+  def format_k_bytes(kbytes) when is_integer(kbytes) do
+    format_bytes(kbytes * 1024)
+  end
+
   defp memory_unit(:TB), do: 1024 * 1024 * 1024 * 1024
   defp memory_unit(:GB), do: 1024 * 1024 * 1024
   defp memory_unit(:MB), do: 1024 * 1024
   defp memory_unit(:KB), do: 1024
+
+  def percentage(value, total, options \\ [])
+  def percentage(_value, 0, _options), do: 0
+
+  def percentage(value, total, options) do
+    percent = Float.round(value / total * 100, 2)
+
+    if options[:round], do: round(percent), else: percent
+  end
 
   @doc """
   Shows a hint.
