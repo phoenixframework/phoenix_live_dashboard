@@ -21,7 +21,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   @memory_usage_sections [
     {:buffered_memory, "Buffered", "purple"},
     {:cached_memory, "Cached", "purple"},
-    {:free_memory, "Free", "green"}
+    {:free_memory, "Free", "purple"}
   ]
   @hide_disks ~w"/dev /run /sys"
 
@@ -63,6 +63,10 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
               <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@os_mon.cpu_total), height: 4 %>
             </div>
           </div>
+        <% else %>
+          <h5 class="card-title">
+            No CPU data found. Is os_mon running?
+          </h5>
         <% end %>
 
         <!-- Cpu total -->
@@ -123,7 +127,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
       <!-- Right column -->
       <div class="col-sm-6">
       <!-- Swap component data -->
-        <%= if @os_mon.system_mem.total_swap > 0 do %>
+        <%= if @os_mon.system_mem[:total_swap] not in [0, nil] do %>
           <h5 class="card-title">Memory usage / limits</h5>
           <div class="card progress-section mb-4">
             <%= live_component @socket, BarComponent, id: :swap, percent: percent_swap(@os_mon.system_mem), dir: :left, class: "card-body" do %>
@@ -138,7 +142,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
 
       <!-- Memory data -->
       <!-- Memory component data -->
-        <%= if @os_mon.system_mem.total_memory > 0 do %>
+        <%= if @os_mon.system_mem[:total_memory] not in [0, nil] do %>
           <h5 class="card-title">Memory usage / limits</h5>
           <div class="card progress-section mb-4">
             <%= live_component @socket, BarComponent, id: :memory, percent: percent_memory(@os_mon.system_mem), dir: :left, class: "card-body" do %>
@@ -149,19 +153,23 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
                </span>
             <% end %>
           </div>
+        <% else %>
+          <h5 class="card-title">
+            No Memory data found
+          </h5>
         <% end %>
 
-        <%= if @os_mon.system_mem.total_memory > 0 do %>
+        <%= if @os_mon.system_mem[:total_memory] not in [0, nil] do %>
           <h5 class="card-title">Memory detailed</h5>
           <div class="card progress-section mb-4">
             <div class="card-body disk-usage">
               <%= for {title, percent, color} <- get_memory_bars_data(@os_mon.system_mem) do %>
                 <%= live_component @socket, BarComponent, id: title, percent: percent, dir: :left, color: color  do %>
                   <%= title %>
-                    <span class="flex-grow-1">
-                    </span>
-                    <span class="text-right text-muted">
-                    </span>
+                  <span class="flex-grow-1">
+                  </span>
+                  <span class="text-right text-muted">
+                  </span>
                 <% end %>
               <% end %>
             </div>
@@ -175,15 +183,19 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
               <%= for {mountpoint, total, percent} <- hide_disks(@os_mon.disk) do %>
                 <%= live_component @socket, BarComponent, id: mountpoint, percent: percent, dir: :left  do %>
                   <%= mountpoint %>
-                    <span class="flex-grow-1">
+                  <span class="flex-grow-1">
                   </span>
                   <span class="text-right text-muted">
-                    <%= disk_description(percent, total) %>
+                  <%= disk_description(percent, total) %>
                   </span>
                 <% end %>
               <% end %>
             </div>
           </div>
+        <% else %>
+          <h5 class="card-title">
+            No Disk data found
+          </h5>
         <% end %>
 
       </div>

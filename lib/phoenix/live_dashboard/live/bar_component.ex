@@ -8,12 +8,12 @@ defmodule Phoenix.LiveDashboard.BarComponent do
   def render(assigns) do
     ~L"""
     <div class="<%= @class %>">
-      <div class="memory-usage-legend-entry d-flex align-items-center py-1 flex-grow-0">
-        <%= @inner_content.([]) %>
-      </div>
-      <div class="progress-section mb-4">
-        <section>
-          <div class="progress <%= direction(@dir) %> flex-grow-1 mt-2">
+      <section>
+        <div class="memory-usage-legend-entry d-flex align-items-center pt-1 flex-grow-0">
+          <%= @inner_content.([]) %>
+        </div>
+        <div class="progress-section">
+          <div class="progress <%= direction(@dir) %> flex-grow-1 mt-1">
             <div
             class="progress-bar bg-<%= @color %>"
             role="progressbar"
