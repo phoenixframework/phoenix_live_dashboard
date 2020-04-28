@@ -130,6 +130,7 @@ defmodule DemoWeb.Endpoint do
   plug DemoWeb.Router
 end
 
+Application.ensure_all_started(:os_mon)
 Application.put_env(:phoenix, :serve_endpoints, true)
 
 Task.start(fn ->

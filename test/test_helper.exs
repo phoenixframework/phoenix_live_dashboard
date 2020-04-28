@@ -57,5 +57,6 @@ defmodule Phoenix.LiveDashboardTest.Endpoint do
   plug Phoenix.LiveDashboardTest.Router
 end
 
+Application.ensure_all_started(:os_mon)
 Phoenix.LiveDashboardTest.Endpoint.start_link()
 ExUnit.start()
