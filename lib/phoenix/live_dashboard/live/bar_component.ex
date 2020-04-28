@@ -1,6 +1,10 @@
 defmodule Phoenix.LiveDashboard.BarComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
+  def mount(socket) do
+    {:ok, assign(socket, class: "", color: "blue", dir: :right)}
+  end
+
   def render(assigns) do
     ~L"""
     <div class="<%= @class %>">
@@ -11,7 +15,7 @@ defmodule Phoenix.LiveDashboard.BarComponent do
         <section>
           <div class="progress <%= direction(@dir) %> flex-grow-1 mt-2">
             <div
-            class="progress-bar"
+            class="progress-bar bg-<%= @color %>"
             role="progressbar"
             aria-valuenow="<%= @percent %>"
             aria-valuemin="0"
