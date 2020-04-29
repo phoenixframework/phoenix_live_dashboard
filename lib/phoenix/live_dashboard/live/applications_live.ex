@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @sort_by ~w(name version)
+  @sort_by ~w(name state)
   @sort_dir ~w(asc desc)
   @temporary_assigns [applications: [], total: 0]
 
@@ -40,7 +40,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or port" phx-debounce="300">
+              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search" phx-debounce="300">
             </div>
           </div>
         </form>
@@ -65,17 +65,17 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
       <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
-            <table class="table table-hover mt-0 dash-table clickable-rows">
+            <table class="table table-hover mt-0 dash-table">
               <thead>
                 <tr>
                   <th class="pl-4">
                     <%= sort_link(@socket, @live_action, @menu, @params, :name, "Name") %>
                   </th>
                   <th>Description</th>
-                  <th>State</th>
                   <th>
-                    <%= sort_link(@socket, @live_action, @menu, @params, :version, "Version") %>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :state, "State") %>
                   </th>
+                  <th>Version</th>
                 </tr>
               </thead>
               <tbody>
