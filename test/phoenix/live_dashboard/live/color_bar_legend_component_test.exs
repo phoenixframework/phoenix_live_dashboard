@@ -7,27 +7,20 @@ defmodule Phoenix.LiveDashboard.ColorBarLegendComponentTest do
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   @data [
-    {:in_use_memory, "In use", 4.0, "purple"}
+    {"In use", 4.0, "purple", "Hint"}
   ]
 
   describe "rendering" do
     test "color bar component" do
-      result = render_component(ColorBarLegendComponent, id: :id, data: @data)
+      result = render_component(ColorBarLegendComponent, data: @data)
       assert result =~ "bg-purple"
       assert result =~ "4.0%"
-      assert result =~ "resource-usage-legend-entry-3"
+      assert result =~ "<div class=\"hint\">"
+      assert result =~ "Hint"
     end
 
-    test "color bar component override height" do
-      result = render_component(ColorBarLegendComponent, id: :id, data: @data, height: 2)
-      assert result =~ "resource-usage-legend-entry-2"
-      refute result =~ "resource-usage-legend-entry-3"
-    end
-
-    test "color bar component override formatter" do
-      result =
-        render_component(ColorBarLegendComponent, id: :id, data: @data, formatter: &formatter(&1))
-
+    test "override formatter" do
+      result = render_component(ColorBarLegendComponent, data: @data, formatter: &formatter(&1))
       refute result =~ "4.0%"
       assert result =~ "400"
     end

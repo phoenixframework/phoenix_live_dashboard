@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.BarComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
   def mount(socket) do
-    {:ok, assign(socket, class: "", color: "blue", dir: :right)}
+    {:ok, assign(socket, class: "", color: "blue")}
   end
 
   def render(assigns) do
@@ -13,7 +13,7 @@ defmodule Phoenix.LiveDashboard.BarComponent do
           <%= @inner_content.([]) %>
         </div>
         <div class="progress-section">
-          <div class="progress <%= direction(@dir) %> flex-grow-1 mt-1">
+          <div class="progress flex-grow-1 mt-1">
             <div
             class="progress-bar bg-<%= @color %>"
             role="progressbar"
@@ -24,8 +24,8 @@ defmodule Phoenix.LiveDashboard.BarComponent do
             >
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
     """
   end

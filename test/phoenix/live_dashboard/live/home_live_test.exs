@@ -34,12 +34,12 @@ defmodule Phoenix.LiveDashboard.HomeLiveTest do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost")
     rendered = render(live)
 
-    assert rendered =~ ~r|<span>Atoms</span>|
-    assert rendered =~ ~r|<span>Binary</span>|
-    assert rendered =~ ~r|<span>Code</span>|
-    assert rendered =~ ~r|<span>ETS</span>|
-    assert rendered =~ ~r|<span>Processes</span>|
-    assert rendered =~ ~r|<span>Other</span>|
+    assert rendered =~ ~r|<span>Atoms </span>|
+    assert rendered =~ ~r|<span>Binary </span>|
+    assert rendered =~ ~r|<span>Code </span>|
+    assert rendered =~ ~r|<span>ETS </span>|
+    assert rendered =~ ~r|<span>Processes </span>|
+    assert rendered =~ ~r|<span>Other </span>|
     assert rendered =~ ~r|Total usage: \d+.\d+|
   end
 end

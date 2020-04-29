@@ -7,20 +7,18 @@ defmodule Phoenix.LiveDashboard.ColorBarComponentTest do
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   @data [
-    {:in_use_memory, "In use", 4.0, "purple"}
+    {"In use", 4.0, "purple", "unused"}
   ]
 
   describe "rendering" do
     test "color bar component" do
-      result = render_bar(@data)
+      result = render_component(ColorBarComponent, data: @data, title: "Hello")
       assert result =~ "bg-gradient-purple"
       assert result =~ "aria-valuenow=\"4.0\""
       assert result =~ "style=\"width: 4.0%\""
       assert result =~ "title=\"In use - 4.0%\""
+      assert result =~ "<span class=\"progress-title\">Hello</span>"
+      refute result =~ "unused"
     end
-  end
-
-  defp render_bar(data) do
-    render_component(ColorBarComponent, id: :id, data: data)
   end
 end

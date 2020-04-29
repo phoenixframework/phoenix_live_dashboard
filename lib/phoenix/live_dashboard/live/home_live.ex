@@ -146,9 +146,9 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
       <!-- Right column containing system usage information -->
       <div class="col-sm-6">
-        <h5 class="card-title">System usage / limits</h5>
+        <h5 class="card-title">System limits</h5>
 
-        <%= live_component @socket, SystemLimitComponent, id: :atoms, usage: @system_usage.atoms, limit: @system_limits.atoms do %>
+        <%= live_component @socket, SystemLimitComponent, usage: @system_usage.atoms, limit: @system_limits.atoms do %>
           Atoms
           <%= hint do %>
             If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
@@ -156,7 +156,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           <% end %>
         <% end %>
 
-        <%= live_component @socket, SystemLimitComponent, id: :ports, usage: @system_usage.ports, limit: @system_limits.ports do %>
+        <%= live_component @socket, SystemLimitComponent, usage: @system_usage.ports, limit: @system_limits.ports do %>
           Ports
           <%= hint do %>
             If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
@@ -164,7 +164,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           <% end %>
         <% end %>
 
-        <%= live_component @socket, SystemLimitComponent, id: :processes, usage: @system_usage.processes, limit: @system_limits.processes do %>
+        <%= live_component @socket, SystemLimitComponent, usage: @system_usage.processes, limit: @system_limits.processes do %>
           Processes
           <%= hint do %>
             If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
@@ -178,7 +178,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
         <div class="card mb-4">
           <div class="card-body resource-usage">
-            <%= live_component @socket, ColorBarComponent, id: :usage, data: memory_usage_sections_percent(@system_usage.memory, @system_usage.memory.total) %>
+            <%= live_component @socket, ColorBarComponent, data: memory_usage_sections_percent(@system_usage.memory, @system_usage.memory.total) %>
             <%= live_component @socket, ColorBarLegendComponent, data: memory_usage_sections(@system_usage.memory), formatter: &format_bytes(&1) %>
             <div class="row">
               <div class="col">
@@ -198,17 +198,15 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   defp memory_usage_sections_percent(memory_usage, total) do
     memory_usage
     |> memory_usage_sections()
-    |> Enum.map(fn {k, n, value, c} ->
-      {k, n, percentage(value, total), c}
+    |> Enum.map(fn {n, value, c, desc} ->
+      {n, percentage(value, total), c, desc}
     end)
   end
 
   defp memory_usage_sections(memory_usage) do
-    @memory_usage_sections
-    |> Enum.map(fn {section_key, section_name, color} ->
+    Enum.map(@memory_usage_sections, fn {section_key, section_name, color} ->
       value = Map.fetch!(memory_usage, section_key)
-
-      {section_key, section_name, value, color}
+      {section_name, value, color, nil}
     end)
   end
 

@@ -9,31 +9,33 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   }
 
   @cpu_usage_sections [
-    {:kernel, "Kernel", "purple"},
-    {:user, "User", "blue"},
-    {:nice_user, "User nice", "green"},
-    {:soft_irq, "Soft IRQ", "orange"},
-    {:hard_irq, "Hard IRQ", "yellow"},
-    {:steal, "Steal", "purple"},
-    {:wait, "Wait", "orange"},
-    {:idle, "Idle", "dark-gray"}
+    {:kernel, "Kernel", "purple", "Executing code in kernel mode"},
+    {:user, "User", "blue", "Executing code in user mode"},
+    {:nice_user, "User nice", "green", "Executing code in low-priority (nice)"},
+    {:soft_irq, "Soft IRQ", "orange", "Executing soft interrupts"},
+    {:hard_irq, "Hard IRQ", "yellow", "Executing hard interrupts"},
+    {:steal, "Steal", "purple", "Stolen time spent in virtualized OSes"},
+    {:wait, "Waiting", "orange", nil},
+    {:idle, "Idle", "dark-gray", nil}
   ]
+
   @memory_usage_sections [
-    {:buffered_memory, "Buffered", "purple"},
-    {:cached_memory, "Cached", "purple"},
-    {:free_memory, "Free", "purple"}
+    {"Used", :minus, :free_memory, :system_total_memory,
+     "The amount of memory used from the available memory"},
+    {"Buffered", :plus, :buffered_memory, :system_total_memory,
+     "The amount of memory used for temporary storing raw disk blocks"},
+    {"Cached", :plus, :cached_memory, :system_total_memory,
+     "The amount of memory used for cached files read from disk"},
+    {"Swap", :minus, :free_swap, :total_swap,
+     "The amount of disk swap memory used from the available swap"}
   ]
-  @hide_disks ~w"/dev /run /sys"
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
     socket =
       socket
       |> assign_defaults(params, session, true)
-
-    socket =
-      socket
-      |> assign(:os_mon, SystemInfo.fetch_os_mon_info(socket.assigns.menu.node))
+      |> assign_os_mon()
 
     {:ok, socket}
   end
@@ -42,214 +44,182 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, node()))}
   end
 
+  defp assign_os_mon(socket) do
+    os_mon = SystemInfo.fetch_os_mon_info(socket.assigns.menu.node)
+    cpu_count = length(os_mon.cpu_per_core)
+
+    assign(socket,
+      os_mon: os_mon,
+      cpu_count: cpu_count,
+      cpu_total: calculate_cpu_total(os_mon.cpu_per_core, cpu_count),
+      memory_usage: calculate_memory_usage(os_mon.system_mem)
+    )
+  end
+
+  defp calculate_memory_usage(system_memory) do
+    for {key, type, value_key, total_key, hint} <- @memory_usage_sections,
+        value = system_memory[value_key],
+        total = system_memory[total_key] do
+      actual_value = if type == :minus, do: total - value, else: value
+      {key, actual_value, total, percentage(actual_value, total), hint}
+    end
+  end
+
+  defp calculate_cpu_total([{_, core}], _cpu_count), do: core
+
+  defp calculate_cpu_total([{_, keys} | _] = per_core, cpu_count) do
+    keys
+    |> Map.keys()
+    |> Enum.map(fn key -> {key, avg_cpu_usage(per_core, key, cpu_count)} end)
+  end
+
+  defp avg_cpu_usage(map, key, count) do
+    map
+    |> Enum.map(fn {_n, values} -> values[key] end)
+    |> Enum.sum()
+    |> Kernel./(count)
+    |> Float.ceil(1)
+  end
+
   @impl true
   def render(assigns) do
     ~L"""
     <div class="row">
-      <!-- Left column -->
-      <!-- Cpu information -->
-      <div class="col-sm-6">
-        <%= if @os_mon.cpu_count > 0 do %>
+      <%= if @os_mon.cpu_nprocs > 0 do %>
+        <div class="col-sm-6">
           <h5 class="card-title">
-            Detailed CPU
-          </h5>
-          <div class="card mb-4">
-            <div class="card-body resource-usage">
-              <%= for {num_cpu, usage} <- @os_mon.cpu_per_core do %>
-                <div class="progress flex-grow-1 mb-3">
-                  <%= live_component @socket, ColorBarComponent, id: "c-#{num_cpu}", data: cpu_usage_sections(usage) %>
-                </div>
+            CPU
+            <%= hint do %>
+              <p>The load panes show the CPU demand in the last 1, 5 and 15 minutes over all cores.</p>
+
+              <%= if @cpu_count > 0 do %>
+                <p>The avg panes show the same values averaged across all cores.</p>
               <% end %>
-              <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@os_mon.cpu_total), height: 4 %>
-            </div>
-          </div>
-        <% else %>
-          <h5 class="card-title">
-            No CPU data found. Is os_mon running?
+             <% end %>
           </h5>
-        <% end %>
 
-        <!-- Cpu total -->
-        <%= if @os_mon.cpu_count > 0 do %>
-          <h5 class="card-title">
-            Total CPU
-          </h5>
-          <div class="card mb-4">
-            <div class="card-body resource-usage">
-              <%= live_component @socket, ColorBarComponent, id: :total_cpu, data: cpu_usage_sections(@os_mon.cpu_total) %>
-              <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@os_mon.cpu_total), height: 4 %>
-              <div class="row">
-                <div class="col">
-                  <%= if @os_mon.cpu_nprocs > 0 do %>
-                    <div class="resource-usage-total text-center py-1 mt-3">
-                      Number of OS processes: <%= @os_mon.cpu_nprocs %>
-                    </div>
-                  <% end %>
-                </div>
-              </div>
-            </div>
-          </div>
-        <% end %>
-
-      <!-- Usage over time data -->
-        <%= if @os_mon.cpu_count > 0 do %>
-          <h5 class="card-title">OS stats</h5>
           <div class="row">
             <div class="col-md-4 mb-4">
               <div class="banner-card">
                 <h6 class="banner-card-title">
-                  Cpu 1 min
+                  Load 1 min
                 </h6>
-                <div class="banner-card-value"><%= Float.ceil(@os_mon.cpu_usage.avg1 / @os_mon.cpu_count, 1) %>%</div>
+                <div class="banner-card-value"><%= rup(@os_mon.cpu_avg1) %></div>
               </div>
             </div>
             <div class="col-md-4 mb-4">
               <div class="banner-card">
                 <h6 class="banner-card-title">
-                  Cpu 5 min
+                  Load 5 min
                 </h6>
-                <div class="banner-card-value"><%= Float.ceil(@os_mon.cpu_usage.avg5 / @os_mon.cpu_count, 1) %>%</div>
+                <div class="banner-card-value"><%= rup(@os_mon.cpu_avg5) %></div>
               </div>
             </div>
             <div class="col-md-4 mb-4">
               <div class="banner-card">
                 <h6 class="banner-card-title">
-                  Cpu 15 min
+                  Load 15 min
                 </h6>
-                <div class="banner-card-value"><%= Float.ceil(@os_mon.cpu_usage.avg15 / @os_mon.cpu_count, 1) %>%</div>
+                <div class="banner-card-value"><%= rup(@os_mon.cpu_avg15) %></div>
               </div>
             </div>
-          </div>
-        <% end %>
 
-      </div>
+            <%= if @cpu_count > 0 do %>
+              <div class="col-md-4 mb-4">
+                <div class="banner-card">
+                  <h6 class="banner-card-title">
+                    Avg 1 min
+                  </h6>
+                  <div class="banner-card-value"><%= rup_avg(@os_mon.cpu_avg1, @cpu_count) %></div>
+                </div>
+              </div>
+              <div class="col-md-4 mb-4">
+                <div class="banner-card">
+                  <h6 class="banner-card-title">
+                    Avg 5 min
+                  </h6>
+                  <div class="banner-card-value"><%= rup_avg(@os_mon.cpu_avg5, @cpu_count) %></div>
+                </div>
+              </div>
+              <div class="col-md-4 mb-4">
+                <div class="banner-card">
+                  <h6 class="banner-card-title">
+                    Avg 15 min
+                  </h6>
+                  <div class="banner-card-value"><%= rup_avg(@os_mon.cpu_avg15, @cpu_count) %></div>
+                </div>
+              </div>
+            </div>
+          <% end %>
 
-      <!-- Right column -->
-      <div class="col-sm-6">
-      <!-- Swap component data -->
-        <%= if @os_mon.system_mem[:total_swap] not in [0, nil] do %>
-          <h5 class="card-title">Memory usage / limits</h5>
-          <div class="card progress-section mb-4">
-            <%= live_component @socket, BarComponent, id: :swap, percent: percent_swap(@os_mon.system_mem), dir: :left, class: "card-body" do %>
-              Swap
-               <span class="flex-grow-1"></span>
-               <span class="text-right text-muted">
-                 <%= swap_description(@os_mon.system_mem) %>
-               </span>
-            <% end %>
-          </div>
-        <% end %>
-
-      <!-- Memory data -->
-      <!-- Memory component data -->
-        <%= if @os_mon.system_mem[:total_memory] not in [0, nil] do %>
-          <h5 class="card-title">Memory usage / limits</h5>
-          <div class="card progress-section mb-4">
-            <%= live_component @socket, BarComponent, id: :memory, percent: percent_memory(@os_mon.system_mem), dir: :left, class: "card-body" do %>
-              Memory
-               <span class="flex-grow-1"></span>
-               <span class="text-right text-muted">
-                 <%= memory_description(@os_mon.system_mem) %>
-               </span>
-            <% end %>
-          </div>
-        <% else %>
-          <h5 class="card-title">
-            No Memory data found
-          </h5>
-        <% end %>
-
-        <%= if @os_mon.system_mem[:total_memory] not in [0, nil] do %>
-          <h5 class="card-title">Memory detailed</h5>
-          <div class="card progress-section mb-4">
-            <div class="card-body disk-usage">
-              <%= for {title, percent, color} <- get_memory_bars_data(@os_mon.system_mem) do %>
-                <%= live_component @socket, BarComponent, id: title, percent: percent, dir: :left, color: color  do %>
-                  <%= title %>
-                  <span class="flex-grow-1">
-                  </span>
-                  <span class="text-right text-muted">
-                  </span>
+          <%= if @os_mon.cpu_per_core != [] do %>
+            <div class="card mb-4">
+              <div class="card-body resource-usage">
+                <%= for {num_cpu, usage} <- @os_mon.cpu_per_core do %>
+                  <div class="progress flex-grow-1 mb-3">
+                    <%= live_component @socket, ColorBarComponent, data: cpu_usage_sections(usage), title: "CPU #{num_cpu+1}" %>
+                  </div>
                 <% end %>
+                <div class="progress flex-grow-1 mb-3">
+                  <%= live_component @socket, ColorBarComponent, data: cpu_usage_sections(@cpu_total), title: "TOTAL" %>
+                </div>
+                <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total) %>
+                <div class="resource-usage-total text-center py-1 mt-3">
+                  Number of OS processes: <%= @os_mon.cpu_nprocs %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%= if @memory_usage != [] do %>
+        <div class="<%= if @os_mon.cpu_nprocs > 0, do: "col-sm-6", else: "col-12" %>">
+          <h5 class="card-title">Memory</h5>
+          <%= for {title, value, total, percent, hint} <- @memory_usage do %>
+            <div class="card progress-section mb-4">
+              <%= live_component @socket, BarComponent, percent: percent, class: "card-body" do %>
+                <%= title %>&nbsp;<%= hint(do: hint) %>
+                <span class="flex-grow-1"></span>
+                <small class="text-right text-muted mr-2">
+                  <%= format_bytes(value) %> of <%= format_bytes(total) %>
+                </small>
+                <strong><%= percent %>%</strong>
               <% end %>
             </div>
-          </div>
-        <% end %>
-      <!-- Disk data -->
-        <%= if length(@os_mon.disk) > 0 do %>
-          <h5 class="card-title">Disk usage / limits</h5>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%= if @os_mon.disk != [] do %>
+        <div class="col-12">
+          <h5 class="card-title">Disk</h5>
           <div class="card mb-4">
             <div class="card-body disk-usage">
-              <%= for {mountpoint, total, percent} <- hide_disks(@os_mon.disk) do %>
-                <%= live_component @socket, BarComponent, id: mountpoint, percent: percent, dir: :left  do %>
+              <%= for {mountpoint, kbytes, percent} <- @os_mon.disk do %>
+                <%= live_component @socket, BarComponent, percent: percent do %>
                   <%= mountpoint %>
-                  <span class="flex-grow-1">
-                  </span>
+                  <span class="flex-grow-1"></span>
                   <span class="text-right text-muted">
-                  <%= disk_description(percent, total) %>
+                    <%= format_percent(percent) %> of <%= format_bytes(kbytes * 1024) %>
                   </span>
                 <% end %>
               <% end %>
             </div>
           </div>
-        <% else %>
-          <h5 class="card-title">
-            No Disk data found
-          </h5>
-        <% end %>
-
-      </div>
+        </div>
+      <% end %>
     </div>
     """
   end
 
-  defp hide_disks(disk_data) do
-    disk_data
-    |> Enum.filter(fn {mountpoint, _, _} ->
-      @hide_disks
-      |> Enum.map(fn mp ->
-        not (List.to_string(mountpoint) =~ mp)
-      end)
-      |> Enum.all?()
-    end)
-  end
-
-  defp get_memory_bars_data(system_memory) do
-    @memory_usage_sections
-    |> Enum.map(fn {key, name, color} ->
-      percentage = percentage(system_memory[key], system_memory[:system_total_memory], 1)
-
-      {name, percentage, color}
-    end)
-  end
-
-  defp disk_description(percent, kbytes) do
-    "#{format_percent(percent)} of #{format_kbytes(kbytes)}"
-  end
-
-  defp swap_description(%{free_swap: free, total_swap: total}) do
-    "Free #{format_bytes(free)} of #{format_bytes(total)}"
-  end
-
-  defp percent_swap(%{free_swap: free, total_swap: total}) do
-    (total - free) / total * 100
-  end
-
-  defp memory_description(%{free_memory: free, total_memory: total}) do
-    "Free #{format_bytes(free)} of #{format_bytes(total)}"
-  end
-
-  defp percent_memory(%{free_memory: free, total_memory: total}) do
-    (total - free) / total * 100
-  end
+  defp rup(value), do: Float.ceil(value / 256, 2)
+  defp rup_avg(value, count), do: Float.ceil(value / 256 / count, 2)
 
   defp cpu_usage_sections(cpu_usage) do
-    @cpu_usage_sections
-    |> Enum.map(fn {key, name, color} ->
-      value = cpu_usage[key]
-
-      {key, name, value, color}
-    end)
+    for {key, name, color, desc} <- @cpu_usage_sections, value = cpu_usage[key] do
+      {name, value, color, desc}
+    end
   end
 
   @impl true
@@ -258,8 +228,6 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   end
 
   def handle_info(:refresh, socket) do
-    {:noreply,
-     socket
-     |> assign(:os_mon, SystemInfo.fetch_os_mon_info(socket.assigns.menu.node))}
+    {:noreply, assign_os_mon(socket)}
   end
 end

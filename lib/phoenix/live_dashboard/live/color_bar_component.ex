@@ -1,10 +1,15 @@
 defmodule Phoenix.LiveDashboard.ColorBarComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
+  def mount(socket) do
+    {:ok, assign(socket, :title, nil)}
+  end
+
   def render(assigns) do
     ~L"""
     <div class="progress flex-grow-1 mb-3">
-    <%= for {_ , name, value, color} <- @data do %>
+      <span class="progress-title"><%= @title %></span>
+    <%= for {name, value, color, _desc} <- @data do %>
       <div
       title="<%=name %> - <%= format_percent(value) %>"
       class="progress-bar bg-gradient-<%= color %>"

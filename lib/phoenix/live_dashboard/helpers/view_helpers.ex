@@ -147,10 +147,6 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
     "#{:erlang.float_to_binary(value, decimals: 1)} #{unit}"
   end
 
-  def format_kbytes(kbytes) when is_integer(kbytes) do
-    format_bytes(kbytes * 1024)
-  end
-
   defp memory_unit(:TB), do: 1024 * 1024 * 1024 * 1024
   defp memory_unit(:GB), do: 1024 * 1024 * 1024
   defp memory_unit(:MB), do: 1024 * 1024
