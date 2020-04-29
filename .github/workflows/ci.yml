@@ -9,7 +9,7 @@ on:
 jobs:
   mix_test:
     name: mix test (Elixir ${{matrix.elixir}} | OTP ${{matrix.otp}})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     services:
       pg:
         image: postgres:11
@@ -23,6 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest]
         include:
           - elixir: 1.7.4
             otp: 21.3.8.17
@@ -60,7 +61,10 @@ jobs:
 
   npm_test:
     name: npm test
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-elixir@v1
