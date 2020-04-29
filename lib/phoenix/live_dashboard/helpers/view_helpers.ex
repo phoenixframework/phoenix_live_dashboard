@@ -113,6 +113,11 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   @doc """
   Formats percent.
   """
+  def format_percent(percent) when is_float(percent) do
+    "#{Float.round(percent, 1)}%"
+  end
+
+  def format_percent(nil), do: "0%"
   def format_percent(percent), do: "#{percent}%"
 
   @doc """
@@ -153,6 +158,7 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
 
   def percentage(value, total, rounds \\ 1)
   def percentage(_value, 0, _rounds), do: 0
+  def percentage(nil, _total, _rounds), do: 0
   def percentage(value, total, rounds), do: Float.round(value / total * 100, rounds)
 
   @doc """

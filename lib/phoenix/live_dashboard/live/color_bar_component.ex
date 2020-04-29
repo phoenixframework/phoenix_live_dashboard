@@ -7,7 +7,7 @@ defmodule Phoenix.LiveDashboard.ColorBarComponent do
     <%= for {_ , name, value, color} <- @data do %>
       <div
       title="<%=name %> - <%= format_percent(value) %>"
-      class="progress-bar resource-usage-section-1 bg-gradient-<%= color %>"
+      class="progress-bar bg-gradient-<%= color %>"
       role="progressbar"
       aria-valuenow="<%= maybe_round(value) %>"
       aria-valuemin="0"
