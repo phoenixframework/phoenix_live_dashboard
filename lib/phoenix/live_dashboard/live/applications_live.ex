@@ -6,12 +6,11 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
 
   @sort_by ~w(name version)
   @sort_dir ~w(asc desc)
+  @temporary_assigns [applications: [], total: 0]
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok,
-     socket
-     |> assign_defaults(params, session, true)}
+    {:ok, assign_defaults(socket, params, session, true), temporary_assigns: @temporary_assigns}
   end
 
   @impl true
@@ -25,10 +24,10 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   defp fetch_applications(%{assigns: %{params: params, menu: menu}} = socket) do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
 
-    {applications, count} =
+    {applications, total} =
       SystemInfo.fetch_applications(menu.node, search, sort_by, sort_dir, limit)
 
-    assign(socket, applications: applications, count: count)
+    assign(socket, applications: applications, total: total)
   end
 
   @impl true
@@ -58,7 +57,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
             </div>
           </div>
           <div class="col-auto">
-            applications out of <%= @count %>
+            applications out of <%= @total %>
           </div>
         </div>
       </form>

@@ -5,10 +5,11 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
   alias Phoenix.LiveDashboard.{SystemInfo, SocketInfoComponent}
 
   @sort_by ~w(send_oct recv_oct module connected local_address foreign_address state type)
+  @temporary_assigns [sockets: [], total: 0]
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, params, session, true)}
+    {:ok, assign_defaults(socket, params, session, true), temporary_assigns: @temporary_assigns}
   end
 
   @impl true

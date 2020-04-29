@@ -5,10 +5,11 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   alias Phoenix.LiveDashboard.{SystemInfo, EtsInfoComponent}
 
   @sort_by ~w(size memory)
+  @temporary_assigns [tables: [], total: 0]
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, params, session, true)}
+    {:ok, assign_defaults(socket, params, session, true), temporary_assigns: @temporary_assigns}
   end
 
   @impl true

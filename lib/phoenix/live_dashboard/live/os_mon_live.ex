@@ -8,6 +8,8 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     ColorBarLegendComponent
   }
 
+  @temporary_assigns [os_mon: nil, memory_usage: nil, cpu_total: nil, cpu_count: 0]
+
   @cpu_usage_sections [
     {:kernel, "Kernel", "purple", "Executing code in kernel mode"},
     {:user, "User", "blue", "Executing code in user mode"},
@@ -37,7 +39,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
       |> assign_defaults(params, session, true)
       |> assign_os_mon()
 
-    {:ok, socket}
+    {:ok, socket, temporary_assigns: @temporary_assigns}
   end
 
   def mount(_params, _session, socket) do
@@ -64,6 +66,8 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
       {key, actual_value, total, percentage(actual_value, total), hint}
     end
   end
+
+  defp calculate_cpu_total([], _cpu_count), do: nil
 
   defp calculate_cpu_total([{_, core}], _cpu_count), do: core
 
@@ -152,12 +156,12 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
             </div>
           <% end %>
 
-          <%= if @os_mon.cpu_per_core != [] do %>
+          <%= if @cpu_total do %>
             <div class="card mb-4">
               <div class="card-body resource-usage">
                 <%= for {num_cpu, usage} <- @os_mon.cpu_per_core do %>
                   <div class="progress flex-grow-1 mb-3">
-                    <%= live_component @socket, ColorBarComponent, data: cpu_usage_sections(usage), title: "CPU #{num_cpu+1}" %>
+                    <%= live_component @socket, ColorBarComponent, id: {:cpu, num_cpu}, data: cpu_usage_sections(usage), title: "CPU #{num_cpu+1}" %>
                   </div>
                 <% end %>
                 <div class="progress flex-grow-1 mb-3">
@@ -178,7 +182,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
           <h5 class="card-title">Memory</h5>
           <%= for {title, value, total, percent, hint} <- @memory_usage do %>
             <div class="card progress-section mb-4">
-              <%= live_component @socket, BarComponent, percent: percent, class: "card-body" do %>
+              <%= live_component @socket, BarComponent, id: {:memory, title}, percent: percent, class: "card-body" do %>
                 <%= title %>&nbsp;<%= hint(do: hint) %>
                 <span class="flex-grow-1"></span>
                 <small class="text-right text-muted mr-2">
@@ -197,7 +201,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
           <div class="card mb-4">
             <div class="card-body disk-usage">
               <%= for {mountpoint, kbytes, percent} <- @os_mon.disk do %>
-                <%= live_component @socket, BarComponent, percent: percent do %>
+                <%= live_component @socket, BarComponent, id: {:disk, mountpoint}, percent: percent do %>
                   <%= mountpoint %>
                   <span class="flex-grow-1"></span>
                   <span class="text-right text-muted">

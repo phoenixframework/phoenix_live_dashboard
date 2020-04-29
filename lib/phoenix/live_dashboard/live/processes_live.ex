@@ -5,10 +5,11 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   alias Phoenix.LiveDashboard.{SystemInfo, ProcessInfoComponent}
 
   @sort_by ~w(memory reductions message_queue_len)
+  @temporary_assigns [processes: [], total: 0]
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, params, session, true)}
+    {:ok, assign_defaults(socket, params, session, true), temporary_assigns: @temporary_assigns}
   end
 
   @impl true

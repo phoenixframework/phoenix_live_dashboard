@@ -359,7 +359,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       cpu_nprocs: :cpu_sup.nprocs(),
       cpu_per_core: cpu_per_core,
       disk: disk,
-      system_mem: :memsup.get_system_memory_data(),
+      system_mem: :memsup.get_system_memory_data()
     }
   end
 
