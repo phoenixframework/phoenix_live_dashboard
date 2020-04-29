@@ -53,7 +53,7 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   end
 
   @doc """
-  Decodes the PID from URL.
+  Decodes the Port from URL.
   """
   def decode_port(port_str) do
     :erlang.list_to_port('#Port<' ++ String.to_charlist(port_str) ++ '>')
