@@ -76,7 +76,8 @@ defmodule Phoenix.LiveDashboard.MixProject do
   defp extras do
     [
       "guides/metrics.md",
-      "guides/request_logger.md"
+      "guides/request_logger.md",
+      "guides/os_mon.md"
     ]
   end
 
