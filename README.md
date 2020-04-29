@@ -8,6 +8,8 @@ LiveDashboard provides real-time performance monitoring and debugging tools for 
 
   * Home - See general information about the system
 
+  * OS Data - See general information about OS, such as CPU, Memory and Disk usage
+
   * Metrics - See how your application performs under different conditions by visualizing [`:telemetry`](https://hexdocs.pm/telemetry) events with real-time charts
 
   * Request logging - See everything that was logged for certain requests

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.1 (2020-04-29)
+
+* Add "Applications" page
+* Add "OS Data" page
+
 ## v0.2.0 (2020-04-22)
 
 * Add "Ports" page
