@@ -20,5 +20,6 @@ defmodule Phoenix.LiveDashboard.ColorBarComponent do
   end
 
   defp maybe_round(num) when is_integer(num), do: num
-  defp maybe_round(num), do: Float.ceil(num, 1)
+  defp maybe_round(num) when is_float(num), do: Float.ceil(num, 1)
+  defp maybe_round(_), do: 0
 end
