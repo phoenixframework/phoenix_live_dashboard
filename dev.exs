@@ -35,6 +35,7 @@ defmodule DemoWeb.Telemetry do
     [
       # Phoenix Metrics
       last_value("phoenix.endpoint.stop.duration",
+        description: "Last value of phoenix.endpoint response time",
         unit: {:native, :millisecond}
       ),
       counter("phoenix.endpoint.stop.duration",
@@ -129,6 +130,7 @@ defmodule DemoWeb.Endpoint do
   plug DemoWeb.Router
 end
 
+Application.ensure_all_started(:os_mon)
 Application.put_env(:phoenix, :serve_endpoints, true)
 
 Task.start(fn ->

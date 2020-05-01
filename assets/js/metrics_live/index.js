@@ -6,7 +6,7 @@ const SeriesValue = (options) => {
   if (!options.unit) return {}
 
   return {
-    value: (u, v) => v === null ? '' : v.toFixed(3) + ` ${options.unit}`
+    value: (u, v) => v == null ? '--' : v.toFixed(3) + ` ${options.unit}`
   }
 }
 
@@ -44,6 +44,26 @@ const YAxis = (options) => {
     size: 70,
     space: 15,
     ...YAxisValue(options)
+  }
+}
+
+const minChartSize = {
+  width: 100,
+  height: 300
+}
+
+// Limits how often a funtion is invoked
+function throttle(cb, limit) {
+  let wait = false;
+
+  return () => {
+    if (!wait) {
+      requestAnimationFrame(cb);
+      wait = true;
+      setTimeout(() => {
+        wait = false;
+      }, limit);
+    }
   }
 }
 
@@ -262,8 +282,12 @@ export class TelemetryChart {
     }
 
     const metric = __METRICS__[options.metric]
-    const chart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)
-    this.metric = new metric(chart, options)
+    this.uplotChart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)
+    this.metric = new metric(this.uplotChart, options)
+  }
+
+  resize(boundingBox) {
+    this.uplotChart.setSize({width: Math.max(boundingBox.width, minChartSize.width), height: minChartSize.height});
   }
 
   pushData(measurements) {
@@ -280,12 +304,18 @@ const PhxChartComponent = {
     let size = chartEl.getBoundingClientRect()
     let options = Object.assign({}, chartEl.dataset, {
       tagged: (chartEl.dataset.tags && chartEl.dataset.tags !== "") || false,
-      width: size.width,
-      height: 300,
+      width: Math.max(size.width, minChartSize.width),
+      height: minChartSize.height,
       now: (new Date()).getTime() / 1000
     })
 
     this.chart = new TelemetryChart(chartEl, options)
+
+    window.addEventListener("resize", throttle(() => {
+      let newSize = chartEl.getBoundingClientRect()
+      this.chart.resize(newSize)
+    }))
+    
   },
   updated() {
     const data = Array

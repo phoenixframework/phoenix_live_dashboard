@@ -22,6 +22,14 @@ $color-phoenix-accent: #dfa843;
 $color-dashboard: #4575cf;
 $color-dashboard-accent: #36a4ee;
 
+// Colors used when visualising data
+$color-green: #4db167;
+$color-blue: #5d89c7;
+$color-purple: $color-elixir;
+$color-yellow: #f9bc14;
+$color-orange: $color-phoenix;
+$color-dark-gray: shade-color($color-gray, 4);
+
 // Basic
 $color-gray-100: tint-color($color-gray, 8);
 $color-gray-200: tint-color($color-gray, 6);
@@ -71,16 +79,19 @@ $grid-breakpoints: (
   sm: 576px,
   md: 768px,
   lg: 992px,
-  xl: 1200px
-) !default;
+  xl: 1200px,
+  xxl: 1600px,
+  xxxl: 2600px
+);
 
-// Colors used when visualising data
-$color-data-1: #4db167;
-$color-data-2: #5d89c7;
-$color-data-3: $color-elixir;
-$color-data-4: #f9bc14;
-$color-data-5: $color-phoenix;
-$color-data-6: $color-gray-warm-700;
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1140px,
+  xxxl: 1140px
+);
 
 // Bootstrap variable overrides
 $text-muted: change-color($text-color, $alpha: 0.5);
@@ -89,6 +100,5 @@ $font-family-sans-serif: 'LiveDashboardFont', -apple-system, BlinkMacSystemFont,
 $badge-border-radius: 3px;
 $btn-border-radius: 3px;
 $primary: $color-dashboard;
-
 // Other
 $border-radius: 6px;

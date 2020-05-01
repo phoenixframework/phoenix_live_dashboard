@@ -1,11 +1,11 @@
-defmodule Phoenix.LiveDashboard.EtsLive do
+defmodule Phoenix.LiveDashboard.PortsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.{SystemInfo, EtsInfoComponent}
+  alias Phoenix.LiveDashboard.{SystemInfo, PortInfoComponent}
 
-  @sort_by ~w(size memory)
-  @temporary_assigns [tables: [], total: 0]
+  @sort_by ~w(output input)
+  @temporary_assigns [ports: [], total: 0]
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
@@ -17,30 +17,30 @@ defmodule Phoenix.LiveDashboard.EtsLive do
     {:noreply,
      socket
      |> assign_params(params, @sort_by)
-     |> assign_ref(params)
-     |> fetch_ets()}
+     |> assign_port(params)
+     |> fetch_ports()}
   end
 
-  defp fetch_ets(socket) do
+  defp fetch_ports(socket) do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = socket.assigns.params
 
-    {tables, total} =
-      SystemInfo.fetch_ets(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
+    {ports, count} =
+      SystemInfo.fetch_ports(socket.assigns.menu.node, search, sort_by, sort_dir, limit)
 
-    assign(socket, tables: tables, total: total)
+    assign(socket, ports: ports, total: count)
   end
 
   @impl true
   def render(assigns) do
     ~L"""
     <div class="tabular-page">
-      <h5 class="card-title">ETS</h5>
+      <h5 class="card-title">Ports</h5>
 
       <div class="tabular-search">
         <form phx-change="search" phx-submit="search" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name" phx-debounce="300">
+              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search by name or port" phx-debounce="300">
             </div>
           </div>
         </form>
@@ -57,47 +57,52 @@ defmodule Phoenix.LiveDashboard.EtsLive do
             </div>
           </div>
           <div class="col-auto">
-            tables out of <%= @total %>
+            ports out of <%= @total %>
           </div>
         </div>
       </form>
 
-      <%= if @ref do %>
-        <%= live_modal @socket, EtsInfoComponent,
-          id: @ref,
-          title: "ETS - #{inspect(@ref)}",
-          node: @menu.node,
+      <%= if @port do %>
+        <%= live_modal @socket, PortInfoComponent,
+          port: @port,
+          title: inspect(@port),
           return_to: self_path(@socket, @menu.node, @params),
           live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3, @params) %>
       <% end %>
 
-      <div class="card tabular-card mb-4 mt-4">
+      <div class="card table-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
             <table class="table table-hover mt-0 dash-table clickable-rows">
               <thead>
                 <tr>
-                  <th class="pl-4">Name or module</th>
-                  <th>Protection</th>
-                  <th>Type</th>
+                  <th class="pl-4">Port</th>
+                  <th>Name or path</th>
+                  <th>OS pid</td>
                   <th>
-                    <%= sort_link(@socket, @live_action, @menu, @params, :size, "Size") %>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :input, "Input") %>
                   </th>
                   <th>
-                    <%= sort_link(@socket, @live_action, @menu, @params, :memory, "Memory") %>
+                    <%= sort_link(@socket, @live_action, @menu, @params, :output, "Output") %>
                   </th>
-                  <th>Owner</th>
+                  <th>Id</th>
+                  <th>Owner</td>
                 </tr>
               </thead>
               <tbody>
-                <%= for table <- @tables, list_ref = encode_reference(table[:id]) do %>
-                  <tr phx-click="show_info" phx-value-ref="<%= list_ref %>" phx-page-loading>
-                    <td class="tabular-column-name pl-4"><%= table[:name] %></td>
-                    <td><%= table[:protection] %></td>
-                    <td><%= table[:type] %></td>
-                    <td><%= table[:size] %></td>
-                    <td><%= format_words(table[:memory]) %></td>
-                    <td><%= inspect(table[:owner]) %></td>
+                <%= for port <- @ports, port_num = encode_port(port[:port]) do %>
+                  <tr phx-click="show_info" phx-value-port="<%= port_num %>" phx-page-loading class="<%= row_class(port, @port) %>">
+                    <td class="tabular-column-name pl-4"><%= port_num %></td>
+                    <td class="w-50"><%= port[:name] %></td>
+                    <td>
+                      <%= if port[:os_pid] != :undefined do %>
+                        <%= port[:os_pid] %>
+                      <% end %>
+                    </td>
+                    <td><%= format_bytes(port[:input]) %></td>
+                    <td><%= format_bytes(port[:output]) %></td>
+                    <td><%= port[:id] %></td>
+                    <td><%= inspect(port[:connected]) %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -115,7 +120,8 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   end
 
   def handle_info(:refresh, socket) do
-    {:noreply, fetch_ets(socket)}
+    if port = socket.assigns.port, do: send_update(PortInfoComponent, id: port)
+    {:noreply, fetch_ports(socket)}
   end
 
   @impl true
@@ -129,20 +135,22 @@ defmodule Phoenix.LiveDashboard.EtsLive do
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
   end
 
-  def handle_event("show_info", %{"ref" => ref}, socket) do
-    {:noreply,
-     push_patch(socket,
-       to: live_dashboard_path(socket, :ets, node(), [ref], socket.assigns.params)
-     )}
+  def handle_event("show_info", %{"port" => port}, socket) do
+    to = live_dashboard_path(socket, :ports, node(), [port], socket.assigns.params)
+    {:noreply, push_patch(socket, to: to)}
   end
 
   defp self_path(socket, node, params) do
-    live_dashboard_path(socket, :ets, node, [], params)
+    live_dashboard_path(socket, :ports, node, [], params)
   end
 
-  defp assign_ref(socket, %{"ref" => ref_param}) do
-    assign(socket, ref: decode_reference(ref_param))
+  defp assign_port(socket, %{"port" => port_param}) do
+    assign(socket, port: decode_port(port_param))
   end
 
-  defp assign_ref(socket, %{}), do: assign(socket, ref: nil)
+  defp assign_port(socket, %{}), do: assign(socket, port: nil)
+
+  defp row_class(port_info, active_port) do
+    if port_info[:port] == active_port, do: "active", else: ""
+  end
 end

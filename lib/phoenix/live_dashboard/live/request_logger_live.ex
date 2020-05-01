@@ -155,12 +155,13 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
 
   defp autoscroll_checkbox(autoscroll_enabled) do
     checked_param = if autoscroll_enabled, do: "checked='checked'", else: ""
+    assigns = %{checked_param: checked_param}
 
-    ~E"""
-      <!-- Autoscroll ON/OFF checkbox -->
-      <div id="logger-autoscroll" class="text-right mt-3">
-        <label>Autoscroll <input phx-click="toggle_autoscroll" <%= checked_param %> class="logger-autoscroll-checkbox" type="checkbox"></label>
-      </div>
+    ~L"""
+    <!-- Autoscroll ON/OFF checkbox -->
+    <div id="logger-autoscroll" class="text-right mt-3">
+      <label>Autoscroll <input phx-click="toggle_autoscroll" <%= @checked_param %> class="logger-autoscroll-checkbox" type="checkbox"></label>
+    </div>
     """
   end
 end

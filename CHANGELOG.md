@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.2.1 (2020-04-29)
+
+* Add "Applications" page
+* Add "OS Data" page
+
+## v0.2.0 (2020-04-22)
+
+* Add "Ports" page
+* Add "Sockets" page
+* Add "ETS" page
+
 ## v0.1.1 (2020-04-18)
 
 * Respect script_name on dashboard socket url

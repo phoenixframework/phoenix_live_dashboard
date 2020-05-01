@@ -1,18 +1,17 @@
 defmodule Phoenix.LiveDashboard.TableHelpers do
   # Helpers for pages that need to render tables
-
   @moduledoc false
-  import Phoenix.HTML
+
   import Phoenix.LiveView
   import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.Helpers
+  import Phoenix.LiveDashboard.LiveHelpers
 
   @limit ~w(50 100 500 1000 5000)
   @sort_dir ~w(desc asc)
 
-  def assign_params(socket, params, sort_by) do
+  def assign_params(socket, params, sort_by, sort_dir \\ @sort_dir) do
     sort_by = params |> get_in_or_first("sort_by", sort_by) |> String.to_atom()
-    sort_dir = params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
+    sort_dir = params |> get_in_or_first("sort_dir", sort_dir) |> String.to_atom()
     limit = params |> get_in_or_first("limit", @limit) |> String.to_integer()
     search = params["search"]
     search = if search == "", do: nil, else: search
@@ -51,29 +50,24 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   end
 
   defp sort_link_icon(:asc) do
-    ~E"""
-    <div class="dash-table-icon">
-      <span class="icon-sort icon-asc"></span>
-    </div>
-    """
+    {:safe,
+     """
+     <div class="dash-table-icon">
+       <span class="icon-sort icon-asc"></span>
+     </div>
+     """}
   end
 
   defp sort_link_icon(:desc) do
-    ~E"""
-    <div class="dash-table-icon">
-      <span class="icon-sort icon-desc"></span>
-    </div>
-    """
+    {:safe,
+     """
+     <div class="dash-table-icon">
+       <span class="icon-sort icon-desc"></span>
+     </div>
+     """}
   end
 
   defp opposite_sort_dir(%{sort_dir: :desc}), do: :asc
 
   defp opposite_sort_dir(_), do: :desc
-
-  def live_modal(socket, component, opts) do
-    path = Keyword.fetch!(opts, :return_to)
-    title = Keyword.fetch!(opts, :title)
-    modal_opts = [id: :modal, return_to: path, component: component, opts: opts, title: title]
-    live_component(socket, Phoenix.LiveDashboard.ModalComponent, modal_opts)
-  end
 end

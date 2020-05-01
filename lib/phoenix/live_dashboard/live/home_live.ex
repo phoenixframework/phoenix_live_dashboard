@@ -1,6 +1,12 @@
 defmodule Phoenix.LiveDashboard.HomeLive do
   use Phoenix.LiveDashboard.Web, :live_view
-  alias Phoenix.LiveDashboard.{SystemInfo, SystemLimitComponent}
+
+  alias Phoenix.LiveDashboard.{
+    SystemInfo,
+    ColorBarComponent,
+    ColorBarLegendComponent,
+    SystemLimitComponent
+  }
 
   @temporary_assigns [system_info: nil, system_usage: nil]
 
@@ -11,12 +17,12 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   ]
 
   @memory_usage_sections [
-    {:atom, "Atoms"},
-    {:binary, "Binary"},
-    {:code, "Code"},
-    {:ets, "ETS"},
-    {:process, "Processes"},
-    {:other, "Other"}
+    {:atom, "Atoms", "green"},
+    {:binary, "Binary", "blue"},
+    {:code, "Code", "purple"},
+    {:ets, "ETS", "yellow"},
+    {:process, "Processes", "orange"},
+    {:other, "Other", "dark-gray"}
   ]
 
   @impl true
@@ -30,7 +36,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
       system_limits: system_limits,
       # Updated periodically
       system_usage: system_usage
-    } = SystemInfo.fetch_info(socket.assigns.menu.node)
+    } = SystemInfo.fetch_system_info(socket.assigns.menu.node)
 
     socket =
       assign(socket,
@@ -64,7 +70,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         <div class="row">
           <%= for {section, title} <- versions_sections() do %>
             <div class="col mb-4">
-              <div class="banner-card background-<%= section %> text-white">
+              <div class="banner-card bg-<%= section %> text-white">
                 <h6 class="banner-card-title"><%= title %></h6>
                 <div class="banner-card-value"><%= @system_info[:"#{section}_version"] %></div>
               </div>
@@ -76,7 +82,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           <div class="col-lg-4 mb-4">
             <div class="banner-card">
               <h6 class="banner-card-title">Uptime</h6>
-              <div class="banner-card-value"><%= SystemInfo.format_uptime(@system_usage.uptime) %></div>
+              <div class="banner-card-value"><%= format_uptime(@system_usage.uptime) %></div>
             </div>
           </div>
 
@@ -88,7 +94,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
                   The total number of bytes received through ports/sockets.
                 <% end %>
               </h6>
-              <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(0)) %></div>
+              <div class="banner-card-value"><%= format_bytes(@system_usage.io |> elem(0)) %></div>
             </div>
           </div>
 
@@ -100,7 +106,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
                   The total number of bytes output to ports/sockets.
                 <% end %>
               </h6>
-              <div class="banner-card-value"><%= SystemInfo.format_bytes(@system_usage.io |> elem(1)) %></div>
+              <div class="banner-card-value"><%= format_bytes(@system_usage.io |> elem(1)) %></div>
             </div>
           </div>
         </div>
@@ -140,9 +146,9 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
       <!-- Right column containing system usage information -->
       <div class="col-sm-6">
-        <h5 class="card-title">System usage / limits</h5>
+        <h5 class="card-title">System limits</h5>
 
-        <%= live_component @socket, SystemLimitComponent, id: :atoms, usage: @system_usage.atoms, limit: @system_limits.atoms do %>
+        <%= live_component @socket, SystemLimitComponent, usage: @system_usage.atoms, limit: @system_limits.atoms do %>
           Atoms
           <%= hint do %>
             If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
@@ -150,7 +156,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           <% end %>
         <% end %>
 
-        <%= live_component @socket, SystemLimitComponent, id: :ports, usage: @system_usage.ports, limit: @system_limits.ports do %>
+        <%= live_component @socket, SystemLimitComponent, usage: @system_usage.ports, limit: @system_limits.ports do %>
           Ports
           <%= hint do %>
             If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
@@ -158,7 +164,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           <% end %>
         <% end %>
 
-        <%= live_component @socket, SystemLimitComponent, id: :processes, usage: @system_usage.processes, limit: @system_limits.processes do %>
+        <%= live_component @socket, SystemLimitComponent, usage: @system_usage.processes, limit: @system_limits.processes do %>
           Processes
           <%= hint do %>
             If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
@@ -171,68 +177,36 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         </h5>
 
         <div class="card mb-4">
-          <div class="card-body memory-usage">
-
-            <div class="progress flex-grow-1 mb-3">
-              <%= for {section_key, section_name, section_value} <- memory_usage_sections(@system_usage.memory) do %>
-                <div
-                  title="<%=section_name %> - <%=percentage(section_value, @system_usage.memory.total, round: true) %>%"
-                  class="progress-bar memory-usage-section-<%=section_key %>"
-                  role="progressbar"
-                  aria-valuenow="<%=section_value %>"
-                  aria-valuemin="0"
-                  aria-valuemax="<%=@system_usage.memory.total %>"
-                  style="width: <%=percentage(section_value, @system_usage.memory.total) %>%">
-                </div>
-              <% end %>
-            </div>
-
-            <div class="memory-usage-legend">
-
-              <div class="memory-usage-legend-entries row flex-column flex-wrap">
-                <%= for {section_key, section_name, section_value} <- memory_usage_sections(@system_usage.memory) do %>
-                  <div class="col-lg-6 memory-usage-legend-entry d-flex align-items-center py-1 flex-grow-0">
-                    <div class="memory-usage-legend-color memory-usage-section-<%=section_key %> mr-2"></div>
-                    <span><%=section_name %></span>
-                    <span class="flex-grow-1 text-right text-muted">
-                      <%=SystemInfo.format_bytes(section_value) %>
-                    </span>
-                  </div>
-                <% end %>
-              </div>
-
-              <div class="row">
-                <div class="col">
-                  <div class="memory-usage-total text-center py-1 mt-3">
-                    Total usage: <%=SystemInfo.format_bytes(@system_usage.memory[:total]) %>
-                  </div>
+          <div class="card-body resource-usage">
+            <%= live_component @socket, ColorBarComponent, data: memory_usage_sections_percent(@system_usage.memory, @system_usage.memory.total) %>
+            <%= live_component @socket, ColorBarLegendComponent, data: memory_usage_sections(@system_usage.memory), formatter: &format_bytes(&1) %>
+            <div class="row">
+              <div class="col">
+                <div class="resource-usage-total text-center py-1 mt-3">
+                  Total usage: <%= format_bytes(@system_usage.memory[:total]) %>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
+
       </div>
     </div>
     """
   end
 
-  defp percentage(value, total, options \\ [])
-
-  defp percentage(_value, 0, _options), do: 0
-
-  defp percentage(value, total, options) do
-    percent = Float.round(value / total * 100, 2)
-
-    if options[:round], do: round(percent), else: percent
+  defp memory_usage_sections_percent(memory_usage, total) do
+    memory_usage
+    |> memory_usage_sections()
+    |> Enum.map(fn {n, value, c, desc} ->
+      {n, percentage(value, total), c, desc}
+    end)
   end
 
   defp memory_usage_sections(memory_usage) do
-    @memory_usage_sections
-    |> Enum.map(fn {section_key, section_name} ->
+    Enum.map(@memory_usage_sections, fn {section_key, section_name, color} ->
       value = Map.fetch!(memory_usage, section_key)
-
-      {section_key, section_name, value}
+      {section_name, value, color, nil}
     end)
   end
 
@@ -242,7 +216,8 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   end
 
   def handle_info(:refresh, socket) do
-    {:noreply, assign(socket, system_usage: SystemInfo.fetch_usage(socket.assigns.menu.node))}
+    {:noreply,
+     assign(socket, system_usage: SystemInfo.fetch_system_usage(socket.assigns.menu.node))}
   end
 
   defp versions_sections(), do: @versions_sections

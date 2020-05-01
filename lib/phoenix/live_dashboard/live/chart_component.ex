@@ -14,6 +14,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
       if metric do
         assign(socket,
           title: chart_title(metric),
+          description: metric.description,
           kind: chart_kind(metric.__struct__),
           label: chart_label(metric),
           tags: Enum.join(metric.tags, "-"),
@@ -29,22 +30,29 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="col-md-6 charts-col">
+    <div class="col-xl-6 col-xxl-4 col-xxxl-3 charts-col">
       <div id="chart-<%= @id %>" class="card">
-        <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" style="display:none;">
-        <%= for {x, y, z} <- @data do %>
-          <span data-x="<%= x || @label %>" data-y="<%= y %>" data-z="<%= z %>"></span>
+        <div class="card-body">
+          <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" style="display:none;">
+          <%= for {x, y, z} <- @data do %>
+            <span data-x="<%= x || @label %>" data-y="<%= y %>" data-z="<%= z %>"></span>
+          <% end %>
+          </div>
+          <div class="chart"
+              id="chart-ignore-<%= @id %>"
+              phx-update="ignore"
+              data-label="<%= @label %>"
+              data-metric="<%= @kind %>"
+              data-title="<%= @title %>"
+              data-tags="<%= @tags %>"
+              data-unit="<%= @unit %>">
+          </div>
+        </div>
+        <%= if @description do %>
+          <%= hint do %>
+            <%= @description %>
+          <% end %>
         <% end %>
-        </div>
-        <div class="chart"
-             id="chart-ignore-<%= @id %>"
-             phx-update="ignore"
-             data-label="<%= @label %>"
-             data-metric="<%= @kind %>"
-             data-title="<%= @title %>"
-             data-tags="<%= @tags %>"
-             data-unit="<%= @unit %>">
-        </div>
       </div>
     </div>
     """

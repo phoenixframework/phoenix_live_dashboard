@@ -54,5 +54,20 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
       result = render_chart(metric: last_value([:a, :b, :c, :count]), data: [{nil, "y", "z"}])
       assert result =~ ~s|<span data-x="Count" data-y="y" data-z="z">|
     end
+
+    test "renders a description hint when a description is provided" do
+      description = "test description"
+
+      result =
+        render_chart(
+          metric: last_value([:a, :b, :c, :count], description: description),
+          data: [{"x", "y", "z"}]
+        )
+
+      assert result =~ description
+
+      result = render_chart(metric: last_value([:a, :b, :c, :count]), data: [{"x", "y", "z"}])
+      refute result =~ description
+    end
   end
 end

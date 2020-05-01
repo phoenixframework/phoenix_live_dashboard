@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.1.1"
+  @version "0.2.1"
 
   def project do
     [
@@ -15,7 +15,9 @@ defmodule Phoenix.LiveDashboard.MixProject do
       name: "LiveDashboard",
       docs: docs(),
       homepage_url: "http://www.phoenixframework.org",
-      description: "Real-time performance dashboard for Phoenix"
+      description: "Real-time performance dashboard for Phoenix",
+      aliases: aliases(),
+      xref: [exclude: [:cpu_sup, :disksup, :memsup]]
     ]
   end
 
@@ -27,6 +29,13 @@ defmodule Phoenix.LiveDashboard.MixProject do
     [
       mod: {Phoenix.LiveDashboard.Application, []},
       extra_applications: [:logger]
+    ]
+  end
+
+  defp aliases do
+    [
+      setup: ["deps.get", "cmd npm install --prefix assets"],
+      dev: "run --no-halt dev.exs"
     ]
   end
 
@@ -67,7 +76,8 @@ defmodule Phoenix.LiveDashboard.MixProject do
   defp extras do
     [
       "guides/metrics.md",
-      "guides/request_logger.md"
+      "guides/request_logger.md",
+      "guides/os_mon.md"
     ]
   end
 

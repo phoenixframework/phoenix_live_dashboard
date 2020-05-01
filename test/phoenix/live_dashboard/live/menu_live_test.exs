@@ -65,5 +65,11 @@ defmodule Phoenix.LiveDashboard.MenuLiveTest do
       {:ok, live, _} = menu_live(action: :request_logger, request_logger: {"key1", "key2"})
       assert render(live) =~ ~s|<div class="menu-item active">Request Logger</div>|
     end
+
+    test "when ports is active" do
+      {:ok, live, _} = menu_live(action: :ports)
+      assert render(live) =~ ~s|<div class="menu-item active">Ports</div>|
+      assert render(live) =~ ~r"<a[^>]+>Home</a>"
+    end
   end
 end
