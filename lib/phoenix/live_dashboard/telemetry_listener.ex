@@ -15,9 +15,18 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
     GenServer.start_link(__MODULE__, {parent, metrics})
   end
 
-  def handle_metrics(_event_name, measurements, metadata, {parent, metrics}) do
-    time = System.system_time(:second)
+  def handle_metrics(
+        _event_name,
+        measurements,
+        %{explicit_time: time} = metadata,
+        {parent, metrics}
+      ),
+      do: do_handle_metrics(time, measurements, metadata, {parent, metrics})
 
+  def handle_metrics(_event_name, measurements, metadata, {parent, metrics}),
+    do: do_handle_metrics(System.system_time(:second), measurements, metadata, {parent, metrics})
+
+  defp do_handle_metrics(time, measurements, metadata, {parent, metrics}) do
     entries =
       for {metric, index} <- metrics do
         if measurement = extract_measurement(metric, measurements) do
