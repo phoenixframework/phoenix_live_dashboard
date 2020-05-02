@@ -97,7 +97,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
                     <td><%= table[:type] %></td>
                     <td><%= table[:size] %></td>
                     <td><%= format_words(table[:memory]) %></td>
-                    <td><%= inspect(table[:owner]) %></td>
+                    <td><%= format_value(table[:owner], &live_dashboard_path(@socket, &1, &2, &3)) %></td>
                   </tr>
                 <% end %>
               </tbody>

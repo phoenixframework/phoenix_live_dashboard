@@ -112,7 +112,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                     <td><%= socket[:foreign_address] %></td>
                     <td><%= socket[:state] %></td>
                     <td><%= socket[:type] %></td>
-                    <td><pre><%= inspect(socket[:connected]) %></pre></td>
+                    <td><%= format_value(socket[:connected], &live_dashboard_path(@socket, &1, &2, &3)) %></td>
                   </tr>
                 <% end %>
               </tbody>

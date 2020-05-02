@@ -102,7 +102,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                     <td><%= format_bytes(port[:input]) %></td>
                     <td><%= format_bytes(port[:output]) %></td>
                     <td><%= port[:id] %></td>
-                    <td><%= inspect(port[:connected]) %></td>
+                    <td><%= format_value(port[:connected], &live_dashboard_path(@socket, &1, &2, &3)) %></td>
                   </tr>
                 <% end %>
               </tbody>
