@@ -31,19 +31,13 @@ Create your Telemetry module in `lib/my_app_web/telemetry.ex`:
 
 ```elixir
 defmodule MyAppWeb.Telemetry do
-  use Supervisor
   import Telemetry.Metrics
-
-  def start_link(arg) do
-    Supervisor.start_link(__MODULE__, arg, name: __MODULE__)
-  end
-
-  def init(_arg) do
-    children = [
-      {:telemetry_poller, measurements: periodic_measurements(), period: 10_000}
-    ]
-
-    Supervisor.init(children, strategy: :one_for_one)
+  
+  def child_spec(_arg) do
+    Supervisor.child_spec(
+      {:telemetry_poller, measurements: [], period: :timer.seconds(10)},
+      id: __MODULE__
+    )
   end
 
   def metrics do
@@ -70,10 +64,6 @@ defmodule MyAppWeb.Telemetry do
       summary("vm.total_run_queue_lengths.cpu"),
       summary("vm.total_run_queue_lengths.io")
     ]
-  end
-
-  defp periodic_measurements do
-    []
   end
 end
 ```
