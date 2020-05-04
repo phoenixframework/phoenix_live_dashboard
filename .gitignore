@@ -19,6 +19,9 @@ erl_crash.dump
 # Also ignore archive artifacts (built via "mix archive.build").
 *.ez
 
+# Also ignore language server files
+.elixir_ls*
+
 # Ignore package tarball (built via "mix hex.build").
 phoenix_live_dashboard-*.tar
 
