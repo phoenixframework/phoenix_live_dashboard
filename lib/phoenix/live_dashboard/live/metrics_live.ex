@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   alias Phoenix.LiveDashboard.ChartComponent
 
   @impl true
-  def mount(params, %{"metrics" => {mod, fun}} = session, socket) do
+  def mount(params, %{"metrics" => {mod, fun}, "historical_data" => data} = session, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_group = Enum.group_by(all_metrics, &group_name/1)
 
@@ -27,7 +27,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
-        {:ok, assign(socket, metrics: Enum.with_index(metrics))}
+        {:ok, assign(socket, metrics: Enum.with_index(metrics), historical_data: data)}
 
       first_group && is_nil(group) ->
         path = live_dashboard_path(socket, :metrics, socket.assigns.menu.node, group: first_group)
@@ -70,7 +70,8 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     <%= if @metrics do %>
       <div class="phx-dashboard-metrics-grid row">
       <%= for {metric, id} <- @metrics do %>
-        <%= live_component @socket, ChartComponent, id: id, metric: metric %>
+        <%= live_component @socket, ChartComponent, id: id, metric: metric,
+          do: send_update(ChartComponent, id: id, data: history_for(metric, @historical_data)) %>
       <% end %>
       </div>
     <% end %>
@@ -90,5 +91,20 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   def handle_info({:node_redirect, node}, socket) do
     params = if group = socket.assigns.group, do: [group: group], else: []
     {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, params))}
+  end
+
+  defp history_for(_metric, nil), do: []
+
+  defp history_for(metric, historical_data) do
+    case history_tuple(metric, historical_data) do
+      nil -> []
+      {_prefix, {module, function, opts}} -> apply(module, function, [metric.name | opts])
+    end
+  end
+
+  defp history_tuple(%{name: metric_name}, historical_data) do
+    Enum.find(historical_data, fn {metric_prefix, _tuple} ->
+      List.starts_with?(metric_name, metric_prefix)
+    end)
   end
 end
