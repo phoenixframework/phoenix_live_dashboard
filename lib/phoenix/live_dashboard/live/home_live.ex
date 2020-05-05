@@ -5,7 +5,8 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     SystemInfo,
     ColorBarComponent,
     ColorBarLegendComponent,
-    SystemLimitComponent
+    SystemLimitComponent,
+    Environment
   }
 
   @temporary_assigns [system_info: nil, system_usage: nil]
@@ -38,11 +39,14 @@ defmodule Phoenix.LiveDashboard.HomeLive do
       system_usage: system_usage
     } = SystemInfo.fetch_system_info(socket.assigns.menu.node)
 
+    environment = Environment.fetch_info(session["environment"])
+
     socket =
       assign(socket,
         system_info: system_info,
         system_limits: system_limits,
-        system_usage: system_usage
+        system_usage: system_usage,
+        environment: environment
       )
 
     {:ok, socket, temporary_assigns: @temporary_assigns}
@@ -65,6 +69,20 @@ defmodule Phoenix.LiveDashboard.HomeLive do
             <%= @system_info.banner %> [<%= @system_info.system_architecture %>]
           </div>
         </div>
+
+        <%= if @environment do %>
+          <h5 class="card-title">Environment</h5>
+
+          <div class="card mb-4">
+            <div class="card-body rounded">
+              <dl>
+              <%= for {k, v} <- @environment do %>
+                <dt><%= k %><dd><%= v %></dd>
+              <% end %>
+              </dl>
+            </div>
+          </div>
+        <% end %>
 
         <!-- Row with colorful version banners -->
         <div class="row">
