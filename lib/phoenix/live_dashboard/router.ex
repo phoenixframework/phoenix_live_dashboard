@@ -19,6 +19,17 @@ defmodule Phoenix.LiveDashboard.Router do
       It is defined as a list of string keys. If not set, the environment
       information will not be displayed.
 
+    * `:historical_data` - Configures a callback for retreiving metric history.
+      It must be a map with lists of atoms as keys and
+      tuples of {Module, :function, list} as values such as
+
+      historical_data: %{
+        [:namespace, :metric] =>
+          {MyStorage, :historical_metric_data, []}
+      }
+      If not set, metrics will start out empty/blank and only display
+      data that occurs while the browser page is open.
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -139,7 +150,7 @@ defmodule Phoenix.LiveDashboard.Router do
       tuples of {Module, :function, list} as values such as
 
       historical_data: %{
-        [:my_app, :repo] =>
+        [:namespace, :metric] =>
           {MyStorage, :historical_metric_data, []}
       }
       , got: #{inspect(other)}
