@@ -98,8 +98,24 @@ defmodule Phoenix.LiveDashboard.Router do
                 ":env_keys must be a list of strings, got: #{inspect(other)}"
       end
 
+    historical_data =
+      case options[:historical_data] do
+        nil ->
+          nil
+
+        map when is_map(map) ->
+          if Enum.all?(map, fn {list, tuple} -> is_list(list) and is_tuple(tuple) end) do
+            map
+          else
+            raise ArgumentError, historical_data_error(map)
+          end
+
+        other ->
+          raise ArgumentError, historical_data_error(other)
+      end
+
     [
-      session: {__MODULE__, :__session__, [metrics, env_keys]},
+      session: {__MODULE__, :__session__, [metrics, env_keys, historical_data]},
       private: %{live_socket_path: live_socket_path},
       layout: {Phoenix.LiveDashboard.LayoutView, :dash},
       as: :live_dashboard
@@ -107,11 +123,25 @@ defmodule Phoenix.LiveDashboard.Router do
   end
 
   @doc false
-  def __session__(conn, metrics, env_keys) do
+  def __session__(conn, metrics, env_keys, historical_data) do
     %{
       "metrics" => metrics,
       "env_keys" => env_keys,
+      "historical_data" => historical_data,
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
     }
+  end
+
+  defp historical_data_error(other) do
+    """
+      :historical_data must be a map with lists of atoms as keys and
+      tuples of {Module, :function, list} as values such as
+
+      historical_data: %{
+        [:my_app, :repo] =>
+          {MyStorage, :historical_metric_data, []}
+      }
+      , got: #{inspect(other)}
+    """
   end
 end
