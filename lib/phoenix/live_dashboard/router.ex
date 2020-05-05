@@ -22,6 +22,17 @@ defmodule Phoenix.LiveDashboard.Router do
     * `:live_socket_path` - Configures the socket path. it must match
       the `socket "/live", Phoenix.LiveView.Socket` in your endpoint.
 
+    * `:historical_data` - Configures a callback for retreiving metric history.
+      It must be a map with lists of atoms as keys and
+      tuples of {Module, :function, list} as values such as
+
+      historical_data: %{
+        [:namespace, :metric] =>
+          {MyStorage, :historical_metric_data, []}
+      }
+      If not set, metrics will start out empty/blank and only display
+      data that occurs while the browser page is open.
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -138,7 +149,7 @@ defmodule Phoenix.LiveDashboard.Router do
       tuples of {Module, :function, list} as values such as
 
       historical_data: %{
-        [:my_app, :repo] =>
+        [:namespace, :metric] =>
           {MyStorage, :historical_metric_data, []}
       }
       , got: #{inspect(other)}

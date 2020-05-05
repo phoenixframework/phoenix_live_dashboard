@@ -106,6 +106,23 @@ live_dashboard "/dashboard", metrics: MyAppWeb.Telemetry
 
 Now refresh the "/dashboard" page and the metrics functionality should be enabled. Each metric goes to a distinct group based on the metric name itself.
 
+# Providing history for metrics
+
+If you wish to populate metrics with current historical data saved from telemetry or another data source,
+modify the config above like so:
+
+```elixir
+live_dashboard "/dashboard",
+    metrics: MyAppWeb.Telemetry,
+    historical_data: %{
+        [:namespace, :metric] =>
+          {MyStorage, :historical_metric_data, []}
+      }
+```
+
+where MyStorage is a module and historical_metric_data is a function taking a single argument in this example, which will always be a list of atoms equal to or starting with the key to the map, i.e. in this example `[:namespace, :metric]`.  The function must return a list, empty if there is no data, or a list of tuples of `{label, data, time}` where a nil label will default to the chart's label, and time should be
+in `:native` time unit, such as from `System.system_time/0`.
+
 ## More about telemetry
 
 Now that you have metrics up and running, you can begin exploring the rest of the telemetry ecosystem! Here are a few links to get you started:
