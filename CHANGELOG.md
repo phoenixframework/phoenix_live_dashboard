@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.2 (2020-05-05)
+
+* Improvements on the amount of data sent
+* Fix OS Data page on Windows
+
 ## v0.2.1 (2020-04-29)
 
 * Add "Applications" page
