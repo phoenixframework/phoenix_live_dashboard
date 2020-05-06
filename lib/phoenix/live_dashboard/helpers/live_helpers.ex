@@ -37,6 +37,8 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
     end
   end
 
-  def nodes(), do: [node()] ++ Node.list() ++ Node.list(:hidden)
-
+  @doc """
+  All connected nodes (including the current node).
+  """
+  def nodes(), do: [node()] ++ Node.list(:connected)
 end
