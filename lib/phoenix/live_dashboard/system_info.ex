@@ -56,6 +56,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :os_mon_callback, [])
   end
 
+  def fetch_environment_info(node, keys) do
+    :rpc.call(node, __MODULE__, :env_info_callback, [keys])
+  end
+
   ## System callbacks
 
   @doc false
@@ -363,6 +367,13 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     }
   end
 
+  ### Environment info callbacks
+
+  def env_info_callback(nil), do: nil
+
+  def env_info_callback(keys) do
+    Enum.map(keys, fn key -> {key, System.get_env(key)} end)
+  end
   ## Helpers
 
   defp format_call({m, f, a}), do: Exception.format_mfa(m, f, a)

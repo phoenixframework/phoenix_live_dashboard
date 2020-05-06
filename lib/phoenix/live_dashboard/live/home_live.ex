@@ -38,7 +38,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
       system_usage: system_usage
     } = SystemInfo.fetch_system_info(socket.assigns.menu.node)
 
-    environment = fetch_environment_info(session["env_keys"])
+    environment = SystemInfo.fetch_environment_info(socket.assigns.menu.node, session["env_keys"])
 
     socket =
       assign(socket,
@@ -238,9 +238,4 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   end
 
   defp versions_sections(), do: @versions_sections
-
-  defp fetch_environment_info(nil), do: nil
-  defp fetch_environment_info(keys) do
-    Enum.map(keys, fn key -> {key, System.get_env(key)} end)
-  end
 end
