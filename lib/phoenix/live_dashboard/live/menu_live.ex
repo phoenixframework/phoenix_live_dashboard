@@ -141,8 +141,6 @@ defmodule Phoenix.LiveDashboard.MenuLive do
 
   ## Node helpers
 
-  defp nodes(), do: [node() | Node.list()]
-
   defp validate_nodes_or_redirect(socket) do
     if socket.assigns.node not in nodes() do
       socket
