@@ -80,10 +80,10 @@ defmodule Phoenix.LiveDashboard.EtsLive do
                   <th class="pl-4">Name or module</th>
                   <th>Protection</th>
                   <th>Type</th>
-                  <th>
+                  <th class="text-right">
                     <%= sort_link(@socket, @live_action, @menu, @params, :size, "Size") %>
                   </th>
-                  <th>
+                  <th class="text-right">
                     <%= sort_link(@socket, @live_action, @menu, @params, :memory, "Memory") %>
                   </th>
                   <th>Owner</th>
@@ -95,9 +95,9 @@ defmodule Phoenix.LiveDashboard.EtsLive do
                     <td class="tabular-column-name pl-4"><%= table[:name] %></td>
                     <td><%= table[:protection] %></td>
                     <td><%= table[:type] %></td>
-                    <td><%= table[:size] %></td>
-                    <td><%= format_words(table[:memory]) %></td>
-                    <td><%= inspect(table[:owner]) %></td>
+                    <td class="text-right"><%= table[:size] %></td>
+                    <td class="tabular-column-bytes"><%= format_words(table[:memory]) %></td>
+                    <td><%= encode_pid(table[:owner]) %></td>
                   </tr>
                 <% end %>
               </tbody>

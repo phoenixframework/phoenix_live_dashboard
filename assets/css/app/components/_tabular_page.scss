@@ -13,8 +13,13 @@
     text-overflow: ellipsis;
   }
 
-  .tabular-column-pid {
+  .tabular-column-id {
     color: $color-gray-800;
+  }
+
+  .tabular-column-bytes {
+    text-align: right;
+    word-break: keep-all;
   }
 
   .tabular-search {
