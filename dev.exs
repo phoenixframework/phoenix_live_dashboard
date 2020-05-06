@@ -103,7 +103,7 @@ defmodule DemoWeb.Router do
     get "/", DemoWeb.PageController, :index
     get "/hello", DemoWeb.PageController, :hello
     get "/hello/:name", DemoWeb.PageController, :hello
-    live_dashboard("/dashboard", metrics: DemoWeb.Telemetry, environment: ["USER", "ROOTDIR"])
+    live_dashboard("/dashboard", metrics: DemoWeb.Telemetry, env_keys: ["USER", "ROOTDIR"])
   end
 end
 

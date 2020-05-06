@@ -81,25 +81,25 @@ defmodule Phoenix.LiveDashboard.Router do
                   "such as {MyAppWeb.Telemetry, :metrics}, got: #{inspect(other)}"
       end
 
-    environment =
-      case options[:environment] do
+    env_keys =
+      case options[:env_keys] do
         nil -> nil
         keys when is_list(keys) -> keys
         other -> raise ArgumentError,
-              ":environment must be a list of strings, got: #{inspect(other)}"
+              ":env_keys must be a list of strings, got: #{inspect(other)}"
       end
     [
-      session: {__MODULE__, :__session__, [metrics, environment]},
+      session: {__MODULE__, :__session__, [metrics, env_keys]},
       layout: {Phoenix.LiveDashboard.LayoutView, :dash},
       as: :live_dashboard
     ]
   end
 
   @doc false
-  def __session__(conn, metrics, environment) do
+  def __session__(conn, metrics, env_keys) do
     %{
       "metrics" => metrics,
-      "environment" => environment,
+      "env_keys" => env_keys,
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
     }
   end

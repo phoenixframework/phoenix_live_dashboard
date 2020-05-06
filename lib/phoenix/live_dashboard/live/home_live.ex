@@ -5,8 +5,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     SystemInfo,
     ColorBarComponent,
     ColorBarLegendComponent,
-    SystemLimitComponent,
-    Environment
+    SystemLimitComponent
   }
 
   @temporary_assigns [system_info: nil, system_usage: nil]
@@ -39,7 +38,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
       system_usage: system_usage
     } = SystemInfo.fetch_system_info(socket.assigns.menu.node)
 
-    environment = Environment.fetch_info(session["environment"])
+    environment = fetch_environment_info(session["env_keys"])
 
     socket =
       assign(socket,
@@ -69,20 +68,6 @@ defmodule Phoenix.LiveDashboard.HomeLive do
             <%= @system_info.banner %> [<%= @system_info.system_architecture %>]
           </div>
         </div>
-
-        <%= if @environment do %>
-          <h5 class="card-title">Environment</h5>
-
-          <div class="card mb-4">
-            <div class="card-body rounded">
-              <dl>
-              <%= for {k, v} <- @environment do %>
-                <dt><%= k %><dd><%= v %></dd>
-              <% end %>
-              </dl>
-            </div>
-          </div>
-        <% end %>
 
         <!-- Row with colorful version banners -->
         <div class="row">
@@ -160,6 +145,20 @@ defmodule Phoenix.LiveDashboard.HomeLive do
             </div>
           </div>
         </div>
+
+        <%= if @environment do %>
+          <h5 class="card-title">Environment</h5>
+
+          <div class="card mb-4">
+            <div class="card-body rounded">
+              <dl>
+              <%= for {k, v} <- @environment do %>
+                <dt><%= k %></dt><dd><%= v %></dd>
+              <% end %>
+              </dl>
+            </div>
+          </div>
+        <% end %>
       </div>
 
       <!-- Right column containing system usage information -->
@@ -239,4 +238,9 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   end
 
   defp versions_sections(), do: @versions_sections
+
+  defp fetch_environment_info(nil), do: nil
+  defp fetch_environment_info(keys) do
+    Enum.map(keys, fn key -> {key, System.get_env(key)} end)
+  end
 end

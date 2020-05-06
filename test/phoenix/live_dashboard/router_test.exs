@@ -23,12 +23,12 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     end
   end
 
-  test "accepts environment option" do
-    assert Router.__options__(environment: ["USER", "ROOTDIR"])[:session] ==
+  test "accepts env_keys option" do
+    assert Router.__options__(env_keys: ["USER", "ROOTDIR"])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__, [nil, ["USER", "ROOTDIR"]]}
 
     assert_raise ArgumentError, fn ->
-      Router.__options__(environment: "FOO")
+      Router.__options__(env_keys: "FOO")
     end
   end
 end
