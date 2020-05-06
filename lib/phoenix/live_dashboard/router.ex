@@ -33,7 +33,8 @@ defmodule Phoenix.LiveDashboard.Router do
       scope path, alias: false, as: false do
         import Phoenix.LiveView.Router, only: [live: 4]
 
-        opts = Phoenix.LiveDashboard.Router.__options__(opts)
+        plugins = Phoenix.LiveDashboard.Router.__plugins__(opts)
+        opts = Phoenix.LiveDashboard.Router.__options__(opts, plugins)
         live "/", Phoenix.LiveDashboard.HomeLive, :home, opts
         live "/:node", Phoenix.LiveDashboard.HomeLive, :home, opts
         live "/:node/os", Phoenix.LiveDashboard.OSMonLive, :os_mon, opts
@@ -58,12 +59,16 @@ defmodule Phoenix.LiveDashboard.Router do
              Phoenix.LiveDashboard.RequestLoggerLive,
              :request_logger,
              opts
+
+        for {path, module, id} <- Phoenix.LiveDashboard.Plugins.call(plugins, :add_route, []) do
+          live "#{path}", module, id, opts
+        end
       end
     end
   end
 
   @doc false
-  def __options__(options) do
+  def __options__(options, plugins) do
     metrics =
       case options[:metrics] do
         nil ->
@@ -82,17 +87,23 @@ defmodule Phoenix.LiveDashboard.Router do
       end
 
     [
-      session: {__MODULE__, :__session__, [metrics]},
+      session: {__MODULE__, :__session__, [metrics, plugins]},
       layout: {Phoenix.LiveDashboard.LayoutView, :dash},
       as: :live_dashboard
     ]
   end
 
   @doc false
-  def __session__(conn, metrics) do
+  def __session__(conn, metrics, plugins) do
     %{
       "metrics" => metrics,
+      "plugins" => plugins,
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
     }
+  end
+
+  def __plugins__(opts) do
+    Keyword.get(opts, :plugins, [])
+    |> Phoenix.LiveDashboard.Plugins.load()
   end
 end

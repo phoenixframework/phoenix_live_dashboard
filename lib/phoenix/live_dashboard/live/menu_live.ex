@@ -29,6 +29,10 @@ defmodule Phoenix.LiveDashboard.MenuLive do
       <%= maybe_active_live_redirect @socket, @menu, "Ports", :ports, @node %>
       <%= maybe_active_live_redirect @socket, @menu, "Sockets", :sockets, @node %>
       <%= maybe_active_live_redirect @socket, @menu, "ETS", :ets, @node %>
+
+      <%= for {name, id} <- Phoenix.LiveDashboard.Plugins.call(@menu.plugins, :add_menu_link, []) do %>
+        <%= maybe_active_live_redirect @socket, @menu, name, id, @node %>
+      <% end %>
     </nav>
 
     <form id="node-selection" phx-change="select_node" class="d-inline">

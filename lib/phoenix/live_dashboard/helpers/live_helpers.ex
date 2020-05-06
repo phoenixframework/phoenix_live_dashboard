@@ -26,6 +26,7 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
         action: socket.assigns.live_action,
         node: found_node || node(),
         metrics: session["metrics"],
+        plugins: session["plugins"],
         os_mon: Application.get_application(:os_mon),
         request_logger: session["request_logger"]
       })

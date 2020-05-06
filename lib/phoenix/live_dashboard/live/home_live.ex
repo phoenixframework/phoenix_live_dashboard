@@ -26,7 +26,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   ]
 
   @impl true
-  def mount(%{"node" => _} = params, session, socket) do
+  def mount(%{"node" => _} = params, %{"plugins" => plugins} = session, socket) do
     socket = assign_defaults(socket, params, session, true)
 
     %{
@@ -42,7 +42,8 @@ defmodule Phoenix.LiveDashboard.HomeLive do
       assign(socket,
         system_info: system_info,
         system_limits: system_limits,
-        system_usage: system_usage
+        system_usage: system_usage,
+        plugins: plugins
       )
 
     {:ok, socket, temporary_assigns: @temporary_assigns}
@@ -142,6 +143,10 @@ defmodule Phoenix.LiveDashboard.HomeLive do
             </div>
           </div>
         </div>
+
+        <%= for component <- Phoenix.LiveDashboard.Plugins.call(@menu.plugins, :add_dashboard_component, []) do %>
+          <%= live_component @socket, component %>
+        <% end %>
       </div>
 
       <!-- Right column containing system usage information -->
