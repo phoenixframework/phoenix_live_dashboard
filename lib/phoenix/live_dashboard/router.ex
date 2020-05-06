@@ -15,6 +15,10 @@ defmodule Phoenix.LiveDashboard.Router do
       It can be a `module` or a `{module, function}`. If nothing is
       given, the metrics functionality will be disabled.
 
+    * `:env_keys` - Configures environment variables to display.
+      It is defined as a list of string keys. If not set, the environment
+      information will not be displayed.
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -23,7 +27,9 @@ defmodule Phoenix.LiveDashboard.Router do
 
         scope "/", MyAppWeb do
           pipe_through [:browser]
-          live_dashboard "/dashboard", metrics: {MyAppWeb.Telemetry, :metrics}
+          live_dashboard "/dashboard",
+            metrics: {MyAppWeb.Telemetry, :metrics},
+            env_keys: ["APP_USER", "VERSION"]
         end
       end
 
