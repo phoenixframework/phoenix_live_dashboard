@@ -5,7 +5,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
   test "sets options" do
     assert Router.__options__([]) == [
-             session: {Phoenix.LiveDashboard.Router, :__session__, [nil]},
+             session: {Phoenix.LiveDashboard.Router, :__session__, [nil, nil]},
              layout: {Phoenix.LiveDashboard.LayoutView, :dash},
              as: :live_dashboard
            ]
@@ -13,13 +13,22 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
   test "normalizes metrics option" do
     assert Router.__options__(metrics: Foo)[:session] ==
-             {Phoenix.LiveDashboard.Router, :__session__, [{Foo, :metrics}]}
+             {Phoenix.LiveDashboard.Router, :__session__, [{Foo, :metrics}, nil]}
 
     assert Router.__options__(metrics: {Foo, :bar})[:session] ==
-             {Phoenix.LiveDashboard.Router, :__session__, [{Foo, :bar}]}
+             {Phoenix.LiveDashboard.Router, :__session__, [{Foo, :bar}, nil]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(metrics: [])
+    end
+  end
+
+  test "accepts env_keys option" do
+    assert Router.__options__(env_keys: ["USER", "ROOTDIR"])[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__, [nil, ["USER", "ROOTDIR"]]}
+
+    assert_raise ArgumentError, fn ->
+      Router.__options__(env_keys: "FOO")
     end
   end
 end

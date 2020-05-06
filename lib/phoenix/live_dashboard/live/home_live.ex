@@ -32,17 +32,19 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     %{
       # Read once
       system_info: system_info,
+      environment: environment,
       # Kept forever
       system_limits: system_limits,
       # Updated periodically
       system_usage: system_usage
-    } = SystemInfo.fetch_system_info(socket.assigns.menu.node)
+    } = SystemInfo.fetch_system_info(socket.assigns.menu.node, session["env_keys"])
 
     socket =
       assign(socket,
         system_info: system_info,
         system_limits: system_limits,
-        system_usage: system_usage
+        system_usage: system_usage,
+        environment: environment
       )
 
     {:ok, socket, temporary_assigns: @temporary_assigns}
@@ -142,6 +144,20 @@ defmodule Phoenix.LiveDashboard.HomeLive do
             </div>
           </div>
         </div>
+
+        <%= if @environment do %>
+          <h5 class="card-title">Environment</h5>
+
+          <div class="card mb-4">
+            <div class="card-body rounded">
+              <dl>
+              <%= for {k, v} <- @environment do %>
+                <dt><%= k %></dt><dd><%= v %></dd>
+              <% end %>
+              </dl>
+            </div>
+          </div>
+        <% end %>
       </div>
 
       <!-- Right column containing system usage information -->
