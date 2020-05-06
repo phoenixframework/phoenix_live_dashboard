@@ -32,17 +32,19 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     %{
       # Read once
       system_info: system_info,
+      environment: environment,
       # Kept forever
       system_limits: system_limits,
       # Updated periodically
       system_usage: system_usage
-    } = SystemInfo.fetch_system_info(socket.assigns.menu.node)
+    } = SystemInfo.fetch_system_info(socket.assigns.menu.node, session["env_keys"])
 
     socket =
       assign(socket,
         system_info: system_info,
         system_limits: system_limits,
         system_usage: system_usage,
+        environment: environment,
         plugins: plugins
       )
 
@@ -143,6 +145,25 @@ defmodule Phoenix.LiveDashboard.HomeLive do
             </div>
           </div>
         </div>
+
+        <%= if @environment do %>
+          <div class="environment-card">
+            <h5 class="card-title">Environment</h5>
+
+            <div class="card mb-4">
+              <div class="card-body rounded pt-3">
+                <dl>
+                <%= for {k, v} <- @environment do %>
+                  <dt class="pb-1"><%= k %></dt>
+                  <dd>
+                    <textarea class="code-field text-monospace" readonly="readonly" rows="1"><%= v %></textarea>
+                  </dd>
+                <% end %>
+                </dl>
+              </div>
+            </div>
+          </div>
+        <% end %>
 
         <%= for component <- Phoenix.LiveDashboard.Plugins.call(@menu.plugins, :add_dashboard_left_component, []) do %>
           <%= live_component @socket, component %>

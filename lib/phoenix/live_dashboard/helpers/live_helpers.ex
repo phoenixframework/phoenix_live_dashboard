@@ -18,7 +18,7 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   """
   def assign_defaults(socket, params, session, refresher? \\ false) do
     param_node = Map.fetch!(params, "node")
-    found_node = Enum.find([node() | Node.list()], &(Atom.to_string(&1) == param_node))
+    found_node = Enum.find(nodes(), &(Atom.to_string(&1) == param_node))
 
     socket =
       Phoenix.LiveView.assign(socket, :menu, %{
@@ -37,4 +37,9 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
       Phoenix.LiveView.push_redirect(socket, to: live_dashboard_path(socket, :home, node()))
     end
   end
+
+  @doc """
+  All connected nodes (including the current node).
+  """
+  def nodes(), do: [node()] ++ Node.list(:connected)
 end
