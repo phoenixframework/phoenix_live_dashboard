@@ -44,8 +44,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ets_info_callback, [ref])
   end
 
-  def fetch_system_info(node) do
-    :rpc.call(node, __MODULE__, :info_callback, [])
+  def fetch_system_info(node, keys) do
+    :rpc.call(node, __MODULE__, :info_callback, [keys])
   end
 
   def fetch_system_usage(node) do
@@ -59,7 +59,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ## System callbacks
 
   @doc false
-  def info_callback do
+  def info_callback(keys) do
     %{
       system_info: %{
         banner: :erlang.system_info(:system_version),
@@ -73,7 +73,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
         ports: :erlang.system_info(:port_limit),
         processes: :erlang.system_info(:process_limit)
       },
-      system_usage: usage_callback()
+      system_usage: usage_callback(),
+      environment: env_info_callback(keys)
     }
   end
 
@@ -363,6 +364,13 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     }
   end
 
+  ### Environment info callbacks
+
+  def env_info_callback(nil), do: nil
+
+  def env_info_callback(keys) do
+    Enum.map(keys, fn key -> {key, System.get_env(key)} end)
+  end
   ## Helpers
 
   defp format_call({m, f, a}), do: Exception.format_mfa(m, f, a)

@@ -1,0 +1,17 @@
+.environment-card {
+  dl {
+    margin-bottom: 0;
+
+    .code-field {
+      margin-bottom: 0.25rem;
+    }
+
+    dd:last-child {
+      margin-bottom: 0;
+
+      .code-field {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
