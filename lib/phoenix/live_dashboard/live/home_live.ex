@@ -144,7 +144,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           </div>
         </div>
 
-        <%= for component <- Phoenix.LiveDashboard.Plugins.call(@menu.plugins, :add_dashboard_component, []) do %>
+        <%= for component <- Phoenix.LiveDashboard.Plugins.call(@menu.plugins, :add_dashboard_left_component, []) do %>
           <%= live_component @socket, component %>
         <% end %>
       </div>
@@ -194,6 +194,10 @@ defmodule Phoenix.LiveDashboard.HomeLive do
             </div>
           </div>
         </div>
+
+        <%= for component <- Phoenix.LiveDashboard.Plugins.call(@menu.plugins, :add_dashboard_right_component, []) do %>
+          <%= live_component @socket, component %>
+        <% end %>
 
       </div>
     </div>
