@@ -118,58 +118,32 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
           </h5>
 
           <div class="row">
-            <div class="col-md-4 mb-4">
-              <div class="banner-card">
-                <h6 class="banner-card-title">
-                  Load 1 min
-                </h6>
-                <div class="banner-card-value"><%= rup(@os_mon.cpu_avg1) %></div>
+            <%= for {label, value} <- @os_mon.cpu_load do %>
+              <div class="col-md-4 mb-4">
+                <div class="banner-card">
+                  <h6 class="banner-card-title">
+                    Load <%= label %> min
+                  </h6>
+                  <div class="banner-card-value"><%= rup(value) %></div>
+                </div>
               </div>
-            </div>
-            <div class="col-md-4 mb-4">
-              <div class="banner-card">
-                <h6 class="banner-card-title">
-                  Load 5 min
-                </h6>
-                <div class="banner-card-value"><%= rup(@os_mon.cpu_avg5) %></div>
-              </div>
-            </div>
-            <div class="col-md-4 mb-4">
-              <div class="banner-card">
-                <h6 class="banner-card-title">
-                  Load 15 min
-                </h6>
-                <div class="banner-card-value"><%= rup(@os_mon.cpu_avg15) %></div>
-              </div>
+             <% end %>
             </div>
 
             <%= if @cpu_count > 0 do %>
-              <div class="col-md-4 mb-4">
-                <div class="banner-card">
-                  <h6 class="banner-card-title">
-                    Avg 1 min
-                  </h6>
-                  <div class="banner-card-value"><%= rup_avg(@os_mon.cpu_avg1, @cpu_count) %></div>
-                </div>
+              <div class="row">
+                <%= for {label, value} <- @os_mon.cpu_load do %>
+                  <div class="col-md-4 mb-4">
+                    <div class="banner-card">
+                      <h6 class="banner-card-title">
+                        Avg <%= label %> min
+                      </h6>
+                      <div class="banner-card-value"><%= rup_avg(value, @cpu_count) %></div>
+                    </div>
+                  </div>
+                <% end %>
               </div>
-              <div class="col-md-4 mb-4">
-                <div class="banner-card">
-                  <h6 class="banner-card-title">
-                    Avg 5 min
-                  </h6>
-                  <div class="banner-card-value"><%= rup_avg(@os_mon.cpu_avg5, @cpu_count) %></div>
-                </div>
-              </div>
-              <div class="col-md-4 mb-4">
-                <div class="banner-card">
-                  <h6 class="banner-card-title">
-                    Avg 15 min
-                  </h6>
-                  <div class="banner-card-value"><%= rup_avg(@os_mon.cpu_avg15, @cpu_count) %></div>
-                </div>
-              </div>
-            </div>
-          <% end %>
+            <% end %>
 
           <%= if @cpu_total do %>
             <div class="card mb-4">

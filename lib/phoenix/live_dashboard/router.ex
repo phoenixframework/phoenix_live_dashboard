@@ -89,11 +89,17 @@ defmodule Phoenix.LiveDashboard.Router do
 
     env_keys =
       case options[:env_keys] do
-        nil -> nil
-        keys when is_list(keys) -> keys
-        other -> raise ArgumentError,
-              ":env_keys must be a list of strings, got: #{inspect(other)}"
+        nil ->
+          nil
+
+        keys when is_list(keys) ->
+          keys
+
+        other ->
+          raise ArgumentError,
+                ":env_keys must be a list of strings, got: #{inspect(other)}"
       end
+
     [
       session: {__MODULE__, :__session__, [metrics, env_keys]},
       layout: {Phoenix.LiveDashboard.LayoutView, :dash},

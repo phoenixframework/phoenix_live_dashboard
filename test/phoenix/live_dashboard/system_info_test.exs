@@ -99,19 +99,15 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
   describe "os_mon" do
     test "gets all data" do
       assert %{
-               cpu_avg1: cpu_avg1,
-               cpu_avg5: cpu_avg5,
-               cpu_avg15: cpu_avg15,
                cpu_nprocs: cpu_nprocs,
+               cpu_load: cpu_load,
                cpu_per_core: cpu_per_core,
                disk: disk,
                system_mem: system_mem
              } = SystemInfo.fetch_os_mon_info(node())
 
-      assert is_integer(cpu_avg1)
-      assert is_integer(cpu_avg5)
-      assert is_integer(cpu_avg15)
       assert is_integer(cpu_nprocs)
+      assert is_list(cpu_load)
       assert is_list(cpu_per_core)
       assert is_list(disk)
       assert is_list(system_mem)

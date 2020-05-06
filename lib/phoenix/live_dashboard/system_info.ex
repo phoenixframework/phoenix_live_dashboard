@@ -353,11 +353,15 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
         other -> other
       end
 
+    cpu_load = [
+      {:"1", :cpu_sup.avg1()},
+      {:"5", :cpu_sup.avg5()},
+      {:"15", :cpu_sup.avg15()}
+    ]
+
     %{
-      cpu_avg1: :cpu_sup.avg1(),
-      cpu_avg5: :cpu_sup.avg5(),
-      cpu_avg15: :cpu_sup.avg15(),
       cpu_nprocs: :cpu_sup.nprocs(),
+      cpu_load: cpu_load,
       cpu_per_core: cpu_per_core,
       disk: disk,
       system_mem: :memsup.get_system_memory_data()
@@ -371,6 +375,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   def env_info_callback(keys) do
     Enum.map(keys, fn key -> {key, System.get_env(key)} end)
   end
+
   ## Helpers
 
   defp format_call({m, f, a}), do: Exception.format_mfa(m, f, a)
