@@ -32,13 +32,12 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     %{
       # Read once
       system_info: system_info,
+      environment: environment,
       # Kept forever
       system_limits: system_limits,
       # Updated periodically
       system_usage: system_usage
-    } = SystemInfo.fetch_system_info(socket.assigns.menu.node)
-
-    environment = SystemInfo.fetch_environment_info(socket.assigns.menu.node, session["env_keys"])
+    } = SystemInfo.fetch_system_info(socket.assigns.menu.node, session["env_keys"])
 
     socket =
       assign(socket,
