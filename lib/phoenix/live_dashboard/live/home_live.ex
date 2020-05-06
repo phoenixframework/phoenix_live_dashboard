@@ -146,15 +146,20 @@ defmodule Phoenix.LiveDashboard.HomeLive do
         </div>
 
         <%= if @environment do %>
-          <h5 class="card-title">Environment</h5>
+          <div class="environment-card">
+            <h5 class="card-title">Environment</h5>
 
-          <div class="card mb-4">
-            <div class="card-body rounded">
-              <dl>
-              <%= for {k, v} <- @environment do %>
-                <dt><%= k %></dt><dd><%= v %></dd>
-              <% end %>
-              </dl>
+            <div class="card mb-4">
+              <div class="card-body rounded pt-3">
+                <dl>
+                <%= for {k, v} <- @environment do %>
+                  <dt class="pb-1"><%= k %></dt>
+                  <dd>
+                    <textarea class="code-field text-monospace" readonly="readonly" rows="1"><%= v %></textarea>
+                  </dd>
+                <% end %>
+                </dl>
+              </div>
             </div>
           </div>
         <% end %>
