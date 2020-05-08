@@ -6,54 +6,59 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def fetch_processes(node, search, sort_by, sort_dir, limit) do
     search = search && String.downcase(search)
-    :rpc.call(node, __MODULE__, :processes_callback, [search, sort_by, sort_dir, limit])
+    rpc_call(node, __MODULE__, :processes_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_ets(node, search, sort_by, sort_dir, limit) do
     search = search && String.downcase(search)
-    :rpc.call(node, __MODULE__, :ets_callback, [search, sort_by, sort_dir, limit])
+    rpc_call(node, __MODULE__, :ets_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_sockets(node, search, sort_by, sort_dir, limit) do
     search = search && String.downcase(search)
-    :rpc.call(node, __MODULE__, :sockets_callback, [search, sort_by, sort_dir, limit])
+    rpc_call(node, __MODULE__, :sockets_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_socket_info(port, keys) do
-    :rpc.call(node(port), __MODULE__, :socket_info_callback, [port, keys])
+    rpc_call(node(port), __MODULE__, :socket_info_callback, [port, keys])
   end
 
   def fetch_process_info(pid, keys) do
-    :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
+    rpc_call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
   end
 
   def fetch_ports(node, search, sort_by, sort_dir, limit) do
     search = search && String.downcase(search)
-    :rpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
+    rpc_call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_applications(node, search, sort_by, sort_dir, limit) do
-    :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
+    rpc_call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_port_info(port, keys) do
-    :rpc.call(node(port), __MODULE__, :port_info_callback, [port, keys])
+    rpc_call(node(port), __MODULE__, :port_info_callback, [port, keys])
   end
 
   def fetch_ets_info(node, ref) do
-    :rpc.call(node, __MODULE__, :ets_info_callback, [ref])
+    rpc_call(node, __MODULE__, :ets_info_callback, [ref])
   end
 
   def fetch_system_info(node, keys) do
-    :rpc.call(node, __MODULE__, :info_callback, [keys])
+    rpc_call(node, __MODULE__, :info_callback, [keys])
   end
 
   def fetch_system_usage(node) do
-    :rpc.call(node, __MODULE__, :usage_callback, [])
+    rpc_call(node, __MODULE__, :usage_callback, [])
   end
 
   def fetch_os_mon_info(node) do
-    :rpc.call(node, __MODULE__, :os_mon_callback, [])
+    rpc_call(node, __MODULE__, :os_mon_callback, [])
+  end
+
+  def rpc_call(node, module, fun, args) do
+    Phoenix.LiveDashboard.RemoteCode.ensure_loaded(node, __MODULE__)
+    :rpc.call(node, module, fun, args)
   end
 
   ## System callbacks
@@ -371,6 +376,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   def env_info_callback(keys) do
     Enum.map(keys, fn key -> {key, System.get_env(key)} end)
   end
+
   ## Helpers
 
   defp format_call({m, f, a}), do: Exception.format_mfa(m, f, a)
