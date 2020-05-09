@@ -24,7 +24,11 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
         messages_present: false
       )
 
-    {:ok, socket, temporary_assigns: [messages: []]}
+    if socket.assigns.menu.request_logger do
+      {:ok, socket, temporary_assigns: [messages: []]}
+    else
+      {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+    end
   end
 
   def mount(%{"node" => node}, %{"request_logger" => _}, socket) do
@@ -38,7 +42,8 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
   end
 
   def handle_info({:node_redirect, node}, socket) do
-    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
+    to = live_dashboard_path(socket, :request_logger, node, [socket.assigns.stream])
+    {:noreply, push_redirect(socket, to: to)}
   end
 
   @impl true

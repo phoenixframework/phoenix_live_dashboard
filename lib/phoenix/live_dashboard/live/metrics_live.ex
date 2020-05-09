@@ -18,6 +18,9 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
       |> assign(group: group, groups: Map.keys(metrics_per_group))
 
     cond do
+      !socket.assigns.menu.metrics ->
+        {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+
       group && is_nil(metrics) ->
         {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node()))}
 
@@ -79,6 +82,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   end
 
   def handle_info({:node_redirect, node}, socket) do
-    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
+    args = if group = socket.assigns.group, do: [group], else: []
+    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, args))}
   end
 end
