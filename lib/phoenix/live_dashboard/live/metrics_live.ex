@@ -27,7 +27,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
       first_group && is_nil(group) ->
         {:ok,
-         push_redirect(socket, to: live_dashboard_path(socket, :metrics, node(), [first_group]))}
+         push_redirect(socket, to: live_dashboard_path(socket, :metrics, socket.assigns.menu.node, [first_group]))}
 
       true ->
         {:ok, assign(socket, metrics: nil)}
