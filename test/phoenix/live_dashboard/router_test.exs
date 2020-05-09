@@ -3,15 +3,21 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
   alias Phoenix.LiveDashboard.Router
 
-  test "sets options" do
+  test "default options" do
     assert Router.__options__([]) == [
              session: {Phoenix.LiveDashboard.Router, :__session__, [nil, nil]},
+             private: %{live_socket_path: "/live"},
              layout: {Phoenix.LiveDashboard.LayoutView, :dash},
              as: :live_dashboard
            ]
   end
 
-  test "normalizes metrics option" do
+  test "configures live_socket_path" do
+    assert Router.__options__(live_socket_path: "/custom/live")[:private] ==
+      %{live_socket_path: "/custom/live"}
+  end
+
+  test "configures metrics" do
     assert Router.__options__(metrics: Foo)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__, [{Foo, :metrics}, nil]}
 
@@ -23,7 +29,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     end
   end
 
-  test "accepts env_keys option" do
+  test "configures env_keys" do
     assert Router.__options__(env_keys: ["USER", "ROOTDIR"])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__, [nil, ["USER", "ROOTDIR"]]}
 

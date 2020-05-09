@@ -19,6 +19,9 @@ defmodule Phoenix.LiveDashboard.Router do
       It is defined as a list of string keys. If not set, the environment
       information will not be displayed.
 
+    * `:live_socket_path` - Configures the socket path. it must match
+      the `socket "/live", Phoenix.LiveView.Socket` in your endpoint.
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -70,6 +73,8 @@ defmodule Phoenix.LiveDashboard.Router do
 
   @doc false
   def __options__(options) do
+    live_socket_path = Keyword.get(options, :live_socket_path, "/live")
+
     metrics =
       case options[:metrics] do
         nil ->
@@ -96,6 +101,7 @@ defmodule Phoenix.LiveDashboard.Router do
       end
     [
       session: {__MODULE__, :__session__, [metrics, env_keys]},
+      private: %{live_socket_path: live_socket_path},
       layout: {Phoenix.LiveDashboard.LayoutView, :dash},
       as: :live_dashboard
     ]
