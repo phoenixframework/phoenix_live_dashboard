@@ -38,8 +38,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
   end
 
   def handle_info({:node_redirect, node}, socket) do
-    to = live_dashboard_path(socket, :request_logger, node, [socket.assigns.stream])
-    {:noreply, push_redirect(socket, to: to)}
+    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
   end
 
   @impl true

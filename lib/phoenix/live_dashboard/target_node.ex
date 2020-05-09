@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.RemoteCode do
+defmodule Phoenix.LiveDashboard.TargetNode do
   @moduledoc false
 
   def ensure_loaded(node, module) do
@@ -14,7 +14,7 @@ defmodule Phoenix.LiveDashboard.RemoteCode do
   end
 
   def maybe_replace(node, module) do
-    if is_different(node, module) && !has_live_dashboard(node) do
+    if is_different(node, module) && !dashboard_running?(node) do
       load(node, module)
     end
   end
@@ -23,10 +23,18 @@ defmodule Phoenix.LiveDashboard.RemoteCode do
     module.__info__(:md5) != :rpc.call(node, module, :__info__, [:md5])
   end
 
-  def has_live_dashboard(node) do
-    case :rpc.call(node, Code, :ensure_loaded, [Phoenix.LiveDashboard]) do
-      {:module, _} -> true
-      {:error, :nofile} -> false
+  def dashboard_running?(node) do
+    rpc_call!(node, Process, :whereis, [Phoenix.LiveDashboard.DynamicSupervisor]) != nil
+  end
+
+  def os_mon(node) do
+    rpc_call!(node, Application, :get_application, [:os_mon])
+  end
+
+  def rpc_call!(node, module, function, args) do
+    case :rpc.call(node, module, function, args) do
+      {:badrpc, reason} -> raise("Rpc call failed with #{inspect reason}")
+      result -> result
     end
   end
 end

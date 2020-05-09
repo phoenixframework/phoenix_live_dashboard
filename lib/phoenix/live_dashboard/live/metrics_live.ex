@@ -79,7 +79,6 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   end
 
   def handle_info({:node_redirect, node}, socket) do
-    args = if group = socket.assigns.group, do: [group], else: []
-    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, args))}
+    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
   end
 end

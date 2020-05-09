@@ -34,13 +34,13 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
       live(build_conn(), "/dashboard/nonode@nohost/metrics/unknown")
   end
 
-  test "redirects to new node" do
+  test "redirects to new node home" do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/ecto")
     send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/metrics/ecto")
+    assert_redirect(live, "/dashboard/foo%40bar")
 
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/phx")
     send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/metrics/phx")
+    assert_redirect(live, "/dashboard/foo%40bar")
   end
 end

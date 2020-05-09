@@ -5,8 +5,6 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
   use GenServer, restart: :temporary
 
   def listen(node, metrics) do
-    Phoenix.LiveDashboard.RemoteCode.ensure_loaded(node, __MODULE__)
-
     DynamicSupervisor.start_child(
       {Phoenix.LiveDashboard.DynamicSupervisor, node},
       {__MODULE__, {self(), metrics}}
