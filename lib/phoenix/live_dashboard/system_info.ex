@@ -2,6 +2,28 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   # Helpers for fetching and formatting system info.
   @moduledoc false
 
+  def ensure_loaded(node) do
+    case :rpc.call(node, :code, :ensure_loaded, [__MODULE__]) do
+      {:module, _} -> maybe_replace(node, fetch_capabilities(node))
+      {:error, :nofile} -> load(node)
+      {:error, reason} -> raise("Failed to load #{__MODULE__} on #{node}: #{inspect(reason)}")
+    end
+  end
+
+  defp maybe_replace(node, capabilities) do
+    if !capabilities.dashboard && capabilities.system_info != __MODULE__.__info__(:md5) do
+      load(node)
+    else
+      capabilities
+    end
+  end
+
+  defp load(node) do
+    {_module, binary, filename} = :code.get_object_code(__MODULE__)
+    :rpc.call(node, :code, :load_binary, [__MODULE__, filename, binary])
+    fetch_capabilities(node)
+  end
+
   ## Fetchers
 
   def fetch_processes(node, search, sort_by, sort_dir, limit) do
@@ -44,8 +66,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ets_info_callback, [ref])
   end
 
-  def fetch_system_info(node) do
-    :rpc.call(node, __MODULE__, :info_callback, [])
+  def fetch_system_info(node, keys) do
+    :rpc.call(node, __MODULE__, :info_callback, [keys])
   end
 
   def fetch_system_usage(node) do
@@ -56,10 +78,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :os_mon_callback, [])
   end
 
+  def fetch_capabilities(node) do
+    :rpc.call(node, __MODULE__, :capabilities_callback, [])
+  end
+
   ## System callbacks
 
   @doc false
-  def info_callback do
+  def info_callback(keys) do
     %{
       system_info: %{
         banner: :erlang.system_info(:system_version),
@@ -73,7 +99,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
         ports: :erlang.system_info(:port_limit),
         processes: :erlang.system_info(:process_limit)
       },
-      system_usage: usage_callback()
+      system_usage: usage_callback(),
+      environment: env_info_callback(keys)
     }
   end
 
@@ -88,6 +115,15 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       memory: memory(),
       total_run_queue: :erlang.statistics(:total_run_queue_lengths_all),
       cpu_run_queue: :erlang.statistics(:total_run_queue_lengths)
+    }
+  end
+
+  @doc false
+  def capabilities_callback do
+    %{
+      system_info: __MODULE__.__info__(:md5),
+      dashboard: Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor),
+      os_mon: Application.get_application(:os_mon)
     }
   end
 
@@ -361,6 +397,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       disk: disk,
       system_mem: :memsup.get_system_memory_data()
     }
+  end
+
+  ### Environment info callbacks
+
+  def env_info_callback(nil), do: nil
+
+  def env_info_callback(keys) do
+    Enum.map(keys, fn key -> {key, System.get_env(key)} end)
   end
 
   ## Helpers

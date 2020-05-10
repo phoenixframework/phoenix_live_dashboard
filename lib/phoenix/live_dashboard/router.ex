@@ -15,6 +15,13 @@ defmodule Phoenix.LiveDashboard.Router do
       It can be a `module` or a `{module, function}`. If nothing is
       given, the metrics functionality will be disabled.
 
+    * `:env_keys` - Configures environment variables to display.
+      It is defined as a list of string keys. If not set, the environment
+      information will not be displayed.
+
+    * `:live_socket_path` - Configures the socket path. it must match
+      the `socket "/live", Phoenix.LiveView.Socket` in your endpoint.
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -23,7 +30,9 @@ defmodule Phoenix.LiveDashboard.Router do
 
         scope "/", MyAppWeb do
           pipe_through [:browser]
-          live_dashboard "/dashboard", metrics: {MyAppWeb.Telemetry, :metrics}
+          live_dashboard "/dashboard",
+            metrics: {MyAppWeb.Telemetry, :metrics},
+            env_keys: ["APP_USER", "VERSION"]
         end
       end
 
@@ -64,6 +73,8 @@ defmodule Phoenix.LiveDashboard.Router do
 
   @doc false
   def __options__(options) do
+    live_socket_path = Keyword.get(options, :live_socket_path, "/live")
+
     metrics =
       case options[:metrics] do
         nil ->
@@ -81,17 +92,26 @@ defmodule Phoenix.LiveDashboard.Router do
                   "such as {MyAppWeb.Telemetry, :metrics}, got: #{inspect(other)}"
       end
 
+    env_keys =
+      case options[:env_keys] do
+        nil -> nil
+        keys when is_list(keys) -> keys
+        other -> raise ArgumentError,
+              ":env_keys must be a list of strings, got: #{inspect(other)}"
+      end
     [
-      session: {__MODULE__, :__session__, [metrics]},
+      session: {__MODULE__, :__session__, [metrics, env_keys]},
+      private: %{live_socket_path: live_socket_path},
       layout: {Phoenix.LiveDashboard.LayoutView, :dash},
       as: :live_dashboard
     ]
   end
 
   @doc false
-  def __session__(conn, metrics) do
+  def __session__(conn, metrics, env_keys) do
     %{
       "metrics" => metrics,
+      "env_keys" => env_keys,
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
     }
   end

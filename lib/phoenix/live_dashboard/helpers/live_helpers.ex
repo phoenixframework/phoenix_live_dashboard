@@ -18,16 +18,20 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   """
   def assign_defaults(socket, params, session, refresher? \\ false) do
     param_node = Map.fetch!(params, "node")
-    found_node = Enum.find([node() | Node.list()], &(Atom.to_string(&1) == param_node))
+    found_node = Enum.find(nodes(), &(Atom.to_string(&1) == param_node))
+    target_node = found_node || node()
+
+    capabilities = Phoenix.LiveDashboard.SystemInfo.ensure_loaded(target_node)
 
     socket =
       Phoenix.LiveView.assign(socket, :menu, %{
         refresher?: refresher?,
         action: socket.assigns.live_action,
-        node: found_node || node(),
-        metrics: session["metrics"],
-        os_mon: Application.get_application(:os_mon),
-        request_logger: session["request_logger"]
+        node: target_node,
+        metrics: capabilities.dashboard && session["metrics"],
+        os_mon: capabilities.os_mon,
+        request_logger: capabilities.dashboard && session["request_logger"],
+        dashboard_running?: capabilities.dashboard
       })
 
     if found_node do
@@ -36,4 +40,9 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
       Phoenix.LiveView.push_redirect(socket, to: live_dashboard_path(socket, :home, node()))
     end
   end
+
+  @doc """
+  All connected nodes (including the current node).
+  """
+  def nodes(), do: [node()] ++ Node.list(:connected)
 end

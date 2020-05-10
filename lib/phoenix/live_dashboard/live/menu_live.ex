@@ -22,8 +22,10 @@ defmodule Phoenix.LiveDashboard.MenuLive do
     <nav id="menu-bar">
       <%= maybe_active_live_redirect @socket, @menu, "Home", :home, @node %>
       <%= maybe_enabled_live_redirect @socket, @menu, "OS Data", :os_mon, @node %>
-      <%= maybe_enabled_live_redirect @socket, @menu, "Metrics", :metrics, @node %>
-      <%= maybe_enabled_live_redirect @socket, @menu, "Request Logger", :request_logger, @node %>
+      <%= if @menu.dashboard_running? do %>
+        <%= maybe_enabled_live_redirect @socket, @menu, "Metrics", :metrics, @node %>
+        <%= maybe_enabled_live_redirect @socket, @menu, "Request Logger", :request_logger, @node %>
+      <% end %>
       <%= maybe_active_live_redirect @socket, @menu, "Applications", :applications, @node %>
       <%= maybe_active_live_redirect @socket, @menu, "Processes", :processes, @node %>
       <%= maybe_active_live_redirect @socket, @menu, "Ports", :ports, @node %>
@@ -140,8 +142,6 @@ defmodule Phoenix.LiveDashboard.MenuLive do
   end
 
   ## Node helpers
-
-  defp nodes(), do: [node() | Node.list()]
 
   defp validate_nodes_or_redirect(socket) do
     if socket.assigns.node not in nodes() do

@@ -22,13 +22,13 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   ]
 
   @memory_usage_sections [
-    {"Used", :minus, :free_memory, :system_total_memory,
+    {"Used", :used_memory, :system_total_memory,
      "The amount of memory used from the available memory"},
-    {"Buffered", :plus, :buffered_memory, :system_total_memory,
+    {"Buffered", :buffered_memory, :system_total_memory,
      "The amount of memory used for temporary storing raw disk blocks"},
-    {"Cached", :plus, :cached_memory, :system_total_memory,
+    {"Cached", :cached_memory, :system_total_memory,
      "The amount of memory used for cached files read from disk"},
-    {"Swap", :minus, :free_swap, :total_swap,
+    {"Swap", :used_swap, :total_swap,
      "The amount of disk swap memory used from the available swap"}
   ]
 
@@ -39,7 +39,11 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
       |> assign_defaults(params, session, true)
       |> assign_os_mon()
 
-    {:ok, socket, temporary_assigns: @temporary_assigns}
+    if socket.assigns.menu.os_mon do
+      {:ok, socket, temporary_assigns: @temporary_assigns}
+    else
+      {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+    end
   end
 
   def mount(_params, _session, socket) do
@@ -59,13 +63,28 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   end
 
   defp calculate_memory_usage(system_memory) do
-    for {key, type, value_key, total_key, hint} <- @memory_usage_sections,
-        value = system_memory[value_key],
-        total = system_memory[total_key] do
-      actual_value = if type == :minus, do: total - value, else: value
-      {key, actual_value, total, percentage(actual_value, total), hint}
+    for {key, value_key, total_key, hint} <- @memory_usage_sections,
+        total = system_memory[total_key],
+        value = memory_value(system_memory, value_key, total) do
+      {key, value, total, percentage(value, total), hint}
     end
   end
+
+  defp memory_value(system_memory, :used_memory, total) do
+    if free = Keyword.get(system_memory, :free_memory, 0) do
+      total -
+        (free + Keyword.get(system_memory, :cached_memory, 0) +
+           Keyword.get(system_memory, :buffered_memory, 0))
+    end
+  end
+
+  defp memory_value(system_memory, :used_swap, total) do
+    if free = Keyword.get(system_memory, :free_swap, 0) do
+      total - free
+    end
+  end
+
+  defp memory_value(system_memory, key, _total), do: system_memory[key]
 
   defp calculate_cpu_total([], _cpu_count), do: nil
 

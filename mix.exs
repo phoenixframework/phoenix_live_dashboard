@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.2.1"
+  @version "0.2.2"
 
   def project do
     [
