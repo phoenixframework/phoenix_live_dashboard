@@ -39,7 +39,11 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
       |> assign_defaults(params, session, true)
       |> assign_os_mon()
 
-    {:ok, socket, temporary_assigns: @temporary_assigns}
+    if socket.assigns.menu.os_mon do
+      {:ok, socket, temporary_assigns: @temporary_assigns}
+    else
+      {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+    end
   end
 
   def mount(_params, _session, socket) do

@@ -56,6 +56,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :os_mon_callback, [])
   end
 
+  def fetch_capabilities(node) do
+    :rpc.call(node, __MODULE__, :capabilities_callback, [])
+  end
+
   ## System callbacks
 
   @doc false
@@ -89,6 +93,15 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       memory: memory(),
       total_run_queue: :erlang.statistics(:total_run_queue_lengths_all),
       cpu_run_queue: :erlang.statistics(:total_run_queue_lengths)
+    }
+  end
+
+  @doc false
+  def capabilities_callback do
+    %{
+      system_info: __MODULE__.__info__(:md5),
+      dashboard: Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor) != nil,
+      os_mon: Application.get_application(:os_mon)
     }
   end
 
@@ -371,6 +384,31 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   def env_info_callback(keys) do
     Enum.map(keys, fn key -> {key, System.get_env(key)} end)
   end
+
+  ## Load on remote node
+
+  def ensure_loaded(node) do
+    case :rpc.call(node, Code, :ensure_loaded, [__MODULE__]) do
+      {:module, _} -> maybe_replace(node, fetch_capabilities(node))
+      {:error, :nofile} -> load(node)
+      {:error, reason} -> raise("Failed to load #{__MODULE__} on #{node}: #{inspect reason}")
+    end
+  end
+
+  defp maybe_replace(node, capabilities) do
+    if !capabilities.dashboard && capabilities.system_info != __MODULE__.__info__(:md5) do
+      load(node)
+    else
+      capabilities
+    end
+  end
+
+  defp load(node) do
+    {_module, binary, filename} = :code.get_object_code(__MODULE__)
+    :rpc.call(node, :code, :load_binary, [__MODULE__, filename, binary])
+    fetch_capabilities(node)
+  end
+
   ## Helpers
 
   defp format_call({m, f, a}), do: Exception.format_mfa(m, f, a)

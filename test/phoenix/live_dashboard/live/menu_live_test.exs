@@ -13,7 +13,8 @@ defmodule Phoenix.LiveDashboard.MenuLiveTest do
         action: :home,
         node: node(),
         metrics: nil,
-        request_logger: nil
+        request_logger: nil,
+        dashboard_running?: true
       })
 
     live_isolated(build_conn(), MenuLive,
@@ -70,6 +71,12 @@ defmodule Phoenix.LiveDashboard.MenuLiveTest do
       {:ok, live, _} = menu_live(action: :ports)
       assert render(live) =~ ~s|<div class="menu-item active">Ports</div>|
       assert render(live) =~ ~r"<a[^>]+>Home</a>"
+    end
+
+    test "when no live dashboard detected" do
+      {:ok, live, _} = menu_live(dashboard_running?: false)
+      refute render(live) =~ ~s|<div class="menu-item">Metrics</div>|
+      refute render(live) =~ ~s|<div class="menu-item">Request Logger</div>|
     end
   end
 end
