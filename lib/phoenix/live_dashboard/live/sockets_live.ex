@@ -80,10 +80,10 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                   <th>
                   <%= sort_link(@socket, @live_action, @menu, @params, :module, "Module") %>
                   </th>
-                  <th>
+                  <th class="text-right pr-4">
                     <%= sort_link(@socket, @live_action, @menu, @params, :send_oct, "Sent") %>
                   </th>
-                  <th>
+                  <th class="text-right pr-4">
                     <%= sort_link(@socket, @live_action, @menu, @params, :recv_oct, "Received") %>
                   </th>
                   <th>
@@ -106,8 +106,8 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                   <tr phx-click="show_info" phx-value-port="<%= port_num %>" phx-page-loading>
                     <td class="tabular-column-name tabular-column-id pl-4"><%= encode_port(socket[:port]) %></td>
                     <td><%= socket[:module] %></td>
-                    <td><%= format_bytes(socket[:send_oct]) %></td>
-                    <td><%= format_bytes(socket[:recv_oct]) %></td>
+                    <td class="tabular-column-bytes pr-4"><%= format_bytes(socket[:send_oct]) %></td>
+                    <td class="tabular-column-bytes pr-4"><%= format_bytes(socket[:recv_oct]) %></td>
                     <td><%= socket[:local_address] %></td>
                     <td><%= socket[:foreign_address] %></td>
                     <td><%= socket[:state] %></td>

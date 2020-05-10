@@ -85,7 +85,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                   <th class="text-right pr-4">
                     <%= sort_link(@socket, @live_action, @menu, @params, :output, "Output") %>
                   </th>
-                  <th>Id</th>
+                  <th class="text-right">Id</th>
                   <th>Owner</td>
                 </tr>
               </thead>
@@ -101,7 +101,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                     </td>
                     <td class="tabular-column-bytes"><%= format_bytes(port[:input]) %></td>
                     <td class="tabular-column-bytes pr-4"><%= format_bytes(port[:output]) %></td>
-                    <td><%= port[:id] %></td>
+                    <td class="text-right"><%= port[:id] %></td>
                     <td><%= encode_pid(port[:connected]) %></td>
                   </tr>
                 <% end %>

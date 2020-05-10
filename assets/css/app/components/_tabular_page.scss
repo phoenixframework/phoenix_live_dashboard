@@ -19,7 +19,7 @@
 
   .tabular-column-bytes {
     text-align: right;
-    word-break: keep-all;
+    white-space: nowrap;
   }
 
   .tabular-search {
