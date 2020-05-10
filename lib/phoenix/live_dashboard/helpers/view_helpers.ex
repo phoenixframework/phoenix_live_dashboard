@@ -5,7 +5,6 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   import Phoenix.LiveView.Helpers
   @format_limit 100
   @format_path_regex ~r/^(?<beginning>((.+?\/){3})).*(?<ending>(\/.*){3})$/
-  #@format_path_regex ~r/^(?<beginning>(.+?\/.+?\/.+?\/)).*(?<ending>(\/.*){3})$/
 
   @doc """
   Encodes references for URLs.
