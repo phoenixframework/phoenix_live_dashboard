@@ -33,9 +33,11 @@ defmodule MyStorage do
     {:ok, %{history: CircularBuffer.new(@history_buffer_size), current: %{}}}
   end
 
-  def historical_metric_data(metric) do
+  def historical_metric_data(%{event_name: @historic_metrics} = metric) do
     GenServer.call(__MODULE__, {:historical_metric_data, metric})
   end
+
+  def historical_metric_data(_metric), do: []
 
   def setup do
     :telemetry.attach(
@@ -55,7 +57,10 @@ defmodule MyStorage do
   end
 
   def handle_call({:historical_metric_data, metric}, _from, %{history: history} = state) do
-    [:namespace, :sink, local_metric] = metric
+    # in this case, we're only considering the metric event_name and name, a list of atoms,
+    # but we might reflect on tags, unit or reporter_options as well to determine how or
+    # if we send history depending on our use case.
+    [:namespace, :sink, local_metric] = metric.name
 
     reply =
       for {time, time_metrics} <- history,

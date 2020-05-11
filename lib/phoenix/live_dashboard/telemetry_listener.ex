@@ -29,19 +29,25 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
     send(parent, {:telemetry, entries})
   end
 
+  def prepare_entry(metric, measurements, metadata) do
+    measurement = extract_measurement(metric, measurements)
+    label = tags_to_label(metric, metadata)
+    {label, measurement}
+  end
+
   defp keep?(%{keep: keep}, metadata) when keep != nil, do: keep.(metadata)
   defp keep?(_metric, _metadata), do: true
 
-  defp extract_measurement(metric, measurements) do
+  def extract_measurement(metric, measurements) do
     case metric.measurement do
       fun when is_function(fun, 1) -> fun.(measurements)
       key -> measurements[key]
     end
   end
 
-  defp tags_to_label(%{tags: []}, _metadata), do: nil
+  def tags_to_label(%{tags: []}, _metadata), do: nil
 
-  defp tags_to_label(%{tags: tags, tag_values: tag_values}, metadata) do
+  def tags_to_label(%{tags: tags, tag_values: tag_values}, metadata) do
     tag_values = tag_values.(metadata)
 
     tags
