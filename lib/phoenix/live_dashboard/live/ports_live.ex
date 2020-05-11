@@ -79,30 +79,30 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                   <th class="pl-4">Port</th>
                   <th>Name or path</th>
                   <th>OS pid</td>
-                  <th>
+                  <th class="text-right">
                     <%= sort_link(@socket, @live_action, @menu, @params, :input, "Input") %>
                   </th>
-                  <th>
+                  <th class="text-right pr-4">
                     <%= sort_link(@socket, @live_action, @menu, @params, :output, "Output") %>
                   </th>
-                  <th>Id</th>
+                  <th class="text-right">Id</th>
                   <th>Owner</td>
                 </tr>
               </thead>
               <tbody>
                 <%= for port <- @ports, port_num = encode_port(port[:port]) do %>
                   <tr phx-click="show_info" phx-value-port="<%= port_num %>" phx-page-loading class="<%= row_class(port, @port) %>">
-                    <td class="tabular-column-name pl-4"><%= port_num %></td>
-                    <td class="w-50"><%= port[:name] %></td>
+                    <td class="tabular-column-id pl-4"><%= port_num %></td>
+                    <td class="w-50"><%= format_path(port[:name]) %></td>
                     <td>
                       <%= if port[:os_pid] != :undefined do %>
                         <%= port[:os_pid] %>
                       <% end %>
                     </td>
-                    <td><%= format_bytes(port[:input]) %></td>
-                    <td><%= format_bytes(port[:output]) %></td>
-                    <td><%= port[:id] %></td>
-                    <td><%= inspect(port[:connected]) %></td>
+                    <td class="tabular-column-bytes"><%= format_bytes(port[:input]) %></td>
+                    <td class="tabular-column-bytes pr-4"><%= format_bytes(port[:output]) %></td>
+                    <td class="text-right"><%= port[:id] %></td>
+                    <td><%= encode_pid(port[:connected]) %></td>
                   </tr>
                 <% end %>
               </tbody>

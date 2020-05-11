@@ -75,16 +75,16 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :state, "State") %>
                   </th>
-                  <th>Version</th>
+                  <th class="px-4">Version</th>
                 </tr>
               </thead>
               <tbody>
                 <%= for application <- @applications do %>
                   <tr class="<%= if application[:state] == :loaded, do: "text-muted" %>">
-                    <td><%= application[:name] %></td>
+                    <td class="pl-4"><%= application[:name] %></td>
                     <td><%= application[:description] %></td>
                     <td><%= application[:state] %></td>
-                    <td><%= application[:version] %></td>
+                    <td class="px-4"><%= application[:version] %></td>
                   </tr>
                 <% end %>
               </tbody>

@@ -4,6 +4,7 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
 
   import Phoenix.LiveView.Helpers
   @format_limit 100
+  @format_path_regex ~r/^(?<beginning>((.+?\/){3})).*(?<ending>(\/.*){3})$/
 
   @doc """
   Encodes references for URLs.
@@ -156,6 +157,19 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   def percentage(_value, 0, _rounds), do: 0
   def percentage(nil, _total, _rounds), do: 0
   def percentage(value, total, rounds), do: Float.round(value / total * 100, rounds)
+
+  @doc """
+  Formats path.
+  """
+  def format_path(path) do
+    path_string = to_string(path)
+    Regex.named_captures(@format_path_regex, path_string)
+    |> case do
+      %{"beginning" => beginning, "ending" => ending} -> "#{beginning}...#{ending}"
+      _ -> path_string
+    end
+
+  end
 
   @doc """
   Shows a hint.

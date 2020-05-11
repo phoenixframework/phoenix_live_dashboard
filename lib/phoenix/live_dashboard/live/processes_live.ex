@@ -93,7 +93,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
               <tbody>
                 <%= for process <- @processes, list_pid = encode_pid(process[:pid]) do %>
                   <tr phx-click="show_info" phx-value-pid="<%= list_pid %>" phx-page-loading class="<%= row_class(process, @pid) %>">
-                    <td class="tabular-column-pid pl-4"><%= list_pid %></td>
+                    <td class="tabular-column-id pl-4"><%= list_pid %></td>
                     <td class="tabular-column-name"><%= process[:name_or_initial_call] %></td>
                     <td class="text-right"><%= format_bytes(process[:memory]) %></td>
                     <td class="text-right"><%= process[:reductions] %></td>
