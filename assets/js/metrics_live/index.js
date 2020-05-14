@@ -176,40 +176,124 @@ class CommonMetric {
   }
 }
 
+function tagMeasurement({ x, y, z }) {
+  updateTagSeriesData.call(this, { x, y, z })
+  this.datasets = this.datasets.map((dataset, index) => {
+    if (dataset.key === "|x|") {
+      dataset.data.push(z)
+    } else {
+      handleTagMeasurement(this.tagSummary[x], dataset, { x, y, z })
+    }
+
+    return dataset
+  })
+}
+
+function updateTagSeriesData({ x, y, z }) {
+  let seriesIndex = this.datasets.findIndex(({ key }) => x === key)
+  if (seriesIndex === -1) {
+    addSummaryTagSeries.call(this, x)
+    this.tagSummary[x] = { total: 0, min: null, max: null, count: 0 }
+  }
+
+  this.tagSummary[x].count++
+  this.tagSummary[x].total += y
+  if (this.tagSummary[x].min === null || y < this.tagSummary[x].min) {
+    this.tagSummary[x].min = y
+  }
+  if (this.tagSummary[x].max === null || y > this.tagSummary[x].max) {
+    this.tagSummary[x].max = y
+  }
+}
+
+function addSummaryTagSeries(label) {
+  const suffixes = ["", "min", "max", "avg"]
+
+  suffixes.forEach((suffix) => {
+    let seriesLabel = `${label} ${suffix}`.trim()
+    let seriesIndex = this.datasets.push({ key: seriesLabel, data: Array(this.datasets[0].data.length).fill(null) }) - 1
+
+    let seriesOptions = {}
+    if (suffix === "min" || suffix == "max") {
+      seriesOptions = {
+        fill: "rgba(0, 0, 0, .07)",
+        band: true,
+        width: 0,
+        show: false,
+      }
+    }
+
+    let seriesConfig = {
+      ...newSeriesConfig({ label: seriesLabel, unit: this.options.unit }, seriesIndex - 1),
+      ...seriesOptions
+    }
+    this.chart.addSeries(seriesConfig, seriesIndex)
+  })
+}
+
+function handleTagMeasurement(tagData, dataset, { x, y, z }) {
+  if (dataset.key == x) {
+    dataset.data.push(y)
+  } else if (dataset.key === `${x} min`) {
+    dataset.data.push(tagData.min)
+  } else if (dataset.key === `${x} max`) {
+    dataset.data.push(tagData.max)
+  } else if (dataset.key === `${x} avg`) {
+    dataset.data.push(tagData.total / tagData.count)
+  } else {
+    dataset.data.push(null)
+  }
+}
+
+function untaggedMeasurement({ x, y, z }) {
+  // Increment the new overall totals
+  this.count++
+  this.total += y
+
+  // Push the static values
+  this.datasets[0].data.push(z)
+  this.datasets[1].data.push(y)
+
+  // Push min/max/avg
+  if (this.min === null || y < this.min) { this.min = y }
+  this.datasets[2].data.push(this.min)
+
+  if (this.max === null || y > this.max) { this.max = y }
+  this.datasets[3].data.push(this.max)
+
+  this.datasets[4].data.push(this.total / this.count)
+}
+
+
 // Displays a measurement summary
 class Summary {
   constructor(chart, options) {
     // TODO: Get percentiles from options
     this.chart = chart
-    this.datasets = this.constructor.initialData()
+    this.datasets = [
+      { key: "|x|", data: [] },
+      { key: "Overall", data: [] },
+      { key: "Overall min", data: [] },
+      { key: "Overall max", data: [] },
+      { key: "Overall avg", data: [] }
+    ]
     this.options = options
     this.min = null
     this.max = null
     this.total = 0
     this.count = 0
+    this.tagSummary = {}
+
+    if (options.tagged) {
+      this.__handler = tagMeasurement
+    } else {
+      this.__handler = untaggedMeasurement
+    }
   }
 
-  handleMeasurements(data) {
-    data.forEach(({ x, y, z }) => {
-      // Increment the new totals
-      this.count++
-      this.total += y
-
-      // Push the static values
-      this.datasets[0].push(z)
-      this.datasets[1].push(y)
-
-      // Push min/max/avg
-      if (this.min === null || y < this.min) { this.min = y }
-      this.datasets[2].push(this.min)
-
-      if (this.max === null || y > this.max) { this.max = y }
-      this.datasets[3].push(this.max)
-
-      this.datasets[4].push(this.total / this.count)
-    })
-
-    this.chart.setData(this.datasets)
+  handleMeasurements(measurements) {
+    measurements.forEach((measurement) => this.__handler.call(this, measurement))
+    this.chart.setData(dataForDatasets(this.datasets));
   }
 
   static initialData() { return [[], [], [], [], []] }
