@@ -24,6 +24,15 @@ defmodule Phoenix.LiveDashboard.TelemetryListenerTest do
     refute_received {:telemetry, [{0, nil, 100, _}]}
   end
 
+  test "does not forward the metric if measurement if skipping missing" do
+    TelemetryListener.listen(node(), [counter("a.b.c", keep: & &1.keep?)])
+
+    :telemetry.execute([:a, :b], %{c: 200}, %{keep?: false})
+    :telemetry.execute([:a, :b], %{c: 100}, %{keep?: true})
+    assert_receive {:telemetry, [{0, nil, 100, _}]}
+    refute_received {:telemetry, [{0, nil, 200, _}]}
+  end
+
   test "uses custom measurement" do
     TelemetryListener.listen(node(), [counter("a.b.c", measurement: &(&1.c * 2))])
     :telemetry.execute([:a, :b], %{c: 100}, %{})
