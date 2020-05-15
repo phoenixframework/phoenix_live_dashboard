@@ -1,8 +1,15 @@
 # CHANGELOG
 
+## v0.2.3 (2020-05-15)
+
+* Allow the Dashboard to connect to nodes even if they are not running the Dashboard (or Phoenix)
+* Support hidden nodes
+* Allow some environment variables to be opted-in and shown in the Dashboard
+* Support latest `telemetry_metrics`
+
 ## v0.2.2 (2020-05-05)
 
-* Improvements on the amount of data sent
+* Improvements on the amount of data sent between client/server
 * Fix OS Data page on Windows
 
 ## v0.2.1 (2020-04-29)
