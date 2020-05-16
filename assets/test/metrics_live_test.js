@@ -139,7 +139,7 @@ describe('Metrics no tags', () => {
     })
 
     test('pushes value/min/max/avg', () => {
-      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: true })
+      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: false })
       chart.pushData([{ x: 'a', y: 2, z: 1 }])
 
       expect(mockSetData).toHaveBeenCalledWith([
