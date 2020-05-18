@@ -219,8 +219,8 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
           <h5 class="card-title">Disk</h5>
           <div class="card mb-4">
             <div class="card-body disk-usage">
-              <%= for {mountpoint, kbytes, percent} <- @os_mon.disk do %>
-                <%= live_component @socket, BarComponent, id: {:disk, mountpoint}, percent: percent do %>
+              <%= for {{mountpoint, kbytes, percent}, index} <- Enum.with_index(@os_mon.disk) do %>
+                <%= live_component @socket, BarComponent, id: {:disk, mountpoint, index}, percent: percent do %>
                   <%= mountpoint %>
                   <span class="flex-grow-1"></span>
                   <span class="text-right text-muted">
