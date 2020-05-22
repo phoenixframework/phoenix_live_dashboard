@@ -1,6 +1,8 @@
 defmodule Phoenix.LiveDashboard.ChartComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
+  @default_max_number_of_events 100_000
+
   @impl true
   def mount(socket) do
     {:ok, socket, temporary_assigns: [data: []]}
@@ -18,7 +20,8 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
           kind: chart_kind(metric.__struct__),
           label: chart_label(metric),
           tags: Enum.join(metric.tags, "-"),
-          unit: chart_unit(metric.unit)
+          unit: chart_unit(metric.unit),
+          max_number_of_events: max_number_of_events(metric)
         )
       else
         socket
@@ -45,7 +48,8 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
               data-metric="<%= @kind %>"
               data-title="<%= @title %>"
               data-tags="<%= @tags %>"
-              data-unit="<%= @unit %>">
+              data-unit="<%= @unit %>"
+              data-max-number-of-events="<%= @max_number_of_events %>">
           </div>
         </div>
         <%= if @description do %>
@@ -88,4 +92,23 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp chart_unit(:second), do: "s"
   defp chart_unit(:unit), do: ""
   defp chart_unit(unit) when is_atom(unit), do: unit
+
+  defp max_number_of_events(metric) do
+    max_number_of_events =
+      metric.reporter_options[:max_number_of_events]
+      |> validate_max_number_of_events()
+
+    to_string(max_number_of_events || @default_max_number_of_events)
+  end
+
+  defp validate_max_number_of_events(nil), do: nil
+
+  defp validate_max_number_of_events(value) do
+    unless is_integer(value) and value > 0 do
+      raise ArgumentError,
+            "expected :max_number_of_events to be a positive integer, got: #{inspect(value)}"
+    end
+
+    value
+  end
 end
