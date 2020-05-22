@@ -325,7 +325,7 @@ const PhxChartComponent = {
     const data = Array
       .from(this.el.children || [])
       .map(({ dataset: { x, y, z } }) => {
-        return { x, y: parseFloat(y), z: parseInt(z) / 1e3 }
+        return { x, y: +y, z: +z / 1e3 }
       })
 
     if (data.length > 0) {
