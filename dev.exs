@@ -9,7 +9,7 @@ Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
   http: [port: System.get_env("PORT") || 4000],
   debug_errors: true,
   check_origin: false,
-  pubsub: [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2],
+  pubsub_server: Demo.PubSub,
   watchers: [
     node: [
       "node_modules/webpack/bin/webpack.js",
@@ -134,7 +134,11 @@ Application.ensure_all_started(:os_mon)
 Application.put_env(:phoenix, :serve_endpoints, true)
 
 Task.start(fn ->
-  children = [DemoWeb.Endpoint]
+  children = [
+    {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
+    DemoWeb.Endpoint
+  ]
+
   {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
   Process.sleep(:infinity)
 end)

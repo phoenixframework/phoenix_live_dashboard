@@ -4,7 +4,7 @@ Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Endpoint,
   live_view: [signing_salt: "hMegieSe"],
   render_errors: [view: Phoenix.LiveDashboardTest.ErrorView],
   check_origin: false,
-  pubsub: [name: Phoenix.LiveDashboardTest.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub_server: Phoenix.LiveDashboardTest.PubSub
 )
 
 defmodule Phoenix.LiveDashboardTest.ErrorView do
@@ -58,5 +58,13 @@ defmodule Phoenix.LiveDashboardTest.Endpoint do
 end
 
 Application.ensure_all_started(:os_mon)
-Phoenix.LiveDashboardTest.Endpoint.start_link()
+
+Supervisor.start_link(
+  [
+    {Phoenix.PubSub, name: Phoenix.LiveDashboardTest.PubSub, adapter: Phoenix.PubSub.PG2},
+    Phoenix.LiveDashboardTest.Endpoint
+  ],
+  strategy: :one_for_one
+)
+
 ExUnit.start()
