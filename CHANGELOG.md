@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.4 (2020-05-22)
+
+* Do not crash on duplicate disks
+* Support latest LiveView
+
 ## v0.2.3 (2020-05-15)
 
 * Allow the Dashboard to connect to nodes even if they are not running the Dashboard (or Phoenix)
