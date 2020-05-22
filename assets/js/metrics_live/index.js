@@ -287,7 +287,10 @@ export class TelemetryChart {
   }
 
   resize(boundingBox) {
-    this.uplotChart.setSize({width: Math.max(boundingBox.width, minChartSize.width), height: minChartSize.height});
+    this.uplotChart.setSize({
+      width: Math.max(boundingBox.width, minChartSize.width),
+      height: minChartSize.height
+    })
   }
 
   pushData(measurements) {
@@ -315,7 +318,6 @@ const PhxChartComponent = {
       let newSize = chartEl.getBoundingClientRect()
       this.chart.resize(newSize)
     }))
-    
   },
   updated() {
     const data = Array
