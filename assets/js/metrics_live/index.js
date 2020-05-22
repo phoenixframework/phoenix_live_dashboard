@@ -129,7 +129,7 @@ class CommonMetric {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: ts => uPlot.tzDate(new Date(ts * 1e3)),
+      tzDate: ts => uPlot.tzDate(new Date(ts)),
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0)
@@ -220,7 +220,7 @@ class Summary {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: ts => uPlot.tzDate(new Date(ts * 1e3)),
+      tzDate: ts => uPlot.tzDate(new Date(ts)),
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0),
@@ -309,7 +309,7 @@ const PhxChartComponent = {
       tagged: (chartEl.dataset.tags && chartEl.dataset.tags !== "") || false,
       width: Math.max(size.width, minChartSize.width),
       height: minChartSize.height,
-      now: (new Date()).getTime() / 1000
+      now: (new Date()).getTime()
     })
 
     this.chart = new TelemetryChart(chartEl, options)
