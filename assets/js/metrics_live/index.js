@@ -113,6 +113,8 @@ function nextTaggedValueForCallback({ x, y, z }, callback) {
   })
 }
 
+const tzDate = (ts) => new Date(ts)
+
 // Handles the basic metrics like Counter, LastValue, and Sum.
 class CommonMetric {
   static __projections() {
@@ -129,7 +131,7 @@ class CommonMetric {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: ts => uPlot.tzDate(new Date(ts)),
+      tzDate: tzDate,
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0)
@@ -220,7 +222,7 @@ class Summary {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: ts => uPlot.tzDate(new Date(ts)),
+      tzDate: tzDate,
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0),
@@ -323,7 +325,7 @@ const PhxChartComponent = {
     const data = Array
       .from(this.el.children || [])
       .map(({ dataset: { x, y, z } }) => {
-        return { x, y: parseFloat(y), z: parseInt(z) }
+        return { x, y: parseFloat(y), z: parseInt(z) / 1e3 }
       })
 
     if (data.length > 0) {
