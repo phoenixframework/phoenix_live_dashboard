@@ -113,6 +113,8 @@ function nextTaggedValueForCallback({ x, y, z }, callback) {
   })
 }
 
+const tzDate = (ts) => new Date(ts)
+
 // Handles the basic metrics like Counter, LastValue, and Sum.
 class CommonMetric {
   static __projections() {
@@ -129,7 +131,7 @@ class CommonMetric {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: ts => uPlot.tzDate(new Date(ts * 1e3)),
+      tzDate: tzDate,
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0)
@@ -220,7 +222,7 @@ class Summary {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: ts => uPlot.tzDate(new Date(ts * 1e3)),
+      tzDate: tzDate,
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0),
@@ -287,7 +289,10 @@ export class TelemetryChart {
   }
 
   resize(boundingBox) {
-    this.uplotChart.setSize({width: Math.max(boundingBox.width, minChartSize.width), height: minChartSize.height});
+    this.uplotChart.setSize({
+      width: Math.max(boundingBox.width, minChartSize.width),
+      height: minChartSize.height
+    })
   }
 
   pushData(measurements) {
@@ -306,7 +311,7 @@ const PhxChartComponent = {
       tagged: (chartEl.dataset.tags && chartEl.dataset.tags !== "") || false,
       width: Math.max(size.width, minChartSize.width),
       height: minChartSize.height,
-      now: (new Date()).getTime() / 1000
+      now: (new Date()).getTime()
     })
 
     this.chart = new TelemetryChart(chartEl, options)
@@ -315,13 +320,12 @@ const PhxChartComponent = {
       let newSize = chartEl.getBoundingClientRect()
       this.chart.resize(newSize)
     }))
-    
   },
   updated() {
     const data = Array
       .from(this.el.children || [])
       .map(({ dataset: { x, y, z } }) => {
-        return { x, y: parseFloat(y), z: parseInt(z) }
+        return { x, y: +y, z: +z / 1e3 }
       })
 
     if (data.length > 0) {
