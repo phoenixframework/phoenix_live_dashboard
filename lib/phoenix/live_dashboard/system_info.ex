@@ -82,6 +82,22 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :capabilities_callback, [])
   end
 
+  def fetch_started_applications(node) do
+    :rpc.call(node, __MODULE__, :started_apps_set, [])
+  end
+
+  def fetch_supervisor_children(pid) do
+    :rpc.call(node(pid), __MODULE__, :supervisor_children, [pid])
+  end
+
+  def fetch_application_master_child(pid) do
+    :rpc.call(node(pid), __MODULE__, :application_master_child, [pid])
+  end
+
+  def fetch_application_controller_master(node, application) do
+    :rpc.call(node, __MODULE__, :application_controller_master, [application])
+  end
+
   ## System callbacks
 
   @doc false
@@ -231,10 +247,22 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     Atom.to_string(name) =~ search or String.downcase(desc) =~ search or version =~ search
   end
 
-  defp started_apps_set() do
+  def started_apps_set() do
     Application.started_applications()
     |> Enum.map(fn {name, _, _} -> name end)
     |> MapSet.new()
+  end
+
+  def supervisor_children(pid) do
+    Supervisor.which_children(pid)
+  end
+
+  def application_master_child(pid) do
+    :application_master.get_child(pid)
+  end
+
+  def application_controller_master(application) do
+    :application_controller.get_master(application)
   end
 
   ## Ports callbacks
