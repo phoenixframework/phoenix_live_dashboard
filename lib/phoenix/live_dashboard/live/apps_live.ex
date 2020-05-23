@@ -5,7 +5,6 @@ defmodule Phoenix.LiveDashboard.AppsLive do
     SystemInfo,
     ProcessInfoComponent,
     ReingoldTilford,
-    SupervisionTree,
     TreeDrawingHelpers
   }
 
@@ -64,9 +63,9 @@ defmodule Phoenix.LiveDashboard.AppsLive do
                 <div style="width: 1000px; height: 1000px;">
                   <svg width="<%= @width %>" height="<%= @height %>" id="tree" class="tree" >
                       <%= for node <- @nodes do %>
-                      <rect x="<%= node.x %>" y="<%= node.y %>" rx="10" ry="10" width="100" height="20"
+                      <rect x="<%= node.x %>" y="<%= node.y %>" rx="10" ry="10" width="<%= node.width %>" height="<%= node.height %>"
                       class="node" phx-click="show_info" phx-value-pid="<%= encode_pid(node.pid) %>" phx-page-loading />
-                      <text class="wrap" fill="#4e5156" font-size="10" font-family="Verdana" x="<%= node.x + 5 %>" y="<%= node.y + 13%>">
+                      <text class="wrap" fill="#4e5156" font-size="10" font-family="Verdana" x="<%= node.x + 5 %>" y="<%= node.y + node.height *0.6%>">
                       <%= node.name %> </text>
                       <% end %>
                       #<%= for line <- @lines do %>
@@ -120,8 +119,7 @@ defmodule Phoenix.LiveDashboard.AppsLive do
   defp fetch_nodes_and_lines(%{assigns: %{application: application, menu: menu}} = socket) do
     tree =
       menu.node
-      |> SystemInfo.fetch_application_controller_master(application)
-      |> SupervisionTree.construct_tree()
+      |> SystemInfo.fetch_app_tree(application)
       |> ReingoldTilford.set_layout_settings()
 
     assign(socket,

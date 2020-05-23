@@ -86,16 +86,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :started_apps_set, [])
   end
 
-  def fetch_supervisor_children(pid) do
-    :rpc.call(node(pid), __MODULE__, :supervisor_children, [pid])
-  end
-
-  def fetch_application_master_child(pid) do
-    :rpc.call(node(pid), __MODULE__, :application_master_child, [pid])
-  end
-
-  def fetch_application_controller_master(node, application) do
-    :rpc.call(node, __MODULE__, :application_controller_master, [application])
+  def fetch_app_tree(node, application) do
+    :rpc.call(node, __MODULE__, :app_tree, [application])
   end
 
   ## System callbacks
@@ -253,16 +245,52 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     |> MapSet.new()
   end
 
-  def supervisor_children(pid) do
-    Supervisor.which_children(pid)
+  def app_tree(app) do
+    master = :application_controller.get_master(app)
+    {child, _} = :application_master.get_child(master)
+    {nodes, _seen} = to_flat_node(:supervisor, child, master, %{master => true})
+    {{:master, master, []}, nodes}
   end
 
-  def application_master_child(pid) do
-    :application_master.get_child(pid)
+  defp to_flat_node(type, pid, master, seen) do
+    seen = Map.put(seen, pid, true)
+    {children, seen} = children(type, pid, master, seen)
+    {:registered_name, registered_name} = Process.info(pid, :registered_name)
+    {[{{type, pid, registered_name}, children}], seen}
   end
 
-  def application_controller_master(application) do
-    :application_controller.get_master(application)
+  defp children(:supervisor, pid, master, seen) do
+    case :supervisor.which_children(pid) do
+      [] ->
+        # If we don't have any child, it may be a supervisor bridge, so we also look at links.
+        children(:worker, pid, master, seen)
+
+      children ->
+        Enum.flat_map_reduce(children, seen, fn {_id, child, type, _modules}, seen ->
+          if is_pid(child) do
+            to_flat_node(type, child, master, seen)
+          else
+            {[], seen}
+          end
+        end)
+    end
+  end
+
+  defp children(:worker, pid, master, seen) do
+    case Process.info(pid, :links) do
+      {:links, children} ->
+        Enum.flat_map_reduce(children, seen, fn child, seen ->
+          if is_pid(child) and not Map.has_key?(seen, child) and
+               Process.info(child, :group_leader) == {:group_leader, master} do
+            to_flat_node(:worker, child, master, seen)
+          else
+            {[], seen}
+          end
+        end)
+
+      _ ->
+        {[], seen}
+    end
   end
 
   ## Ports callbacks

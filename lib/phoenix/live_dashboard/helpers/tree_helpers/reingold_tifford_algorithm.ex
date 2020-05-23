@@ -2,15 +2,39 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
   # Reingold-Tilford algorithm for drawing trees
   @moduledoc false
 
-  @height 20
+  @node_height 30
   @node_y_separation 10
-  @total_y_distance @height + @node_y_separation
+  @total_y_distance @node_height + @node_y_separation
+
+  @node_width 120
+  @node_x_separation 50
+  @total_x_distance @node_width + @node_x_separation
 
   def set_layout_settings(tree) do
     tree
+    |> change_representation(0)
     |> calculate_initial_y(0, [])
     |> ensure_children_inside_screen()
     |> put_final_y_values(0)
+  end
+
+  defp change_representation({{_, pid, _}, children}, level) do
+    children =
+      Enum.reduce(children, [], fn node, acc ->
+        [change_representation(node, level + 1) | acc]
+      end)
+
+    %{
+      pid: pid,
+      name: name(pid),
+      x: level * @total_x_distance,
+      y: 0,
+      children: Enum.reverse(children),
+      modifier: 0,
+      type: if(children == [], do: :leaf, else: :subtree),
+      width: @node_width,
+      height: @node_height
+    }
   end
 
   defp calculate_initial_y(%{children: children} = node, previous_sibling, top_siblings) do
@@ -18,35 +42,51 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
       children
       |> Enum.reduce({0, []}, fn n, {prev_sibling, nodes} ->
         new_node = calculate_initial_y(n, prev_sibling, nodes)
-        {new_node.y, nodes ++ [new_node]}
+        {new_node.y, [new_node | nodes]}
       end)
 
+    {first_child, last_child} =
+      if node.type != :leaf do
+        [first_child | _] = children
+        [last_child | _] = Enum.reverse(children)
+        {first_child, last_child}
+      else
+        {nil, nil}
+      end
+
     new_node =
-      case {node_type(node), node.num} do
-        {:leaf, 0} ->
+      case {node_type(node), top_siblings} do
+        {:leaf, []} ->
           %{node | y: 0}
 
         {:leaf, _} ->
           %{node | y: previous_sibling + @total_y_distance}
 
-        {:small_subtree, 0} ->
-          child = Enum.min_by(children, & &1.y)
-
-          %{node | y: child.y}
+        {:small_subtree, []} ->
+          %{node | y: first_child.y}
 
         {:small_subtree, _} ->
-          %{
-            node
-            | y: previous_sibling + @total_y_distance,
-              modifier: previous_sibling + @total_y_distance + hd(children).y
-          }
+          if node_type(first_child) == :big_subtree do
+            %{
+              node
+              | y: previous_sibling + @total_y_distance,
+                modifier: previous_sibling + first_child.y - first_child.modifier
+            }
+          else
+            %{
+              node
+              | y: previous_sibling + @total_y_distance,
+                modifier:
+                  previous_sibling + @total_y_distance + first_child.y - first_child.modifier
+            }
+          end
 
-        {:big_subtree, 0} ->
-          mid = (List.last(children).y + hd(children).y) / 2
+        {:big_subtree, []} ->
+          mid = (last_child.y + first_child.y) / 2
           %{node | y: mid}
 
         {:big_subtree, _} ->
-          mid = (List.last(children).y + hd(children).y) / 2
+          mid = (last_child.y + first_child.y) / 2
 
           %{
             node
@@ -55,7 +95,7 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
           }
       end
 
-    if !Enum.empty?(children) and !Enum.empty?(top_siblings) do
+    if children != [] and top_siblings != [] do
       fix_sibling_conflicts(%{new_node | children: children}, top_siblings)
     else
       %{new_node | children: children}
@@ -63,12 +103,10 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
   end
 
   defp node_type(node) do
-    with :subtree <- node.type,
-         1 <- Enum.count(node.children) do
-      :small_subtree
-    else
-      :leaf -> :leaf
-      _ -> :big_subtree
+    cond do
+      node.type == :leaf -> :leaf
+      match?([_], node.children) -> :small_subtree
+      true -> :big_subtree
     end
   end
 
@@ -83,10 +121,11 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
     bottom = search_contour({top_most_sibling, %{}, 1, 0}, :bottom)
 
     distance =
-      Map.merge(top, bottom, fn _, c1, c2 -> c1 - c2 end)
-      |> Enum.reduce(0, fn {_b, t}, acc ->
-        if t + acc < @total_y_distance and acc < @total_y_distance - t do
-          @total_y_distance - t
+      [Map.values(top), Map.values(bottom)]
+      |> Enum.zip()
+      |> Enum.reduce(0, fn {t, b}, acc ->
+        if t - b + acc < @total_y_distance do
+          @total_y_distance - (t - b)
         else
           acc
         end
@@ -95,8 +134,8 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
     if distance > 0 do
       new_node = %{
         node
-        | y: node.y + distance + @node_y_separation,
-          modifier: node.modifier + distance + @node_y_separation
+        | y: node.y + distance,
+          modifier: node.modifier + distance
       }
 
       fix_sibling_conflicts(new_node, other_siblings)
@@ -146,5 +185,12 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
       end)
 
     %{node | y: node.y + result, modifier: node.modifier + result}
+  end
+
+  defp name(pid) do
+    case :erlang.process_info(pid, :registered_name) do
+      {_, registered_name} -> to_string(registered_name)
+      _ -> pid |> inspect |> String.trim_leading("#PID")
+    end
   end
 end
