@@ -38,45 +38,41 @@ defmodule Phoenix.LiveDashboard.AppsLive do
   @impl true
   def render(assigns) do
     ~L"""
-        <div class="tabular-page">
-          <h5 class="card-title">Applications</h5>
-          <h5><%= @application%></h5>
-
-          <%= if @pid do %>
-            <%= live_modal @socket, ProcessInfoComponent,
-              id: @pid,
-              title: inspect(@pid),
-              return_to: self_path(@socket, @menu.node),
-              live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3) %>
-          <% end %>
-          <div class="row">
-            <div class="col-sm-2 overflow">
-              <ul class="list-group grouped_list_hover active_items">
-                <%= for app <- @applications do %>
-                <button type="button" class="list-group-item list-group-item-action" phx-click="select_app" phx-value-app="<%= app %>"><%= app %></button>
-                <% end %>
-
-              </ul
-            </div>
-            </div>
-              <div class="card col-sm-10 overflow">
-                <div style="width: 1000px; height: 1000px;">
-                  <svg width="<%= @width %>" height="<%= @height %>" id="tree" class="tree" >
-                      <%= for node <- @nodes do %>
-                      <rect x="<%= node.x %>" y="<%= node.y %>" rx="10" ry="10" width="<%= node.width %>" height="<%= node.height %>"
-                      class="node" phx-click="show_info" phx-value-pid="<%= encode_pid(node.pid) %>" phx-page-loading />
-                      <text class="wrap" fill="#4e5156" font-size="10" font-family="Verdana" x="<%= node.x + 5 %>" y="<%= node.y + node.height *0.6%>">
-                      <%= node.name %> </text>
-                      <% end %>
-                      #<%= for line <- @lines do %>
-                      <line x1="<%= line.x1 %>" y1="<%= line.y1 %>" x2="<%= line.x2 %>" y2="<%= line.y2 %>" class="line" />
-                      #<% end %>
-                  </svg>
-                </div>
-              </div>
-              </div>
+      <div class="tabular-page applications_tab">
+        <h5 class="card-title">Applications</h5>
+        <h5><%= @application%></h5>
+        <%= if @pid do %>
+          <%= live_modal @socket, ProcessInfoComponent,
+            id: @pid,
+            title: inspect(@pid),
+            return_to: self_path(@socket, @menu.node),
+            live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3) %>
+        <% end %>
+        <div class="row active_applications_list">
+          <div class="col-sm-2 overflow">
+            <ul class="list-group grouped_list_hover active_items">
+              <%= for app <- @applications do %>
+              <button type="button" class="list-group-item list-group-item-action" phx-click="select_app" phx-value-app="<%= app %>"><%= app %></button>
+              <% end %>
+            </ul
           </div>
         </div>
+        <div class="card col-sm-10 application_tree overflow">
+          <div style="width: 1000px; height: 1000px;">
+            <svg width="<%= @width %>" height="<%= @height %>" id="tree" class="tree" >
+                <%= for node <- @nodes do %>
+                <rect x="<%= node.x %>" y="<%= node.y %>" rx="20" ry="20" width="<%= node.width %>" height="<%= node.height %>"
+                class="node" phx-click="show_info" phx-value-pid="<%= encode_pid(node.pid) %>" phx-page-loading />
+                <text class="tree_node_text" x="<%= node.x + 5 %>" y="<%= node.y + node.height *0.6%>">
+                <%= node.name %> </text>
+                <% end %>
+                #<%= for line <- @lines do %>
+                <line x1="<%= line.x1 %>" y1="<%= line.y1 %>" x2="<%= line.x2 %>" y2="<%= line.y2 %>" class="line" />
+                #<% end %>
+            </svg>
+          </div>
+        </div>
+      </div>
     """
   end
 
