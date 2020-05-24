@@ -5,10 +5,7 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
   @node_height 30
   @node_y_separation 10
   @total_y_distance @node_height + @node_y_separation
-
-  @node_width 120
   @node_x_separation 50
-  @total_x_distance @node_width + @node_x_separation
 
   def set_layout_settings(tree) do
     tree
@@ -16,24 +13,28 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
     |> calculate_initial_y(0, [])
     |> ensure_children_inside_screen()
     |> put_final_y_values(0)
+    |> put_x_position(:first_call)
   end
 
-  defp change_representation({{_, pid, _}, children}, level) do
+  defp change_representation({{_, pid, name}, children}, level) do
     children =
       Enum.reduce(children, [], fn node, acc ->
         [change_representation(node, level + 1) | acc]
       end)
 
+    name = name({name, pid})
+
     %{
       pid: pid,
-      name: name(pid),
-      x: level * @total_x_distance,
+      name: name,
       y: 0,
       children: Enum.reverse(children),
       modifier: 0,
       type: if(children == [], do: :leaf, else: :subtree),
-      width: @node_width,
-      height: @node_height
+      height: @node_height,
+      width: String.length(to_string(name)) * 10,
+      level: level,
+      x: 0
     }
   end
 
@@ -187,10 +188,52 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
     %{node | y: node.y + result, modifier: node.modifier + result}
   end
 
-  defp name(pid) do
-    case :erlang.process_info(pid, :registered_name) do
-      {_, registered_name} -> to_string(registered_name)
-      _ -> pid |> inspect |> String.trim_leading("#PID")
+  defp put_x_position(%{children: children} = node, position, max_width) do
+    children =
+      Enum.reduce(
+        children,
+        [],
+        &[
+          put_x_position(&1, max_width[node.level] + position + @node_x_separation, max_width)
+          | &2
+        ]
+      )
+
+    %{node | x: position, children: children}
+  end
+
+  defp put_x_position(%{children: children} = tree, :first_call) do
+    max_width = find_max_width_by_level(tree, %{}) |> IO.inspect()
+
+    children =
+      Enum.reduce(
+        children,
+        [],
+        &[put_x_position(&1, tree.width + @node_x_separation, max_width) | &2]
+      )
+
+    %{tree | x: 0, children: children}
+  end
+
+  defp find_max_width_by_level(node, max_values) do
+    max_values =
+      if Map.has_key?(max_values, node.level) do
+        Map.put(max_values, node.level, max(max_values[node.level], node.width))
+      else
+        Map.put(max_values, node.level, node.width)
+      end
+
+    Enum.reduce(
+      node.children,
+      max_values,
+      &find_max_width_by_level(&1, &2)
+    )
+  end
+
+  defp name({name, pid}) do
+    case name do
+      [] -> pid |> inspect |> String.trim_leading("#PID")
+      name -> name
     end
   end
 end

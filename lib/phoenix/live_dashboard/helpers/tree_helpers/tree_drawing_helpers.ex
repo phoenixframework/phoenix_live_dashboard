@@ -1,6 +1,4 @@
 defmodule Phoenix.LiveDashboard.TreeDrawingHelpers do
-  @node_height 30
-  @node_width 120
   @node_x_separation 50
   def extract_nodes(%{children: children} = node) do
     node = Map.delete(node, :children)
@@ -28,10 +26,10 @@ defmodule Phoenix.LiveDashboard.TreeDrawingHelpers do
 
   defp line_from_parent(node) do
     %{
-      x1: node.x + @node_width,
-      x2: node.x + @node_width + @node_x_separation / 2,
-      y1: node.y + @node_height / 2,
-      y2: node.y + @node_height / 2
+      x1: node.x + node.width,
+      x2: node.x + node.width + @node_x_separation / 2,
+      y1: node.y + node.height / 2,
+      y2: node.y + node.height / 2
     }
   end
 
@@ -40,10 +38,10 @@ defmodule Phoenix.LiveDashboard.TreeDrawingHelpers do
     [bottom_most_child | _] = Enum.reverse(children)
 
     %{
-      x1: node.x + @node_width + @node_x_separation / 2,
-      x2: node.x + @node_width + @node_x_separation / 2,
-      y1: top_most_child.y + @node_height / 2,
-      y2: bottom_most_child.y + @node_height / 2
+      x1: node.x + node.width + @node_x_separation / 2,
+      x2: node.x + node.width + @node_x_separation / 2,
+      y1: top_most_child.y + node.height / 2,
+      y2: bottom_most_child.y + node.height / 2
     }
   end
 
@@ -51,10 +49,10 @@ defmodule Phoenix.LiveDashboard.TreeDrawingHelpers do
     Enum.reduce(children, [], fn n, acc ->
       [
         %{
-          x1: node.x + @node_width + @node_x_separation / 2,
+          x1: node.x + node.width + @node_x_separation / 2,
           x2: n.x,
-          y1: n.y + @node_height / 2,
-          y2: n.y + @node_height / 2
+          y1: n.y + node.height / 2,
+          y2: n.y + node.height / 2
         }
         | acc
       ]
@@ -64,6 +62,6 @@ defmodule Phoenix.LiveDashboard.TreeDrawingHelpers do
   def svg_size(nodes) do
     node_y = Enum.max_by(nodes, fn x -> x.y end)
     node_x = Enum.max_by(nodes, fn x -> x.x end)
-    {node_x.x + @node_width, node_y.y + @node_height}
+    {node_x.x + node_x.width, node_y.y + node_y.height}
   end
 end
