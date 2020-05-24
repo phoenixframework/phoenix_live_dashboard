@@ -12,17 +12,15 @@ defmodule Phoenix.LiveDashboard.TitleBarComponent do
         <div class="d-flex justify-content-between">
           <%= @inner_content.([]) %>
         </div>
-        <div class="progress-section">
-          <div class="progress flex-grow-1 mt-2">
-            <div
-            class="progress-bar bg-<%= @color %>"
-            role="progressbar"
-            aria-valuenow="<%= @percent %>"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            style="width: <%= @percent %>%"
-            >
-            </div>
+        <div class="progress flex-grow-1 mt-2">
+          <div
+          class="progress-bar bg-<%= @color %>"
+          role="progressbar"
+          aria-valuenow="<%= @percent %>"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          style="width: <%= @percent %>%"
+          >
           </div>
         </div>
       </section>

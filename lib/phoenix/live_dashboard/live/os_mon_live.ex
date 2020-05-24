@@ -226,7 +226,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
       <%= if @os_mon.disk != [] do %>
         <div class="col-12">
           <h5 class="card-title">Disk</h5>
-          <div class="card mb-4">
+          <div class="card progress-section mb-4">
             <div class="card-body">
               <%= for {{mountpoint, kbytes, percent}, index} <- Enum.with_index(@os_mon.disk) do %>
                 <%= live_component @socket, TitleBarComponent, id: {:disk, mountpoint, index}, percent: percent, class: "py-2" do %>
