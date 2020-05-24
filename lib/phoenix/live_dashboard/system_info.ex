@@ -247,42 +247,66 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def app_tree(app) do
     master = :application_controller.get_master(app)
-    {child, _} = :application_master.get_child(master)
-    {nodes, _seen} = to_flat_node(:supervisor, child, master, %{master => true})
-    {{:master, master, []}, nodes}
-  end
+    {child, _app} = :application_master.get_child(master)
+    {children, seen} = sup_tree(child, %{master => true, child => true})
+    {children, _seen} = links_tree(children, master, seen)
 
-  defp to_flat_node(type, pid, master, seen) do
-    seen = Map.put(seen, pid, true)
-    {children, seen} = children(type, pid, master, seen)
-    {:registered_name, registered_name} = Process.info(pid, :registered_name)
-    {[{{type, pid, registered_name}, children}], seen}
-  end
+    case has_ancestor?(child) do
+      false ->
+        {{:master, master, []}, [to_node(:supervisor, child, children)]}
 
-  defp children(:supervisor, pid, master, seen) do
-    case :supervisor.which_children(pid) do
-      [] ->
-        # If we don't have any child, it may be a supervisor bridge, so we also look at links.
-        children(:worker, pid, master, seen)
-
-      children ->
-        Enum.flat_map_reduce(children, seen, fn {_id, child, type, _modules}, seen ->
-          if is_pid(child) do
-            to_flat_node(type, child, master, seen)
-          else
-            {[], seen}
-          end
-        end)
+      ancestor ->
+        {{:master, master, []},
+         [{{:ancestor, ancestor, []}, [to_node(:supervisor, child, children)]}]}
     end
   end
 
-  defp children(:worker, pid, master, seen) do
+  defp has_ancestor?(master) do
+    {_, dictionary} = :erlang.process_info(master, :dictionary)
+
+    case Keyword.get(dictionary, :"$ancestors") do
+      [parent] -> parent
+      _ -> false
+    end
+  end
+
+  defp sup_tree(pid, seen) do
+    pid
+    |> :supervisor.which_children()
+    |> Enum.reverse()
+    |> Enum.flat_map_reduce(seen, fn {_id, child, type, _modules}, seen ->
+      if is_pid(child) do
+        {children, seen} = if type == :worker, do: {[], seen}, else: sup_tree(child, seen)
+        {[{type, child, children}], put_child(seen, child)}
+      else
+        {[], seen}
+      end
+    end)
+  end
+
+  defp links_tree(nodes, master, seen) do
+    Enum.map_reduce(nodes, seen, fn {type, pid, children}, seen ->
+      {children, seen} =
+        if children == [], do: links_children(type, pid, master, seen), else: {children, seen}
+
+      {children, seen} = links_tree(children, master, seen)
+      {to_node(type, pid, children), seen}
+    end)
+  end
+
+  defp links_children(parent_type, pid, master, seen) do
+    # If the parent type is a supervisor and we have no children,
+    # then this may be a supervisor bridge, so we tag its children
+    # as workers, otherwise they are links.
+    type = if parent_type == :supervisor, do: :worker, else: :link
+
     case Process.info(pid, :links) do
       {:links, children} ->
-        Enum.flat_map_reduce(children, seen, fn child, seen ->
-          if is_pid(child) and not Map.has_key?(seen, child) and
-               Process.info(child, :group_leader) == {:group_leader, master} do
-            to_flat_node(:worker, child, master, seen)
+        children
+        |> Enum.reverse()
+        |> Enum.flat_map_reduce(seen, fn child, seen ->
+          if is_pid(child) and not has_child?(seen, child) and has_leader?(child, master) do
+            {[{type, child, []}], put_child(seen, child)}
           else
             {[], seen}
           end
@@ -292,6 +316,17 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
         {[], seen}
     end
   end
+
+  defp to_node(type, pid, children) do
+    {:registered_name, registered_name} = Process.info(pid, :registered_name)
+    {{type, pid, registered_name}, children}
+  end
+
+  defp has_child?(seen, child), do: Map.has_key?(seen, child)
+  defp put_child(seen, child), do: Map.put(seen, child, true)
+
+  defp has_leader?(pid, gl),
+    do: Process.info(pid, :group_leader) == {:group_leader, gl}
 
   ## Ports callbacks
 
