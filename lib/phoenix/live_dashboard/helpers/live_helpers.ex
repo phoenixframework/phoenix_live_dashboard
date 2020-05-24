@@ -13,10 +13,18 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
     )
   end
 
+  def new_live_dashboard_path(socket, page, node, params \\ []) do
+    apply(
+      socket.router.__helpers__(),
+      :live_dashboard_path,
+      [socket, :page, node, page, params]
+    )
+  end
+
   @doc """
   Assign default values on the socket.
   """
-  def assign_defaults(socket, params, session, refresher? \\ false) do
+  def assign_defaults(socket, page, params, session, refresher? \\ false) do
     param_node = Map.fetch!(params, "node")
     found_node = Enum.find(nodes(), &(Atom.to_string(&1) == param_node))
     target_node = found_node || node()
@@ -26,7 +34,8 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
     socket =
       Phoenix.LiveView.assign(socket, :menu, %{
         refresher?: refresher?,
-        action: socket.assigns.live_action,
+        page: page,
+        info: info(params, socket, page, node),
         node: target_node,
         metrics: capabilities.dashboard && session["metrics"],
         os_mon: capabilities.os_mon,
@@ -40,6 +49,12 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
       Phoenix.LiveView.push_redirect(socket, to: live_dashboard_path(socket, :home, node()))
     end
   end
+
+  defp info(%{"info" => info} = params, socket, page, node) do
+    {info, new_live_dashboard_path(socket, page, node, Map.delete(params, info))}
+  end
+
+  defp info(%{}, _, _, _), do: nil
 
   @doc """
   All connected nodes (including the current node).

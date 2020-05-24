@@ -14,12 +14,13 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
     socket =
       socket
-      |> assign_defaults(params, session)
+      |> assign_defaults(:metrics, params, session)
       |> assign(group: group, groups: Map.keys(metrics_per_group))
 
     cond do
       !socket.assigns.menu.metrics ->
-        {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+        {:ok,
+         push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
 
       group && is_nil(metrics) ->
         {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node()))}
@@ -30,7 +31,12 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
       first_group && is_nil(group) ->
         {:ok,
-         push_redirect(socket, to: live_dashboard_path(socket, :metrics, socket.assigns.menu.node, [first_group]))}
+         push_redirect(socket,
+           to:
+             new_live_dashboard_path(socket, :metrics, socket.assigns.menu.node,
+               group: first_group
+             )
+         )}
 
       true ->
         {:ok, assign(socket, metrics: nil)}
@@ -53,7 +59,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
           <%= for group <- @groups do %>
             <li class="nav-item">
               <%= live_redirect(format_group_name(group),
-                    to: live_dashboard_path(@socket, :metrics, @menu.node, [group]),
+                    to: new_live_dashboard_path(@socket, :metrics, @menu.node, group: group),
                     class: "nav-link #{if @group == group, do: "active"}") %>
             </li>
           <% end %>
@@ -82,7 +88,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   end
 
   def handle_info({:node_redirect, node}, socket) do
-    args = if group = socket.assigns.group, do: [group], else: []
-    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, args))}
+    params = if group = socket.assigns.group, do: [group: group], else: []
+    {:noreply, push_redirect(socket, to: new_live_dashboard_path(socket, :metrics, node, params))}
   end
 end

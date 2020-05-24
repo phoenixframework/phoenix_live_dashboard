@@ -6,12 +6,12 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   test "redirects to the first metrics group if no metric group is provided" do
-    {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics/ecto"}}} =
+    {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics?group=ecto"}}} =
       live(build_conn(), "/dashboard/nonode@nohost/metrics")
   end
 
   test "shows given group metrics" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/phx")
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?group=phx")
     rendered = render(live)
     assert rendered =~ "Updates automatically"
     assert rendered =~ "Phx"
@@ -31,16 +31,16 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
 
   test "redirects on unknown group" do
     {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics"}}} =
-      live(build_conn(), "/dashboard/nonode@nohost/metrics/unknown")
+      live(build_conn(), "/dashboard/nonode@nohost/metrics?group=unknown")
   end
 
   test "redirects to new node" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/ecto")
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?group=ecto")
     send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/metrics/ecto")
+    assert_redirect(live, "/dashboard/foo%40bar/metrics?group=ecto")
 
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics/phx")
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?group=phx")
     send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/metrics/phx")
+    assert_redirect(live, "/dashboard/foo%40bar/metrics?group=phx")
   end
 end

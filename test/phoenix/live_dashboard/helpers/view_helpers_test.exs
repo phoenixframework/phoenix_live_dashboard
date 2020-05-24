@@ -51,7 +51,11 @@ defmodule Phoenix.LiveDashboard.ViewHelpersTest do
     assert format_path("command -a -b") == "command -a -b"
     assert format_path("/one/two/three/four") == "/one/two/three/four"
     assert format_path("/one/two/three/four/five/six") == "/one/two/three/four/five/six"
-    assert format_path("/one/two/three/four/five/six/seven") == "/one/two/three/.../five/six/seven"
-    assert format_path("/one/two/three/four/five/six/seven/eight") == "/one/two/three/.../six/seven/eight"
+
+    assert format_path("/one/two/three/four/five/six/seven") ==
+             "/one/two/three/.../five/six/seven"
+
+    assert format_path("/one/two/three/four/five/six/seven/eight") ==
+             "/one/two/three/.../six/seven/eight"
   end
 end

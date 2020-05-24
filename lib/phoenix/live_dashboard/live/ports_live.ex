@@ -9,7 +9,8 @@ defmodule Phoenix.LiveDashboard.PortsLive do
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, params, session, true), temporary_assigns: @temporary_assigns}
+    {:ok, assign_defaults(socket, :ports, params, session, true),
+     temporary_assigns: @temporary_assigns}
   end
 
   @impl true

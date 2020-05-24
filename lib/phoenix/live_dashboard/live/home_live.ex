@@ -3,9 +3,9 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
   alias Phoenix.LiveDashboard.{
     SystemInfo,
+    CardUsageComponent,
     ColorBarComponent,
-    ColorBarLegendComponent,
-    SystemLimitComponent
+    ColorBarLegendComponent
   }
 
   @temporary_assigns [system_info: nil, system_usage: nil]
@@ -27,7 +27,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    socket = assign_defaults(socket, params, session, true)
+    socket = assign_defaults(socket, :home, params, session, true)
 
     %{
       # Read once
@@ -169,7 +169,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
       <div class="col-sm-6">
         <h5 class="card-title">System limits</h5>
 
-        <%= live_component @socket, SystemLimitComponent, usage: @system_usage.atoms, limit: @system_limits.atoms do %>
+        <%= live_component @socket, CardUsageComponent, usage: @system_usage.atoms, limit: @system_limits.atoms do %>
           Atoms
           <%= hint do %>
             If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
@@ -177,7 +177,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           <% end %>
         <% end %>
 
-        <%= live_component @socket, SystemLimitComponent, usage: @system_usage.ports, limit: @system_limits.ports do %>
+        <%= live_component @socket, CardUsageComponent, usage: @system_usage.ports, limit: @system_limits.ports do %>
           Ports
           <%= hint do %>
             If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
@@ -185,7 +185,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
           <% end %>
         <% end %>
 
-        <%= live_component @socket, SystemLimitComponent, usage: @system_usage.processes, limit: @system_limits.processes do %>
+        <%= live_component @socket, CardUsageComponent, usage: @system_usage.processes, limit: @system_limits.processes do %>
           Processes
           <%= hint do %>
             If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.

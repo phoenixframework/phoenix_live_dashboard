@@ -9,7 +9,8 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, params, session, true), temporary_assigns: @temporary_assigns}
+    {:ok, assign_defaults(socket, :sockets, params, session, true),
+     temporary_assigns: @temporary_assigns}
   end
 
   @impl true

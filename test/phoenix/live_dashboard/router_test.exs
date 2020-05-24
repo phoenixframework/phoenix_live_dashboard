@@ -14,7 +14,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
   test "configures live_socket_path" do
     assert Router.__options__(live_socket_path: "/custom/live")[:private] ==
-      %{live_socket_path: "/custom/live"}
+             %{live_socket_path: "/custom/live"}
   end
 
   test "configures metrics" do

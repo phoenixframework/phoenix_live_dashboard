@@ -163,12 +163,12 @@ defmodule Phoenix.LiveDashboard.ViewHelpers do
   """
   def format_path(path) do
     path_string = to_string(path)
+
     Regex.named_captures(@format_path_regex, path_string)
     |> case do
       %{"beginning" => beginning, "ending" => ending} -> "#{beginning}...#{ending}"
       _ -> path_string
     end
-
   end
 
   @doc """

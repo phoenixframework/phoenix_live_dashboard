@@ -44,10 +44,9 @@ defmodule Phoenix.LiveDashboard.Router do
 
         opts = Phoenix.LiveDashboard.Router.__options__(opts)
         live "/", Phoenix.LiveDashboard.HomeLive, :home, opts
-        live "/:node", Phoenix.LiveDashboard.HomeLive, :home, opts
-        live "/:node/os", Phoenix.LiveDashboard.OSMonLive, :os_mon, opts
+        live "/:node/home", Phoenix.LiveDashboard.HomeLive, :home, opts
+        live "/:node/os_mon", Phoenix.LiveDashboard.OSMonLive, :os_mon, opts
         live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
-        live "/:node/metrics/:group", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
         live "/:node/ports", Phoenix.LiveDashboard.PortsLive, :ports, opts
         live "/:node/ports/:port", Phoenix.LiveDashboard.PortsLive, :ports, opts
         live "/:node/processes", Phoenix.LiveDashboard.ProcessesLive, :processes, opts
@@ -67,6 +66,9 @@ defmodule Phoenix.LiveDashboard.Router do
              Phoenix.LiveDashboard.RequestLoggerLive,
              :request_logger,
              opts
+
+        # Temporary catch-all
+        live "/:node/:page", Phoenix.LiveDashboard.HomeLive, :page, opts
       end
     end
   end
@@ -94,11 +96,17 @@ defmodule Phoenix.LiveDashboard.Router do
 
     env_keys =
       case options[:env_keys] do
-        nil -> nil
-        keys when is_list(keys) -> keys
-        other -> raise ArgumentError,
-              ":env_keys must be a list of strings, got: #{inspect(other)}"
+        nil ->
+          nil
+
+        keys when is_list(keys) ->
+          keys
+
+        other ->
+          raise ArgumentError,
+                ":env_keys must be a list of strings, got: #{inspect(other)}"
       end
+
     [
       session: {__MODULE__, :__session__, [metrics, env_keys]},
       private: %{live_socket_path: live_socket_path},

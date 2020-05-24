@@ -7,7 +7,7 @@ defmodule Phoenix.LiveDashboard.OSMonLiveTest do
 
   describe "OS mon page" do
     test "displays section titles" do
-      {:ok, _live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/os")
+      {:ok, _live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/os_mon")
       assert rendered =~ "CPU"
       assert rendered =~ "Memory"
       assert rendered =~ "Disk"

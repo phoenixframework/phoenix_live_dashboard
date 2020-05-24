@@ -1,14 +1,14 @@
-defmodule Phoenix.LiveDashboard.BarComponentTest do
+defmodule Phoenix.LiveDashboard.TitleBarComponentTest do
   use ExUnit.Case, async: true
   import Phoenix.LiveViewTest
 
-  alias Phoenix.LiveDashboard.BarComponent
+  alias Phoenix.LiveDashboard.TitleBarComponent
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   describe "rendering" do
     test "color bar component" do
       result =
-        render_component(BarComponent,
+        render_component(TitleBarComponent,
           percent: 0.1,
           class: "test-class",
           inner_content: fn _ -> "123" end

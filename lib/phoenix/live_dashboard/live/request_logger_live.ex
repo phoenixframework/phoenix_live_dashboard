@@ -14,7 +14,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
 
     socket =
       socket
-      |> assign_defaults(params, session)
+      |> assign_defaults(:request_logger, params, session)
       |> assign(
         stream: stream,
         param_key: param_key,
@@ -27,7 +27,8 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
     if socket.assigns.menu.request_logger do
       {:ok, socket, temporary_assigns: [messages: []]}
     else
-      {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+      {:ok,
+       push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
     end
   end
 

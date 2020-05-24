@@ -3,9 +3,9 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
 
   alias Phoenix.LiveDashboard.{
     SystemInfo,
-    BarComponent,
     ColorBarComponent,
-    ColorBarLegendComponent
+    ColorBarLegendComponent,
+    TitleBarComponent
   }
 
   @temporary_assigns [os_mon: nil, memory_usage: nil, cpu_total: nil, cpu_count: 0]
@@ -36,13 +36,14 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   def mount(%{"node" => _} = params, session, socket) do
     socket =
       socket
-      |> assign_defaults(params, session, true)
+      |> assign_defaults(:os_mon, params, session, true)
       |> assign_os_mon()
 
     if socket.assigns.menu.os_mon do
       {:ok, socket, temporary_assigns: @temporary_assigns}
     else
-      {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+      {:ok,
+       push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
     end
   end
 
@@ -201,13 +202,16 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
           <h5 class="card-title">Memory</h5>
           <%= for {title, value, total, percent, hint} <- @memory_usage do %>
             <div class="card progress-section mb-4">
-              <%= live_component @socket, BarComponent, id: {:memory, title}, percent: percent, class: "card-body" do %>
-                <%= title %>&nbsp;<%= hint(do: hint) %>
-                <span class="flex-grow-1"></span>
-                <small class="text-right text-muted mr-2">
-                  <%= format_bytes(value) %> of <%= format_bytes(total) %>
-                </small>
-                <strong><%= percent %>%</strong>
+              <%= live_component @socket, TitleBarComponent, id: {:memory, title}, percent: percent, class: "card-body" do %>
+                <div>
+                  <%= title %>&nbsp;<%= hint(do: hint) %>
+                </div>
+                <div>
+                  <small class="text-muted mr-2">
+                    <%= format_bytes(value) %> of <%= format_bytes(total) %>
+                  </small>
+                  <strong><%= percent %>%</strong>
+                </div>
               <% end %>
             </div>
           <% end %>
@@ -218,14 +222,17 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
         <div class="col-12">
           <h5 class="card-title">Disk</h5>
           <div class="card mb-4">
-            <div class="card-body disk-usage">
+            <div class="card-body">
               <%= for {{mountpoint, kbytes, percent}, index} <- Enum.with_index(@os_mon.disk) do %>
-                <%= live_component @socket, BarComponent, id: {:disk, mountpoint, index}, percent: percent do %>
-                  <%= mountpoint %>
-                  <span class="flex-grow-1"></span>
-                  <span class="text-right text-muted">
-                    <%= format_percent(percent) %> of <%= format_bytes(kbytes * 1024) %>
-                  </span>
+                <%= live_component @socket, TitleBarComponent, id: {:disk, mountpoint, index}, percent: percent, class: "py-2" do %>
+                  <div>
+                    <%= mountpoint %>
+                  </div>
+                  <div>
+                    <span class="text-muted mt-2">
+                      <%= format_percent(percent) %> of <%= format_bytes(kbytes * 1024) %>
+                    </span>
+                  </div>
                 <% end %>
               <% end %>
             </div>

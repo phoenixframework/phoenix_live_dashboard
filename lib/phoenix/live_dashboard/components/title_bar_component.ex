@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.BarComponent do
+defmodule Phoenix.LiveDashboard.TitleBarComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
   def mount(socket) do
@@ -9,11 +9,11 @@ defmodule Phoenix.LiveDashboard.BarComponent do
     ~L"""
     <div class="<%= @class %>">
       <section>
-        <div class="memory-usage-legend-entry d-flex align-items-center pt-1 flex-grow-0">
+        <div class="d-flex justify-content-between">
           <%= @inner_content.([]) %>
         </div>
         <div class="progress-section">
-          <div class="progress flex-grow-1 mt-1">
+          <div class="progress flex-grow-1 mt-2">
             <div
             class="progress-bar bg-<%= @color %>"
             role="progressbar"
@@ -29,7 +29,4 @@ defmodule Phoenix.LiveDashboard.BarComponent do
     </div>
     """
   end
-
-  def direction(dir) when dir == :left, do: "flex-row-reverse"
-  def direction(_), do: ""
 end
