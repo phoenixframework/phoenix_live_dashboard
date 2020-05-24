@@ -11,10 +11,12 @@ defmodule Phoenix.LiveDashboard.TreeDrawingHelpers do
     aditional_lines =
       cond do
         [node] == children ->
-          line_from_parent(node)
+          [child | _] = children
+          line_from_parent(node, child)
 
         match?([_ | _], children) ->
-          [vertical_line(node), line_from_parent(node)]
+          [child | _] = children
+          [vertical_line(node, child), line_from_parent(node, child)]
 
         true ->
           []
@@ -24,22 +26,22 @@ defmodule Phoenix.LiveDashboard.TreeDrawingHelpers do
     lines_to_children ++ aditional_lines ++ children_lines
   end
 
-  defp line_from_parent(node) do
+  defp line_from_parent(node, child) do
     %{
       x1: node.x + node.width,
-      x2: node.x + node.width + @node_x_separation / 2,
+      x2: child.x - @node_x_separation / 2,
       y1: node.y + node.height / 2,
       y2: node.y + node.height / 2
     }
   end
 
-  defp vertical_line(%{children: children} = node) do
+  defp vertical_line(%{children: children} = node, child) do
     [top_most_child | _] = children
     [bottom_most_child | _] = Enum.reverse(children)
 
     %{
-      x1: node.x + node.width + @node_x_separation / 2,
-      x2: node.x + node.width + @node_x_separation / 2,
+      x1: child.x - @node_x_separation / 2,
+      x2: child.x - @node_x_separation / 2,
       y1: top_most_child.y + node.height / 2,
       y2: bottom_most_child.y + node.height / 2
     }
@@ -49,7 +51,7 @@ defmodule Phoenix.LiveDashboard.TreeDrawingHelpers do
     Enum.reduce(children, [], fn n, acc ->
       [
         %{
-          x1: node.x + node.width + @node_x_separation / 2,
+          x1: n.x - @node_x_separation / 2,
           x2: n.x,
           y1: n.y + node.height / 2,
           y2: n.y + node.height / 2
