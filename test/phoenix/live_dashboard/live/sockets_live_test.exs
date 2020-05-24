@@ -88,8 +88,8 @@ defmodule Phoenix.LiveDashboard.SocketsLiveTest do
   end
 
   defp socket_info_path(port, limit, sort_by, sort_dir) do
-    "/dashboard/nonode%40nohost/sockets/#{Phoenix.LiveDashboard.ViewHelpers.encode_port(port)}?" <>
-      "limit=#{limit}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+    sockets_path(limit, "", sort_by, sort_dir) <>
+      "&info=#{Phoenix.LiveDashboard.LiveHelpers.encode_port(port)}"
   end
 
   defp sockets_path(limit, search, sort_by, sort_dir) do

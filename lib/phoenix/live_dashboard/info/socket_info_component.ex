@@ -43,24 +43,21 @@ defmodule Phoenix.LiveDashboard.SocketInfoComponent do
   end
 
   @impl true
-  def update(%{port: port} = assigns, socket) do
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(port: port)
-     |> assign_info()}
+  def update(%{id: "Socket" <> port, path: path}, socket) do
+    port = :erlang.list_to_port(String.to_charlist("#Port" <> port))
+    {:ok, socket |> assign(:port, port) |> assign(:path, path) |> assign_info()}
   end
 
   defp assign_info(%{assigns: assigns} = socket) do
     case SystemInfo.fetch_socket_info(assigns.port, @info_keys) do
-      :error ->
-        assign(socket, alive: false)
-
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
-          assign(acc, key, format_info(key, val, assigns.live_dashboard_path))
+          assign(acc, key, format_info(key, val, assigns.path))
         end)
         |> assign(alive: true)
+
+      :error ->
+        assign(socket, alive: false)
     end
   end
 

@@ -1,21 +1,7 @@
-defmodule Phoenix.LiveDashboard.ViewHelpersTest do
+defmodule Phoenix.LiveDashboard.LiveHelpersTest do
   use ExUnit.Case, async: true
 
-  import Phoenix.LiveDashboard.ViewHelpers
-
-  test "encode/decode pid" do
-    assert decode_pid(encode_pid(self())) == self()
-  end
-
-  test "encode/decode port" do
-    port = hd(Port.list())
-    assert decode_port(encode_port(port)) == port
-  end
-
-  test "encode/decode refs" do
-    ref = make_ref()
-    assert decode_reference(encode_reference(ref)) == ref
-  end
+  import Phoenix.LiveDashboard.LiveHelpers
 
   test "format_uptime/1" do
     assert format_uptime(1000) == "0m"
@@ -56,6 +42,9 @@ defmodule Phoenix.LiveDashboard.ViewHelpersTest do
              "/one/two/three/.../five/six/seven"
 
     assert format_path("/one/two/three/four/five/six/seven/eight") ==
+             "/one/two/three/.../six/seven/eight"
+
+    assert format_path("\"/one/two/three/four/five/six/seven/eight\"") ==
              "/one/two/three/.../six/seven/eight"
   end
 end

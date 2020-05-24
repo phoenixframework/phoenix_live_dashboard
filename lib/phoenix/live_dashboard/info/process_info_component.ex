@@ -66,19 +66,16 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   end
 
   @impl true
-  def update(%{id: pid} = assigns, socket) do
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(pid: pid)
-     |> assign_info()}
+  def update(%{id: "PID" <> pid, path: path}, socket) do
+    pid = :erlang.list_to_pid(String.to_charlist(pid))
+    {:ok, socket |> assign(:pid, pid) |> assign(:path, path) |> assign_info()}
   end
 
   defp assign_info(%{assigns: assigns} = socket) do
     case SystemInfo.fetch_process_info(assigns.pid, @info_keys) do
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
-          assign(acc, key, format_info(key, val, assigns.live_dashboard_path))
+          assign(acc, key, format_info(key, val, assigns.path))
         end)
         |> assign(alive: true)
 

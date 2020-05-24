@@ -2,24 +2,21 @@ defmodule Phoenix.LiveDashboard.PortsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.{SystemInfo, PortInfoComponent}
+  alias Phoenix.LiveDashboard.SystemInfo
 
   @sort_by ~w(output input)
   @temporary_assigns [ports: [], total: 0]
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, :ports, params, session, true),
+    {:ok, assign_mount(socket, :ports, params, session, true),
      temporary_assigns: @temporary_assigns}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
     {:noreply,
-     socket
-     |> assign_params(params, @sort_by)
-     |> assign_port(params)
-     |> fetch_ports()}
+     socket |> assign_params(params) |> assign_table_params(params, @sort_by) |> fetch_ports()}
   end
 
   defp fetch_ports(socket) do
@@ -63,14 +60,6 @@ defmodule Phoenix.LiveDashboard.PortsLive do
         </div>
       </form>
 
-      <%= if @port do %>
-        <%= live_modal @socket, PortInfoComponent,
-          port: @port,
-          title: inspect(@port),
-          return_to: self_path(@socket, @menu.node, @params),
-          live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3, @params) %>
-      <% end %>
-
       <div class="card table-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
@@ -91,19 +80,15 @@ defmodule Phoenix.LiveDashboard.PortsLive do
                 </tr>
               </thead>
               <tbody>
-                <%= for port <- @ports, port_num = encode_port(port[:port]) do %>
-                  <tr phx-click="show_info" phx-value-port="<%= port_num %>" phx-page-loading class="<%= row_class(port, @port) %>">
-                    <td class="tabular-column-id pl-4"><%= port_num %></td>
+                <%= for port <- @ports, encoded_port = encode_port(port[:port]) do %>
+                  <tr phx-click="show_info" phx-value-port="<%= encoded_port %>" phx-page-loading>
+                    <td class="tabular-column-id pl-4"><%= String.replace(encoded_port, "Port", "") %></td>
                     <td class="w-50"><%= format_path(port[:name]) %></td>
-                    <td>
-                      <%= if port[:os_pid] != :undefined do %>
-                        <%= port[:os_pid] %>
-                      <% end %>
-                    </td>
+                    <td><%= if port[:os_pid] != :undefined, do: port[:os_pid] %></td>
                     <td class="tabular-column-bytes"><%= format_bytes(port[:input]) %></td>
                     <td class="tabular-column-bytes pr-4"><%= format_bytes(port[:output]) %></td>
                     <td class="text-right"><%= port[:id] %></td>
-                    <td><%= encode_pid(port[:connected]) %></td>
+                    <td><%= inspect(port[:connected]) %></td>
                   </tr>
                 <% end %>
               </tbody>
@@ -121,7 +106,6 @@ defmodule Phoenix.LiveDashboard.PortsLive do
   end
 
   def handle_info(:refresh, socket) do
-    if port = socket.assigns.port, do: send_update(PortInfoComponent, id: port)
     {:noreply, fetch_ports(socket)}
   end
 
@@ -137,21 +121,11 @@ defmodule Phoenix.LiveDashboard.PortsLive do
   end
 
   def handle_event("show_info", %{"port" => port}, socket) do
-    to = live_dashboard_path(socket, :ports, node(), [port], socket.assigns.params)
-    {:noreply, push_patch(socket, to: to)}
+    params = Map.put(socket.assigns.params, :info, port)
+    {:noreply, push_redirect(socket, to: self_path(socket, node(), params))}
   end
 
   defp self_path(socket, node, params) do
-    live_dashboard_path(socket, :ports, node, [], params)
-  end
-
-  defp assign_port(socket, %{"port" => port_param}) do
-    assign(socket, port: decode_port(port_param))
-  end
-
-  defp assign_port(socket, %{}), do: assign(socket, port: nil)
-
-  defp row_class(port_info, active_port) do
-    if port_info[:port] == active_port, do: "active", else: ""
+    live_dashboard_path(socket, :ports, node, params)
   end
 end

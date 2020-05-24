@@ -36,7 +36,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   def mount(%{"node" => _} = params, session, socket) do
     socket =
       socket
-      |> assign_defaults(:os_mon, params, session, true)
+      |> assign_mount(:os_mon, params, session, true)
       |> assign_os_mon()
 
     if socket.assigns.menu.os_mon do
@@ -103,6 +103,11 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     |> Enum.sum()
     |> Kernel./(count)
     |> Float.ceil(1)
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    {:noreply, assign_params(socket, params)}
   end
 
   @impl true

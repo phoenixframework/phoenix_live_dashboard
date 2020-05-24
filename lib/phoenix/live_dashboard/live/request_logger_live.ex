@@ -14,7 +14,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
 
     socket =
       socket
-      |> assign_defaults(:request_logger, params, session)
+      |> assign_mount(:request_logger, params, session)
       |> assign(
         stream: stream,
         param_key: param_key,
@@ -34,7 +34,16 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
 
   def mount(%{"node" => node}, %{"request_logger" => _}, socket) do
     stream = :crypto.strong_rand_bytes(3) |> Base.url_encode64()
-    {:ok, push_redirect(socket, to: live_dashboard_path(socket, :request_logger, node, [stream]))}
+
+    {:ok,
+     push_redirect(socket,
+       to: live_dashboard_path(socket, :request_logger, node, stream: stream)
+     )}
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    {:noreply, assign_params(socket, params)}
   end
 
   @impl true
@@ -43,7 +52,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
   end
 
   def handle_info({:node_redirect, node}, socket) do
-    to = live_dashboard_path(socket, :request_logger, node, [socket.assigns.stream])
+    to = live_dashboard_path(socket, :request_logger, node, stream: socket.assigns.stream)
     {:noreply, push_redirect(socket, to: to)}
   end
 

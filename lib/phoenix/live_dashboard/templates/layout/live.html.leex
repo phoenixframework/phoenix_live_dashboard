@@ -4,9 +4,11 @@
       <span class="header-title-part">Phoenix </span>
       <span class="header-title-part">LiveDashboard<span>
     </h1>
-    <%= live_render @socket, Phoenix.LiveDashboard.MenuLive, id: "menu", session: %{"menu" => @menu} %>
+    <%= live_render @socket, Phoenix.LiveDashboard.MenuLive,
+         id: "menu", session: %{"menu" => %{@menu | info: nil}} %>
   </div>
 </header>
+<%= live_info(@socket, @menu) %>
 <section id="main" role="main" class="container">
   <%= @inner_content %>
 </section>

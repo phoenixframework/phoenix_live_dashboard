@@ -17,7 +17,6 @@ defmodule Phoenix.LiveDashboard.EtsLiveTest do
     assert rendered =~ ets_href(100, "foo", :size, :asc)
 
     {:ok, live, _} = live(build_conn(), ets_path(100, ":foo_bar", :size, :desc))
-
     rendered = render(live)
     assert rendered =~ ~r/:foo_bar/
     assert rendered =~ "tables out of 1"
@@ -84,8 +83,8 @@ defmodule Phoenix.LiveDashboard.EtsLiveTest do
   end
 
   defp ets_info_path(ref, limit, sort_by, sort_dir) do
-    "/dashboard/nonode%40nohost/ets/#{Phoenix.LiveDashboard.ViewHelpers.encode_reference(ref)}?" <>
-      "limit=#{limit}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+    ets_path(limit, "", sort_by, sort_dir) <>
+      "&info=#{Phoenix.LiveDashboard.LiveHelpers.encode_ets(ref)}"
   end
 
   defp ets_path(limit, search, sort_by, sort_dir) do

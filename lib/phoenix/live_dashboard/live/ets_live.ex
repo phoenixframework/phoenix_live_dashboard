@@ -2,24 +2,21 @@ defmodule Phoenix.LiveDashboard.EtsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.{SystemInfo, EtsInfoComponent}
+  alias Phoenix.LiveDashboard.SystemInfo
 
   @sort_by ~w(size memory)
   @temporary_assigns [tables: [], total: 0]
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, :ets, params, session, true),
+    {:ok, assign_mount(socket, :ets, params, session, true),
      temporary_assigns: @temporary_assigns}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
     {:noreply,
-     socket
-     |> assign_params(params, @sort_by)
-     |> assign_ref(params)
-     |> fetch_ets()}
+     socket |> assign_params(params) |> assign_table_params(params, @sort_by) |> fetch_ets()}
   end
 
   defp fetch_ets(socket) do
@@ -63,15 +60,6 @@ defmodule Phoenix.LiveDashboard.EtsLive do
         </div>
       </form>
 
-      <%= if @ref do %>
-        <%= live_modal @socket, EtsInfoComponent,
-          id: @ref,
-          title: "ETS - #{inspect(@ref)}",
-          node: @menu.node,
-          return_to: self_path(@socket, @menu.node, @params),
-          live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3, @params) %>
-      <% end %>
-
       <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
@@ -91,8 +79,8 @@ defmodule Phoenix.LiveDashboard.EtsLive do
                 </tr>
               </thead>
               <tbody>
-                <%= for table <- @tables, list_ref = encode_reference(table[:id]) do %>
-                  <tr phx-click="show_info" phx-value-ref="<%= list_ref %>" phx-page-loading>
+                <%= for table <- @tables, encoded_ets = encode_ets(table[:id]) do %>
+                  <tr phx-click="show_info" phx-value-ets="<%= encoded_ets %>" phx-page-loading>
                     <td class="tabular-column-name pl-4"><%= table[:name] %></td>
                     <td><%= table[:protection] %></td>
                     <td><%= table[:type] %></td>
@@ -130,20 +118,12 @@ defmodule Phoenix.LiveDashboard.EtsLive do
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
   end
 
-  def handle_event("show_info", %{"ref" => ref}, socket) do
-    {:noreply,
-     push_patch(socket,
-       to: live_dashboard_path(socket, :ets, node(), [ref], socket.assigns.params)
-     )}
+  def handle_event("show_info", %{"ets" => ets}, socket) do
+    params = Map.put(socket.assigns.params, :info, ets)
+    {:noreply, push_redirect(socket, to: self_path(socket, node(), params))}
   end
 
   defp self_path(socket, node, params) do
-    live_dashboard_path(socket, :ets, node, [], params)
+    live_dashboard_path(socket, :ets, node, params)
   end
-
-  defp assign_ref(socket, %{"ref" => ref_param}) do
-    assign(socket, ref: decode_reference(ref_param))
-  end
-
-  defp assign_ref(socket, %{}), do: assign(socket, ref: nil)
 end

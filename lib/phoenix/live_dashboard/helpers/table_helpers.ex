@@ -9,7 +9,7 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
   @limit ~w(50 100 500 1000 5000)
   @sort_dir ~w(desc asc)
 
-  def assign_params(socket, params, sort_by, sort_dir \\ @sort_dir) do
+  def assign_table_params(socket, params, sort_by, sort_dir \\ @sort_dir) do
     sort_by = params |> get_in_or_first("sort_by", sort_by) |> String.to_atom()
     sort_dir = params |> get_in_or_first("sort_dir", sort_dir) |> String.to_atom()
     limit = params |> get_in_or_first("limit", @limit) |> String.to_integer()
@@ -32,14 +32,14 @@ defmodule Phoenix.LiveDashboard.TableHelpers do
 
         link_name
         |> sort_link_body(sort_dir)
-        |> live_patch(to: live_dashboard_path(socket, live_action, menu.node, [], params))
+        |> live_patch(to: live_dashboard_path(socket, live_action, menu.node, params))
 
       %{} ->
         params = %{params | sort_dir: :desc, sort_by: sort_by}
 
         link_name
         |> sort_link_body()
-        |> live_patch(to: live_dashboard_path(socket, live_action, menu.node, [], params))
+        |> live_patch(to: live_dashboard_path(socket, live_action, menu.node, params))
     end
   end
 

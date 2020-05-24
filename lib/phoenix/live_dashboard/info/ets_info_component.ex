@@ -56,19 +56,18 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
   end
 
   @impl true
-  def update(%{id: ref} = assigns, socket) do
+  def update(%{id: "ETS" <> ref, path: path, node: node}, socket) do
+    ref = :erlang.list_to_ref(String.to_charlist("#Ref" <> ref))
+
     {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(ref: ref)
-     |> assign_info()}
+     socket |> assign(:ref, ref) |> assign(:path, path) |> assign(:node, node) |> assign_info()}
   end
 
   defp assign_info(%{assigns: assigns} = socket) do
     case SystemInfo.fetch_ets_info(socket.assigns.node, assigns.ref) do
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
-          assign(acc, key, format_info(key, val, assigns.live_dashboard_path))
+          assign(acc, key, format_info(key, val, assigns.path))
         end)
         |> assign(alive: true)
 

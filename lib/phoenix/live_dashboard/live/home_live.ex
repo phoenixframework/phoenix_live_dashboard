@@ -27,7 +27,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    socket = assign_defaults(socket, :home, params, session, true)
+    socket = assign_mount(socket, :home, params, session, true)
 
     %{
       # Read once
@@ -52,6 +52,11 @@ defmodule Phoenix.LiveDashboard.HomeLive do
 
   def mount(_params, _session, socket) do
     {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, node()))}
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    {:noreply, assign_params(socket, params)}
   end
 
   @impl true

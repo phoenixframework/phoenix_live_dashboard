@@ -9,13 +9,13 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLiveTest do
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   test "redirects to stream" do
-    {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/request_logger/" <> _}}} =
+    {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/request_logger?stream=" <> _}}} =
       live(build_conn(), "/dashboard/nonode@nohost/request_logger")
   end
 
   @tag :capture_log
   test "receives log messages on stream" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/request_logger/sample")
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/request_logger?stream=sample")
     assert render(live) =~ "request_logger_param_key="
     assert render(live) =~ "Enable cookie"
 
@@ -30,8 +30,8 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLiveTest do
   end
 
   test "redirects to new node" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/request_logger/helloworld")
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/request_logger?stream=helloworld")
     send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/request_logger/helloworld")
+    assert_redirect(live, "/dashboard/foo%40bar/request_logger?stream=helloworld")
   end
 end

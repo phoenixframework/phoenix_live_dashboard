@@ -47,27 +47,18 @@ defmodule Phoenix.LiveDashboard.Router do
         live "/:node/home", Phoenix.LiveDashboard.HomeLive, :home, opts
         live "/:node/os_mon", Phoenix.LiveDashboard.OSMonLive, :os_mon, opts
         live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
-        live "/:node/ports", Phoenix.LiveDashboard.PortsLive, :ports, opts
-        live "/:node/ports/:port", Phoenix.LiveDashboard.PortsLive, :ports, opts
-        live "/:node/processes", Phoenix.LiveDashboard.ProcessesLive, :processes, opts
-        live "/:node/processes/:pid", Phoenix.LiveDashboard.ProcessesLive, :processes, opts
-        live "/:node/ets", Phoenix.LiveDashboard.EtsLive, :ets, opts
-        live "/:node/ets/:ref", Phoenix.LiveDashboard.EtsLive, :ets, opts
-        live "/:node/sockets", Phoenix.LiveDashboard.SocketsLive, :sockets, opts
-        live "/:node/sockets/:port", Phoenix.LiveDashboard.SocketsLive, :sockets, opts
         live "/:node/applications", Phoenix.LiveDashboard.ApplicationsLive, :applications, opts
+        live "/:node/processes", Phoenix.LiveDashboard.ProcessesLive, :processes, opts
+        live "/:node/ports", Phoenix.LiveDashboard.PortsLive, :ports, opts
+        live "/:node/sockets", Phoenix.LiveDashboard.SocketsLive, :sockets, opts
+        live "/:node/ets", Phoenix.LiveDashboard.EtsLive, :ets, opts
 
         live "/:node/request_logger",
              Phoenix.LiveDashboard.RequestLoggerLive,
              :request_logger,
              opts
 
-        live "/:node/request_logger/:stream",
-             Phoenix.LiveDashboard.RequestLoggerLive,
-             :request_logger,
-             opts
-
-        # Temporary catch-all
+        # Catch-all for URL generation
         live "/:node/:page", Phoenix.LiveDashboard.HomeLive, :page, opts
       end
     end

@@ -10,7 +10,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, :applications, params, session, true),
+    {:ok, assign_mount(socket, :applications, params, session, true),
      temporary_assigns: @temporary_assigns}
   end
 
@@ -18,7 +18,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   def handle_params(params, _url, socket) do
     {:noreply,
      socket
-     |> assign_params(params, @sort_by, @sort_dir)
+     |> assign_table_params(params, @sort_by, @sort_dir)
      |> fetch_applications()}
   end
 
@@ -118,6 +118,6 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   end
 
   defp self_path(socket, node, params) do
-    live_dashboard_path(socket, :applications, node, [], params)
+    live_dashboard_path(socket, :applications, node, params)
   end
 end

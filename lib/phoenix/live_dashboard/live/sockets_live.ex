@@ -2,24 +2,21 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.TableHelpers
 
-  alias Phoenix.LiveDashboard.{SystemInfo, SocketInfoComponent}
+  alias Phoenix.LiveDashboard.SystemInfo
 
   @sort_by ~w(send_oct recv_oct module connected local_address foreign_address state type)
   @temporary_assigns [sockets: [], total: 0]
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, :sockets, params, session, true),
+    {:ok, assign_mount(socket, :sockets, params, session, true),
      temporary_assigns: @temporary_assigns}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
     {:noreply,
-     socket
-     |> assign_params(params, @sort_by)
-     |> assign_port(params)
-     |> fetch_sockets()}
+     socket |> assign_params(params) |> assign_table_params(params, @sort_by) |> fetch_sockets()}
   end
 
   defp fetch_sockets(socket) do
@@ -63,14 +60,6 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
         </div>
       </form>
 
-      <%= if @port do %>
-        <%= live_modal @socket, SocketInfoComponent,
-          port: @port,
-          title: inspect(@port),
-          return_to: self_path(@socket, @menu.node, @params),
-          live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3, @params) %>
-      <% end %>
-
       <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
@@ -103,9 +92,9 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
                 </tr>
               </thead>
               <tbody>
-                <%= for socket <- @sockets, port_num = encode_port(socket[:port]) do %>
-                  <tr phx-click="show_info" phx-value-port="<%= port_num %>" phx-page-loading>
-                    <td class="tabular-column-name tabular-column-id pl-4"><%= encode_port(socket[:port]) %></td>
+                <%= for socket <- @sockets, encoded_socket = encode_socket(socket[:port]) do %>
+                  <tr phx-click="show_info" phx-value-socket="<%= encoded_socket %>" phx-page-loading>
+                    <td class="tabular-column-name tabular-column-id pl-4"><%= String.replace(encoded_socket, "Socket", "") %></td>
                     <td><%= socket[:module] %></td>
                     <td class="tabular-column-bytes pr-4"><%= format_bytes(socket[:send_oct]) %></td>
                     <td class="tabular-column-bytes pr-4"><%= format_bytes(socket[:recv_oct]) %></td>
@@ -145,18 +134,12 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
   end
 
-  def handle_event("show_info", %{"port" => port}, socket) do
-    to = live_dashboard_path(socket, :sockets, node(), [port], socket.assigns.params)
-    {:noreply, push_patch(socket, to: to)}
+  def handle_event("show_info", %{"socket" => socket_info}, socket) do
+    params = Map.put(socket.assigns.params, :info, socket_info)
+    {:noreply, push_redirect(socket, to: self_path(socket, node(), params))}
   end
 
   defp self_path(socket, node, params) do
-    live_dashboard_path(socket, :sockets, node, [], params)
+    live_dashboard_path(socket, :sockets, node, params)
   end
-
-  defp assign_port(socket, %{"port" => port_param}) do
-    assign(socket, port: decode_port(port_param))
-  end
-
-  defp assign_port(socket, %{}), do: assign(socket, port: nil)
 end

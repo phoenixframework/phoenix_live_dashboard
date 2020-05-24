@@ -14,7 +14,8 @@ defmodule Phoenix.LiveDashboard.MenuLiveTest do
         node: node(),
         metrics: nil,
         request_logger: nil,
-        dashboard_running?: true
+        dashboard_running?: true,
+        info: nil
       })
 
     live_isolated(build_conn(), MenuLive,
