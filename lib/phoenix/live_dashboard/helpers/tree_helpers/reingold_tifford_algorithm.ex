@@ -16,25 +16,19 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
     |> put_x_position(:first_call)
   end
 
-  defp change_representation({{_, pid, name}, children}, level) do
-    children =
-      Enum.reduce(children, [], fn node, acc ->
-        [change_representation(node, level + 1) | acc]
-      end)
-
-    name = name({name, pid})
+  defp change_representation({value, children}, level) do
+    children = Enum.map(children, &change_representation(&1, level + 1))
 
     %{
-      pid: pid,
-      name: name,
+      x: 0,
       y: 0,
-      children: Enum.reverse(children),
+      children: children,
       modifier: 0,
       type: if(children == [], do: :leaf, else: :subtree),
       height: @node_height,
-      width: String.length(to_string(name)) * 10,
+      width: name_length(value) * 10,
       level: level,
-      x: 0
+      value: value
     }
   end
 
@@ -48,8 +42,8 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
 
     {first_child, last_child} =
       if node.type != :leaf do
-        [first_child | _] = children
-        [last_child | _] = Enum.reverse(children)
+        [last_child | _] = children
+        [first_child | _] = Enum.reverse(children)
         {first_child, last_child}
       else
         {nil, nil}
@@ -203,7 +197,7 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
   end
 
   defp put_x_position(%{children: children} = tree, :first_call) do
-    max_width = find_max_width_by_level(tree, %{}) |> IO.inspect()
+    max_width = find_max_width_by_level(tree, %{})
 
     children =
       Enum.reduce(
@@ -230,10 +224,14 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
     )
   end
 
-  defp name({name, pid}) do
-    case name do
-      [] -> pid |> inspect |> String.trim_leading("#PID")
-      name -> name
-    end
+  defp name_length({_, pid, name}) do
+    name =
+      if name == [] do
+        pid |> inspect |> String.trim_leading("#PID")
+      else
+        inspect(name)
+      end
+
+    String.length(name)
   end
 end

@@ -1,8 +1,10 @@
 defmodule Phoenix.LiveDashboard.TreeDrawingHelpers do
   @node_x_separation 50
   def extract_nodes(%{children: children} = node) do
-    node = Map.delete(node, :children)
-    [node | Enum.reduce(children, [], &(extract_nodes(&1) ++ &2))]
+    [
+      format_node(node)
+      | Enum.reduce(children, [], &(extract_nodes(&1) ++ &2))
+    ]
   end
 
   def extract_lines(%{children: children} = node) do
@@ -62,8 +64,27 @@ defmodule Phoenix.LiveDashboard.TreeDrawingHelpers do
   end
 
   def svg_size(nodes) do
-    node_y = Enum.max_by(nodes, fn x -> x.y end)
-    node_x = Enum.max_by(nodes, fn x -> x.x end)
+    node_y = Enum.max_by(nodes, fn x -> {x.y, x.height} end)
+    node_x = Enum.max_by(nodes, fn x -> {x.x, x.width} end)
     {node_x.x + node_x.width, node_y.y + node_y.height}
+  end
+
+  defp format_node(%{value: {_, pid, name}} = node) do
+    %{
+      name: format_name({pid, name}),
+      pid: pid,
+      x: node.x,
+      y: node.y,
+      height: node.height,
+      width: node.width
+    }
+  end
+
+  defp format_name({pid, name}) do
+    if name == [] do
+      pid |> inspect |> String.trim_leading("#PID")
+    else
+      inspect(name)
+    end
   end
 end

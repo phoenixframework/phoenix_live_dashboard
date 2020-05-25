@@ -251,8 +251,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     {children, seen} = sup_tree(child, %{master => true, child => true})
     {children, _seen} = links_tree(children, master, seen)
 
-    case has_ancestor?(child) do
-      false ->
+    case get_ancestor(child) do
+      nil ->
         {{:master, master, []}, [to_node(:supervisor, child, children)]}
 
       ancestor ->
@@ -261,12 +261,12 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
-  defp has_ancestor?(master) do
+  defp get_ancestor(master) do
     {_, dictionary} = :erlang.process_info(master, :dictionary)
 
     case Keyword.get(dictionary, :"$ancestors") do
       [parent] -> parent
-      _ -> false
+      _ -> nil
     end
   end
 
