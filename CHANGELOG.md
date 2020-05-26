@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.5 (2020-05-22)
+
+* Allow cross-linking of info sections
+* Require latest LiveView
+
 ## v0.2.4 (2020-05-22)
 
 * Do not crash on duplicate disks
