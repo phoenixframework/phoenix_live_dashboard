@@ -7,17 +7,19 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
   @total_y_distance @node_height + @node_y_separation
   @node_x_separation 50
 
-  def set_layout_settings(tree) do
+  def set_layout_settings(tree, fun) do
+    #{20, [{30, []},{40, [{50, [{60, []}, {20, []}, {20, []}]}]}]}
+    #{20, [{30, []}, {40, [{50, [{60, []}, {20, []}]}]}]}
     tree
-    |> change_representation(0)
+    |> change_representation(0, fun)
     |> calculate_initial_y(0, [])
     |> ensure_children_inside_screen()
     |> put_final_y_values(0)
     |> put_x_position(:first_call)
   end
 
-  defp change_representation({value, children}, level) do
-    children = Enum.map(children, &change_representation(&1, level + 1))
+  defp change_representation({value, children}, level, fun) do
+    children = Enum.map(children, &change_representation(&1, level + 1, fun))
 
     %{
       x: 0,
@@ -26,7 +28,7 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
       modifier: 0,
       type: if(children == [], do: :leaf, else: :subtree),
       height: @node_height,
-      width: name_length(value) * 10,
+      width: fun.(value),
       level: level,
       value: value
     }
@@ -61,20 +63,11 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
           %{node | y: first_child.y}
 
         {:small_subtree, _} ->
-          if node_type(first_child) == :big_subtree do
-            %{
-              node
-              | y: previous_sibling + @total_y_distance,
-                modifier: previous_sibling + first_child.y - first_child.modifier
-            }
-          else
-            %{
-              node
-              | y: previous_sibling + @total_y_distance,
-                modifier:
-                  previous_sibling + @total_y_distance + first_child.y - first_child.modifier
-            }
-          end
+          %{
+            node
+            | y: previous_sibling + @total_y_distance,
+              modifier: previous_sibling + @total_y_distance - first_child.y
+          }
 
         {:big_subtree, []} ->
           mid = (last_child.y + first_child.y) / 2
@@ -224,14 +217,4 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
     )
   end
 
-  defp name_length({_, pid, name}) do
-    name =
-      if name == [] do
-        pid |> inspect |> String.trim_leading("#PID")
-      else
-        inspect(name)
-      end
-
-    String.length(name)
-  end
 end

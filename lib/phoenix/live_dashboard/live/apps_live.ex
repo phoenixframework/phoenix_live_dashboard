@@ -116,7 +116,7 @@ defmodule Phoenix.LiveDashboard.AppsLive do
     tree =
       menu.node
       |> SystemInfo.fetch_app_tree(application)
-      |> ReingoldTilford.set_layout_settings()
+      |> ReingoldTilford.set_layout_settings(&name_length/1)
 
     assign(socket,
       nodes: tree |> TreeDrawingHelpers.extract_nodes(),
@@ -142,5 +142,16 @@ defmodule Phoenix.LiveDashboard.AppsLive do
     |> is_pid
   catch
     _, _ -> false
+  end
+
+  defp name_length({_, pid, name}) do
+    name =
+      if name == [] do
+        pid |> inspect |> String.trim_leading("#PID")
+      else
+        inspect(name)
+      end
+
+    String.length(name) * 10
   end
 end

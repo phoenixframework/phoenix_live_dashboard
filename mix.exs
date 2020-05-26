@@ -50,7 +50,8 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:plug_cowboy, "~> 2.0", only: :dev},
       {:jason, "~> 1.0", only: [:dev, :test, :docs]},
       {:floki, "~> 0.24.0", only: :test},
-      {:ex_doc, "~> 0.21", only: :docs}
+      {:ex_doc, "~> 0.21", only: :docs},
+      {:propcheck, "~> 1.1", only: [:test, :dev]}
     ]
   end
 
