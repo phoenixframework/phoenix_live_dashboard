@@ -8,8 +8,6 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
   @node_x_separation 50
 
   def set_layout_settings(tree, fun) do
-    #{20, [{30, []},{40, [{50, [{60, []}, {20, []}, {20, []}]}]}]}
-    #{20, [{30, []}, {40, [{50, [{60, []}, {20, []}]}]}]}
     tree
     |> change_representation(0, fun)
     |> calculate_initial_y(0, [])
@@ -216,5 +214,4 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
       &find_max_width_by_level(&1, &2)
     )
   end
-
 end
