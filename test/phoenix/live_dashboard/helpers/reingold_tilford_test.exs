@@ -1,6 +1,6 @@
 defmodule Phoenix.LiveDashboard.ReingoldTilfordTest do
   use ExUnit.Case, async: true
-  use PropCheck
+  use ExUnitProperties
 
   # Same values on reingold_tilford_algorithm.ex
   @node_height 30
@@ -10,44 +10,59 @@ defmodule Phoenix.LiveDashboard.ReingoldTilfordTest do
 
   # Properties
   property "If a node has only one child its Y coordinate is the same Y coordinate of its child" do
-    forall tree <- tree() do
-      tree
-      |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
-      |> validate_nodes_with_one_child_y_coordinate()
+    check all(tree <- tree()) do
+      result =
+        tree
+        |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
+        |> validate_nodes_with_one_child_y_coordinate()
+
+      assert result == true
     end
   end
 
   property "If a node has more than one child, its Y coordinate is the middle point between the first and last child" do
-    forall tree <- tree() do
-      tree
-      |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
-      |> validate_node_y_coordinate_based_on_its_children()
+    check all(tree <- tree()) do
+      result =
+        tree
+        |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
+        |> validate_node_y_coordinate_based_on_its_children()
+
+      assert result == true
     end
   end
 
   property "All nodes at the same deep level have the same X coordinate" do
-    forall tree <- tree() do
-      tree
-      |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
-      |> validate_x_coordinate_by_level(%{})
+    check all(tree <- tree()) do
+      result =
+        tree
+        |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
+        |> validate_x_coordinate_by_level(%{})
+
+      assert result == true
     end
   end
 
   property "All children must be at least @node_x_separation separation from its ancestor " do
-    forall tree <- tree() do
+    check all(tree <- tree()) do
       ancestor = @node_x_separation * -1
 
-      tree
-      |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
-      |> validate_x_separation_between_nodes(ancestor)
+      result =
+        tree
+        |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
+        |> validate_x_separation_between_nodes(ancestor)
+
+      assert result == true
     end
   end
 
   property "All nodes at the same deep level have to be at least @node_y_separation from each other" do
-    forall tree <- tree() do
-      tree
-      |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
-      |> validate_y_separation_between_nodes()
+    check all(tree <- tree()) do
+      result =
+        tree
+        |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
+        |> validate_y_separation_between_nodes()
+
+      assert result == true
     end
   end
 
@@ -173,14 +188,19 @@ defmodule Phoenix.LiveDashboard.ReingoldTilfordTest do
     Enum.reduce(children, accumulator, &nodes_by_level(&1, &2))
   end
 
-  # Generators
-  defp tree() do
-    sized(size, tree(choose(20, 50), size))
+  # Generator
+  def tree() do
+    StreamData.sized(fn size -> tree_gen(StreamData.integer(20..50), size) end)
   end
 
-  defp tree(type, size) when size <= 1, do: {type, []}
+  defp tree_gen(type, size) when size <= 1 do
+    StreamData.tuple({type, StreamData.list_of(StreamData.tuple({}), length: 0)})
+  end
 
-  defp tree(type, size) do
-    {type, lazy(non_empty(list(tree(type, div(size, 3)))))}
+  defp tree_gen(type, size) do
+    StreamData.tuple(
+      {type,
+       StreamData.nonempty(StreamData.list_of(tree_gen(type, div(size, 4)), max_length: 10))}
+    )
   end
 end

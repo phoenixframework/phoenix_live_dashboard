@@ -51,7 +51,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:jason, "~> 1.0", only: [:dev, :test, :docs]},
       {:floki, "~> 0.24.0", only: :test},
       {:ex_doc, "~> 0.21", only: :docs},
-      {:propcheck, "~> 1.1", only: [:test, :dev]}
+      {:stream_data, "~> 0.1", only: :test}
     ]
   end
 
