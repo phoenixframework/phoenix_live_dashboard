@@ -113,8 +113,6 @@ function nextTaggedValueForCallback({ x, y, z }, callback) {
   })
 }
 
-const tzDate = (ts) => new Date(ts)
-
 // Handles the basic metrics like Counter, LastValue, and Sum.
 class CommonMetric {
   static __projections() {
@@ -131,7 +129,6 @@ class CommonMetric {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: tzDate,
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0)
@@ -222,7 +219,6 @@ class Summary {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: tzDate,
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0),
@@ -311,7 +307,7 @@ const PhxChartComponent = {
       tagged: (chartEl.dataset.tags && chartEl.dataset.tags !== "") || false,
       width: Math.max(size.width, minChartSize.width),
       height: minChartSize.height,
-      now: (new Date()).getTime()
+      now: (new Date()).getTime() / 1e3
     })
 
     this.chart = new TelemetryChart(chartEl, options)
@@ -325,7 +321,9 @@ const PhxChartComponent = {
     const data = Array
       .from(this.el.children || [])
       .map(({ dataset: { x, y, z } }) => {
-        return { x, y: +y, z: +z / 1e3 }
+        // converts y-axis value (z) to number,
+        // converts timestamp (z) from µs to fractional seconds
+        return { x, y: +y, z: +z / 1e6 }
       })
 
     if (data.length > 0) {
