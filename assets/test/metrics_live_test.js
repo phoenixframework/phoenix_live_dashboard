@@ -288,3 +288,47 @@ describe('Metrics with tags', () => {
     })
   })
 })
+
+describe("refresh interval", () => {
+  // Applies only to tests in this describe block
+  beforeEach(() => {
+    return jest.useFakeTimers()
+  })
+
+  test("buffers events each interval", () => {
+    const chart = new TelemetryChart(document.body, {
+      metric: "counter",
+      tagged: false,
+      refreshInterval: 2000
+    })
+
+    chart.pushData([{ x: "a", y: 2, z: 1 }])
+
+    // At this point in time, the chart should not have been updated yet
+    expect(mockSetData).not.toBeCalled()
+
+    // Fast-forward until all timers have been executed
+    jest.runOnlyPendingTimers()
+
+    // Now our callback should have been called!
+    expect(mockSetData).toBeCalled()
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1],
+      [1]
+    ])
+  })
+
+  test("when buffer is empty, chart does not update", () => {
+    const chart = new TelemetryChart(document.body, {
+      metric: "counter",
+      tagged: false,
+      refreshInterval: 2000
+    })
+
+    // Fast-forward until all timers have been executed
+    jest.runOnlyPendingTimers()
+
+    // At this point in time, the chart should not have been updated yet
+    expect(mockSetData).not.toBeCalled()
+  })
+})
