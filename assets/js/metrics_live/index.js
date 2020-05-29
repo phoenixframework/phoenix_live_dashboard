@@ -72,7 +72,8 @@ export const newSeriesConfig = (options, index = 0) => {
     ...LineColor.at(index),
     ...SeriesValue(options),
     label: options.label,
-    spanGaps: true
+    spanGaps: true,
+    points: { show: false }
   }
 }
 
