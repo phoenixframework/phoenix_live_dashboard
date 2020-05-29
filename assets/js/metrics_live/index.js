@@ -113,8 +113,6 @@ function nextTaggedValueForCallback({ x, y, z }, callback) {
   })
 }
 
-const tzDate = (ts) => new Date(ts)
-
 // Handles the basic metrics like Counter, LastValue, and Sum.
 class CommonMetric {
   static __projections() {
@@ -131,7 +129,6 @@ class CommonMetric {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: tzDate,
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0)
@@ -222,7 +219,6 @@ class Summary {
       title: options.title,
       width: options.width,
       height: options.height,
-      tzDate: tzDate,
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0),
@@ -286,7 +282,18 @@ export class TelemetryChart {
     const metric = __METRICS__[options.metric]
     this.uplotChart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)
     this.metric = new metric(this.uplotChart, options)
+
+    // setup the data buffer
+    let isBufferingData = (options.refreshInterval && typeof options.refreshInterval !== "undefined")
+    this._isBufferingData = isBufferingData
+    this._buffer = []
+    this._timer = isBufferingData ? setInterval(
+      this._flushToChart.bind(this),
+      +options.refreshInterval
+    ) : null
   }
+
+  clearTimers() { clearInterval(this._timer) }
 
   resize(boundingBox) {
     this.uplotChart.setSize({
@@ -297,7 +304,31 @@ export class TelemetryChart {
 
   pushData(measurements) {
     if (!measurements.length) return
+    let callback = this._isBufferingData ? this._pushToBuffer : this._pushToChart
+    callback.call(this, measurements)
+  }
+
+  _pushToBuffer(measurements) {
+    this._buffer = this._buffer.concat(measurements)
+  }
+
+  _pushToChart(measurements) {
     this.metric.handleMeasurements(measurements)
+  }
+
+  // clears the buffer and pushes the measurements
+  _flushToChart() {
+    let measurements = this._flushBuffer()
+    if (!measurements.length) { return }
+    this._pushToChart(measurements)
+  }
+
+  // clears and returns the buffered data as a flat array
+  _flushBuffer() {
+    if (this._buffer && !this._buffer.length) { return [] }
+    let measurements = this._buffer
+    this._buffer = []
+    return measurements.reduce((acc, val) => acc.concat(val), [])
   }
 }
 
@@ -311,7 +342,8 @@ const PhxChartComponent = {
       tagged: (chartEl.dataset.tags && chartEl.dataset.tags !== "") || false,
       width: Math.max(size.width, minChartSize.width),
       height: minChartSize.height,
-      now: (new Date()).getTime()
+      now: new Date() / 1e3,
+      refreshInterval: 1000
     })
 
     this.chart = new TelemetryChart(chartEl, options)
@@ -325,12 +357,17 @@ const PhxChartComponent = {
     const data = Array
       .from(this.el.children || [])
       .map(({ dataset: { x, y, z } }) => {
-        return { x, y: +y, z: +z / 1e3 }
+        // converts y-axis value (z) to number,
+        // converts timestamp (z) from µs to fractional seconds
+        return { x, y: +y, z: +z / 1e6 }
       })
 
     if (data.length > 0) {
       this.chart.pushData(data)
     }
+  },
+  destroyed() {
+    this.chart.clearTimers()
   }
 }
 
