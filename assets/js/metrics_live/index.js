@@ -113,7 +113,7 @@ function nextTaggedValueForCallback({ x, y, z }, callback) {
   })
 }
 
-const getMaxNumberOfEvents = ({ maxNumberOfEvents = 1e5 }) => maxNumberOfEvents
+const getMaxNumberOfEvents = ({ maxNumberOfEvents = 1000 }) => maxNumberOfEvents
 
 // Handles the basic metrics like Counter, LastValue, and Sum.
 class CommonMetric {

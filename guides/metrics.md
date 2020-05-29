@@ -149,4 +149,4 @@ The following reporter options are available to the dashboard:
 
   * `:max_number_of_events` - the maximum number of data
     points. When this limit is reached, the chart data will
-    be pruned by half. Default is `100_000`.
+    be pruned by half. Default is `1_000`.
