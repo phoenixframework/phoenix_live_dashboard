@@ -342,7 +342,7 @@ const PhxChartComponent = {
       tagged: (chartEl.dataset.tags && chartEl.dataset.tags !== "") || false,
       width: Math.max(size.width, minChartSize.width),
       height: minChartSize.height,
-      now: (new Date()).getTime() / 1e3,
+      now: new Date() / 1e3,
       refreshInterval: 1000
     })
 
