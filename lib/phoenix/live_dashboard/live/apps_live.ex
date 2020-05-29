@@ -9,26 +9,25 @@ defmodule Phoenix.LiveDashboard.AppsLive do
   }
 
   @temporary_assigns [
-    observer: [],
     nodes: [],
     lines: [],
-    heightt: 500,
+    height: 500,
     width: 500,
-    num: 0,
-    application: :kernel
+    params: %{}
   ]
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_defaults(socket, params, session, true), temporary_assigns: @temporary_assigns}
+    {:ok, assign_mount(socket, :apps, params, session, true), temporary_assigns: @temporary_assigns}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
     socket =
       socket
-      |> assign_pid(params)
+      |> assign_params(params)
       |> fetch_started_applications()
+      |> assign_application(params)
       |> fetch_nodes_and_lines()
       |> fetch_width_and_height()
 
@@ -41,13 +40,6 @@ defmodule Phoenix.LiveDashboard.AppsLive do
       <div class="tabular-page applications_tab">
         <h5 class="card-title">Applications</h5>
         <h5><%= @application%></h5>
-        <%= if @pid do %>
-          <%= live_modal @socket, ProcessInfoComponent,
-            id: @pid,
-            title: inspect(@pid),
-            return_to: self_path(@socket, @menu.node),
-            live_dashboard_path: &live_dashboard_path(@socket, &1, &2, &3) %>
-        <% end %>
         <div class="row active_applications_list">
           <div class="col-sm-2 overflow">
             <ul class="list-group grouped_list_hover active_items">
@@ -60,9 +52,9 @@ defmodule Phoenix.LiveDashboard.AppsLive do
         <div class="card col-sm-10 application_tree overflow">
           <div style="width: 1000px; height: 1000px;">
             <svg width="<%= @width %>" height="<%= @height %>" id="tree" class="tree" >
-                <%= for node <- @nodes do %>
+                <%= for node <- @nodes, pid = encode_pid(node.pid) do %>
                 <rect x="<%= node.x %>" y="<%= node.y %>" rx="20" ry="20" width="<%= node.width %>" height="<%= node.height %>"
-                class="node" phx-click="show_info" phx-value-pid="<%= encode_pid(node.pid) %>" phx-page-loading />
+                class="node"  phx-click="show_info" phx-value-pid="<%= pid %>" phx-page-loading />
                 <text class="tree_node_text" x="<%= node.x + 5 %>" y="<%= node.y + node.height *0.6%>">
                 <%= node.name %> </text>
                 <% end %>
@@ -83,24 +75,18 @@ defmodule Phoenix.LiveDashboard.AppsLive do
 
   @impl true
   def handle_event("show_info", %{"pid" => pid}, socket) do
-    %{menu: menu} = socket.assigns
-    to = live_dashboard_path(socket, :apps, menu.node, [pid])
-
-    {:noreply, push_patch(socket, to: to)}
+    params = Map.put(socket.assigns.params, :info, pid)
+    {:noreply, push_redirect(socket, to: self_path(socket, node(), params))}
   end
 
   @impl true
   def handle_event("select_app", %{"app" => application}, socket) do
-    %{menu: menu} = socket.assigns
-
-    {:noreply,
-     push_patch(assign(socket, :application, String.to_atom(application)),
-       to: self_path(socket, menu.node)
-     )}
+    params = Map.put(socket.assigns.params, :application, application)
+    {:noreply, push_patch(socket, to: self_path(socket, node(), params))}
   end
 
-  defp self_path(socket, node) do
-    live_dashboard_path(socket, :apps, node, [])
+  defp self_path(socket, node, params) do
+    live_dashboard_path(socket, :apps, node, params)
   end
 
   defp fetch_started_applications(%{assigns: %{menu: menu}} = socket) do
@@ -130,11 +116,17 @@ defmodule Phoenix.LiveDashboard.AppsLive do
     assign(socket, width: width, height: height)
   end
 
-  defp assign_pid(socket, %{"pid" => pid_param}) do
-    assign(socket, pid: decode_pid(pid_param))
-  end
 
-  defp assign_pid(socket, %{}), do: assign(socket, pid: nil)
+
+  defp assign_application(socket, params) do
+    application =
+    if Map.has_key?(params, "application") do
+      String.to_atom(params["application"])
+    else
+      hd(socket.assigns.applications)
+    end
+    assign(socket, :application, application)
+  end
 
   defp alive?(app) do
     app
