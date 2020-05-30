@@ -134,8 +134,13 @@ describe('Metrics no tags', () => {
 
   describe('Summary', () => {
     test('initializes the chart', () => {
-      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: true })
+      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: false })
       expect(mockDelSeries).toHaveBeenCalledTimes(0)
+    })
+
+    test('initializes the tagged chart', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: true })
+      expect(mockDelSeries).toHaveBeenCalledTimes(4)
     })
 
     test('pushes value/min/max/avg', () => {
