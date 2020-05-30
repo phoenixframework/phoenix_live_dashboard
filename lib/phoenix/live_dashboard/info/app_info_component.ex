@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.AppInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
-  alias Phoenix.LiveDashboard.{SystemInfo, TreeDrawingHelpers, ReingoldTilford}
+  alias Phoenix.LiveDashboard.{SystemInfo, ReingoldTilford}
 
   @impl true
   def render(assigns) do
@@ -9,11 +9,11 @@ defmodule Phoenix.LiveDashboard.AppInfoComponent do
     <div class="app-info">
       <%= if @alive do %>
         <svg width="<%= @width %>" height="<%= @height %>" id="tree" class="tree" >
-          <%= for node <- @nodes, pid = encode_pid(node.pid) do %>
-            <rect x="<%= node.x %>" y="<%= node.y %>" rx="20" ry="20" width="<%= node.width %>" height="<%= node.height %>"
-            class="node" phx-click="show_info" phx-value-pid="<%= pid %>" phx-target=<%= @myself %> phx-page-loading />
-            <text class="tree-node-text" x="<%= node.x + 5 %>" y="<%= node.y + node.height *0.6%>">
-              <%= node.name %>
+          <%= for node <- @nodes do %>
+            <rect x="<%= node.x %>" y="<%= node.y %>" rx="10" ry="10" width="<%= node.width %>" height="<%= node.height %>"
+            class="node" phx-click="show_info" phx-value-pid="<%= node_encoded_pid(node.value) %>" phx-target=<%= @myself %> phx-page-loading />
+            <text class="tree-node-text" x="<%= node.x + 10 %>" y="<%= node.y + div(node.height, 2) %>" dominant-baseline="central">
+              <%= node.label %>
             </text>
           <% end %>
           #<%= for line <- @lines do %>
@@ -29,7 +29,7 @@ defmodule Phoenix.LiveDashboard.AppInfoComponent do
 
   @impl true
   def mount(socket) do
-    {:ok, assign(socket, width: 500, height: 500, nodes: [], lines: [])}
+    {:ok, socket}
   end
 
   @impl true
@@ -46,31 +46,19 @@ defmodule Phoenix.LiveDashboard.AppInfoComponent do
   defp assign_tree(%{assigns: assigns} = socket) do
     case SystemInfo.fetch_app_tree(assigns.node, assigns.app) do
       {_, _} = tree ->
-        tree = ReingoldTilford.set_layout_settings(tree, &name_length/1)
-        nodes = TreeDrawingHelpers.extract_nodes(tree)
-        {width, height} = TreeDrawingHelpers.svg_size(nodes)
-
-        assign(socket,
-          nodes: nodes,
-          lines: TreeDrawingHelpers.extract_lines(tree),
-          width: width,
-          height: height,
-          alive: true
-        )
+        tree = ReingoldTilford.build(tree, &node_label/1)
+        nodes = ReingoldTilford.nodes(tree)
+        lines = ReingoldTilford.lines(tree)
+        {width, height} = ReingoldTilford.dimensions(nodes)
+        assign(socket, nodes: nodes, lines: lines, width: width, height: height, alive: true)
 
       :error ->
         assign(socket, alive: false)
     end
   end
 
-  defp name_length({_, pid, name}) do
-    name =
-      if name == [] do
-        pid |> inspect() |> String.trim_leading("#PID")
-      else
-        inspect(name)
-      end
+  defp node_encoded_pid({_, pid, _}), do: encode_pid(pid)
 
-    String.length(name) * 10
-  end
+  defp node_label({_, pid, []}), do: pid |> :erlang.pid_to_list() |> List.to_string()
+  defp node_label({_, _, name}), do: inspect(name)
 end

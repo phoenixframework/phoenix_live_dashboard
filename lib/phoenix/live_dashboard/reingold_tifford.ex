@@ -7,26 +7,60 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
   @total_y_distance @node_height + @node_y_separation
   @node_x_separation 50
 
-  def set_layout_settings(tree, fun) do
+  defmodule Node do
+    defstruct [:x, :y, :label, :children, :modifier, :type, :height, :width, :level, :value]
+  end
+
+  defmodule Line do
+    defstruct [:x1, :x2, :y1, :y2]
+  end
+
+  @doc """
+  Returns all nodes in a ReingoldTilford tree.
+  """
+  def nodes(%{children: children} = node) do
+    [node | Enum.flat_map(children, &nodes/1)]
+  end
+
+  @doc """
+  Returns the dimensions of a canvas to render all given
+  ReingoldTilford nodes.
+  """
+  def dimensions(nodes) do
+    node_y = Enum.max_by(nodes, fn x -> {x.y, x.height} end)
+    node_x = Enum.max_by(nodes, fn x -> {x.x, x.width} end)
+    {node_x.x + node_x.width, node_y.y + node_y.height}
+  end
+
+  @doc """
+  Builds a ReingoldTilfolrd tree.
+
+  The given tree is in the shape `{value, [child]}`.
+  The function receives the value and returns the
+  node label. The label is used to compute its width.
+  """
+  def build(tree, fun) do
     tree
     |> change_representation(0, fun)
     |> calculate_initial_y(0, [])
     |> ensure_children_inside_screen()
     |> put_final_y_values(0)
-    |> put_x_position(:first_call)
+    |> put_x_position()
   end
 
   defp change_representation({value, children}, level, fun) do
     children = Enum.map(children, &change_representation(&1, level + 1, fun))
+    label = fun.(value)
 
-    %{
+    %Node{
       x: 0,
       y: 0,
+      label: label,
       children: children,
       modifier: 0,
       type: if(children == [], do: :leaf, else: :subtree),
       height: @node_height,
-      width: fun.(value),
+      width: String.length(label) * 10,
       level: level,
       value: value
     }
@@ -173,31 +207,20 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
     %{node | y: node.y + result, modifier: node.modifier + result}
   end
 
-  defp put_x_position(%{children: children} = node, position, max_width) do
+  defp put_x_position(%{children: children} = tree) do
+    max_width = find_max_width_by_level(tree, %{})
+    children = Enum.map(children, &put_x_position(&1, tree.width + @node_x_separation, max_width))
+    %{tree | x: 0, children: children}
+  end
+
+  defp put_x_position(%{children: children, level: level} = node, position, max_width) do
     children =
-      Enum.reduce(
+      Enum.map(
         children,
-        [],
-        &[
-          put_x_position(&1, max_width[node.level] + position + @node_x_separation, max_width)
-          | &2
-        ]
+        &put_x_position(&1, max_width[level] + position + @node_x_separation, max_width)
       )
 
     %{node | x: position, children: children}
-  end
-
-  defp put_x_position(%{children: children} = tree, :first_call) do
-    max_width = find_max_width_by_level(tree, %{})
-
-    children =
-      Enum.reduce(
-        children,
-        [],
-        &[put_x_position(&1, tree.width + @node_x_separation, max_width) | &2]
-      )
-
-    %{tree | x: 0, children: children}
   end
 
   defp find_max_width_by_level(node, max_values) do
@@ -213,5 +236,61 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
       max_values,
       &find_max_width_by_level(&1, &2)
     )
+  end
+
+  @doc """
+  Returns the tree lines.
+  """
+  def lines(%{children: children} = node) do
+    lines_to_children = lines_to_children(node)
+
+    aditional_lines =
+      cond do
+        [node] == children ->
+          [child | _] = children
+          line_from_parent(node, child)
+
+        match?([_ | _], children) ->
+          [child | _] = children
+          [vertical_line(node, child), line_from_parent(node, child)]
+
+        true ->
+          []
+      end
+
+    children_lines = Enum.flat_map(children, &lines/1)
+    lines_to_children ++ aditional_lines ++ children_lines
+  end
+
+  defp line_from_parent(node, child) do
+    %Line{
+      x1: node.x + node.width,
+      x2: child.x - @node_x_separation / 2,
+      y1: node.y + node.height / 2,
+      y2: node.y + node.height / 2
+    }
+  end
+
+  defp vertical_line(%{children: children} = node, child) do
+    [top_most_child | _] = children
+    [bottom_most_child | _] = Enum.reverse(children)
+
+    %Line{
+      x1: child.x - @node_x_separation / 2,
+      x2: child.x - @node_x_separation / 2,
+      y1: top_most_child.y + node.height / 2,
+      y2: bottom_most_child.y + node.height / 2
+    }
+  end
+
+  defp lines_to_children(%{children: children} = node) do
+    Enum.map(children, fn n ->
+      %Line{
+        x1: n.x - div(@node_x_separation, 2),
+        x2: n.x,
+        y1: n.y + div(node.height, 2),
+        y2: n.y + div(node.height, 2)
+      }
+    end)
   end
 end

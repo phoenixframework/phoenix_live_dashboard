@@ -4,18 +4,18 @@
     stroke: $color-gray-warm-200;
     stroke-width:1;
   }
-  
+
   .node:hover {
     cursor: pointer;
   }
-      
+
   .line {
-    stroke: $color-gray-warm-600;    
+    stroke: $color-gray-warm-600;
     stroke-width:2
   }
-  
+
   .tree {
-    position: relative; 
+    position: relative;
     top: 20px;
   }
 

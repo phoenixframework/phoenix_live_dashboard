@@ -9,57 +9,57 @@ defmodule Phoenix.LiveDashboard.ReingoldTilfordTest do
   @node_x_separation 50
 
   # Properties
-  property "If a node has only one child its Y coordinate is the same Y coordinate of its child" do
+  property "if a node has only one child its Y coordinate is the same Y coordinate of its child" do
     check all(tree <- tree()) do
       result =
         tree
-        |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
+        |> Phoenix.LiveDashboard.ReingoldTilford.build(&label/1)
         |> validate_nodes_with_one_child_y_coordinate()
 
       assert result == true
     end
   end
 
-  property "If a node has more than one child, its Y coordinate is the middle point between the first and last child" do
+  property "if a node has more than one child, its Y coordinate is the middle point between the first and last child" do
     check all(tree <- tree()) do
       result =
         tree
-        |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
+        |> Phoenix.LiveDashboard.ReingoldTilford.build(&label/1)
         |> validate_node_y_coordinate_based_on_its_children()
 
       assert result == true
     end
   end
 
-  property "All nodes at the same deep level have the same X coordinate" do
+  property "all nodes at the same deep level have the same X coordinate" do
     check all(tree <- tree()) do
       result =
         tree
-        |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
+        |> Phoenix.LiveDashboard.ReingoldTilford.build(&label/1)
         |> validate_x_coordinate_by_level(%{})
 
       assert result == true
     end
   end
 
-  property "All children must be at least @node_x_separation separation from its ancestor " do
+  property "all children must be at least @node_x_separation separation from its ancestor" do
     check all(tree <- tree()) do
       ancestor = @node_x_separation * -1
 
       result =
         tree
-        |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
+        |> Phoenix.LiveDashboard.ReingoldTilford.build(&label/1)
         |> validate_x_separation_between_nodes(ancestor)
 
       assert result == true
     end
   end
 
-  property "All nodes at the same deep level have to be at least @node_y_separation from each other" do
+  property "all nodes at the same deep level have to be at least @node_y_separation from each other" do
     check all(tree <- tree()) do
       result =
         tree
-        |> Phoenix.LiveDashboard.ReingoldTilford.set_layout_settings(& &1)
+        |> Phoenix.LiveDashboard.ReingoldTilford.build(&label/1)
         |> validate_y_separation_between_nodes()
 
       assert result == true
@@ -188,7 +188,10 @@ defmodule Phoenix.LiveDashboard.ReingoldTilfordTest do
     Enum.reduce(children, accumulator, &nodes_by_level(&1, &2))
   end
 
+  defp label(length), do: String.duplicate("a", length)
+
   # Generator
+
   def tree() do
     StreamData.sized(fn size -> tree_gen(StreamData.integer(20..50), size) end)
   end
