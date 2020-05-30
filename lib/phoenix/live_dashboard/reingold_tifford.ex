@@ -8,10 +8,12 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
   @node_x_separation 50
 
   defmodule Node do
+    @moduledoc false
     defstruct [:x, :y, :label, :children, :modifier, :type, :height, :width, :level, :value]
   end
 
   defmodule Line do
+    @moduledoc false
     defstruct [:x1, :x2, :y1, :y2]
   end
 
@@ -27,8 +29,8 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
   ReingoldTilford nodes.
   """
   def dimensions(nodes) do
-    node_y = Enum.max_by(nodes, fn x -> {x.y, x.height} end)
-    node_x = Enum.max_by(nodes, fn x -> {x.x, x.width} end)
+    node_y = Enum.max_by(nodes, fn node -> node.y + node.height end)
+    node_x = Enum.max_by(nodes, fn node -> node.x + node.width end)
     {node_x.x + node_x.width, node_y.y + node_y.height}
   end
 

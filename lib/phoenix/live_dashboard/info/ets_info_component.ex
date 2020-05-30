@@ -59,8 +59,7 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
   def update(%{id: "ETS" <> ref, path: path, node: node}, socket) do
     ref = :erlang.list_to_ref(String.to_charlist("#Ref" <> ref))
 
-    {:ok,
-     socket |> assign(ref: ref, path: path, node: node) |> assign_info()}
+    {:ok, socket |> assign(ref: ref, path: path, node: node) |> assign_info()}
   end
 
   defp assign_info(%{assigns: assigns} = socket) do

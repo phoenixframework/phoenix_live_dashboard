@@ -53,6 +53,13 @@ defmodule Phoenix.LiveDashboard.ApplicationsLiveTest do
     Application.unload(:ssh)
   end
 
+  test "shows the application supervision tree" do
+    {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
+    rendered = live |> element("#app-kernel") |> render_click()
+    assert rendered =~ ":rex"
+    assert rendered =~ ":standard_error"
+  end
+
   defp applications_href(limit, search, sort_by, sort_dir) do
     ~s|href="#{
       Plug.HTML.html_escape_to_iodata(applications_path(limit, search, sort_by, sort_dir))

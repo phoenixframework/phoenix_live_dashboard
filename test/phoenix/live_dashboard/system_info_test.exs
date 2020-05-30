@@ -94,6 +94,11 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       {sockets, _count} = SystemInfo.fetch_sockets(node(), "impossible", :input, :asc, 100)
       assert Enum.empty?(sockets)
     end
+
+    defp open_socket() do
+      {:ok, socket} = :gen_tcp.listen(0, ip: {127, 0, 0, 1})
+      socket
+    end
   end
 
   describe "os_mon" do
@@ -134,8 +139,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       assert application[:tree?] == false
       assert application[:state] == :started
 
-      {[application], _count} =
-        SystemInfo.fetch_applications(node(), "ex_unit", :name, :asc, 100)
+      {[application], _count} = SystemInfo.fetch_applications(node(), "ex_unit", :name, :asc, 100)
 
       assert application[:name] == :ex_unit
       assert application[:tree?] == true
@@ -148,8 +152,16 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
   end
 
-  defp open_socket() do
-    {:ok, socket} = :gen_tcp.listen(0, ip: {127, 0, 0, 1})
-    socket
+  describe "app tree" do
+    test "returns error if there is no app or tree" do
+      assert SystemInfo.fetch_app_tree(node(), :unknown) == :error
+      assert SystemInfo.fetch_app_tree(node(), :stdlib) == :error
+    end
+
+    test "returns the tree for the given app" do
+      assert {{:master, _, []},
+              [{{:ancestor, _, []}, [{{:supervisor, _, :kernel_sup}, [_ | _]}]}]} =
+               SystemInfo.fetch_app_tree(node(), :kernel)
+    end
   end
 end
