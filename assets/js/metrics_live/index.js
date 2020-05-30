@@ -196,8 +196,17 @@ class Summary {
 
     if (options.tagged) {
       this.__handler = this.tagMeasurement
+      this.removeOverallSeries()
     } else {
       this.__handler = this.untaggedMeasurement
+    }
+  }
+
+  removeOverallSeries() {
+    var i = 0;
+    for (i = 0; i < 4; i++) {
+      this.chart.delSeries(1);
+      this.datasets.splice(1, 1);
     }
   }
 
