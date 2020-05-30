@@ -52,6 +52,8 @@ defmodule Phoenix.LiveDashboard.Router do
         live "/:node/ports", Phoenix.LiveDashboard.PortsLive, :ports, opts
         live "/:node/sockets", Phoenix.LiveDashboard.SocketsLive, :sockets, opts
         live "/:node/ets", Phoenix.LiveDashboard.EtsLive, :ets, opts
+        live "/:node/apps", Phoenix.LiveDashboard.AppsLive, :apps, opts
+        live "/:node/apps/:pid", Phoenix.LiveDashboard.AppsLive, :apps, opts
 
         live "/:node/request_logger",
              Phoenix.LiveDashboard.RequestLoggerLive,

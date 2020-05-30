@@ -82,6 +82,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :capabilities_callback, [])
   end
 
+  def fetch_started_applications(node) do
+    :rpc.call(node, __MODULE__, :started_apps_set, [])
+  end
+
+  def fetch_app_tree(node, application) do
+    :rpc.call(node, __MODULE__, :app_tree, [application])
+  end
+
   ## System callbacks
 
   @doc false
@@ -231,11 +239,94 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     Atom.to_string(name) =~ search or String.downcase(desc) =~ search or version =~ search
   end
 
-  defp started_apps_set() do
+  def started_apps_set() do
     Application.started_applications()
     |> Enum.map(fn {name, _, _} -> name end)
     |> MapSet.new()
   end
+
+  def app_tree(app) do
+    master = :application_controller.get_master(app)
+    {child, _app} = :application_master.get_child(master)
+    {children, seen} = sup_tree(child, %{master => true, child => true})
+    {children, _seen} = links_tree(children, master, seen)
+
+    case get_ancestor(child) do
+      nil ->
+        {{:master, master, []}, [to_node(:supervisor, child, children)]}
+
+      ancestor ->
+        {{:master, master, []},
+         [{{:ancestor, ancestor, []}, [to_node(:supervisor, child, children)]}]}
+    end
+  end
+
+  defp get_ancestor(master) do
+    {_, dictionary} = :erlang.process_info(master, :dictionary)
+
+    case Keyword.get(dictionary, :"$ancestors") do
+      [parent] -> parent
+      _ -> nil
+    end
+  end
+
+  defp sup_tree(pid, seen) do
+    pid
+    |> :supervisor.which_children()
+    |> Enum.reverse()
+    |> Enum.flat_map_reduce(seen, fn {_id, child, type, _modules}, seen ->
+      if is_pid(child) do
+        {children, seen} = if type == :worker, do: {[], seen}, else: sup_tree(child, seen)
+        {[{type, child, children}], put_child(seen, child)}
+      else
+        {[], seen}
+      end
+    end)
+  end
+
+  defp links_tree(nodes, master, seen) do
+    Enum.map_reduce(nodes, seen, fn {type, pid, children}, seen ->
+      {children, seen} =
+        if children == [], do: links_children(type, pid, master, seen), else: {children, seen}
+
+      {children, seen} = links_tree(children, master, seen)
+      {to_node(type, pid, children), seen}
+    end)
+  end
+
+  defp links_children(parent_type, pid, master, seen) do
+    # If the parent type is a supervisor and we have no children,
+    # then this may be a supervisor bridge, so we tag its children
+    # as workers, otherwise they are links.
+    type = if parent_type == :supervisor, do: :worker, else: :link
+
+    case Process.info(pid, :links) do
+      {:links, children} ->
+        children
+        |> Enum.reverse()
+        |> Enum.flat_map_reduce(seen, fn child, seen ->
+          if is_pid(child) and not has_child?(seen, child) and has_leader?(child, master) do
+            {[{type, child, []}], put_child(seen, child)}
+          else
+            {[], seen}
+          end
+        end)
+
+      _ ->
+        {[], seen}
+    end
+  end
+
+  defp to_node(type, pid, children) do
+    {:registered_name, registered_name} = Process.info(pid, :registered_name)
+    {{type, pid, registered_name}, children}
+  end
+
+  defp has_child?(seen, child), do: Map.has_key?(seen, child)
+  defp put_child(seen, child), do: Map.put(seen, child, true)
+
+  defp has_leader?(pid, gl),
+    do: Process.info(pid, :group_leader) == {:group_leader, gl}
 
   ## Ports callbacks
 
