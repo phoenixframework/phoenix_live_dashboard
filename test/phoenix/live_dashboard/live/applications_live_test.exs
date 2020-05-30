@@ -38,19 +38,18 @@ defmodule Phoenix.LiveDashboard.ApplicationsLiveTest do
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
 
-    refute rendered =~ ~s|<td class="pl-4">ssh|
+    assert rendered =~ ~s|<tr id="app-stdlib">|
+    refute rendered =~ ~s|<tr id="app-ssh"|
 
     Application.load(:ssh)
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
-    assert rendered =~ ~s|<tr class="text-muted"><td class="pl-4">ssh|
-    refute rendered =~ ~s|<tr class=""><td class="pl-4">ssh|
+    assert rendered =~ ~s|<tr id="app-ssh" class="text-muted"|
 
     Application.start(:ssh)
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
-    refute rendered =~ ~s|<tr class="text-muted"><td class="pl-4">ssh|
-    assert rendered =~ ~s|<tr class=""><td class="pl-4">ssh|
+    assert rendered =~ ~s|<tr id="app-ssh" phx-click|
     Application.unload(:ssh)
   end
 

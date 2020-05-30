@@ -82,12 +82,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :capabilities_callback, [])
   end
 
-  def fetch_started_applications(node) do
-    :rpc.call(node, __MODULE__, :started_apps_set, [])
-  end
-
   def fetch_app_tree(node, application) do
-    :rpc.call(node, __MODULE__, :app_tree, [application])
+    :rpc.call(node, __MODULE__, :app_tree_callback, [application])
   end
 
   ## System callbacks
@@ -222,8 +218,12 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
           description = List.to_string(desc),
           version = List.to_string(version),
           show_application?(name, description, version, search) do
-        state = if name in started_apps_set, do: :started, else: :loaded
-        [name: name, description: description, version: version, state: state]
+        {state, tree?} =
+          if name in started_apps_set,
+            do: {:started, is_pid(:application_controller.get_master(name))},
+            else: {:loaded, false}
+
+        [name: name, description: description, version: version, state: state, tree?: tree?]
       end
 
     count = length(apps)
@@ -239,25 +239,30 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     Atom.to_string(name) =~ search or String.downcase(desc) =~ search or version =~ search
   end
 
-  def started_apps_set() do
+  defp started_apps_set() do
     Application.started_applications()
     |> Enum.map(fn {name, _, _} -> name end)
     |> MapSet.new()
   end
 
-  def app_tree(app) do
-    master = :application_controller.get_master(app)
-    {child, _app} = :application_master.get_child(master)
-    {children, seen} = sup_tree(child, %{master => true, child => true})
-    {children, _seen} = links_tree(children, master, seen)
+  def app_tree_callback(app) do
+    case :application_controller.get_master(app) do
+      :undefined ->
+        :error
 
-    case get_ancestor(child) do
-      nil ->
-        {{:master, master, []}, [to_node(:supervisor, child, children)]}
+      master ->
+        {child, _app} = :application_master.get_child(master)
+        {children, seen} = sup_tree(child, %{master => true, child => true})
+        {children, _seen} = links_tree(children, master, seen)
 
-      ancestor ->
-        {{:master, master, []},
-         [{{:ancestor, ancestor, []}, [to_node(:supervisor, child, children)]}]}
+        case get_ancestor(child) do
+          nil ->
+            {{:master, master, []}, [to_node(:supervisor, child, children)]}
+
+          ancestor ->
+            {{:master, master, []},
+             [{{:ancestor, ancestor, []}, [to_node(:supervisor, child, children)]}]}
+        end
     end
   end
 

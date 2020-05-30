@@ -1,4 +1,4 @@
-table.clickable-rows tbody tr:hover{
+tr[phx-click]{
   cursor: pointer;
 }
 

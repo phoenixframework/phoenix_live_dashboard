@@ -1,0 +1,27 @@
+.app-info {
+  .node{
+    fill: $color-gray-100;
+    stroke: $color-gray-warm-200;
+    stroke-width:1;
+  }
+  
+  .node:hover {
+    cursor: pointer;
+  }
+      
+  .line {
+    stroke: $color-gray-warm-600;    
+    stroke-width:2
+  }
+  
+  .tree {
+    position: relative; 
+    top: 20px;
+  }
+
+  .tree-node-text {
+    font-size: 14px;
+    font-family: 'LiveDashboardFont';
+    pointer-events: none;
+  }
+}

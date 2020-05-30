@@ -63,7 +63,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
       <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
-            <table class="table table-hover mt-0 dash-table clickable-rows">
+            <table class="table table-hover mt-0 dash-table ">
               <thead>
                 <tr>
                   <th class="pl-4">Name or module</th>
@@ -120,7 +120,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
 
   def handle_event("show_info", %{"ets" => ets}, socket) do
     params = Map.put(socket.assigns.params, :info, ets)
-    {:noreply, push_redirect(socket, to: self_path(socket, node(), params))}
+    {:noreply, push_patch(socket, to: self_path(socket, node(), params))}
   end
 
   defp self_path(socket, node, params) do

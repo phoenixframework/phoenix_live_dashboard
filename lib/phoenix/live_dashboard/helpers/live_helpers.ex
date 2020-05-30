@@ -50,6 +50,13 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   end
 
   @doc """
+  Encodes an application for URLs.
+  """
+  def encode_app(app) when is_atom(app) do
+    "App<#{app}>"
+  end
+
+  @doc """
   Formats any value.
   """
   def format_value(port, live_dashboard_path) when is_port(port) do
@@ -217,6 +224,7 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   defp extract_info_component("Port<" <> _), do: Phoenix.LiveDashboard.PortInfoComponent
   defp extract_info_component("Socket<" <> _), do: Phoenix.LiveDashboard.SocketInfoComponent
   defp extract_info_component("ETS<" <> _), do: Phoenix.LiveDashboard.EtsInfoComponent
+  defp extract_info_component("App<" <> _), do: Phoenix.LiveDashboard.AppInfoComponent
   defp extract_info_component(_), do: nil
 
   @doc """

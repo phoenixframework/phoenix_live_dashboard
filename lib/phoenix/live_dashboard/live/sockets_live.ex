@@ -63,7 +63,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
       <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
-            <table class="table table-hover mt-0 dash-table clickable-rows">
+            <table class="table table-hover mt-0 dash-table ">
               <thead>
                 <tr>
                   <th class="pl-4">Port</th>
@@ -136,7 +136,7 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
 
   def handle_event("show_info", %{"socket" => socket_info}, socket) do
     params = Map.put(socket.assigns.params, :info, socket_info)
-    {:noreply, push_redirect(socket, to: self_path(socket, node(), params))}
+    {:noreply, push_patch(socket, to: self_path(socket, node(), params))}
   end
 
   defp self_path(socket, node, params) do

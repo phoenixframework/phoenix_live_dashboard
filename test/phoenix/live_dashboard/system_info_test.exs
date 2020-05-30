@@ -128,10 +128,18 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "all with search" do
-      {[applications], _count} =
+      {[application], _count} = SystemInfo.fetch_applications(node(), "stdlib", :name, :asc, 100)
+
+      assert application[:name] == :stdlib
+      assert application[:tree?] == false
+      assert application[:state] == :started
+
+      {[application], _count} =
         SystemInfo.fetch_applications(node(), "ex_unit", :name, :asc, 100)
 
-      assert applications[:name] == :ex_unit
+      assert application[:name] == :ex_unit
+      assert application[:tree?] == true
+      assert application[:state] == :started
 
       {applications, _count} =
         SystemInfo.fetch_applications(node(), "impossible", :name, :asc, 100)

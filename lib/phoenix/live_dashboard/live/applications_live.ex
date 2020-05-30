@@ -18,6 +18,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   def handle_params(params, _url, socket) do
     {:noreply,
      socket
+     |> assign_params(params)
      |> assign_table_params(params, @sort_by, @sort_dir)
      |> fetch_applications()}
   end
@@ -76,15 +77,24 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
                   <th>
                     <%= sort_link(@socket, @live_action, @menu, @params, :state, "State") %>
                   </th>
+                  <th>Sup tree?</th>
                   <th class="px-4">Version</th>
                 </tr>
               </thead>
               <tbody>
                 <%= for application <- @applications do %>
-                  <tr class="<%= if application[:state] == :loaded, do: "text-muted" %>">
+                  <%= cond do %>
+                    <% application[:state] == :loaded -> %>
+                      <tr id="app-<%= application[:name] %>" class="text-muted">
+                    <% application[:tree?] -> %>
+                      <tr id="app-<%= application[:name] %>" phx-click="show_info" phx-value-app="<%= encode_app(application[:name]) %>" phx-page-loading>
+                    <% true -> %>
+                      <tr id="app-<%= application[:name] %>">
+                  <% end %>
                     <td class="pl-4"><%= application[:name] %></td>
                     <td><%= application[:description] %></td>
                     <td><%= application[:state] %></td>
+                    <td class="text-center"><%= if application[:tree?], do: "✓" %></td>
                     <td class="px-4"><%= application[:version] %></td>
                   </tr>
                 <% end %>
@@ -115,6 +125,11 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   def handle_event("select_limit", %{"limit" => limit}, socket) do
     %{menu: menu, params: params} = socket.assigns
     {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
+  end
+
+  def handle_event("show_info", %{"app" => app}, socket) do
+    params = Map.put(socket.assigns.params, :info, app)
+    {:noreply, push_patch(socket, to: self_path(socket, node(), params))}
   end
 
   defp self_path(socket, node, params) do

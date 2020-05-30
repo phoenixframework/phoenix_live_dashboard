@@ -60,7 +60,7 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
     ref = :erlang.list_to_ref(String.to_charlist("#Ref" <> ref))
 
     {:ok,
-     socket |> assign(:ref, ref) |> assign(:path, path) |> assign(:node, node) |> assign_info()}
+     socket |> assign(ref: ref, path: path, node: node) |> assign_info()}
   end
 
   defp assign_info(%{assigns: assigns} = socket) do
