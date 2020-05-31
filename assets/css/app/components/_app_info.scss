@@ -1,25 +1,32 @@
 .app-info {
+  overflow: auto;
+
   .node{
     fill: $color-gray-100;
-    stroke: $color-gray-warm-200;
-    stroke-width:1;
+    stroke: $color-gray-300;
+    stroke-width: 1;
   }
 
   .node:hover {
     cursor: pointer;
+    fill: $color-gray-300;
+    & + .tree-node-text {
+      fill: change-color($color-gray-900, $lightness: 25%);
+    }
   }
 
   .line {
-    stroke: $color-gray-warm-600;
-    stroke-width:2
+    stroke: $color-gray-300;
+    stroke-width: 2
   }
 
   .tree {
     position: relative;
-    top: 20px;
+    margin: 20px 0;
   }
 
   .tree-node-text {
+    fill: $text-color;
     font-size: 14px;
     font-family: 'LiveDashboardFont';
     pointer-events: none;

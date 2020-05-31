@@ -16,9 +16,9 @@ defmodule Phoenix.LiveDashboard.AppInfoComponent do
               <%= node.label %>
             </text>
           <% end %>
-          #<%= for line <- @lines do %>
+          <%= for line <- @lines do %>
             <line x1="<%= line.x1 %>" y1="<%= line.y1 %>" x2="<%= line.x2 %>" y2="<%= line.y2 %>" class="line" />
-          #<% end %>
+          <% end %>
         </svg>
       <% else %>
         <div class="app-info-exits mt-1 mb-3">No app or no supervision tree for app exists.</div>
