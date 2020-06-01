@@ -45,6 +45,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:phoenix_live_view, "~> 0.13.1", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.4.0 or ~> 0.5.0"},
       {:phoenix_html, "~> 2.14.1 or ~> 2.15"},
+      {:circular_buffer, "~> 0.2", only: :dev},
       {:telemetry_poller, "~> 0.4", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:plug_cowboy, "~> 2.0", only: :dev},

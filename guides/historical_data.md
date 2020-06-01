@@ -12,8 +12,7 @@ live_dashboard "/dashboard",
       }
 ```
 
-where MyStorage is a module and historical_metric_data is a function taking a single argument in this example, which will always be a list of atoms equal to or starting with the key to the map, i.e. in this example `[:namespace, :metric]`.  The function must return a list, empty if there is no data, or a list of tuples of `{label, data, time}` where a nil label will default to the chart's label, and time should be
-in `:native` time unit, such as from `System.system_time/0`.
+where MyStorage is a module and historical_metric_data is a function taking a single argument in this example, which will always be a list of atoms equal to or starting with the key to the map, i.e. in this example `[:namespace, :metric]`.  The function must return a list, empty if there is no data, or a list of maps with `:data` and `:time` keys in every map, and optionally a `:metadata` key if you wish to provide metadata.  The data should be identical to a telemetry data event going to the chart, and time should be in `:native` time unit, such as from `System.system_time/0`.
 
 As an example, you might be using [`:telemetry_poller`](https://github.com/beam-telemetry/telemetry_poller) to gather periodic_measurements that you accumulate between ticks in a GenServer.  The same GenServer may be modified to also store history, perhaps in a [circular buffer](https://en.wikipedia.org/wiki/Circular_buffer), as in the example below, and emit recent telemetry each time it is called by `:telemetry_poller`, but instead of clearing the history as it might do otherwise, append it to the end of a circular buffer structure to retain for a limited time period.  Here is an example of one such module serving both `:telemetry_poller` for measurements and `:historical_data` for metric history:
 
