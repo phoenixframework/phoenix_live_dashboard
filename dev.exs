@@ -39,14 +39,10 @@ defmodule DemoWeb.Telemetry do
         unit: {:native, :millisecond}
       ),
       counter("phoenix.endpoint.stop.duration",
-        unit: {:native, :millisecond},
-        tags: [:method, :request_path],
-        tag_values: &tag_method_and_request_path/1
+        unit: {:native, :millisecond}
       ),
       summary("phoenix.endpoint.stop.duration",
-        unit: {:native, :microsecond},
-        tags: [:method, :request_path],
-        tag_values: &tag_method_and_request_path/1
+        unit: {:native, :microsecond}
       ),
       last_value("phoenix.router_dispatch.stop.duration",
         tags: [:route],
@@ -54,10 +50,10 @@ defmodule DemoWeb.Telemetry do
       ),
       counter("phoenix.router_dispatch.stop.duration",
         tags: [:route],
-        tag_values: &tag_controller_action/1,
         unit: {:native, :millisecond}
       ),
       summary("phoenix.router_dispatch.stop.duration",
+        tags: [:route],
         unit: {:native, :millisecond}
       ),
 
@@ -67,18 +63,6 @@ defmodule DemoWeb.Telemetry do
       summary("vm.total_run_queue_lengths.cpu"),
       summary("vm.total_run_queue_lengths.io")
     ]
-  end
-
-  defp tag_method_and_request_path(metadata) do
-    Map.take(metadata.conn, [:method, :request_path])
-  end
-
-  defp tag_controller_action(%{plug: plug, plug_opts: plug_opts}) when is_atom(plug_opts) do
-    %{controller_action: "#{inspect(plug)}##{plug_opts}"}
-  end
-
-  defp tag_controller_action(%{plug: plug}) do
-    %{controller_action: inspect(plug)}
   end
 end
 
