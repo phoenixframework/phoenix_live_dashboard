@@ -34,7 +34,7 @@ if System.get_env("METRIC_HISTORY") do
 
     @run_queue_event [:vm, :total_run_queue_lengths]
     @memory_event [:vm, :memory]
-    @history_buffer_size 500
+    @history_buffer_size 50
 
     def signatures do
       %{
@@ -100,8 +100,7 @@ if System.get_env("METRIC_HISTORY") do
       new_history =
         CircularBuffer.insert(histories[key], %{
           data: metric_map,
-          time: time,
-          metadata: metadata
+          time: time
         })
 
       {:noreply, %{histories | key => new_history}}
