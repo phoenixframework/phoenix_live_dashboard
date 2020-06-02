@@ -94,7 +94,7 @@ if System.get_env("METRIC_HISTORY") do
     end
 
     def handle_cast({:telemetry_metric, metric_map, _metadata, event}, histories) do
-      time = System.system_time(:second)
+      time = System.system_time(:microsecond)
       key = List.last(event)
 
       new_history =
