@@ -177,133 +177,113 @@ class CommonMetric {
 
 // Displays a measurement summary
 class Summary {
-  constructor(chart, options) {
+  constructor(options, chartEl) {
     // TODO: Get percentiles from options
-    this.chart = chart
-    this.datasets = [
-      { key: "|x|", data: [] },
-      { key: "Overall", data: [] },
-      { key: "Overall min", data: [] },
-      { key: "Overall max", data: [] },
-      { key: "Overall avg", data: [] }
-    ]
+    let config = this.constructor.getConfig(options)
+    // Bind the series `values` callback to this instance
+    config.series[1].values = this.__seriesValues.bind(this)
+
+    this.datasets = [{ key: "|x|", data: [] }]
+    this.chart = new uPlot(config, this.constructor.initialData(options), chartEl)
     this.options = options
-    this.min = null
-    this.max = null
-    this.total = 0
-    this.count = 0
-    this.tagSummary = {}
 
     if (options.tagged) {
-      this.__handler = this.tagMeasurement
-      this.removeOverallSeries()
+      this.chart.delSeries(1)
+      this.__handler = this.handleTaggedMeasurement.bind(this)
     } else {
-      this.__handler = this.untaggedMeasurement
-    }
-  }
-
-  removeOverallSeries() {
-    var i = 0;
-    for (i = 0; i < 4; i++) {
-      this.chart.delSeries(1);
-      this.datasets.splice(1, 1);
+      this.datasets.push(this.constructor.newDataset(options.label))
+      this.__handler = this.handleMeasurement.bind(this)
     }
   }
 
   handleMeasurements(measurements) {
     measurements.forEach((measurement) => this.__handler(measurement))
-    this.chart.setData(dataForDatasets(this.datasets));
+    this.chart.setData(dataForDatasets(this.datasets))
   }
 
-  tagMeasurement({ x, y, z }) {
-    this.updateTagSeriesData({ x, y, z })
+  handleTaggedMeasurement(measurement) {
+    let seriesIndex = this.findOrCreateSeries(measurement.x)
+    this.handleMeasurement(measurement, seriesIndex)
+  }
+
+  handleMeasurement(measurement, sidx = 1) {
+    let { z: timestamp } = measurement
     this.datasets = this.datasets.map((dataset, index) => {
       if (dataset.key === "|x|") {
-        dataset.data.push(z)
+        dataset.data.push(timestamp)
+      } else if (index === sidx) {
+        this.pushToDataset(dataset, measurement)
       } else {
-          this.handleTagMeasurement(this.tagSummary[x], dataset, { x, y, z })
+        this.pushToDataset(dataset, null)
       }
-
       return dataset
     })
   }
 
-  updateTagSeriesData({ x, y, z }) {
-    let seriesIndex = this.datasets.findIndex(({ key }) => x === key)
+  findOrCreateSeries(label) {
+    let seriesIndex = this.datasets.findIndex(({ key }) => label === key)
     if (seriesIndex === -1) {
-        this.addSummaryTagSeries(x)
-      this.tagSummary[x] = { total: 0, min: null, max: null, count: 0 }
-    }
+      seriesIndex = this.datasets.push(
+        this.constructor.newDataset(label, this.datasets[0].data.length)
+      ) - 1
 
-    this.tagSummary[x].count++
-    this.tagSummary[x].total += y
-    if (this.tagSummary[x].min === null || y < this.tagSummary[x].min) {
-      this.tagSummary[x].min = y
-    }
-    if (this.tagSummary[x].max === null || y > this.tagSummary[x].max) {
-      this.tagSummary[x].max = y
-    }
-  }
-
-  addSummaryTagSeries(label) {
-    const suffixes = ["", "min", "max", "avg"]
-
-    suffixes.forEach((suffix) => {
-      let seriesLabel = `${label} ${suffix}`.trim()
-      let seriesIndex = this.datasets.push({ key: seriesLabel, data: Array(this.datasets[0].data.length).fill(null) }) - 1
-
-      let seriesOptions = {}
-      if (suffix === "min" || suffix == "max") {
-        seriesOptions = {
-          fill: "rgba(0, 0, 0, .07)",
-          band: true,
-          width: 0,
-          show: false,
-        }
+      let config = {
+        values: this.__seriesValues.bind(this),
+        ...newSeriesConfig({ label }, seriesIndex - 1)
       }
 
-      let seriesConfig = {
-        ...newSeriesConfig({ label: seriesLabel, unit: this.options.unit }, seriesIndex - 1),
-        ...seriesOptions
-      }
-      this.chart.addSeries(seriesConfig, seriesIndex)
-    })
+      this.chart.addSeries(config, seriesIndex)
+    }
+
+    return seriesIndex
   }
 
-  handleTagMeasurement(tagData, dataset, { x, y, z }) {
-    if (dataset.key == x) {
-      dataset.data.push(y)
-    } else if (dataset.key === `${x} min`) {
-      dataset.data.push(tagData.min)
-    } else if (dataset.key === `${x} max`) {
-      dataset.data.push(tagData.max)
-    } else if (dataset.key === `${x} avg`) {
-      dataset.data.push(tagData.total / tagData.count)
-    } else {
+  pushToDataset(dataset, measurement) {
+    if (measurement === null) {
       dataset.data.push(null)
+      dataset.agg.avg.push(null)
+      dataset.agg.max.push(null)
+      dataset.agg.min.push(null)
+      return
     }
-  }
 
-  untaggedMeasurement({ x, y, z }) {
+    let { y } = measurement
+
     // Increment the new overall totals
-    this.count++
-    this.total += y
+    dataset.agg.count++
+    dataset.agg.total += y
 
-    // Push the static values
-    this.datasets[0].data.push(z)
-    this.datasets[1].data.push(y)
+    // Push the value
+    dataset.data.push(y)
 
     // Push min/max/avg
-    if (this.min === null || y < this.min) { this.min = y }
-    this.datasets[2].data.push(this.min)
+    if (dataset.last.min === null || y < dataset.last.min) { dataset.last.min = y }
+    dataset.agg.min.push(dataset.last.min)
 
-    if (this.max === null || y > this.max) { this.max = y }
-    this.datasets[3].data.push(this.max)
+    if (dataset.last.max === null || y > dataset.last.max) { dataset.last.max = y }
+    dataset.agg.max.push(dataset.last.max)
 
-    this.datasets[4].data.push(this.total / this.count)
+    dataset.agg.avg.push((dataset.agg.total / dataset.agg.count))
+
+    return dataset
   }
 
-  static initialData() { return [[], [], [], [], []] }
+  __seriesValues(u, sidx, idx) {
+    let dataset = this.datasets[sidx]
+    if (dataset && dataset.data && dataset.data[idx]) {
+      let { agg: { avg, max, min }, data } = dataset
+      return {
+        Value: data[idx].toFixed(3),
+        Min: min[idx].toFixed(3),
+        Max: max[idx].toFixed(3),
+        Avg: avg[idx].toFixed(3)
+      }
+    } else {
+      return { Value: "--", Min: "--", Max: "--", Avg: "--" }
+    }
+  }
+
+  static initialData() { return [[], []] }
 
   static getConfig(options) {
     return {
@@ -313,30 +293,7 @@ class Summary {
       height: options.height,
       series: [
         { ...XSeriesValue() },
-        newSeriesConfig(options, 0),
-        {
-          label: "Min",
-          fill: "rgba(0, 0, 0, .07)",
-          band: true,
-          width: 0,
-          show: false,
-          ...SeriesValue(options)
-        },
-        {
-          label: "Max",
-          fill: "rgba(0, 0, 0, .07)",
-          band: true,
-          width: 0,
-          show: false,
-          ...SeriesValue(options)
-        },
-        {
-          label: "Avg",
-          fill: "rgba(0, 0, 0, .07)",
-          stroke: "red",
-          dash: [10, 10],
-          ...SeriesValue(options)
-        },
+        newSeriesConfig(options, 0)
       ],
       scales: {
         x: {
@@ -352,6 +309,16 @@ class Summary {
         XAxis(),
         YAxis(options)
       ]
+    }
+  }
+
+  static newDataset(key, length = 0) {
+    let nils = length > 0 ? Array(length).fill(null) : []
+    return {
+      key,
+      data: [...nils],
+      agg: { avg: [...nils], count: 0, max: [...nils], min: [...nils], total: 0 },
+      last: { max: null, min: null }
     }
   }
 }
@@ -372,11 +339,16 @@ export class TelemetryChart {
     }
 
     const metric = __METRICS__[options.metric]
-    this.uplotChart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)
-    this.metric = new metric(this.uplotChart, options)
+    if (metric === Summary) {
+      this.metric = new Summary(options, chartEl)
+      this.uplotChart = this.metric.chart
+    } else {
+      this.uplotChart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)
+      this.metric = new metric(this.uplotChart, options)
+    }
 
     // setup the data buffer
-    let isBufferingData = (options.refreshInterval && typeof options.refreshInterval !== "undefined")
+    let isBufferingData = typeof options.refreshInterval !== "undefined"
     this._isBufferingData = isBufferingData
     this._buffer = []
     this._timer = isBufferingData ? setInterval(
