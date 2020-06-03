@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.6 (2020-06-03)
+
+* Support tags on summary metrics
+* Add supervision trees to the Applications tab
+
 ## v0.2.5 (2020-05-22)
 
 * Allow cross-linking of info sections
