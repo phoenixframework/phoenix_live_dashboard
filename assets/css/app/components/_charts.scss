@@ -28,21 +28,28 @@
       }
 
       .legend {
+        margin-top: 1.75rem;
         font-size: 0.75rem;
-        display: flex;
-        flex-wrap: wrap;
-        text-align: left;
         width: 100%;
 
-        .series {
-          display: flex;
-          flex-basis: 45%;
-          order: 10;
+        .labels {
+          background-color: $color-gray-100;
+          color: $color-gray-800;
 
           th {
-            align-items: center;
-            display: flex;
-            flex-basis: 55px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            min-width: 0;
+            text-align: center;
+            /* this padding is missing from uPlot css */
+            padding: 4px;
+          }
+        }
+
+        .series {
+          th {
+            text-align: left;
           }
 
           td {
@@ -51,35 +58,54 @@
             white-space: nowrap;
             min-width: 0;
           }
+        }
 
-          &:first-child {
-            background-color: $color-gray-100;
-            color: $color-gray-800;
-            flex-basis: 100%;
-            margin: 1.75rem 0 0.5rem 0;
-            order: 1;
-            text-align: center;
-            display: inline-block;
+        &.inline {
+          display: flex;
+          flex-wrap: wrap;
+          text-align: left;
+          margin-top: 0;
+
+          .series {
+            display: flex;
+            flex-basis: 45%;
+            order: 10;
 
             th {
+              align-items: center;
+              display: flex;
+              flex-basis: 55px;
+            }
+
+            &:first-child {
+              background-color: $color-gray-100;
+              color: $color-gray-800;
+              flex-basis: 100%;
+              margin: 1.75rem 0 0.5rem 0;
+              order: 1;
+              text-align: center;
               display: inline-block;
+
+              th {
+                display: inline-block;
+              }
+
+              .ident {
+                display: none;
+              }
             }
 
-            .ident {
-              display: none;
+            &:nth-child(2) {
+              order: 2;
             }
-          }
 
-          &:nth-child(2) {
-            order: 2;
-          }
+            &:nth-child(5) {
+              order: 4;
+            }
 
-          &:nth-child(5) {
-            order: 4;
-          }
-
-          &:nth-child(3) {
-            order: 3;
+            &:nth-child(3) {
+              order: 3;
+            }
           }
         }
       }

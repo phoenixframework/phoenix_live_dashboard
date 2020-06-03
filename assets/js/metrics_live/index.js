@@ -177,41 +177,113 @@ class CommonMetric {
 
 // Displays a measurement summary
 class Summary {
-  constructor(chart, options) {
+  constructor(options, chartEl) {
     // TODO: Get percentiles from options
-    this.chart = chart
-    this.datasets = this.constructor.initialData()
+    let config = this.constructor.getConfig(options)
+    // Bind the series `values` callback to this instance
+    config.series[1].values = this.__seriesValues.bind(this)
+
+    this.datasets = [{ key: "|x|", data: [] }]
+    this.chart = new uPlot(config, this.constructor.initialData(options), chartEl)
     this.options = options
-    this.min = null
-    this.max = null
-    this.total = 0
-    this.count = 0
+
+    if (options.tagged) {
+      this.chart.delSeries(1)
+      this.__handler = this.handleTaggedMeasurement.bind(this)
+    } else {
+      this.datasets.push(this.constructor.newDataset(options.label))
+      this.__handler = this.handleMeasurement.bind(this)
+    }
   }
 
-  handleMeasurements(data) {
-    data.forEach(({ x, y, z }) => {
-      // Increment the new totals
-      this.count++
-      this.total += y
+  handleMeasurements(measurements) {
+    measurements.forEach((measurement) => this.__handler(measurement))
+    this.chart.setData(dataForDatasets(this.datasets))
+  }
 
-      // Push the static values
-      this.datasets[0].push(z)
-      this.datasets[1].push(y)
+  handleTaggedMeasurement(measurement) {
+    let seriesIndex = this.findOrCreateSeries(measurement.x)
+    this.handleMeasurement(measurement, seriesIndex)
+  }
 
-      // Push min/max/avg
-      if (this.min === null || y < this.min) { this.min = y }
-      this.datasets[2].push(this.min)
-
-      if (this.max === null || y > this.max) { this.max = y }
-      this.datasets[3].push(this.max)
-
-      this.datasets[4].push(this.total / this.count)
+  handleMeasurement(measurement, sidx = 1) {
+    let { z: timestamp } = measurement
+    this.datasets = this.datasets.map((dataset, index) => {
+      if (dataset.key === "|x|") {
+        dataset.data.push(timestamp)
+      } else if (index === sidx) {
+        this.pushToDataset(dataset, measurement)
+      } else {
+        this.pushToDataset(dataset, null)
+      }
+      return dataset
     })
-
-    this.chart.setData(this.datasets)
   }
 
-  static initialData() { return [[], [], [], [], []] }
+  findOrCreateSeries(label) {
+    let seriesIndex = this.datasets.findIndex(({ key }) => label === key)
+    if (seriesIndex === -1) {
+      seriesIndex = this.datasets.push(
+        this.constructor.newDataset(label, this.datasets[0].data.length)
+      ) - 1
+
+      let config = {
+        values: this.__seriesValues.bind(this),
+        ...newSeriesConfig({ label }, seriesIndex - 1)
+      }
+
+      this.chart.addSeries(config, seriesIndex)
+    }
+
+    return seriesIndex
+  }
+
+  pushToDataset(dataset, measurement) {
+    if (measurement === null) {
+      dataset.data.push(null)
+      dataset.agg.avg.push(null)
+      dataset.agg.max.push(null)
+      dataset.agg.min.push(null)
+      return
+    }
+
+    let { y } = measurement
+
+    // Increment the new overall totals
+    dataset.agg.count++
+    dataset.agg.total += y
+
+    // Push the value
+    dataset.data.push(y)
+
+    // Push min/max/avg
+    if (dataset.last.min === null || y < dataset.last.min) { dataset.last.min = y }
+    dataset.agg.min.push(dataset.last.min)
+
+    if (dataset.last.max === null || y > dataset.last.max) { dataset.last.max = y }
+    dataset.agg.max.push(dataset.last.max)
+
+    dataset.agg.avg.push((dataset.agg.total / dataset.agg.count))
+
+    return dataset
+  }
+
+  __seriesValues(u, sidx, idx) {
+    let dataset = this.datasets[sidx]
+    if (dataset && dataset.data && dataset.data[idx]) {
+      let { agg: { avg, max, min }, data } = dataset
+      return {
+        Value: data[idx].toFixed(3),
+        Min: min[idx].toFixed(3),
+        Max: max[idx].toFixed(3),
+        Avg: avg[idx].toFixed(3)
+      }
+    } else {
+      return { Value: "--", Min: "--", Max: "--", Avg: "--" }
+    }
+  }
+
+  static initialData() { return [[], []] }
 
   static getConfig(options) {
     return {
@@ -221,30 +293,7 @@ class Summary {
       height: options.height,
       series: [
         { ...XSeriesValue() },
-        newSeriesConfig(options, 0),
-        {
-          label: "Min",
-          fill: "rgba(0, 0, 0, .07)",
-          band: true,
-          width: 0,
-          show: false,
-          ...SeriesValue(options)
-        },
-        {
-          label: "Max",
-          fill: "rgba(0, 0, 0, .07)",
-          band: true,
-          width: 0,
-          show: false,
-          ...SeriesValue(options)
-        },
-        {
-          label: "Avg",
-          fill: "rgba(0, 0, 0, .07)",
-          stroke: "red",
-          dash: [10, 10],
-          ...SeriesValue(options)
-        },
+        newSeriesConfig(options, 0)
       ],
       scales: {
         x: {
@@ -260,6 +309,16 @@ class Summary {
         XAxis(),
         YAxis(options)
       ]
+    }
+  }
+
+  static newDataset(key, length = 0) {
+    let nils = length > 0 ? Array(length).fill(null) : []
+    return {
+      key,
+      data: [...nils],
+      agg: { avg: [...nils], count: 0, max: [...nils], min: [...nils], total: 0 },
+      last: { max: null, min: null }
     }
   }
 }
@@ -280,11 +339,16 @@ export class TelemetryChart {
     }
 
     const metric = __METRICS__[options.metric]
-    this.uplotChart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)
-    this.metric = new metric(this.uplotChart, options)
+    if (metric === Summary) {
+      this.metric = new Summary(options, chartEl)
+      this.uplotChart = this.metric.chart
+    } else {
+      this.uplotChart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)
+      this.metric = new metric(this.uplotChart, options)
+    }
 
     // setup the data buffer
-    let isBufferingData = (options.refreshInterval && typeof options.refreshInterval !== "undefined")
+    let isBufferingData = typeof options.refreshInterval !== "undefined"
     this._isBufferingData = isBufferingData
     this._buffer = []
     this._timer = isBufferingData ? setInterval(
