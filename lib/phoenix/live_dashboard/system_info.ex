@@ -3,10 +3,15 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   @moduledoc false
 
   def ensure_loaded(node) do
-    case :rpc.call(node, :code, :ensure_loaded, [__MODULE__]) do
-      {:module, _} -> maybe_replace(node, fetch_capabilities(node))
-      {:error, :nofile} -> load(node)
-      {:error, reason} -> raise("Failed to load #{__MODULE__} on #{node}: #{inspect(reason)}")
+    case :rpc.call(node, :code, :is_loaded, [__MODULE__]) do
+      {:file, _} ->
+        maybe_replace(node, fetch_capabilities(node))
+
+      false ->
+        load(node)
+
+      {:error, reason} ->
+        raise("Failed to load #{__MODULE__} on #{node}: #{inspect(reason)}")
     end
   end
 

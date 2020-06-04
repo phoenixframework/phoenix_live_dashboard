@@ -3,6 +3,8 @@ defmodule Phoenix.LiveDashboard.Application do
   use Application
 
   def start(_, _) do
+    # Preload it as we check if it is available on remote nodes
+    Code.ensure_loaded(Phoenix.LiveDashboard.SystemInfo)
     Logger.add_backend(Phoenix.LiveDashboard.LoggerPubSubBackend)
 
     children = [
