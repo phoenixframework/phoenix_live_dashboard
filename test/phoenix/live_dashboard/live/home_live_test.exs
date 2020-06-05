@@ -22,6 +22,12 @@ defmodule Phoenix.LiveDashboard.HomeLiveTest do
 
     assert rendered =~
              ~s|<h6 class=\"banner-card-title\">Uptime</h6><div class=\"banner-card-value\">0m</div>|
+
+    assert rendered =~
+             ~s|<h6 class="banner-card-title">Mix Env</h6><div class="banner-card-value">|
+
+    assert rendered =~
+             ~s|<h6 class="banner-card-title">Mix Target</h6><div class="banner-card-value">|
   end
 
   test "redirects to new node" do

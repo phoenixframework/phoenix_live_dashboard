@@ -101,6 +101,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
         elixir_version: System.version(),
         phoenix_version: Application.spec(:phoenix, :vsn) || "None",
         dashboard_version: Application.spec(:phoenix_live_dashboard, :vsn) || "None",
+        mix_env: System.get_env("MIX_ENV") || "dev",
+        mix_target: System.get_env("MIX_TARGET") || "host",
         system_architecture: :erlang.system_info(:system_architecture)
       },
       system_limits: %{

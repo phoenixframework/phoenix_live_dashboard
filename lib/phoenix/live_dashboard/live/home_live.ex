@@ -16,6 +16,11 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     {:dashboard, "Dashboard"}
   ]
 
+  @env_sections [
+    {:mix_env, "Mix Env"},
+    {:mix_target, "Mix Target"}
+  ]
+
   @memory_usage_sections [
     {:atom, "Atoms", "green"},
     {:binary, "Binary", "blue"},
@@ -80,6 +85,17 @@ defmodule Phoenix.LiveDashboard.HomeLive do
               <div class="banner-card bg-<%= section %> text-white">
                 <h6 class="banner-card-title"><%= title %></h6>
                 <div class="banner-card-value"><%= @system_info[:"#{section}_version"] %></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="row">
+          <%= for {section, title} <- env_sections() do %>
+            <div class="col mb-4">
+              <div class="banner-card bg-env text-white">
+                <h6 class="banner-card-title"><%= title %></h6>
+                <div class="banner-card-value"><%= @system_info[section] %></div>
               </div>
             </div>
           <% end %>
@@ -247,4 +263,5 @@ defmodule Phoenix.LiveDashboard.HomeLive do
   end
 
   defp versions_sections(), do: @versions_sections
+  defp env_sections(), do: @env_sections
 end
