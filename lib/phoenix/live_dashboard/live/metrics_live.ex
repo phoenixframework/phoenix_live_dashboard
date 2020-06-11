@@ -2,10 +2,9 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   use Phoenix.LiveDashboard.Web, :live_view
 
   alias Phoenix.LiveDashboard.ChartComponent
-  alias Phoenix.LiveDashboard.TelemetryListener
 
   @impl true
-  def mount(params, %{"metrics" => {mod, fun}, "historical_data" => data} = session, socket) do
+  def mount(params, %{"metrics" => {mod, fun}, "historical_data" => history} = session, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_group = Enum.group_by(all_metrics, &group_name/1)
 
@@ -28,7 +27,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
-        {:ok, assign(socket, metrics: Enum.with_index(metrics), historical_data: data)}
+        {:ok, assign(socket, metrics: Enum.with_index(metrics), historical_data: history)}
 
       first_group && is_nil(group) ->
         path = live_dashboard_path(socket, :metrics, socket.assigns.menu.node, group: first_group)
@@ -103,24 +102,16 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   defp history_for(_metric, _id, nil), do: []
 
   defp history_for(metric, id, historical_data) do
-    case history_tuple(metric, historical_data) do
+    case historical_data do
       nil ->
         []
 
-      {_prefix, {module, function, opts}} ->
+      {module, function, opts} ->
         history = apply(module, function, [metric | opts])
 
-        for %{data: data, time: time} = map <- history do
-          measurement = TelemetryListener.extract_measurement(metric, data)
-          label = TelemetryListener.tags_to_label(metric, map[:metadata] || %{})
+        for %{label: label, measurement: measurement, time: time} <- history do
           {id, label, measurement, time}
         end
     end
-  end
-
-  defp history_tuple(%{name: metric_name}, historical_data) do
-    Enum.find(historical_data, fn {metric_prefix, _tuple} ->
-      List.starts_with?(metric_name, metric_prefix)
-    end)
   end
 end

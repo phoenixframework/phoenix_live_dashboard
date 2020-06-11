@@ -114,11 +114,14 @@ defmodule Phoenix.LiveDashboard.Router do
         nil ->
           nil
 
-        map when is_map(map) ->
-          if Enum.all?(map, fn {list, tuple} -> is_list(list) and is_tuple(tuple) end) do
-            map
-          else
-            raise ArgumentError, historical_data_error(map)
+        tuple when is_tuple(tuple) ->
+          case tuple do
+            {module, function, args}
+            when is_atom(module) and is_atom(function) and is_list(args) ->
+              {module, function, args}
+
+            non_mfa ->
+              raise ArgumentError, historical_data_error(non_mfa)
           end
 
         other ->
@@ -145,13 +148,9 @@ defmodule Phoenix.LiveDashboard.Router do
 
   defp historical_data_error(other) do
     """
-      :historical_data must be a map with lists of atoms as keys and
-      tuples of {Module, :function, list} as values such as
+      :historical_data must be a tuple of {module, function, args} such as
 
-      historical_data: %{
-        [:namespace, :metric] =>
-          {MyStorage, :historical_metric_data, []}
-      }
+      historical_data:  {MyStorage, :historical_metric_data, []}
       , got: #{inspect(other)}
     """
   end

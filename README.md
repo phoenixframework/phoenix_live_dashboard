@@ -130,7 +130,11 @@ For those planning to contribute to this project, you can run a dev version of t
     $ mix setup
     $ mix dev
 
-Alternatively, run `iex -S mix dev` if you also want a shell.
+For metrics history in dev run:
+
+    $ mix dev_history
+
+Alternatively, run `iex -S mix dev` or  `iex -S mix dev_history` if you also want a shell.
 
 ## License
 

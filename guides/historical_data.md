@@ -6,13 +6,11 @@ modify the dashboard config to include a historical_data key like so:
 ```elixir
 live_dashboard "/dashboard",
     metrics: MyAppWeb.Telemetry,
-    historical_data: %{
-        [:namespace, :metric] =>
-          {MyStorage, :historical_metric_data, []}
-      }
+    historical_data: {MyStorage, :historical_metric_data, []}
 ```
 
-where MyStorage is a module and historical_metric_data is a function taking a single argument in this example, which will always be a list of atoms equal to or starting with the key to the map, i.e. in this example `[:namespace, :metric]`.  The function must return a list, empty if there is no data, or a list of maps with `:data` and `:time` keys in every map, and optionally a `:metadata` key if you wish to provide metadata.  The data should be identical to a telemetry data event going to the chart, and time should be in `:native` time unit with microsecond precision, such as from `System.system_time(:microsecond)`.
+where MyStorage is a module and historical_metric_data is a function taking a single argument in this example, which will always be a metric.  The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map.  The measurement should be the output of `TelemetryListener.extract_measurement`
+and the label should be the output of `TelemetryListener.tags_to_label`, and time should be in `:native` time unit with microsecond precision, such as from `System.system_time(:microsecond)`.
 
 As an example, you might want history for the VM metrics. You can store history for those metrics, perhaps in a [circular buffer](https://en.wikipedia.org/wiki/Circular_buffer), as in the example below, and emit recent telemetry when each client connects and LiveDashboard calls into your moodule for historical data for the VM metrics.  If using this example you would also need to call setup_handlers/0 during Application start, and add the module to your Application children. You could also store the data in an ETS table or in Redis or the database, or anywhere else, but for this example we'll show using a GenServer:
 

@@ -114,13 +114,11 @@ modify the config above like so:
 ```elixir
 live_dashboard "/dashboard",
     metrics: MyAppWeb.Telemetry,
-    historical_data: %{
-        [:namespace, :metric] =>
-          {MyStorage, :historical_metric_data, []}
-      }
+    historical_data: {MyStorage, :historical_metric_data, []}
 ```
 
-where MyStorage is a module and historical_metric_data is a function taking a single argument in this example, which will always be a list of atoms equal to or starting with the key to the map, i.e. in this example `[:namespace, :metric]`.  The function must return a list, empty if there is no data, or a list of maps with `:data` and `:time` keys in every map, and optionally a `:metadata` key if you wish to provide metadata.  The data should be identical to a telemetry data event going to the chart, and time should be in `:native` time unit with microsecond precision, such as from `System.system_time(:microsecond)`.  Metadata should be similar to a telemetry event's metadata argument.
+where MyStorage is a module and historical_metric_data is a function taking a single argument in this example, which will always be a metric.  The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map.  The measurement should be the output of `TelemetryListener.extract_measurement`
+and the label should be the output of `TelemetryListener.tags_to_label`, and time should be in `:native` time unit with microsecond precision, such as from `System.system_time(:microsecond)`.
 
 ## More about telemetry
 

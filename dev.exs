@@ -28,169 +28,81 @@ Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
   ]
 )
 
-if System.get_env("METRIC_HISTORY") do
+defmodule DemoWeb.History do
+  use GenServer
+  alias Phoenix.LiveDashboard.TelemetryListener
 
-  defmodule DemoWeb.PhoenixHistory do
-    use GenServer
+  @history_buffer_size 50
 
-    @endpoint_event [:phoenix, :endpoint, :stop]
-    @router_event [:phoenix, :router_dispatch, :stop]
-    @history_buffer_size 50
+  def data(metric) do
+    GenServer.call(__MODULE__, {:data, metric})
+  end
 
-    def signatures do
-      %{
-        @endpoint_event => {__MODULE__, :data, [:endpoint]},
-        @router_event => {__MODULE__, :data, [:router_dispatch]}
-      }
-    end
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+  end
 
-    def start_link([]) do
-      GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
-    end
+  def init(metrics) do
+    {:ok,
+     for metric <- metrics, reduce: %{} do
+       acc ->
+         key_metrics = Map.get(acc, event(metric.name), [])
+         metric_map = %{metric: metric, history: CircularBuffer.new(@history_buffer_size)}
+         attach_handler(metric, length(key_metrics))
 
-    def init(_state) do
-      {:ok,
-       %{
-         endpoint: CircularBuffer.new(@history_buffer_size),
-         router_dispatch: CircularBuffer.new(@history_buffer_size)
-       }}
-    end
+         Map.merge(acc, %{event(metric.name) => [metric_map | key_metrics]})
+     end}
+  end
 
-    def data(metric, :endpoint) do
-      GenServer.call(__MODULE__, {:data, metric, :endpoint})
-    end
+  defp attach_handler(%{name: name_list} = metric, id) do
+    :telemetry.attach(
+      "#{inspect(name_list)}-history-#{id}",
+      event(name_list),
+      &__MODULE__.handle_event/4,
+      metric
+    )
+  end
 
-    def data(metric, :router_dispatch) do
-      GenServer.call(__MODULE__, {:data, metric, :router_dispatch})
-    end
+  defp event(name_list) do
+    Enum.slice(name_list, 0, length(name_list) - 1)
+  end
 
-    def data(_metric, _), do: []
+  def handle_event(event_name, data, metadata, metric) do
+    GenServer.cast(__MODULE__, {:telemetry_metric, event_name, data, metadata, metric})
+  end
 
-    def setup_handlers do
-      :telemetry.attach(
-        "endpoint-history-handler",
-        @endpoint_event,
-        &__MODULE__.handle_event/4,
-        nil
-      )
-
-      :telemetry.attach(
-        "router-history-handler",
-        @router_event,
-        &__MODULE__.handle_event/4,
-        nil
-      )
-    end
-
-    def handle_event(@endpoint_event, metric_map, metadata, _config) do
-      GenServer.cast(__MODULE__, {:telemetry_metric, metric_map, metadata, @endpoint_event})
-    end
-
-    def handle_event(@router_event, metric_map, metadata, _config) do
-      GenServer.cast(__MODULE__, {:telemetry_metric, metric_map, metadata, @router_event})
-    end
-
-    def handle_call({:data, _metric, key}, _from, history) do
-      {:reply, CircularBuffer.to_list(history[key]), history}
-    end
-
-    def handle_cast({:telemetry_metric, metric_map, metadata, event}, histories) do
+  def handle_cast({:telemetry_metric, event_name, data, metadata, metric}, state) do
+    if histories_list = state[event_name] do
       time = System.system_time(:microsecond)
-      key = Enum.at(event, 1)
+
+      {%{history: history}, index} =
+        histories_list
+        |> Enum.with_index()
+        |> Enum.find(fn {map, _index} -> map.metric == metric end)
+
+      measurement = TelemetryListener.extract_measurement(metric, data)
+      label = TelemetryListener.tags_to_label(metric, metadata)
 
       new_history =
-        CircularBuffer.insert(histories[key], %{
-          data: metric_map,
-          time: time,
-          metadata: metadata
-        })
+        CircularBuffer.insert(history, %{label: label, measurement: measurement, time: time})
 
-      {:noreply, %{histories | key => new_history}}
+      new_histories_list =
+        List.replace_at(histories_list, index, %{metric: metric, history: new_history})
+
+      {:noreply, %{state | event_name => new_histories_list}}
+    else
+      {:noreply, state}
     end
   end
 
-  defmodule DemoWeb.VMHistory do
-    use GenServer
-
-    @run_queue_event [:vm, :total_run_queue_lengths]
-    @memory_event [:vm, :memory]
-    @history_buffer_size 50
-
-    def signatures do
-      %{
-        @run_queue_event => {__MODULE__, :data, [:total_run_queue_lengths]},
-        @memory_event => {__MODULE__, :data, [:memory]}
-      }
-    end
-
-    def start_link([]) do
-      GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
-    end
-
-    def init(_state) do
-      {:ok,
-       %{
-         total_run_queue_lengths: CircularBuffer.new(@history_buffer_size),
-         memory: CircularBuffer.new(@history_buffer_size)
-       }}
-    end
-
-    def data(metric, :total_run_queue_lengths) do
-      GenServer.call(__MODULE__, {:data, metric, :total_run_queue_lengths})
-    end
-
-    def data(metric, :memory) do
-      GenServer.call(__MODULE__, {:data, metric, :memory})
-    end
-
-    def data(_metric, _), do: []
-
-    def setup_handlers do
-      :telemetry.attach(
-        "run-queue-history-handler",
-        @run_queue_event,
-        &__MODULE__.handle_event/4,
-        nil
-      )
-
-      :telemetry.attach(
-        "memory-history-handler",
-        @memory_event,
-        &__MODULE__.handle_event/4,
-        nil
-      )
-    end
-
-    def handle_event(@run_queue_event, metric_map, metadata, _config) do
-      GenServer.cast(__MODULE__, {:telemetry_metric, metric_map, metadata, @run_queue_event})
-    end
-
-    def handle_event(@memory_event, metric_map, metadata, _config) do
-      GenServer.cast(__MODULE__, {:telemetry_metric, metric_map, metadata, @memory_event})
-    end
-
-    def handle_call({:data, _metric, key}, _from, history) do
-      {:reply, CircularBuffer.to_list(history[key]), history}
-    end
-
-    def handle_cast({:telemetry_metric, metric_map, _metadata, event}, histories) do
-      time = System.system_time(:microsecond)
-      key = List.last(event)
-
-      new_history =
-        CircularBuffer.insert(histories[key], %{
-          data: metric_map,
-          time: time
-        })
-
-      {:noreply, %{histories | key => new_history}}
+  def handle_call({:data, metric}, _from, state) do
+    if metric_map = state[event(metric.name)] do
+      %{history: history} = Enum.find(metric_map, &(&1.metric == metric))
+      {:reply, CircularBuffer.to_list(history), state}
+    else
+      {:reply, [], state}
     end
   end
-
-  Application.put_env(:phoenix_live_dashboard, :history_modules, [
-    DemoWeb.PhoenixHistory,
-    DemoWeb.VMHistory
-  ])
 end
 
 defmodule DemoWeb.Telemetry do
@@ -228,18 +140,6 @@ defmodule DemoWeb.Telemetry do
       summary("vm.total_run_queue_lengths.cpu"),
       summary("vm.total_run_queue_lengths.io")
     ]
-  end
-end
-
-defmodule DemoWeb.HistoricalData do
-  def signatures do
-    history_modules = Application.get_env(:phoenix_live_dashboard, :history_modules) || []
-
-    for module <- history_modules, reduce: %{} do
-      acc ->
-        module.setup_handlers()
-        Map.merge(acc, apply(module, :signatures, []))
-    end
   end
 end
 
@@ -284,7 +184,7 @@ defmodule DemoWeb.Router do
     live_dashboard("/dashboard",
       metrics: DemoWeb.Telemetry,
       env_keys: ["USER", "ROOTDIR"],
-      historical_data: DemoWeb.HistoricalData.signatures()
+      historical_data: Application.get_env(:phoenix_live_dashboard, :history_mfa)
     )
   end
 end
@@ -316,12 +216,22 @@ Application.ensure_all_started(:os_mon)
 Application.put_env(:phoenix, :serve_endpoints, true)
 
 Task.start(fn ->
-  history_modules = Application.get_env(:phoenix_live_dashboard, :history_modules) || []
+  history_mfa = Application.get_env(:phoenix_live_dashboard, :history_mfa)
+
+  child_map =
+    if history_mfa do
+      {module, _function, _args} = history_mfa
+
+      %{
+        id: module,
+        start: {module, :start_link, [DemoWeb.Telemetry.metrics()]}
+      }
+    end
 
   children = [
     {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
     DemoWeb.Endpoint
-    | history_modules
+    | List.wrap(child_map)
   ]
 
   {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
