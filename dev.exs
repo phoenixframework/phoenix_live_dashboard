@@ -43,7 +43,12 @@ defmodule DemoWeb.History do
   end
 
   def init(metrics) do
-    {:ok,
+    GenServer.cast(__MODULE__, {:metrics, metrics})
+    {:ok, %{}}
+  end
+
+  def handle_cast({:metrics, metrics}, _state) do
+    {:noreply,
      for metric <- metrics, reduce: %{} do
        acc ->
          key_metrics = Map.get(acc, event(metric.name), [])
