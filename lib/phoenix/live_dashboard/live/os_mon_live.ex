@@ -18,7 +18,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     {:hard_irq, "Hard IRQ", "yellow", "Executing hard interrupts"},
     {:steal, "Steal", "purple", "Stolen time spent in virtualized OSes"},
     {:wait, "Waiting", "orange", nil},
-    {:idle, "Idle", "dark-gray", nil}
+    {:idle, "Idle", "light-gray", nil}
   ]
 
   @memory_usage_sections [

@@ -29,6 +29,8 @@ $color-purple: $color-elixir;
 $color-yellow: #f9bc14;
 $color-orange: $color-phoenix;
 $color-dark-gray: shade-color($color-gray, 4);
+$color-light-gray: #e9ecef;
+$color-light-gray: tint-color($color-gray, 6);
 
 // Basic
 $color-gray-100: tint-color($color-gray, 8);

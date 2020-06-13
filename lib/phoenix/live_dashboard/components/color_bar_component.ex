@@ -11,12 +11,13 @@ defmodule Phoenix.LiveDashboard.ColorBarComponent do
       <span class="progress-title"><%= @title %></span>
     <%= for {name, value, color, _desc} <- @data do %>
       <div
-      title="<%=name %> - <%= format_percent(value) %>"
+      title="<%= name %> - <%= format_percent(value) %>"
       class="progress-bar bg-gradient-<%= color %>"
       role="progressbar"
       aria-valuenow="<%= maybe_round(value) %>"
       aria-valuemin="0"
       aria-valuemax="100"
+      data-empty="<%= empty?(value) %>"
       style="width: <%= value %>%">
       </div>
       <% end %>
@@ -26,4 +27,7 @@ defmodule Phoenix.LiveDashboard.ColorBarComponent do
 
   defp maybe_round(num) when is_integer(num), do: num
   defp maybe_round(num), do: Float.ceil(num, 1)
+
+  defp empty?(value) when is_number(value) and value > 0, do: false
+  defp empty?(_), do: true
 end

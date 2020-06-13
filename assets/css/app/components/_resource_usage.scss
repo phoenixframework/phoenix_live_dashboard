@@ -8,24 +8,32 @@
   }
 
   .progress-title {
+    color: $color-dark-gray;
     position: absolute;
     right: 6px;
     top: 2px;
-    color: white;
     font-weight: bold;
   }
 
   .progress-bar {
     border-color: white;
+    border-style: solid;
     border-width: 0 1px;
+    min-width: 4px;
+    flex-grow: 0;
+
+    &[data-empty="true"] {
+      display: none;
+    }
   }
 
-  .progress-bar:last-child {
+  .progress-bar:last-of-type {
     border-right-width: 0;
   }
 
-  .progress-bar:first-child {
+  .progress-bar:first-of-type {
     border-left-width: 0;
+    min-width: 3px;
   }
 
   // Legend
