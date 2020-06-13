@@ -8,7 +8,7 @@
   }
 
   .progress-title {
-    color: $color-dark-gray;
+    color: $color-gray-700;
     position: absolute;
     right: 6px;
     top: 2px;
@@ -24,6 +24,22 @@
 
     &[data-empty="true"] {
       display: none;
+    }
+
+    &[data-muted="true"] {
+      opacity: 0.15;
+    }
+
+    &.bg-gradient-light-gray {
+      &[data-muted="false"] {
+        box-shadow: inset 0 0 0 1px $color-gray-600, inset 0 0 5px $color-gray-500;
+        background: linear-gradient(90deg, adjust-color($color-light-gray, $lightness: -3%), adjust-color($color-light-gray, $lightness: -1%));
+      }
+
+      &[data-muted="true"] {
+        opacity: 1;
+        background: linear-gradient(90deg, adjust-color($color-light-gray, $lightness: +3%), adjust-color($color-light-gray, $lightness: +2%));
+      }
     }
   }
 
@@ -44,6 +60,16 @@
     width: 16px;
   }
 
+  .resource-usage-legend-entry {
+    &[data-muted="true"] {
+      opacity: 0.15;
+    }
+
+    &[data-muted="false"] .bg-light-gray {
+      box-shadow: inset 0 0 0 1px $color-gray-600, inset 0 0 5px $color-gray-500;
+    }
+  }
+
   .resource-usage-total {
     background-color: $color-gray-100;
     color: $color-gray-800;
@@ -51,5 +77,26 @@
 
   .resource-usage-total-value {
     color: $text-color
+  }
+
+  [data-highlight-enabled] {
+    .progress-bar, .resource-usage-legend-entry {
+      user-select: none;
+      cursor: pointer;
+
+      &:hover {
+        filter: contrast(120%) brightness(90%);
+
+        &[data-muted="true"] {
+          opacity: 0.6;
+        }
+      }
+
+      &.bg-gradient-light-gray:hover,
+      &:hover .bg-light-gray {
+        box-shadow: inset 0 0 0 1px $color-gray-600, inset 0 0 5px $color-gray-500;
+        filter: none;
+      }
+    }
   }
 }
