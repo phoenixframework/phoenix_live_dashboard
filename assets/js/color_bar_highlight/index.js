@@ -19,11 +19,7 @@ const PhxColorBarHighlight = {
     this.el.querySelectorAll(interactiveItemSelector).forEach((progressBarElement) => (
       progressBarElement.addEventListener('click', e => {
         const name = e.currentTarget.getAttribute('data-name')
-        if(name === highlightedElementName) {
-          highlightedElementName = null;
-        } else {
-          highlightedElementName = name
-        }
+        highlightedElementName = name === highlightedElementName ? null : name
         highlightElements(this.el)
       })
     ))
