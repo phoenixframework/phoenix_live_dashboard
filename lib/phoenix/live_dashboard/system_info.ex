@@ -3,10 +3,15 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   @moduledoc false
 
   def ensure_loaded(node) do
-    case :rpc.call(node, :code, :ensure_loaded, [__MODULE__]) do
-      {:module, _} -> maybe_replace(node, fetch_capabilities(node))
-      {:error, :nofile} -> load(node)
-      {:error, reason} -> raise("Failed to load #{__MODULE__} on #{node}: #{inspect(reason)}")
+    case :rpc.call(node, :code, :is_loaded, [__MODULE__]) do
+      {:file, _} ->
+        maybe_replace(node, fetch_capabilities(node))
+
+      false ->
+        load(node)
+
+      {:error, reason} ->
+        raise("Failed to load #{__MODULE__} on #{node}: #{inspect(reason)}")
     end
   end
 
@@ -276,17 +281,23 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp sup_tree(pid, seen) do
-    pid
-    |> :supervisor.which_children()
-    |> Enum.reverse()
-    |> Enum.flat_map_reduce(seen, fn {_id, child, type, _modules}, seen ->
-      if is_pid(child) do
-        {children, seen} = if type == :worker, do: {[], seen}, else: sup_tree(child, seen)
-        {[{type, child, children}], put_child(seen, child)}
-      else
-        {[], seen}
-      end
-    end)
+    try do
+      :supervisor.which_children(pid)
+    catch
+      _, _ -> {[], seen}
+    else
+      children ->
+        children
+        |> Enum.reverse()
+        |> Enum.flat_map_reduce(seen, fn {_id, child, type, _modules}, seen ->
+          if is_pid(child) do
+            {children, seen} = if type == :worker, do: {[], seen}, else: sup_tree(child, seen)
+            {[{type, child, children}], put_child(seen, child)}
+          else
+            {[], seen}
+          end
+        end)
+    end
   end
 
   defp links_tree(nodes, master, seen) do
