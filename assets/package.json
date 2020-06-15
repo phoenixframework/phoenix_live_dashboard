@@ -6,7 +6,9 @@
   "main": "./assets/js/phoenix_live_dashboard.js",
   "repository": {},
   "scripts": {
-    "build": "webpack --mode production",
+    "build": "npm run build.production && npm run build.development",
+    "build.production": "webpack --mode production --env.NODE_ENV=production",
+    "build.development": "webpack --mode production --env.NODE_ENV=development",
     "watch": "webpack --mode development --watch",
     "test": "jest",
     "test.coverage": "jest --coverage",
