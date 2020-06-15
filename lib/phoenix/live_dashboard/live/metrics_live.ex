@@ -101,17 +101,11 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
   defp history_for(_metric, _id, nil), do: []
 
-  defp history_for(metric, id, historical_data) do
-    case historical_data do
-      nil ->
-        []
+  defp history_for(metric, id, {module, function, opts}) do
+    history = apply(module, function, [metric | opts])
 
-      {module, function, opts} ->
-        history = apply(module, function, [metric | opts])
-
-        for %{label: label, measurement: measurement, time: time} <- history do
-          {id, label, measurement, time}
-        end
+    for %{label: label, measurement: measurement, time: time} <- history do
+      {id, label, measurement, time}
     end
   end
 end
