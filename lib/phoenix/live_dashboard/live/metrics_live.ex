@@ -17,6 +17,8 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
       |> assign_mount(:metrics, params, session)
       |> assign(group: group, groups: Map.keys(metrics_per_group))
 
+    send_history_for_metrics(metrics, history)
+
     cond do
       !socket.assigns.menu.metrics ->
         {:ok,
@@ -27,7 +29,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
-        {:ok, assign(socket, metrics: Enum.with_index(metrics), historical_data: history)}
+        {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
       first_group && is_nil(group) ->
         path = live_dashboard_path(socket, :metrics, socket.assigns.menu.node, group: first_group)
@@ -70,11 +72,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     <%= if @metrics do %>
       <div class="phx-dashboard-metrics-grid row">
       <%= for {metric, id} <- @metrics do %>
-        <%= live_component @socket, ChartComponent, id: id, metric: metric,
-          do: metric
-              |> history_for(id, @historical_data)
-              |> send_updates_for_entries()
-        %>
+        <%= live_component @socket, ChartComponent, id: id, metric: metric %>
       <% end %>
       </div>
     <% end %>
@@ -99,7 +97,17 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, params))}
   end
 
-  defp history_for(_metric, _id, nil), do: []
+  defp send_history_for_metrics(nil, _), do: :noop
+
+  defp send_history_for_metrics(_, nil), do: :noop
+
+  defp send_history_for_metrics(metrics, history) do
+    for {metric, id} <- Enum.with_index(metrics) do
+      metric
+      |> history_for(id, history)
+      |> send_updates_for_entries()
+    end
+  end
 
   defp history_for(metric, id, {module, function, opts}) do
     history = apply(module, function, [metric | opts])
