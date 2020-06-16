@@ -35,14 +35,8 @@ defmodule Phoenix.LiveDashboard.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "cmd npm install --prefix assets"],
-      dev: "run --no-halt dev.exs",
-      history: &put_history/1,
-      dev_history: ["history", "dev"]
+      dev: "run --no-halt dev.exs"
     ]
-  end
-
-  defp put_history(_) do
-    Application.put_env(:phoenix_live_dashboard, :history_mfa, {DemoWeb.History, :data, []})
   end
 
   # Run "mix help deps" to learn about dependencies.

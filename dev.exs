@@ -189,7 +189,7 @@ defmodule DemoWeb.Router do
     live_dashboard("/dashboard",
       metrics: DemoWeb.Telemetry,
       env_keys: ["USER", "ROOTDIR"],
-      historical_data: Application.get_env(:phoenix_live_dashboard, :history_mfa)
+      historical_data: {DemoWeb.History, :data, []}
     )
   end
 end
@@ -221,22 +221,13 @@ Application.ensure_all_started(:os_mon)
 Application.put_env(:phoenix, :serve_endpoints, true)
 
 Task.start(fn ->
-  history_mfa = Application.get_env(:phoenix_live_dashboard, :history_mfa)
-
-  child_map =
-    if history_mfa do
-      {module, _function, _args} = history_mfa
-
-      %{
-        id: module,
-        start: {module, :start_link, [DemoWeb.Telemetry.metrics()]}
-      }
-    end
-
   children = [
     {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
-    DemoWeb.Endpoint
-    | List.wrap(child_map)
+    DemoWeb.Endpoint,
+    %{
+      id: DemoWeb.History,
+      start: {DemoWeb.History, :start_link, [DemoWeb.Telemetry.metrics()]}
+    }
   ]
 
   {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
