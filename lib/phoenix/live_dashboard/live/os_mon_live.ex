@@ -18,7 +18,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     {:hard_irq, "Hard IRQ", "yellow", "Executing hard interrupts"},
     {:steal, "Steal", "purple", "Stolen time spent in virtualized OSes"},
     {:wait, "Waiting", "orange", nil},
-    {:idle, "Idle", "dark-gray", nil}
+    {:idle, "Idle", "light-gray", nil}
   ]
 
   @memory_usage_sections [
@@ -184,17 +184,19 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
           <%= if @cpu_total do %>
             <div class="card mb-4">
               <div class="card-body resource-usage">
-                <%= for {num_cpu, usage} <- @os_mon.cpu_per_core do %>
+                <div phx-hook="PhxColorBarHighlight">
+                  <%= for {num_cpu, usage} <- @os_mon.cpu_per_core do %>
+                    <div class="progress flex-grow-1 mb-3">
+                      <%= live_component @socket, ColorBarComponent, id: {:cpu, num_cpu}, data: cpu_usage_sections(usage), title: "CPU #{num_cpu+1}" %>
+                    </div>
+                  <% end %>
                   <div class="progress flex-grow-1 mb-3">
-                    <%= live_component @socket, ColorBarComponent, id: {:cpu, num_cpu}, data: cpu_usage_sections(usage), title: "CPU #{num_cpu+1}" %>
+                    <%= live_component @socket, ColorBarComponent, data: cpu_usage_sections(@cpu_total), title: "TOTAL" %>
                   </div>
-                <% end %>
-                <div class="progress flex-grow-1 mb-3">
-                  <%= live_component @socket, ColorBarComponent, data: cpu_usage_sections(@cpu_total), title: "TOTAL" %>
-                </div>
-                <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total) %>
-                <div class="resource-usage-total text-center py-1 mt-3">
-                  Number of OS processes: <%= @os_mon.cpu_nprocs %>
+                  <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total) %>
+                  <div class="resource-usage-total text-center py-1 mt-3">
+                    Number of OS processes: <%= @os_mon.cpu_nprocs %>
+                  </div>
                 </div>
               </div>
             </div>

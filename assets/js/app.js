@@ -7,12 +7,14 @@ import PhxChartComponent from "./metrics_live"
 import PhxRequestLoggerCookie from "./request_logger_cookie"
 import PhxRequestLoggerQueryParameter from "./request_logger_query_parameter"
 import PhxRequestLoggerMessages from "./request_logger_messages"
+import PhxColorBarHighlight from "./color_bar_highlight"
 
 let Hooks = {
   PhxChartComponent: PhxChartComponent,
   PhxRequestLoggerCookie: PhxRequestLoggerCookie,
   PhxRequestLoggerQueryParameter: PhxRequestLoggerQueryParameter,
-  PhxRequestLoggerMessages: PhxRequestLoggerMessages
+  PhxRequestLoggerMessages: PhxRequestLoggerMessages,
+  PhxColorBarHighlight: PhxColorBarHighlight
 }
 
 let socketPath = document.querySelector("html").getAttribute("phx-socket") || "/live"
