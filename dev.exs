@@ -42,9 +42,20 @@ defmodule DemoWeb.History do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
+  @impl true
   def init(metrics) do
+    Process.flag(:trap_exit, true)
     GenServer.cast(__MODULE__, {:metrics, metrics})
     {:ok, %{}}
+  end
+
+  @impl true
+  def terminate(_, events) do
+    for event <- events do
+      :telemetry.detach({__MODULE__, event, self()})
+    end
+
+    :ok
   end
 
   defp attach_handler(%{name: name_list} = metric, id) do
@@ -62,6 +73,7 @@ defmodule DemoWeb.History do
     GenServer.cast(__MODULE__, {:telemetry_metric, measurement, label, metric})
   end
 
+  @impl true
   def handle_cast({:metrics, metrics}, _state) do
     metric_histories_map =
       metrics
@@ -75,6 +87,7 @@ defmodule DemoWeb.History do
     {:noreply, metric_histories_map}
   end
 
+  @impl true
   def handle_cast({:telemetry_metric, measurement, label, metric}, state) do
     time = System.system_time(:microsecond)
 
@@ -86,6 +99,7 @@ defmodule DemoWeb.History do
     {:noreply, %{state | metric => new_history}}
   end
 
+  @impl true
   def handle_call({:data, metric}, _from, state) do
     if history = state[metric] do
       {:reply, CircularBuffer.to_list(history), state}

@@ -29,9 +29,20 @@ As an example, if you want history for all metrics. You can store history for th
       GenServer.start_link(__MODULE__, args, name: __MODULE__)
     end
 
+    @impl true
     def init(metrics) do
+      Process.flag(:trap_exit, true)
       GenServer.cast(__MODULE__, {:metrics, metrics})
       {:ok, %{}}
+    end
+
+    @impl true
+    def terminate(_, events) do
+      for event <- events do
+        :telemetry.detach({__MODULE__, event, self()})
+      end
+
+      :ok
     end
 
     defp attach_handler(%{name: name_list} = metric, id) do
@@ -49,6 +60,7 @@ As an example, if you want history for all metrics. You can store history for th
       GenServer.cast(__MODULE__, {:telemetry_metric, measurement, label, metric})
     end
 
+    @impl true
     def handle_cast({:metrics, metrics}, _state) do
       metric_histories_map =
         metrics
@@ -62,6 +74,7 @@ As an example, if you want history for all metrics. You can store history for th
       {:noreply, metric_histories_map}
     end
 
+    @impl true
     def handle_cast({:telemetry_metric, measurement, label, metric}, state) do
       time = System.system_time(:microsecond)
 
@@ -73,6 +86,7 @@ As an example, if you want history for all metrics. You can store history for th
       {:noreply, %{state | metric => new_history}}
     end
 
+    @impl true
     def handle_call({:data, metric}, _from, state) do
       if history = state[metric] do
         {:reply, CircularBuffer.to_list(history), state}
