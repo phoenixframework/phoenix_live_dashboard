@@ -38,7 +38,20 @@ defmodule Phoenix.LiveDashboardTest.Router do
 
   scope "/", ThisWontBeUsed, as: :this_wont_be_used do
     pipe_through :browser
-    live_dashboard("/dashboard", metrics: Phoenix.LiveDashboardTest.Telemetry)
+
+    live_dashboard("/dashboard",
+      metrics: Phoenix.LiveDashboardTest.Telemetry,
+      historical_data: {TestHistory, :test_data, []}
+    )
+  end
+end
+
+defmodule TestHistory do
+  def label, do: "Z"
+  def measurement, do: 26
+
+  def test_data(_metric) do
+    [%{label: label(), measurement: measurement(), time: System.system_time(:microsecond)}]
   end
 end
 
