@@ -9,8 +9,8 @@ live_dashboard "/dashboard",
     historical_data: {MyStorage, :historical_metric_data, []}
 ```
 
-where MyStorage is a module and historical_metric_data is a function taking a single argument in this example, which will always be a metric.  The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map.  The measurement should be the output of `TelemetryListener.extract_measurement`
-and the label should be the output of `TelemetryListener.tags_to_label`, and time should be in `:native` time unit with microsecond precision, such as from `System.system_time(:microsecond)`.
+where MyStorage is a module and historical_metric_data is a function taking a single argument in this example, which will always be a metric.  The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map.  The measurement should be the output of `Phoenix.LiveDashboard.TelemetryListener.extract_measurement`
+and the label should be the output of `Phoenix.LiveDashboard.TelemetryListener.tags_to_label`, and time should be in `:native` time unit with microsecond precision, such as from `System.system_time(:microsecond)`.
 
 As an example, if you want history for all metrics. You can store history for those metrics, perhaps in a [circular buffer](https://en.wikipedia.org/wiki/Circular_buffer), as in the example below, and emit recent telemetry when each client connects and LiveDashboard calls into your module for historical data for the metrics on that tab.  If using this example you would also need to and add the module to your Application children, and initialize it with some or all of your metrics, such as from `MyAppWeb.Telemetry.metrics/0` . You could also store the data in an ETS table or in Redis or the database, or anywhere else, but for this example we'll show using a GenServer:
 
