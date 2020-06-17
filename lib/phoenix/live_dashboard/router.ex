@@ -114,18 +114,13 @@ defmodule Phoenix.LiveDashboard.Router do
         nil ->
           nil
 
-        tuple when is_tuple(tuple) ->
-          case tuple do
-            {module, function, args}
-            when is_atom(module) and is_atom(function) and is_list(args) ->
-              {module, function, args}
-
-            non_mfa ->
-              raise ArgumentError, historical_data_error(non_mfa)
-          end
+        {module, function, args}
+        when is_atom(module) and is_atom(function) and is_list(args) ->
+          {module, function, args}
 
         other ->
-          raise ArgumentError, historical_data_error(other)
+          raise ArgumentError,
+                ":historical_data must be a tuple of {module, function, args}, got: #{inspect(other)}"
       end
 
     [

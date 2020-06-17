@@ -113,8 +113,8 @@ modify the config above like so:
 
 ```elixir
 live_dashboard "/dashboard",
-    metrics: MyAppWeb.Telemetry,
-    historical_data: {MyStorage, :historical_metric_data, []}
+  metrics: MyAppWeb.Telemetry,
+  historical_data: {MyStorage, :historical_metric_data, []}
 ```
 
 where MyStorage is a module and historical_metric_data is a function taking a single argument in this example, which will always be a metric.  The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map.  The measurement should be the output of `Phoenix.LiveDashboard.TelemetryListener.extract_measurement`

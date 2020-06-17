@@ -89,14 +89,9 @@ defmodule DemoWeb.History do
 
   @impl true
   def handle_cast({:telemetry_metric, measurement, label, metric}, state) do
-    time = System.system_time(:microsecond)
-
-    history = state[metric]
-
-    new_history =
-      CircularBuffer.insert(history, %{label: label, measurement: measurement, time: time})
-
-    {:noreply, %{state | metric => new_history}}
+    entry = %{label: label, measurement: measurement, time: System.system_time(:microsecond)}
+    state = update_in state[metric], &CircularBuffer.insert(&1, entry)
+    {:noreply, state}
   end
 
   @impl true
@@ -222,11 +217,8 @@ Application.put_env(:phoenix, :serve_endpoints, true)
 Task.start(fn ->
   children = [
     {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
-    DemoWeb.Endpoint,
-    %{
-      id: DemoWeb.History,
-      start: {DemoWeb.History, :start_link, [DemoWeb.Telemetry.metrics()]}
-    }
+    {DemoWeb.History, DemoWeb.Telemetry.metrics()},
+    DemoWeb.Endpoint
   ]
 
   {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
