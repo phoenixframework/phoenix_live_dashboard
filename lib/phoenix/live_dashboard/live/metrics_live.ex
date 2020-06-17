@@ -96,8 +96,6 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, params))}
   end
 
-  defp send_history_for_metrics(nil, _), do: :noop
-
   defp send_history_for_metrics(_, nil), do: :noop
 
   defp send_history_for_metrics(metrics, history) do
