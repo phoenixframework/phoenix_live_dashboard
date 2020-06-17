@@ -17,8 +17,6 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
       |> assign_mount(:metrics, params, session)
       |> assign(group: group, groups: Map.keys(metrics_per_group))
 
-    send_history_for_metrics(metrics, history)
-
     cond do
       !socket.assigns.menu.metrics ->
         {:ok,
@@ -29,6 +27,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
+        send_history_for_metrics(metrics, history)
         {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
       first_group && is_nil(group) ->
