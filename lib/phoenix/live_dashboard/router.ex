@@ -23,13 +23,8 @@ defmodule Phoenix.LiveDashboard.Router do
       the `socket "/live", Phoenix.LiveView.Socket` in your endpoint.
 
     * `:historical_data` - Configures a callback for retreiving metric history.
-      It must be a map with lists of atoms as keys and
-      tuples of {Module, :function, list} as values such as
-
-      historical_data: %{
-        [:namespace, :metric] =>
-          {MyStorage, :historical_metric_data, []}
-      }
+      It must be an "MFA" tuple of  `{Module, :function, arguments}` such as
+        historical_data: {MyStorage, :historical_data, []}
       If not set, metrics will start out empty/blank and only display
       data that occurs while the browser page is open.
 
@@ -43,7 +38,8 @@ defmodule Phoenix.LiveDashboard.Router do
           pipe_through [:browser]
           live_dashboard "/dashboard",
             metrics: {MyAppWeb.Telemetry, :metrics},
-            env_keys: ["APP_USER", "VERSION"]
+            env_keys: ["APP_USER", "VERSION"],
+            historical_data: {MyStorage, :historical_data, []}
         end
       end
 
@@ -120,7 +116,9 @@ defmodule Phoenix.LiveDashboard.Router do
 
         other ->
           raise ArgumentError,
-                ":historical_data must be a tuple of {module, function, args}, got: #{inspect(other)}"
+                ":historical_data must be a tuple of {module, function, args}, got: #{
+                  inspect(other)
+                }"
       end
 
     [
@@ -139,14 +137,5 @@ defmodule Phoenix.LiveDashboard.Router do
       "historical_data" => historical_data,
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
     }
-  end
-
-  defp historical_data_error(other) do
-    """
-      :historical_data must be a tuple of {module, function, args} such as
-
-      historical_data:  {MyStorage, :historical_metric_data, []}
-      , got: #{inspect(other)}
-    """
   end
 end

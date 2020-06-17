@@ -39,12 +39,12 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   end
 
   test "accepts historical_data option" do
-    assert Router.__options__(historical_data: {MyStorage, :historical_metric_data, []})[:session] ==
+    assert Router.__options__(historical_data: {MyStorage, :historical_data, []})[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, nil, {MyStorage, :historical_metric_data, []}]}
+              [nil, nil, {MyStorage, :historical_data, []}]}
 
     assert_raise ArgumentError, fn ->
-      Router.__options__(historical_data: %{namespace: {MyStorage, :historical_metric_data, []}})
+      Router.__options__(historical_data: %{namespace: {MyStorage, :historical_data, []}})
     end
 
     assert_raise ArgumentError, fn ->

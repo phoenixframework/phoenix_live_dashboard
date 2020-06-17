@@ -68,9 +68,9 @@ defmodule DemoWeb.History do
   end
 
   def handle_event(_event_name, data, metadata, metric) do
-    measurement = TelemetryListener.extract_measurement(metric, data)
-    label = TelemetryListener.tags_to_label(metric, metadata)
-    GenServer.cast(__MODULE__, {:telemetry_metric, measurement, label, metric})
+    if data = TelemetryListener.prepare_history_entry(metric, data, metadata) do
+      GenServer.cast(__MODULE__, {:telemetry_metric, data, metric})
+    end
   end
 
   @impl true
@@ -88,10 +88,8 @@ defmodule DemoWeb.History do
   end
 
   @impl true
-  def handle_cast({:telemetry_metric, measurement, label, metric}, state) do
-    entry = %{label: label, measurement: measurement, time: System.system_time(:microsecond)}
-    state = update_in state[metric], &CircularBuffer.insert(&1, entry)
-    {:noreply, state}
+  def handle_cast({:telemetry_metric, data, metric}, state) do
+    {:noreply, update_in(state[metric], &CircularBuffer.insert(&1, data))}
   end
 
   @impl true
