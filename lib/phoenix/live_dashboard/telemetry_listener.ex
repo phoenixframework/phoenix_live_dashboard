@@ -20,24 +20,20 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
 
     entries =
       for {metric, index} <- metrics,
-          keep?(metric, metadata),
-          measurement = extract_measurement(metric, measurements) do
-        label = tags_to_label(metric, metadata)
+          map = prepare_entry(metric, measurements, metadata, time) do
+        %{label: label, measurement: measurement, time: time} = map
         {index, label, measurement, time}
       end
 
     send(parent, {:telemetry, entries})
   end
 
-  @doc """
-    Intended for use by providers of metrics historical_data to process raw telemetry
-    events into the format expected by historical_data hook.
-  """
-  def prepare_history_entry(metric, measurements, metadata) do
+  def prepare_entry(metric, measurements, metadata, time \\ nil) do
     if keep?(metric, metadata) do
+      time = time || System.system_time(:microseconds)
       measurement = extract_measurement(metric, measurements)
       label = tags_to_label(metric, metadata)
-      %{label: label, measurement: measurement, time: System.system_time(:microseconds)}
+      %{label: label, measurement: measurement, time: time}
     end
   end
 

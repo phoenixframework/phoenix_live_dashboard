@@ -68,7 +68,7 @@ defmodule DemoWeb.History do
   end
 
   def handle_event(_event_name, data, metadata, metric) do
-    if data = TelemetryListener.prepare_history_entry(metric, data, metadata) do
+    if data = TelemetryListener.prepare_entry(metric, data, metadata) do
       GenServer.cast(__MODULE__, {:telemetry_metric, data, metric})
     end
   end
