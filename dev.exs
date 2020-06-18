@@ -18,6 +18,14 @@ Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
       "--env.NODE_ENV=development",
       "--watch-stdin",
       cd: "assets"
+    ],
+    node: [
+      "node_modules/webpack/bin/webpack.js",
+      "--mode",
+      "production",
+      "--env.NODE_ENV=production",
+      "--watch-stdin",
+      cd: "assets"
     ]
   ],
   live_reload: [
