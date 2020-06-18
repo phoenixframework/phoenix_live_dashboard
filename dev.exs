@@ -181,7 +181,7 @@ defmodule DemoWeb.Router do
     live_dashboard("/dashboard",
       metrics: DemoWeb.Telemetry,
       env_keys: ["USER", "ROOTDIR"],
-      historical_data: {DemoWeb.History, :data, []}
+      metrics_history: {DemoWeb.History, :data, []}
     )
   end
 end

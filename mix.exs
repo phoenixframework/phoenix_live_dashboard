@@ -80,7 +80,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       "guides/metrics.md",
       "guides/request_logger.md",
       "guides/os_mon.md",
-      "guides/historical_data.md"
+      "guides/metrics_history.md"
     ]
   end
 

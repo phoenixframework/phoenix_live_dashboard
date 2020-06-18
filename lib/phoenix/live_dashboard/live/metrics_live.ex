@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   alias Phoenix.LiveDashboard.ChartComponent
 
   @impl true
-  def mount(params, %{"metrics" => {mod, fun}, "historical_data" => history} = session, socket) do
+  def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history} = session, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_group = Enum.group_by(all_metrics, &group_name/1)
 

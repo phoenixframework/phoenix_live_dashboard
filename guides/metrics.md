@@ -108,16 +108,15 @@ Now refresh the "/dashboard" page and the metrics functionality should be enable
 
 # Providing history for metrics
 
-If you wish to populate metrics with current historical data saved from telemetry or another data source,
-modify the config above like so:
+If you wish to populate metrics with history saved from telemetry or another data source, modify the config above like so:
 
 ```elixir
 live_dashboard "/dashboard",
   metrics: MyAppWeb.Telemetry,
-  historical_data: {MyStorage, :historical_data, []}
+  metrics_history: {MyStorage, :metrics_history, []}
 ```
 
-where `MyStorage` is a module and `:historical_data` is a function taking a single argument in this example, which will always be a metric.  The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map.  The function `Phoenix.LiveDashboard.TelemetryListener.prepare_entry` will return a map in exactly this format (with optional time argument if you want to override the default of `System.system_time(:microsecond)`), or it may return `nil` in which case the data point should not be saved.
+where `MyStorage` is a module and `:metrics_history` is a function taking a single argument in this example, which will always be a metric.  The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map.  The function `Phoenix.LiveDashboard.TelemetryListener.prepare_entry` will return a map in exactly this format (with optional time argument if you want to override the default of `System.system_time(:microsecond)`), or it may return `nil` in which case the data point should not be saved.
 
 ## More about telemetry
 
