@@ -7,8 +7,8 @@
   "repository": {},
   "scripts": {
     "build": "npm run build.production && npm run build.development",
-    "build.production": "webpack --mode production --env.NODE_ENV=production",
-    "build.development": "webpack --mode production --env.NODE_ENV=development",
+    "build.production": "webpack --mode production --env.NODE_SOURCE_MAPS=0",
+    "build.development": "webpack --mode production --env.NODE_SOURCE_MAPS=1",
     "watch": "webpack --mode development --watch",
     "test": "jest",
     "test.coverage": "jest --coverage",
