@@ -1,5 +1,7 @@
 ### Environment
 
+Make sure you are using the latest LiveView and Dashboard versions before continuing.
+
 * Elixir version (elixir -v):
 * Phoenix version (mix deps):
 * Phoenix LiveView version (mix deps):
