@@ -30,7 +30,7 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
 
   def prepare_entry(metric, measurements, metadata, time \\ nil) do
     if keep?(metric, metadata) do
-      time = time || System.system_time(:microseconds)
+      time = time || System.system_time(:microsecond)
       measurement = extract_measurement(metric, measurements)
       label = tags_to_label(metric, metadata)
       %{label: label, measurement: measurement, time: time}
