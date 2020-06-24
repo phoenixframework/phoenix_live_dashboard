@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     socket =
       socket
       |> assign_mount(:metrics, params, session)
-      |> assign(entries: [], group: group, groups: Map.keys(metrics_per_group))
+      |> assign(entry_log: "", group: group, groups: Map.keys(metrics_per_group))
 
     cond do
       !socket.assigns.menu.metrics ->
