@@ -4,11 +4,6 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   @default_prune_threshold 1_000
 
   @impl true
-  def mount(socket) do
-    {:ok, socket, temporary_assigns: [data: []]}
-  end
-
-  @impl true
   def update(assigns, socket) do
     {metric, assigns} = Map.pop(assigns, :metric)
 
@@ -34,13 +29,8 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   def render(assigns) do
     ~L"""
     <div class="col-xl-6 col-xxl-4 col-xxxl-3 charts-col">
-      <div id="chart-<%= @id %>" class="card">
+      <div id="chart-<%= @id %>" class="card" phx-hook="PhxChartComponent">
         <div class="card-body">
-          <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" style="display:none;">
-          <%= for {x, y, z} <- @data do %>
-            <span data-x="<%= x || @label %>" data-y="<%= y %>" data-z="<%= z %>"></span>
-          <% end %>
-          </div>
           <div class="chart"
               id="chart-ignore-<%= @id %>"
               phx-update="ignore"

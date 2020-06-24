@@ -3,7 +3,7 @@ import "phoenix_html"
 import { Socket } from "phoenix"
 import NProgress from "nprogress"
 import { LiveSocket } from "phoenix_live_view"
-import PhxChartComponent from "./metrics_live"
+import { PhxChartComponent, PhxMetricsControlPlane } from "./metrics_live"
 import PhxRequestLoggerCookie from "./request_logger_cookie"
 import PhxRequestLoggerQueryParameter from "./request_logger_query_parameter"
 import PhxRequestLoggerMessages from "./request_logger_messages"
@@ -11,6 +11,7 @@ import PhxColorBarHighlight from "./color_bar_highlight"
 
 let Hooks = {
   PhxChartComponent: PhxChartComponent,
+  PhxMetricsControlPlane: PhxMetricsControlPlane,
   PhxRequestLoggerCookie: PhxRequestLoggerCookie,
   PhxRequestLoggerQueryParameter: PhxRequestLoggerQueryParameter,
   PhxRequestLoggerMessages: PhxRequestLoggerMessages,

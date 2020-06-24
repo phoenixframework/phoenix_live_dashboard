@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     socket =
       socket
       |> assign_mount(:metrics, params, session)
-      |> assign(group: group, groups: Map.keys(metrics_per_group))
+      |> assign(entries: [], group: group, groups: Map.keys(metrics_per_group))
 
     cond do
       !socket.assigns.menu.metrics ->
@@ -27,14 +27,16 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
-        {:ok, assign(socket, metrics: Enum.with_index(metrics))}
+
+        {:ok, assign(socket, metrics: Enum.with_index(metrics)),
+         temporary_assigns: [entry_log: ""]}
 
       first_group && is_nil(group) ->
         path = live_dashboard_path(socket, :metrics, socket.assigns.menu.node, group: first_group)
         {:ok, push_redirect(socket, to: path)}
 
       true ->
-        {:ok, assign(socket, metrics: nil)}
+        {:ok, assign(socket, metrics: nil), temporary_assigns: [entry_log: ""]}
     end
   end
 
@@ -68,6 +70,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     </div>
 
     <%= if @metrics do %>
+      <span phx-hook="PhxMetricsControlPlane" data-entry-log="<%= @entry_log %>" style="display:none;"></span>
       <div class="phx-dashboard-metrics-grid row">
       <%= for {metric, id} <- @metrics do %>
         <%= live_component @socket, ChartComponent, id: id, metric: metric %>
@@ -77,14 +80,17 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     """
   end
 
+  @encoder Phoenix.json_library()
   @impl true
   def handle_info({:telemetry, entries}, socket) do
-    for {id, label, measurement, time} <- entries do
-      data = [{label, measurement, time}]
-      send_update(ChartComponent, id: id, data: data)
-    end
+    entry_log =
+      entries
+      |> Enum.group_by(&elem(&1, 0), fn entry ->
+        entry |> Tuple.delete_at(0) |> Tuple.to_list()
+      end)
+      |> @encoder.encode!()
 
-    {:noreply, socket}
+    {:noreply, assign(socket, :entry_log, entry_log)}
   end
 
   def handle_info({:node_redirect, node}, socket) do

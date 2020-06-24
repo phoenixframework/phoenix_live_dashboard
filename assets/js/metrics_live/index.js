@@ -182,7 +182,11 @@ class CommonMetric {
       })
     }
 
-    measurements.forEach((measurement) => this.__handler.call(this, measurement, this.__callback))
+    measurements.forEach((measurement) => {
+      let { x, ...rest } = measurement
+      this.__handler.call(this, { ...rest, x: x || this.options.label }, this.__callback)
+    })
+
     this.chart.setData(dataForDatasets(this.datasets))
   }
 }
@@ -235,6 +239,7 @@ class Summary {
   }
 
   findOrCreateSeries(label) {
+    label = label || this.options.label
     let seriesIndex = this.datasets.findIndex(({ key }) => label === key)
     if (seriesIndex === -1) {
       seriesIndex = this.datasets.push(
@@ -443,11 +448,11 @@ export class TelemetryChart {
   }
 }
 
-/** LiveView Hook **/
+/** LiveView Hooks **/
 
-const PhxChartComponent = {
+export const PhxChartComponent = {
   mounted() {
-    let chartEl = this.el.parentElement.querySelector('.chart')
+    let chartEl = this.el.querySelector('.chart')
     let size = chartEl.getBoundingClientRect()
     let options = Object.assign({}, chartEl.dataset, {
       tagged: (chartEl.dataset.tags && chartEl.dataset.tags !== "") || false,
@@ -464,22 +469,36 @@ const PhxChartComponent = {
       this.chart.resize(newSize)
     }))
   },
+  destroyed() {
+    this.chart.clearTimers()
+  },
+  getChart() { return this.chart }
+}
+
+export const PhxMetricsControlPlane = {
   updated() {
-    const data = Array
-      .from(this.el.children || [])
-      .map(({ dataset: { x, y, z } }) => {
-        // converts y-axis value (z) to number,
-        // converts timestamp (z) from µs to fractional seconds
+    this.pushLogEntriesToCharts()
+  },
+  pushLogEntriesToCharts() {
+    let entryLog = this.el.dataset.entryLog
+    if (entryLog === "") { return }
+
+    let entryMap = JSON.parse(entryLog)
+    let entries, chartComponentEl, hook
+    for (let key in entryMap) {
+      entries = entryMap[key]
+
+      // converts y-axis value (z) to number,
+      // converts timestamp (z) from µs to fractional seconds
+      entries = entries.map(([x, y, z]) => {
         return { x, y: +y, z: +z / 1e6 }
       })
 
-    if (data.length > 0) {
-      this.chart.pushData(data)
+      if (entries.length > 0) {
+        chartComponentEl = this.el.nextElementSibling.querySelector(`#chart-${key}`)
+        hook = this.__view.getHook(chartComponentEl)
+        hook.getChart().pushData(entries)
+      }
     }
-  },
-  destroyed() {
-    this.chart.clearTimers()
   }
 }
-
-export default PhxChartComponent
