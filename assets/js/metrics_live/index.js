@@ -72,7 +72,8 @@ export const newSeriesConfig = (options, index = 0) => {
     ...LineColor.at(index),
     ...SeriesValue(options),
     label: options.label,
-    spanGaps: true
+    spanGaps: true,
+    points: { show: false }
   }
 }
 
@@ -112,6 +113,8 @@ function nextTaggedValueForCallback({ x, y, z }, callback) {
     return dataset
   })
 }
+
+const getPruneThreshold = ({ pruneThreshold = 1000 }) => pruneThreshold
 
 // Handles the basic metrics like Counter, LastValue, and Sum.
 class CommonMetric {
@@ -159,6 +162,7 @@ class CommonMetric {
     this.chart = chart
     this.datasets = [{ key: "|x|", data: [] }]
     this.options = options
+    this.pruneThreshold = getPruneThreshold(options)
 
     if (options.tagged) {
       this.chart.delSeries(1)
@@ -170,6 +174,14 @@ class CommonMetric {
   }
 
   handleMeasurements(measurements) {
+    // prune datasets when we reach the max number of events
+    let currentSize = this.datasets[0].data.length
+    if (currentSize >= this.pruneThreshold) {
+      this.datasets = this.datasets.map(({ data, ...rest }) => {
+        return { data: data.slice(-Math.floor(currentSize / 2)), ...rest }
+      })
+    }
+
     measurements.forEach((measurement) => this.__handler.call(this, measurement, this.__callback))
     this.chart.setData(dataForDatasets(this.datasets))
   }
@@ -185,6 +197,7 @@ class Summary {
 
     this.datasets = [{ key: "|x|", data: [] }]
     this.chart = new uPlot(config, this.constructor.initialData(options), chartEl)
+    this.pruneThreshold = getPruneThreshold(options)
     this.options = options
 
     if (options.tagged) {
@@ -197,6 +210,7 @@ class Summary {
   }
 
   handleMeasurements(measurements) {
+    this.__maybePruneDatasets()
     measurements.forEach((measurement) => this.__handler(measurement))
     this.chart.setData(dataForDatasets(this.datasets))
   }
@@ -266,6 +280,39 @@ class Summary {
     dataset.agg.avg.push((dataset.agg.total / dataset.agg.count))
 
     return dataset
+  }
+
+  __maybePruneDatasets() {
+    let currentSize = this.datasets[0].data.length
+    if (currentSize >= this.pruneThreshold) {
+      let start = -Math.floor(currentSize / 2)
+      this.datasets = this.datasets.map(({ key, data, agg }) => {
+        let dataPruned = data.slice(start)
+        if (!agg) {
+          return { key, data: dataPruned }
+        }
+
+        let { avg, count, max, min, total } = agg
+        let minPruned = min.slice(start)
+        let maxPruned = max.slice(start)
+
+        return {
+          key,
+          data: dataPruned,
+          agg: {
+            avg: avg.slice(start),
+            count,
+            min: minPruned,
+            max: maxPruned,
+            total
+          },
+          last: {
+            min: findLastNonNullValue(minPruned),
+            max: findLastNonNullValue(maxPruned)
+          }
+        }
+      })
+    }
   }
 
   __seriesValues(u, sidx, idx) {

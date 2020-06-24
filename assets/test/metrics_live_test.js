@@ -223,6 +223,33 @@ describe('Metrics no tags', () => {
       }
     ])
   })
+
+  test('pruneThreshold prunes datasets by half', () => {
+    const chart = new TelemetryChart(document.body, { metric: 'last_value', tagged: false, pruneThreshold: 4 })
+
+    // Fill the chart
+    chart.pushData([
+      { x: 'a', y: 1, z: 1 },
+      { x: 'a', y: 3, z: 2 },
+      { x: 'a', y: 5, z: 3 },
+      { x: 'a', y: 7, z: 4 },
+    ])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1, 2, 3, 4],
+      [1, 3, 5, 7],
+    ])
+
+    // Overflow the event limit
+    chart.pushData([
+      { x: 'a', y: 9, z: 5 }
+    ])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [3, 4, 5],
+      [5, 7, 9]
+    ])
+  })
 })
 
 describe('Metrics with tags', () => {
@@ -337,96 +364,170 @@ describe('Metrics with tags', () => {
     })
   })
 
-  test("Summary", () => {
-    const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true })
-    expect(mockDelSeries).toHaveBeenCalledTimes(1)
+  describe("Summary", () => {
+    test('deletes initial dataset', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: true })
+      expect(mockDelSeries).toHaveBeenCalledWith(1)
+    })
 
-    chart.pushData([{ x: "a", y: 2, z: 1 }])
+    test("aligns data and aggregations by tag", () => {
+      const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true })
+      expect(mockDelSeries).toHaveBeenCalledTimes(1)
 
-    expect(mockSetData).toHaveBeenCalledWith([
-      [1],
-      [2],
-    ])
+      chart.pushData([{ x: "a", y: 2, z: 1 }])
 
-    expect(chart.metric.datasets).toEqual([
-      {
-        key: "|x|",
-        data: [1]
-      },
-      {
-        key: "a",
-        data: [2],
-        agg: {
-          avg: [2],
-          min: [2],
-          max: [2],
-          count: 1,
-          total: 2
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1],
+        [2],
+      ])
+
+      expect(chart.metric.datasets).toEqual([
+        {
+          key: "|x|",
+          data: [1]
         },
-        last: {
-          max: 2,
-          min: 2
+        {
+          key: "a",
+          data: [2],
+          agg: {
+            avg: [2],
+            min: [2],
+            max: [2],
+            count: 1,
+            total: 2
+          },
+          last: {
+            max: 2,
+            min: 2
+          }
         }
-      }
-    ])
+      ])
 
-    chart.pushData([{ x: "b", y: 4, z: 3 }])
+      chart.pushData([{ x: "b", y: 4, z: 3 }])
 
-    expect(mockSetData).toHaveBeenCalledWith([
-      [1, 3],
-      [2, null],
-      [null, 4]
-    ])
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 3],
+        [2, null],
+        [null, 4]
+      ])
 
-    expect(chart.metric.datasets).toEqual([
-      {
-        key: "|x|",
-        data: [1, 3]
-      },
-      {
-        key: "a",
-        data: [2, null],
-        agg: {
-          avg: [2, null],
-          min: [2, null],
-          max: [2, null],
-          count: 1,
-          total: 2
+      expect(chart.metric.datasets).toEqual([
+        {
+          key: "|x|",
+          data: [1, 3]
         },
-        last: {
-          max: 2,
-          min: 2
-        }
-      },
-      {
-        key: "b",
-        data: [null, 4],
-        agg: {
-          avg: [null, 4],
-          min: [null, 4],
-          max: [null, 4],
-          count: 1,
-          total: 4
+        {
+          key: "a",
+          data: [2, null],
+          agg: {
+            avg: [2, null],
+            min: [2, null],
+            max: [2, null],
+            count: 1,
+            total: 2
+          },
+          last: {
+            max: 2,
+            min: 2
+          }
         },
-        last: {
-          max: 4,
-          min: 4
+        {
+          key: "b",
+          data: [null, 4],
+          agg: {
+            avg: [null, 4],
+            min: [null, 4],
+            max: [null, 4],
+            count: 1,
+            total: 4
+          },
+          last: {
+            max: 4,
+            min: 4
+          }
         }
-      }
-    ])
+      ])
 
+      chart.pushData([
+        { x: 'c', y: 6, z: 5 },
+        { x: 'a', y: 2, z: 7 }
+      ])
 
-    chart.pushData([
-      { x: 'c', y: 6, z: 5 },
-      { x: 'a', y: 2, z: 7 }
-    ])
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 3, 5, 7],
+        [2, null, null, 2],
+        [null, 4, null, null],
+        [null, null, 6, null]
+      ])
+    })
 
-    expect(mockSetData).toHaveBeenCalledWith([
-      [1, 3, 5, 7],
-      [2, null, null, 2],
-      [null, 4, null, null],
-      [null, null, 6, null]
-    ])
+    test('when dataset > pruneThreshold, prunes data and aggregations by half', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: true, pruneThreshold: 6 })
+
+      // Fill the chart
+      chart.pushData([
+        { x: "a", y: -6, z: 1 },
+        { x: "b", y: -4, z: 2 },
+        { x: "a", y: -2, z: 3 },
+        { x: "b", y: 0, z: 4 },
+        { x: "a", y: 2, z: 5 },
+        { x: "b", y: 4, z: 6 }
+      ])
+
+      expect(mockSetData).toHaveBeenCalledWith([
+        [1, 2, 3, 4, 5, 6],
+        [-6, null, -2, null, 2, null],
+        [null, -4, null, 0, null, 4]
+      ])
+
+      expect(chart.metric.datasets).toEqual([
+        {
+          key: "|x|",
+          data: [1, 2, 3, 4, 5, 6]
+        },
+        {
+          key: "a",
+          data: [-6, null, -2, null, 2, null],
+          agg: {
+            avg: [-6, null, -4, null, -2, null],
+            min: [-6, null, -6, null, -6, null],
+            max: [-6, null, -2, null, 2, null],
+            count: 3,
+            total: -6
+          },
+          last: {
+            max: 2,
+            min: -6
+          }
+        },
+        {
+          key: "b",
+          data: [null, -4, null, 0, null, 4],
+          agg: {
+            avg: [null, -4, null, -2, null, 0],
+            min: [null, -4, null, -4, null, -4],
+            max: [null, -4, null, 0, null, 4],
+            count: 3,
+            total: 0
+          },
+          last: {
+            max: 4,
+            min: -4
+          }
+        }
+      ])
+
+      // Overflow the event limit
+      chart.pushData([
+        { x: "a", y: 6, z: 7 }
+      ])
+
+      expect(mockSetData).toHaveBeenCalledWith([
+        [4, 5, 6, 7],
+        [null, 2, null, 6],
+        [0, null, 4, null]
+      ])
+    })
   })
 })
 
