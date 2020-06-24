@@ -85,9 +85,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   def handle_info({:telemetry, entries}, socket) do
     entry_log =
       entries
-      |> Enum.group_by(&elem(&1, 0), fn entry ->
-        entry |> Tuple.delete_at(0) |> Tuple.to_list()
-      end)
+      |> Enum.map(&Tuple.to_list/1)
       |> @encoder.encode!()
 
     {:noreply, assign(socket, :entry_log, entry_log)}

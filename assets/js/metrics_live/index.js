@@ -483,17 +483,20 @@ export const PhxMetricsControlPlane = {
     let entryLog = this.el.dataset.entryLog
     if (entryLog === "") { return }
 
-    let entryMap = JSON.parse(entryLog)
-    let entries, chartComponentEl, hook
+    let rawEntries = JSON.parse(entryLog)
+    let entry, entries, chartComponentEl, hook, point
+    let entryMap = rawEntries.reduce((map, [id, x, y, z]) => {
+      point = { x, y: +y, z: +z / 1e6 }
+      if (map.hasOwnProperty(id)) {
+        map[id].push(point)
+      } else {
+        map[id] = [point]
+      }
+      return map
+    }, {})
+
     for (let key in entryMap) {
       entries = entryMap[key]
-
-      // converts y-axis value (z) to number,
-      // converts timestamp (z) from µs to fractional seconds
-      entries = entries.map(([x, y, z]) => {
-        return { x, y: +y, z: +z / 1e6 }
-      })
-
       if (entries.length > 0) {
         chartComponentEl = this.el.nextElementSibling.querySelector(`#chart-${key}`)
         hook = this.__view.getHook(chartComponentEl)
