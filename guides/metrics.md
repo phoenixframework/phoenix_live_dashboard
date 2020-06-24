@@ -147,6 +147,6 @@ The following reporter options are available to the dashboard:
 
   * `:group` - configures the group the metric belongs to. By default the group is the first part of the name. For example, `counter("my_app.counter")` defaults to group "my_app"
 
-  * `:max_number_of_events` - the maximum number of data
-    points. When this limit is reached, the chart data will
+  * `:prune_threshold` - the maximum number of data
+    points. When the threshold is reached, the chart data will
     be pruned by half. Default is `1_000`.

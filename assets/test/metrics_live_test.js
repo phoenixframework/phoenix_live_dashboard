@@ -224,8 +224,8 @@ describe('Metrics no tags', () => {
     ])
   })
 
-  test('maxNumberOfEvents prunes datasets by half', () => {
-    const chart = new TelemetryChart(document.body, { metric: 'last_value', tagged: false, maxNumberOfEvents: 4 })
+  test('pruneThreshold prunes datasets by half', () => {
+    const chart = new TelemetryChart(document.body, { metric: 'last_value', tagged: false, pruneThreshold: 4 })
 
     // Fill the chart
     chart.pushData([
@@ -461,8 +461,8 @@ describe('Metrics with tags', () => {
       ])
     })
 
-    test('when dataset > maxNumberOfEvents, prunes data and aggregations by half', () => {
-      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: true, maxNumberOfEvents: 6 })
+    test('when dataset > pruneThreshold, prunes data and aggregations by half', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: true, pruneThreshold: 6 })
 
       // Fill the chart
       chart.pushData([

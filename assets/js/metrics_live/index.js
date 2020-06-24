@@ -114,7 +114,7 @@ function nextTaggedValueForCallback({ x, y, z }, callback) {
   })
 }
 
-const getMaxNumberOfEvents = ({ maxNumberOfEvents = 1000 }) => maxNumberOfEvents
+const getPruneThreshold = ({ pruneThreshold = 1000 }) => pruneThreshold
 
 // Handles the basic metrics like Counter, LastValue, and Sum.
 class CommonMetric {
@@ -162,7 +162,7 @@ class CommonMetric {
     this.chart = chart
     this.datasets = [{ key: "|x|", data: [] }]
     this.options = options
-    this.maxNumberOfEvents = getMaxNumberOfEvents(options)
+    this.pruneThreshold = getPruneThreshold(options)
 
     if (options.tagged) {
       this.chart.delSeries(1)
@@ -176,7 +176,7 @@ class CommonMetric {
   handleMeasurements(measurements) {
     // prune datasets when we reach the max number of events
     let currentSize = this.datasets[0].data.length
-    if (currentSize >= this.maxNumberOfEvents) {
+    if (currentSize >= this.pruneThreshold) {
       this.datasets = this.datasets.map(({ data, ...rest }) => {
         return { data: data.slice(-Math.floor(currentSize / 2)), ...rest }
       })
@@ -197,7 +197,7 @@ class Summary {
 
     this.datasets = [{ key: "|x|", data: [] }]
     this.chart = new uPlot(config, this.constructor.initialData(options), chartEl)
-    this.maxNumberOfEvents = getMaxNumberOfEvents(options)
+    this.pruneThreshold = getPruneThreshold(options)
     this.options = options
 
     if (options.tagged) {
@@ -284,7 +284,7 @@ class Summary {
 
   __maybePruneDatasets() {
     let currentSize = this.datasets[0].data.length
-    if (currentSize >= this.maxNumberOfEvents) {
+    if (currentSize >= this.pruneThreshold) {
       let start = -Math.floor(currentSize / 2)
       this.datasets = this.datasets.map(({ key, data, agg }) => {
         let dataPruned = data.slice(start)

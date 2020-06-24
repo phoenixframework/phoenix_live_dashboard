@@ -50,21 +50,20 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
     test "adds max number of events" do
       result =
         render_chart(
-          metric: last_value([:a, :b, :c, :size], reporter_options: [max_number_of_events: 5])
+          metric: last_value([:a, :b, :c, :size], reporter_options: [prune_threshold: 5])
         )
 
-      assert result =~ ~s|data-max-number-of-events="5"|
+      assert result =~ ~s|data-prune-threshold="5"|
 
       assert_raise ArgumentError, fn ->
         render_chart(
-          metric: last_value([:a, :b, :c, :size], reporter_options: [max_number_of_events: -1])
+          metric: last_value([:a, :b, :c, :size], reporter_options: [prune_threshold: -1])
         )
       end
 
       assert_raise ArgumentError, fn ->
         render_chart(
-          metric:
-            last_value([:a, :b, :c, :size], reporter_options: [max_number_of_events: :infinity])
+          metric: last_value([:a, :b, :c, :size], reporter_options: [prune_threshold: :infinity])
         )
       end
     end

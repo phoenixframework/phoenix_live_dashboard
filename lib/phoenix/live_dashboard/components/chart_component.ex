@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.ChartComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
-  @default_max_number_of_events 1_000
+  @default_prune_threshold 1_000
 
   @impl true
   def mount(socket) do
@@ -21,7 +21,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
           label: chart_label(metric),
           tags: Enum.join(metric.tags, "-"),
           unit: chart_unit(metric.unit),
-          max_number_of_events: max_number_of_events(metric)
+          prune_threshold: prune_threshold(metric)
         )
       else
         socket
@@ -49,7 +49,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
               data-title="<%= @title %>"
               data-tags="<%= @tags %>"
               data-unit="<%= @unit %>"
-              data-max-number-of-events="<%= @max_number_of_events %>">
+              data-prune-threshold="<%= @prune_threshold %>">
           </div>
         </div>
         <%= if @description do %>
@@ -93,20 +93,20 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp chart_unit(:unit), do: ""
   defp chart_unit(unit) when is_atom(unit), do: unit
 
-  defp max_number_of_events(metric) do
-    max_number_of_events =
-      metric.reporter_options[:max_number_of_events]
-      |> validate_max_number_of_events()
+  defp prune_threshold(metric) do
+    prune_threshold =
+      metric.reporter_options[:prune_threshold]
+      |> validate_prune_threshold()
 
-    to_string(max_number_of_events || @default_max_number_of_events)
+    to_string(prune_threshold || @default_prune_threshold)
   end
 
-  defp validate_max_number_of_events(nil), do: nil
+  defp validate_prune_threshold(nil), do: nil
 
-  defp validate_max_number_of_events(value) do
+  defp validate_prune_threshold(value) do
     unless is_integer(value) and value > 0 do
       raise ArgumentError,
-            "expected :max_number_of_events to be a positive integer, got: #{inspect(value)}"
+            "expected :prune_threshold to be a positive integer, got: #{inspect(value)}"
     end
 
     value
