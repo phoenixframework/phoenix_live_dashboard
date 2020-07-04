@@ -63,6 +63,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
   end
 
+  def fetch_applications_2(node) do
+    :rpc.call(node, __MODULE__, :applications_info_callback_2, [])
+  end
+
   def fetch_port_info(port, keys) do
     :rpc.call(node(port), __MODULE__, :port_info_callback, [port, keys])
   end
@@ -234,6 +238,21 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     count = length(apps)
     apps = apps |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter) |> Enum.take(limit)
     {apps, count}
+  end
+
+  def applications_info_callback_2() do
+    started_apps_set = started_apps_set()
+
+    for {name, desc, version} <- Application.loaded_applications(),
+        description = List.to_string(desc),
+        version = List.to_string(version) do
+      {state, tree?} =
+        if name in started_apps_set,
+          do: {:started, is_pid(:application_controller.get_master(name))},
+          else: {:loaded, false}
+
+      [name: name, description: description, version: version, state: state, tree?: tree?]
+    end
   end
 
   defp show_application?(_, _, _, nil) do

@@ -1,17 +1,15 @@
 defmodule Phoenix.LiveDashboard.ApplicationsLive do
   use Phoenix.LiveDashboard.Web, :live_view
-  import Phoenix.LiveDashboard.TableHelpers
 
   alias Phoenix.LiveDashboard.SystemInfo
+  alias Phoenix.LiveDashboard.TableComponent
 
-  @sort_by ~w(name state)
-  @sort_dir ~w(asc desc)
-  @temporary_assigns [applications: [], total: 0]
+  @page :applications
+  @table_id :table
 
   @impl true
   def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_mount(socket, :applications, params, session, true),
-     temporary_assigns: @temporary_assigns}
+    {:ok, assign_mount(socket, @page, params, session, true)}
   end
 
   @impl true
@@ -19,92 +17,85 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
     {:noreply,
      socket
      |> assign_params(params)
-     |> assign_table_params(params, @sort_by, @sort_dir)
-     |> fetch_applications()}
-  end
-
-  defp fetch_applications(%{assigns: %{params: params, menu: menu}} = socket) do
-    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
-
-    {applications, total} =
-      SystemInfo.fetch_applications(menu.node, search, sort_by, sort_dir, limit)
-
-    assign(socket, applications: applications, total: total)
+     |> assign(:params, params)}
   end
 
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="tabular-page">
-      <h5 class="card-title">Applications</h5>
-
-      <div class="tabular-search">
-        <form phx-change="search" phx-submit="search" class="form-inline">
-          <div class="form-row align-items-center">
-            <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search" phx-debounce="300">
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <form phx-change="select_limit" class="form-inline">
-        <div class="form-row align-items-center">
-          <div class="col-auto">Showing at most</div>
-          <div class="col-auto">
-            <div class="input-group input-group-sm">
-              <select name="limit" class="custom-select" id="limit-select">
-                <%= options_for_select(limit_options(), @params.limit) %>
-              </select>
-            </div>
-          </div>
-          <div class="col-auto">
-            applications out of <%= @total %>
-          </div>
-        </div>
-      </form>
-
-      <div class="card tabular-card mb-4 mt-4">
-        <div class="card-body p-0">
-          <div class="dash-table-wrapper">
-            <table class="table table-hover mt-0 dash-table">
-              <thead>
-                <tr>
-                  <th class="pl-4">
-                    <%= sort_link(@socket, @live_action, @menu, @params, :name, "Name") %>
-                  </th>
-                  <th>Description</th>
-                  <th>
-                    <%= sort_link(@socket, @live_action, @menu, @params, :state, "State") %>
-                  </th>
-                  <th>Sup tree?</th>
-                  <th class="px-4">Version</th>
-                </tr>
-              </thead>
-              <tbody>
-                <%= for application <- @applications do %>
-                  <%= cond do %>
-                    <% application[:state] == :loaded -> %>
-                      <tr id="app-<%= application[:name] %>" class="text-muted">
-                    <% application[:tree?] -> %>
-                      <tr id="app-<%= application[:name] %>" phx-click="show_info" phx-value-app="<%= encode_app(application[:name]) %>" phx-page-loading>
-                    <% true -> %>
-                      <tr id="app-<%= application[:name] %>">
-                  <% end %>
-                    <td class="pl-4"><%= application[:name] %></td>
-                    <td><%= application[:description] %></td>
-                    <td><%= application[:state] %></td>
-                    <td class="text-center"><%= if application[:tree?], do: "✓" %></td>
-                    <td class="px-4"><%= application[:version] %></td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+      <%= live_component(assigns.socket, TableComponent, table_assigns(@params, @menu.node)) %>
     """
+  end
+
+  defp table_assigns(params, node) do
+    %{
+      columns: columns(),
+      id: @table_id,
+      list_name: "applications",
+      params: params,
+      row_attrs: &row_attrs/1,
+      row_fetcher: &fetch_applications(&1, node),
+      self_path: &self_path(&1, node, &2),
+      title: "Applications"
+    }
+  end
+
+  defp fetch_applications(params, node) do
+    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
+
+    SystemInfo.fetch_applications(node, search, sort_by, sort_dir, limit)
+  end
+
+  defp columns() do
+    [
+      %{
+        field: :name,
+        header: "Name",
+        header_attrs: [class: "pl-4"],
+        cell_attrs: [class: "pl-4"],
+        sortable: true
+      },
+      %{
+        field: :description,
+        header: "Description"
+      },
+      %{
+        field: :state,
+        header: "State",
+        sortable: true
+      },
+      %{
+        field: :tree?,
+        header: "Sup tree?",
+        cell_attrs: [class: "text-center"],
+        show: &if(&1[:tree?], do: "✓")
+      },
+      %{
+        field: :version,
+        header: "Version",
+        header_attrs: [class: "px-4"],
+        cell_attrs: [class: "px-4"]
+      }
+    ]
+  end
+
+  defp row_attrs(application) do
+    attrs = [id: "app-#{application[:name]}"]
+
+    cond do
+      application[:state] == :loaded ->
+        [{:class, "text-muted"} | attrs]
+
+      application[:tree?] ->
+        [
+          {"phx-click", "show_info"},
+          {"phx-value-app", encode_app(application[:name])},
+          {"phx-page-loading", true} | attrs
+        ]
+
+      true ->
+        attrs
+    end
   end
 
   @impl true
@@ -113,26 +104,18 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
   end
 
   def handle_info(:refresh, socket) do
+    %{params: params, menu: menu} = socket.assigns
+    send_update(TableComponent, table_assigns(params, menu.node))
     {:noreply, socket}
   end
 
   @impl true
-  def handle_event("search", %{"search" => search}, socket) do
-    %{menu: menu, params: params} = socket.assigns
-    {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | search: search}))}
-  end
-
-  def handle_event("select_limit", %{"limit" => limit}, socket) do
-    %{menu: menu, params: params} = socket.assigns
-    {:noreply, push_patch(socket, to: self_path(socket, menu.node, %{params | limit: limit}))}
-  end
-
   def handle_event("show_info", %{"app" => app}, socket) do
     params = Map.put(socket.assigns.params, :info, app)
     {:noreply, push_patch(socket, to: self_path(socket, node(), params))}
   end
 
   defp self_path(socket, node, params) do
-    live_dashboard_path(socket, :applications, node, params)
+    live_dashboard_path(socket, @page, node, params)
   end
 end

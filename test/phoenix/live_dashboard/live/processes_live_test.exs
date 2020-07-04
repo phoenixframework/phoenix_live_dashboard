@@ -20,7 +20,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
     {:ok, live, _} = live(build_conn(), processes_path(1000, "FOO", :message_queue_len, :desc))
     rendered = render(live)
-    assert rendered =~ ~r/Foo1.*Foo2/
+    assert rendered =~ ~r/Foo1.*Foo2/s
     refute rendered =~ ":erlang_bar"
     assert rendered =~ "processes out of 2"
     assert rendered =~ processes_href(1000, "FOO", :message_queue_len, :asc)
@@ -45,12 +45,12 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/processes?limit=1000")
     rendered = render(live)
-    assert rendered =~ ~r/:process_live_test_high_memory.*:process_live_test_low_memory/
+    assert rendered =~ ~r/:process_live_test_high_memory.*:process_live_test_low_memory/s
     assert rendered =~ processes_href(1000, "", :memory, :asc)
     refute rendered =~ processes_href(1000, "", :memory, :desc)
 
     rendered = render_patch(live, "/dashboard/nonode@nohost/processes?limit=1000&sort_dir=asc")
-    assert rendered =~ ~r/:process_live_test_low_memory.*:process_live_test_high_memory/
+    assert rendered =~ ~r/:process_live_test_low_memory.*:process_live_test_high_memory/s
     assert rendered =~ processes_href(1000, "", :memory, :desc)
     refute rendered =~ processes_href(1000, "", :memory, :asc)
   end
@@ -62,12 +62,12 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
     {:ok, live, _} = live(build_conn(), processes_path(1000, "", :reductions, :desc))
     rendered = render(live)
-    assert rendered =~ ~r/:process_live_test_high_reductions.*:process_live_test_low_reductions/
+    assert rendered =~ ~r/:process_live_test_high_reductions.*:process_live_test_low_reductions/s
     assert rendered =~ processes_href(1000, "", :reductions, :asc)
     refute rendered =~ processes_href(1000, "", :reductions, :desc)
 
     rendered = render_patch(live, processes_path(1000, "", :reductions, :asc))
-    assert rendered =~ ~r/:process_live_test_low_reductions.*:process_live_test_high_reductions/
+    assert rendered =~ ~r/:process_live_test_low_reductions.*:process_live_test_high_reductions/s
     assert rendered =~ processes_href(1000, "", :reductions, :desc)
     refute rendered =~ processes_href(1000, "", :reductions, :asc)
   end
@@ -81,12 +81,12 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
     {:ok, live, _} = live(build_conn(), processes_path(1000, "", :message_queue_len, :desc))
     rendered = render(live)
-    assert rendered =~ ~r/:process_live_test_high_msgq.*:process_live_test_low_msgq/
+    assert rendered =~ ~r/:process_live_test_high_msgq.*:process_live_test_low_msgq/s
     assert rendered =~ processes_href(1000, "", :message_queue_len, :asc)
     refute rendered =~ processes_href(1000, "", :message_queue_len, :desc)
 
     rendered = render_patch(live, processes_path(1000, "", :message_queue_len, :asc))
-    assert rendered =~ ~r/:process_live_test_low_msgq.*:process_live_test_high_msgq/
+    assert rendered =~ ~r/:process_live_test_low_msgq.*:process_live_test_high_msgq/s
     assert rendered =~ processes_href(1000, "", :message_queue_len, :desc)
     refute rendered =~ processes_href(1000, "", :message_queue_len, :asc)
   end
