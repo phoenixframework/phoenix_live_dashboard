@@ -22,6 +22,12 @@ defmodule Phoenix.LiveDashboard.Router do
     * `:live_socket_path` - Configures the socket path. it must match
       the `socket "/live", Phoenix.LiveView.Socket` in your endpoint.
 
+    * `:metrics_history` - Configures a callback for retreiving metric history.
+      It must be an "MFA" tuple of  `{Module, :function, arguments}` such as
+        metrics_history: {MyStorage, :metrics_history, []}
+      If not set, metrics will start out empty/blank and only display
+      data that occurs while the browser page is open.
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -32,7 +38,8 @@ defmodule Phoenix.LiveDashboard.Router do
           pipe_through [:browser]
           live_dashboard "/dashboard",
             metrics: {MyAppWeb.Telemetry, :metrics},
-            env_keys: ["APP_USER", "VERSION"]
+            env_keys: ["APP_USER", "VERSION"],
+            metrics_history: {MyStorage, :metrics_history, []}
         end
       end
 
@@ -95,11 +102,26 @@ defmodule Phoenix.LiveDashboard.Router do
 
         other ->
           raise ArgumentError,
-                ":env_keys must be a list of strings, got: #{inspect(other)}"
+                ":env_keys must be a list of strings, got: " <> inspect(other)
+      end
+
+    metrics_history =
+      case options[:metrics_history] do
+        nil ->
+          nil
+
+        {module, function, args}
+        when is_atom(module) and is_atom(function) and is_list(args) ->
+          {module, function, args}
+
+        other ->
+          raise ArgumentError,
+                ":metrics_history must be a tuple of {module, function, args}, got: " <>
+                  inspect(other)
       end
 
     [
-      session: {__MODULE__, :__session__, [metrics, env_keys]},
+      session: {__MODULE__, :__session__, [metrics, env_keys, metrics_history]},
       private: %{live_socket_path: live_socket_path},
       layout: {Phoenix.LiveDashboard.LayoutView, :dash},
       as: :live_dashboard
@@ -107,10 +129,11 @@ defmodule Phoenix.LiveDashboard.Router do
   end
 
   @doc false
-  def __session__(conn, metrics, env_keys) do
+  def __session__(conn, metrics, env_keys, metrics_history) do
     %{
       "metrics" => metrics,
       "env_keys" => env_keys,
+      "metrics_history" => metrics_history,
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
     }
   end

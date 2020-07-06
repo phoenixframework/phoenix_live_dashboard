@@ -43,4 +43,12 @@ defmodule Phoenix.LiveDashboard.MetricsLiveTest do
     send(live.pid, {:node_redirect, "foo@bar"})
     assert_redirect(live, "/dashboard/foo%40bar/metrics?group=phx")
   end
+
+  test "renders history for metrics" do
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?group=phx")
+
+    # Guarantees the components have been updated
+    assert render(live) =~
+             ~s|<span data-x="#{TestHistory.label()}" data-y="#{TestHistory.measurement()}"|
+  end
 end
