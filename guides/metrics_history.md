@@ -31,46 +31,40 @@ As an example, if you want history for all metrics, you can store history for th
     @impl true
     def init(metrics) do
       Process.flag(:trap_exit, true)
-      GenServer.cast(__MODULE__, {:metrics, metrics})
-      {:ok, %{}}
+
+      metric_histories_map =
+        metrics
+        |> Enum.map(fn metric ->
+          attach_handler(metric)
+          {metric, CircularBuffer.new(@history_buffer_size)}
+        end)
+        |> Map.new()
+
+      {:ok, metric_histories_map}
     end
 
     @impl true
-    def terminate(_, events) do
-      for event <- events do
-        :telemetry.detach({__MODULE__, event, self()})
+    def terminate(_, metrics) do
+      for metric <- metrics do
+        :telemetry.detach({__MODULE__, metric, self()})
       end
 
       :ok
     end
 
-    defp attach_handler(%{name: name_list} = metric, id) do
+    defp attach_handler(%{name: name_list} = metric) do
       :telemetry.attach(
-        "#{inspect(name_list)}-history-#{id}",
+        {__MODULE__, metric, self()},
         Enum.slice(name_list, 0, length(name_list) - 1),
         &__MODULE__.handle_event/4,
         metric
       )
     end
 
-  def handle_event(_event_name, data, metadata, metric) do
-    if data = TelemetryListener.prepare_entry(metric, data, metadata) do
-      GenServer.cast(__MODULE__, {:telemetry_metric, data, metric})
-    end
-  end
-
-    @impl true
-    def handle_cast({:metrics, metrics}, _state) do
-      metric_histories_map =
-        metrics
-        |> Enum.with_index()
-        |> Enum.map(fn {metric, id} ->
-          attach_handler(metric, id)
-          {metric, CircularBuffer.new(@history_buffer_size)}
-        end)
-        |> Map.new()
-
-      {:noreply, metric_histories_map}
+    def handle_event(_event_name, data, metadata, metric) do
+      if data = TelemetryListener.prepare_entry(metric, data, metadata) do
+        GenServer.cast(__MODULE__, {:telemetry_metric, data, metric})
+      end
     end
 
     @impl true

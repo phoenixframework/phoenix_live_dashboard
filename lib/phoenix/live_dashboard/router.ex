@@ -102,7 +102,7 @@ defmodule Phoenix.LiveDashboard.Router do
 
         other ->
           raise ArgumentError,
-                ":env_keys must be a list of strings, got: #{inspect(other)}"
+                ":env_keys must be a list of strings, got: " <> inspect(other)
       end
 
     metrics_history =
@@ -116,9 +116,8 @@ defmodule Phoenix.LiveDashboard.Router do
 
         other ->
           raise ArgumentError,
-                ":metrics_history must be a tuple of {module, function, args}, got: #{
+                ":metrics_history must be a tuple of {module, function, args}, got: " <>
                   inspect(other)
-                }"
       end
 
     [
