@@ -20,7 +20,7 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
 
     entries =
       for {metric, index} <- metrics,
-          map = prepare_entry(metric, measurements, metadata, time) do
+          map = extract_datapoint_for_metric(metric, measurements, metadata, time) do
         %{label: label, measurement: measurement, time: time} = map
         {index, label, measurement, time}
       end
@@ -28,7 +28,7 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
     send(parent, {:telemetry, entries})
   end
 
-  def prepare_entry(metric, measurements, metadata, time \\ nil) do
+  def extract_datapoint_for_metric(metric, measurements, metadata, time \\ nil) do
     if keep?(metric, metadata) do
       time = time || System.system_time(:microsecond)
       measurement = extract_measurement(metric, measurements)

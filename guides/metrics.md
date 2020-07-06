@@ -116,7 +116,7 @@ live_dashboard "/dashboard",
   metrics_history: {MyStorage, :metrics_history, []}
 ```
 
-where `MyStorage` is a module and `:metrics_history` is a function taking a single argument in this example, which will always be a metric.  The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map.  The function `Phoenix.LiveDashboard.TelemetryListener.prepare_entry` will return a map in exactly this format (with optional time argument if you want to override the default of `System.system_time(:microsecond)`), or it may return `nil` in which case the data point should not be saved.
+where `MyStorage` is a module and `:metrics_history` is a function taking a single argument in this example, which will always be a metric.  The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map.  The function `Phoenix.LiveDashboard.extract_datapoint_for_metric/4` will return a map in exactly this format (with optional time argument if you want to override the default of `System.system_time(:microsecond)`), or it may return `nil` in which case the data point should not be saved.
 
 ## More about telemetry
 

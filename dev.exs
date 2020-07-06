@@ -76,7 +76,7 @@ defmodule DemoWeb.History do
   end
 
   def handle_event(_event_name, data, metadata, metric) do
-    if data = TelemetryListener.prepare_entry(metric, data, metadata) do
+    if data = Phoenix.LiveDashboard.extract_datapoint_for_metric(metric, data, metadata) do
       GenServer.cast(__MODULE__, {:telemetry_metric, data, metric})
     end
   end
