@@ -30,7 +30,6 @@ Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
 
 defmodule DemoWeb.History do
   use GenServer
-  alias Phoenix.LiveDashboard.TelemetryListener
 
   @history_buffer_size 50
 

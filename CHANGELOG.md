@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.2.7 (2020-07-07)
+
+* Add hooks for historical data on metrics dashboard
+* Limit chart data via `:prune_threshold` reporter option
+* Do not crash the application tab if `which_children` fails
+* Several visual improvements
+
 ## v0.2.6 (2020-06-03)
 
 * Support tags on summary metrics
