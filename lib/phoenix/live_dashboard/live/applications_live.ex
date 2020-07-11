@@ -31,7 +31,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
     %{
       columns: columns(),
       id: @table_id,
-      list_name: "applications",
+      rows_name: "applications",
       params: params,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_applications(&1, node),
@@ -68,7 +68,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
         field: :tree?,
         header: "Sup tree?",
         cell_attrs: [class: "text-center"],
-        show: &if(&1[:tree?], do: "✓")
+        format: &if(&1[:tree?], do: "✓")
       },
       %{
         field: :version,

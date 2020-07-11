@@ -29,7 +29,7 @@ defmodule Phoenix.LiveDashboard.EtsLive do
     %{
       columns: columns(),
       id: @table_id,
-      list_name: "tables",
+      rows_name: "tables",
       params: params,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_ets(&1, node),
@@ -66,12 +66,12 @@ defmodule Phoenix.LiveDashboard.EtsLive do
       %{
         field: :memory,
         cell_attrs: [class: "tabular-column-bytes"],
-        show: &format_words(&1[:memory]),
+        format: &format_words(&1[:memory]),
         sortable: true
       },
       %{
         field: :owner,
-        show: &encode_pid(&1[:owner])
+        format: &encode_pid(&1[:owner])
       }
     ]
   end

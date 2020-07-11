@@ -29,7 +29,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
     %{
       columns: columns(),
       id: @table_id,
-      list_name: "ports",
+      rows_name: "ports",
       params: params,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_ports(&1, node),
@@ -50,31 +50,31 @@ defmodule Phoenix.LiveDashboard.PortsLive do
         field: :port,
         header_attrs: [class: "pl-4"],
         cell_attrs: [class: "tabular-column-id pl-4"],
-        show: &(&1[:port] |> encode_port() |> String.replace_prefix("Port", ""))
+        format: &(&1[:port] |> encode_port() |> String.replace_prefix("Port", ""))
       },
       %{
         field: :name,
         header: "Name or path",
         cell_attrs: [class: "w-50"],
-        show: &format_path(&1[:name])
+        format: &format_path(&1[:name])
       },
       %{
         field: :os_pid,
         header: "OS pid",
-        show: &if(&1[:os_pid] != :undefined, do: &1[:os_pid])
+        format: &if(&1[:os_pid] != :undefined, do: &1[:os_pid])
       },
       %{
         field: :input,
         header_attrs: [class: "text-right"],
         cell_attrs: [class: "tabular-column-bytes"],
-        show: &format_bytes(&1[:input]),
+        format: &format_bytes(&1[:input]),
         sortable: true
       },
       %{
         field: :output,
         header_attrs: [class: "text-right pr-4"],
         cell_attrs: [class: "tabular-column-bytes pr-4"],
-        show: &format_bytes(&1[:output]),
+        format: &format_bytes(&1[:output]),
         sortable: true
       },
       %{
@@ -84,7 +84,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
       },
       %{
         field: :owner,
-        show: &inspect(&1[:connected])
+        format: &inspect(&1[:connected])
       }
     ]
   end

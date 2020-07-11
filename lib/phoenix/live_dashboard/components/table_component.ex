@@ -15,7 +15,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
       columns: columns,
       row_fetcher: row_fetcher,
       params: params,
-      self_path: self_path
+      self_path: self_path,
+      title: title
     } = assigns
 
     limit_options = assigns[:limit_options] || @limit
@@ -27,14 +28,14 @@ defmodule Phoenix.LiveDashboard.TableComponent do
      assign(socket,
        columns: columns,
        limit_options: limit_options,
-       list_name: assigns[:list_name] || "rows",
+       rows_name: assigns[:rows_name] || "rows",
        params: params,
        row_attrs: assigns[:row_attrs] || [],
        row_fetcher: row_fetcher,
        rows: rows,
        self_path: self_path,
-       title: assigns[:title] || "Table",
-       total: total || "unknown number"
+       title: title,
+       total: total
      )}
   end
 
@@ -43,7 +44,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
       column
       |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
       |> Map.put_new(:header_attrs, [])
-      |> Map.put_new(:show, & &1[field])
+      |> Map.put_new(:format, & &1[field])
       |> Map.put_new(:cell_attrs, [])
       |> Map.put_new(:sortable, false)
     end)
@@ -97,7 +98,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
             </div>
           </div>
           <div class="col-auto">
-            <%= @list_name %> out of <%= @total %>
+            <%= @rows_name %> out of <%= @total %>
           </div>
         </div>
       </form>
@@ -124,7 +125,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
                   <%= tag_with_attrs(:tr, @row_attrs, [row]) %>
                     <%= for column <- @columns do %>
                       <%= tag_with_attrs(:td, column[:cell_attrs], [column, row]) %>
-                        <%= column[:show].(row) %>
+                        <%= column[:format].(row) %>
                       </td>
                     <% end %>
                   </tr>

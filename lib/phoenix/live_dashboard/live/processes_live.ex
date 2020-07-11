@@ -29,7 +29,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
     %{
       columns: columns(),
       id: @table_id,
-      list_name: "processes",
+      rows_name: "processes",
       params: params,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_processes(&1, node),
@@ -51,7 +51,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
         header: "PID",
         header_attrs: [class: "pl-4"],
         cell_attrs: [class: "tabular-column-id pl-4"],
-        show: &(&1[:pid] |> encode_pid() |> String.replace_prefix("PID", ""))
+        format: &(&1[:pid] |> encode_pid() |> String.replace_prefix("PID", ""))
       },
       %{
         field: :name_or_initial_call,
@@ -64,7 +64,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
         header_attrs: [class: "text-right"],
         cell_attrs: [class: "text-right"],
         sortable: true,
-        show: &format_bytes(&1[:memory])
+        format: &format_bytes(&1[:memory])
       },
       %{
         field: :reductions,
@@ -84,7 +84,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
         field: :current_function,
         header: "Current function",
         cell_attrs: [class: "tabular-column-current"],
-        show: &format_call(&1[:current_function])
+        format: &format_call(&1[:current_function])
       }
     ]
   end
