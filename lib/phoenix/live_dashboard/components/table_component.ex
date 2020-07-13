@@ -28,11 +28,11 @@ defmodule Phoenix.LiveDashboard.TableComponent do
      assign(socket,
        columns: columns,
        limit_options: limit_options,
-       rows_name: assigns[:rows_name] || "rows",
        params: params,
        row_attrs: assigns[:row_attrs] || [],
        row_fetcher: row_fetcher,
        rows: rows,
+       rows_name: assigns[:rows_name] || "rows",
        self_path: self_path,
        title: title,
        total: total
@@ -54,11 +54,14 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     sortable_columns = sortable_columns(columns)
     sort_by = params |> get_in_or_first("sort_by", sortable_columns) |> String.to_atom()
     sort_dir = params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
-    limit = params |> get_in_or_first("limit", limit_options) |> String.to_integer()
+    limit = params |> get_in_or_first("limit", limit_options) |> to_integer()
     search = params["search"]
     search = if search == "", do: nil, else: search
     %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search}
   end
+
+  defp to_integer(integer) when is_integer(integer), do: integer
+  defp to_integer(string) when is_binary(string), do: String.to_integer(string)
 
   defp sortable_columns(columns) do
     Enum.flat_map(columns, &if(&1[:sortable], do: [to_string(&1[:field])], else: []))
@@ -124,7 +127,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
                 <%= for row <- @rows do %>
                   <%= tag_with_attrs(:tr, @row_attrs, [row]) %>
                     <%= for column <- @columns do %>
-                      <%= tag_with_attrs(:td, column[:cell_attrs], [column, row]) %>
+                      <%= tag_with_attrs(:td, column[:cell_attrs], [row]) %>
                         <%= column[:format].(row) %>
                       </td>
                     <% end %>
