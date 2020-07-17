@@ -29,7 +29,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   #     It also can be a function which receives the row data and returns an attribute list.
   #     More info: `Phoenix.HTML.Tag.tag/1`. Default: `[]`.
   #   * `:sortable` - A boolean. When it is true the column header is clickable
-  #     and it fetches again rows with the new order.  Default: `false`
+  #     and it fetches again rows with the new order.  At least one column should be sortable.
+  #     Default: `false`
   # * `:limit_options` - A list of integers to limit the number of rows to show.
   #   Default: `[50, 100, 500, 1000, 5000]`
   # * `:page_name` - Required. The name of current `Phoenix.LiveView`.
