@@ -1,49 +1,48 @@
 defmodule Phoenix.LiveDashboard.TableComponent do
-  @moduledoc """
-  `Phoenix.LiveComponent` to render a simple table.
+  @moduledoc false
+  # `Phoenix.LiveComponent` to render a simple table.
 
-  This component is used in different pages like applications or sockets.
-  It can be used in a `Phoenix.LiveView` in the `render/1` function:
+  # This component is used in different pages like applications or sockets.
+  # It can be used in a `Phoenix.LiveView` in the `render/1` function:
 
-  ```
-  def render(assigns) do
-    ~L\"""
-      <%= live_component(assigns.socket, Phoenix.LiveDashboard.TableComponent, options) %>
-    \"""
-  end
-  ```
+  # ```
+  # def render(assigns) do
+  #   ~L\"""
+  #     <%= live_component(assigns.socket, Phoenix.LiveDashboard.TableComponent, options) %>
+  #   \"""
+  # end
+  # ```
 
-  # Options
+  # # Options
 
-  These are the options supported by the component:
+  # These are the options supported by the component:
 
-  * `:id` - Required. Because is a stateful `Phoenix.LiveComponent` an unique id is needed.
-  * `:columns` - Required. A `Keyword` list with the following keys:
-    * `:field` - Required. An identifier for the column.
-    * `:header` - Label to show in the current column. Default value is calculated from `:field`.
-    * `:header_attrs` - A list with HTML attributes for the column header.
-      More info: `Phoenix.HTML.Tag.tag/1`. Default `[]`.
-    * `:format` - Function which receives the row data and returns the cell information.
-      Default is calculated from `:field`: `row[:field]`.
-    * `:cell_attrs` - A list with HTML attributes for the table cell.
-      It also can be a function which receives the row data and returns an attribute list.
-      More info: `Phoenix.HTML.Tag.tag/1`. Default: `[]`.
-    * `:sortable` - A boolean. When it is true the column header is clickable
-      and it fetches again rows with the new order.  Default: `false`
-  * `:limit_options` - A list of integers to limit the number of rows to show.
-    Default: [50, 100, 500, 1000, 5000]
-  * `:page_name` - Required. The name of current `Phoenix.LiveView`.
-  * `:params` - Required. All the params received by the parent `Phoenix.LiveView`,
-    so the table can handle its own parameters.
-  * `:row_fetcher` - Required. A function which receives the params and the node and
-    returns a tuple with the rows and the total number:
-    `(params(), node()) -> {list(), integer() | binary()}
-  * `:rows_name` - A string to name the representation of the rows.
-    Default is calculated with the given `:page_name`.
-  * `:title` - The title of the table.
-    Default is calculated with the given `:page_name`.
+  # * `:id` - Required. Because is a stateful `Phoenix.LiveComponent` an unique id is needed.
+  # * `:columns` - Required. A `Keyword` list with the following keys:
+  #   * `:field` - Required. An identifier for the column.
+  #   * `:header` - Label to show in the current column. Default value is calculated from `:field`.
+  #   * `:header_attrs` - A list with HTML attributes for the column header.
+  #     More info: `Phoenix.HTML.Tag.tag/1`. Default `[]`.
+  #   * `:format` - Function which receives the row data and returns the cell information.
+  #     Default is calculated from `:field`: `row[:field]`.
+  #   * `:cell_attrs` - A list with HTML attributes for the table cell.
+  #     It also can be a function which receives the row data and returns an attribute list.
+  #     More info: `Phoenix.HTML.Tag.tag/1`. Default: `[]`.
+  #   * `:sortable` - A boolean. When it is true the column header is clickable
+  #     and it fetches again rows with the new order.  Default: `false`
+  # * `:limit_options` - A list of integers to limit the number of rows to show.
+  #   Default: `[50, 100, 500, 1000, 5000]`
+  # * `:page_name` - Required. The name of current `Phoenix.LiveView`.
+  # * `:params` - Required. All the params received by the parent `Phoenix.LiveView`,
+  #   so the table can handle its own parameters.
+  # * `:row_fetcher` - Required. A function which receives the params and the node and
+  #   returns a tuple with the rows and the total number:
+  #   `(params(), node()) -> {list(), integer() | binary()}`
+  # * `:rows_name` - A string to name the representation of the rows.
+  #   Default is calculated with the given `:page_name`.
+  # * `:title` - The title of the table.
+  #   Default is calculated with the given `:page_name`.
 
-  """
   use Phoenix.LiveDashboard.Web, :live_component
 
   @sort_dir ~w(desc asc)
@@ -206,19 +205,13 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   @impl true
   def handle_event("search", %{"search" => search}, socket) do
-    %{page_name: page_name, node: node, all_params: all_params, table_params: table_params} =
-      socket.assigns
-
-    path = self_path(socket, page_name, node, all_params, %{table_params | search: search})
-    {:noreply, push_patch(socket, to: path)}
+    new_params = %{socket.assigns.table_params | search: search}
+    {:noreply, push_patch(socket, to: self_path(socket, new_params))}
   end
 
   def handle_event("select_limit", %{"limit" => limit}, socket) do
-    %{page_name: page_name, node: node, all_params: all_params, table_params: table_params} =
-      socket.assigns
-
-    path = self_path(socket, page_name, node, all_params, %{table_params | limit: limit})
-    {:noreply, push_patch(socket, to: path)}
+    new_params = %{socket.assigns.table_params | limit: limit}
+    {:noreply, push_patch(socket, to: self_path(socket, new_params))}
   end
 
   defp sort_link(socket, page_name, node, all_params, table_params, column) do
@@ -270,6 +263,16 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   defp opposite_sort_dir(%{sort_dir: :desc}), do: :asc
 
   defp opposite_sort_dir(_), do: :desc
+
+  defp self_path(socket, new_params) do
+    %{
+      page_name: page_name,
+      node: node,
+      all_params: all_params
+    } = socket.assigns
+
+    self_path(socket, page_name, node, all_params, new_params)
+  end
 
   defp self_path(socket, page_name, node, all_params, new_params) do
     new_params = Enum.into(new_params, %{}, fn {k, v} -> {Atom.to_string(k), to_string(v)} end)
