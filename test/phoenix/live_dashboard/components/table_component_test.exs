@@ -6,14 +6,9 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
   alias Phoenix.LiveDashboard.TableComponent
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
-  defp row_fetcher(params) do
-    send(self(), {:row_fetcher, params})
+  defp row_fetcher(params, node) do
+    send(self(), {:row_fetcher, params, node})
     {[[foo: 1, bar: 2, baz: 3], [foo: 4, bar: 5, baz: 6]], 2}
-  end
-
-  defp self_path(socket, params) do
-    send(self(), {:self_path, {socket, params}})
-    "/"
   end
 
   defp render_table(opts) do
@@ -24,10 +19,10 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         [
           columns: columns,
           id: :component_id,
+          node: node(),
+          page: :foobaz,
           params: %{},
-          row_fetcher: &row_fetcher/1,
-          self_path: &self_path/2,
-          title: "Title"
+          row_fetcher: &row_fetcher/2
         ],
         opts
       )
@@ -36,9 +31,10 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
   end
 
   describe "rendering" do
-    test "calls to raw_fetcher/1 with params" do
+    test "calls to row_fetcher/2 with params and node" do
       render_table(params: %{})
-      assert_received {:row_fetcher, %{sort_dir: :desc, limit: 50, sort_by: :foo}}
+      assert_received {:row_fetcher, %{sort_dir: :desc, limit: 50, sort_by: :foo}, node}
+      assert node == node()
 
       params = %{
         "sort_by" => "bar",
@@ -47,7 +43,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       }
 
       render_table(params: params)
-      assert_received {:row_fetcher, %{sort_dir: :asc, limit: 5000, sort_by: :bar}}
+      assert_received {:row_fetcher, %{sort_dir: :asc, limit: 5000, sort_by: :bar}, ^node}
     end
 
     test "renders columns" do
@@ -87,22 +83,33 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       title = "This is the title"
       result = render_table(title: title)
       assert result =~ title
+
+      result = render_table(page: :custom_page)
+      assert result =~ "<h5 class=\"card-title\">Custom page</h5>"
     end
 
     test "renders limit options" do
-      result = render_table(limit_options: ~w(10 100 1000))
-
-      assert result =~
-               ~s|<option value=\"10\" selected>10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
-
       result = render_table(limit_options: [10, 100, 1000])
 
       assert result =~
                ~s|<option value=\"10\" selected>10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
+
+      result = render_table(params: %{"limit" => "5"}, limit_options: [10, 100, 1000])
+
+      assert result =~
+               ~s|<option value=\"10\" selected>10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
+
+      result = render_table(params: %{"limit" => "100"}, limit_options: [10, 100, 1000])
+
+      assert result =~
+               ~s|<option value=\"10\">10</option><option value=\"100\" selected>100</option><option value=\"1000\">1000</option>|
     end
 
     test "renders rows_name" do
       result = render_table(rows_name: "waldos")
+      assert result =~ "waldos out of 2"
+
+      result = render_table(page: :waldos)
       assert result =~ "waldos out of 2"
     end
 

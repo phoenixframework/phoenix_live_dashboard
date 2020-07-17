@@ -29,12 +29,11 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
     %{
       columns: columns(),
       id: @table_id,
-      rows_name: "sockets",
+      node: node,
+      page: @page,
       params: params,
       row_attrs: &row_attrs/1,
-      row_fetcher: &fetch_sockets(&1, node),
-      self_path: &self_path(&1, node, &2),
-      title: "Sockets"
+      row_fetcher: &fetch_sockets/2
     }
   end
 

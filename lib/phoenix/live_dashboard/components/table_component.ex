@@ -65,28 +65,30 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   def update(assigns, socket) do
     %{
       columns: columns,
-      row_fetcher: row_fetcher,
-      params: params,
-      self_path: self_path,
-      title: title
+      node: node,
+      page: page,
+      params: all_params,
+      row_fetcher: row_fetcher
     } = assigns
 
-    limit_options = (assigns[:limit_options] || @limit)
+    limit_options = assigns[:limit_options] || @limit
     columns = normalize_columns(columns)
-    params = normalize_table_params(params, columns, limit_options)
-    {rows, total} = row_fetcher.(params)
+    table_params = normalize_table_params(all_params, columns, limit_options)
+    {rows, total} = row_fetcher.(table_params, node)
 
     {:ok,
      assign(socket,
+       all_params: all_params,
        columns: columns,
        limit_options: limit_options,
-       params: params,
+       node: node,
+       page: page,
        row_attrs: assigns[:row_attrs] || [],
        row_fetcher: row_fetcher,
        rows: rows,
-       rows_name: assigns[:rows_name] || "rows",
-       self_path: self_path,
-       title: title,
+       rows_name: assigns[:rows_name] || Phoenix.Naming.humanize(page) |> String.downcase(),
+       table_params: table_params,
+       title: assigns[:title] || Phoenix.Naming.humanize(page),
        total: total
      )}
   end
@@ -102,13 +104,13 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     end)
   end
 
-  defp normalize_table_params(params, columns, limit_options) do
+  defp normalize_table_params(all_params, columns, limit_options) do
     sortable_columns = sortable_columns(columns)
-    sort_by = params |> get_in_or_first("sort_by", sortable_columns) |> String.to_atom()
-    sort_dir = params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
+    sort_by = all_params |> get_in_or_first("sort_by", sortable_columns) |> String.to_atom()
+    sort_dir = all_params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
     limit_options = Enum.map(limit_options, &to_string/1)
-    limit = params |> get_in_or_first("limit", limit_options) |> String.to_integer()
-    search = params["search"]
+    limit = all_params |> get_in_or_first("limit", limit_options) |> String.to_integer()
+    search = all_params["search"]
     search = if search == "", do: nil, else: search
     %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search}
   end
@@ -134,7 +136,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         <form phx-change="search" phx-submit="search" phx-target="<%= @myself %>" class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @params.search %>" placeholder="Search" phx-debounce="300">
+              <input type="search" name="search" class="form-control form-control-sm" value="<%= @table_params.search %>" placeholder="Search" phx-debounce="300">
             </div>
           </div>
         </form>
@@ -146,7 +148,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
           <div class="col-auto">
             <div class="input-group input-group-sm">
               <select name="limit" class="custom-select" id="limit-select">
-                <%= options_for_select(@limit_options, @params.limit) %>
+                <%= options_for_select(@limit_options, @table_params.limit) %>
               </select>
             </div>
           </div>
@@ -165,7 +167,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
                   <%= for column <- @columns do %>
                     <%= tag_with_attrs(:th, column[:header_attrs], [column]) %>
                       <%= if column[:sortable] do %>
-                        <%= sort_link(@socket, @self_path, @params, column) %>
+                        <%= sort_link(@socket, @page, @node, @all_params, @table_params, column) %>
                       <% else %>
                         <%= column.header %>
                       <% end %>
@@ -204,36 +206,36 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   @impl true
   def handle_event("search", %{"search" => search}, socket) do
-    %{self_path: self_path, params: params} = socket.assigns
-
-    {:noreply, push_patch(socket, to: self_path.(socket, %{params | search: search}))}
+    %{page: page, node: node, all_params: all_params, table_params: table_params} = socket.assigns
+    path = self_path(socket, page, node, all_params, %{table_params | search: search})
+    {:noreply, push_patch(socket, to: path)}
   end
 
   def handle_event("select_limit", %{"limit" => limit}, socket) do
-    %{self_path: self_path, params: params} = socket.assigns
-
-    {:noreply, push_patch(socket, to: self_path.(socket, %{params | limit: limit}))}
+    %{page: page, node: node, all_params: all_params, table_params: table_params} = socket.assigns
+    path = self_path(socket, page, node, all_params, %{table_params | limit: limit})
+    {:noreply, push_patch(socket, to: path)}
   end
 
-  defp sort_link(socket, self_path, params, column) do
+  defp sort_link(socket, page, node, all_params, table_params, column) do
     field = column.field
 
-    case params do
+    case table_params do
       %{sort_by: ^field, sort_dir: sort_dir} ->
-        params = %{params | sort_dir: opposite_sort_dir(params), sort_by: field}
+        table_params = %{table_params | sort_dir: opposite_sort_dir(table_params), sort_by: field}
 
         column
         |> column_header()
         |> sort_link_body(sort_dir)
-        |> live_patch(to: self_path.(socket, params))
+        |> live_patch(to: self_path(socket, page, node, all_params, table_params))
 
       %{} ->
-        params = %{params | sort_dir: :desc, sort_by: field}
+        table_params = %{table_params | sort_dir: :desc, sort_by: field}
 
         column
         |> column_header()
         |> sort_link_body()
-        |> live_patch(to: self_path.(socket, params))
+        |> live_patch(to: self_path(socket, page, node, all_params, table_params))
     end
   end
 
@@ -264,4 +266,9 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   defp opposite_sort_dir(%{sort_dir: :desc}), do: :asc
 
   defp opposite_sort_dir(_), do: :desc
+
+  defp self_path(socket, page, node, all_params, new_params) do
+    new_params = Enum.into(new_params, %{}, fn {k, v} -> {Atom.to_string(k), to_string(v)} end)
+    live_dashboard_path(socket, page, node, Map.merge(all_params, new_params))
+  end
 end

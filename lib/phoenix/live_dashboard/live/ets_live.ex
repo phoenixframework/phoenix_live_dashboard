@@ -29,11 +29,12 @@ defmodule Phoenix.LiveDashboard.EtsLive do
     %{
       columns: columns(),
       id: @table_id,
-      rows_name: "tables",
+      node: node,
+      page: @page,
       params: params,
       row_attrs: &row_attrs/1,
-      row_fetcher: &fetch_ets(&1, node),
-      self_path: &self_path(&1, node, &2),
+      row_fetcher: &fetch_ets/2,
+      rows_name: "tables",
       title: "ETS"
     }
   end
