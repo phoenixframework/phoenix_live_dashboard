@@ -1,8 +1,60 @@
 defmodule Phoenix.LiveDashboard.TableComponent do
+  @moduledoc """
+  `Phoenix.LiveComponent` to render a simple table.
+
+  This component is used in different pages like applications or sockets.
+  It can be used in a `Phoenix.LiveView` in the `render/1` function:
+
+  ```
+  def render(assigns) do
+    ~L\"""
+      <%= live_component(assigns.socket, Phoenix.LiveDashboard.TableComponent, options) %>
+    \"""
+  end
+  ```
+
+  # Options
+
+  These are the options supported by the component:
+
+  * `:id` - Required. Because is a stateful `Phoenix.LiveComponent` an unique id is needed.
+  * `:columns` - Required. A `Keyword` list with the following keys:
+    * `:field` - Required. An identifier for the column.
+    * `:header` - Label to show in the current column. Default value is calculated from `:field`.
+    * `:header_attrs` - A list with HTML attributes for the column header.
+      More info: `Phoenix.HTML.Tag.tag/1`. Default `[]`.
+    * `:format` - Function which receives the row data and returns the cell information.
+      Default is calculated from `:field`: `row[:field]`.
+    * `:cell_attrs` - A list with HTML attributes for the table cell.
+      It also can be a function which receives the row data and returns an attribute list.
+      More info: `Phoenix.HTML.Tag.tag/1`. Default: `[]`.
+    * `:sortable` - A boolean. When it is true the column header is clickable
+      and it fetches again rows with the new order.  Default: `false`
+  * `:limit_options` - A list of integers to limit the number of rows to show.
+    Default: [50, 100, 500, 1000, 5000]
+  * `:page` - Required. The name of current `Phoenix.LiveView`.
+  * `:params` - Required. All the params received by the parent `Phoenix.LiveView`,
+    so the table can handle its own parameters.
+  * `:row_fetcher` - Required. A function which receives the params and the node and
+    returns a tuple with the rows and the total number:
+    `(params(), node()) -> {list(), integer() | binary()}
+  * `:rows_name` - A string to name the representation of the rows.
+    Default is calculated adding `"-s"` to the given `:page`.
+  * `:title` - The title of the table.
+    Default is calculated with the given `:page`.
+
+  """
   use Phoenix.LiveDashboard.Web, :live_component
 
   @sort_dir ~w(desc asc)
-  @limit ~w(50 100 500 1000 5000)
+  @limit [50, 100, 500, 1000, 5000]
+
+  @type params() :: %{
+          limit: pos_integer(),
+          sort_by: :atom,
+          sort_dir: :desc | :asc,
+          search: binary()
+        }
 
   @impl true
   def mount(socket) do
@@ -19,7 +71,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
       title: title
     } = assigns
 
-    limit_options = assigns[:limit_options] || @limit
+    limit_options = (assigns[:limit_options] || @limit)
     columns = normalize_columns(columns)
     params = normalize_table_params(params, columns, limit_options)
     {rows, total} = row_fetcher.(params)
@@ -54,14 +106,12 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     sortable_columns = sortable_columns(columns)
     sort_by = params |> get_in_or_first("sort_by", sortable_columns) |> String.to_atom()
     sort_dir = params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
-    limit = params |> get_in_or_first("limit", limit_options) |> to_integer()
+    limit_options = Enum.map(limit_options, &to_string/1)
+    limit = params |> get_in_or_first("limit", limit_options) |> String.to_integer()
     search = params["search"]
     search = if search == "", do: nil, else: search
     %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search}
   end
-
-  defp to_integer(integer) when is_integer(integer), do: integer
-  defp to_integer(string) when is_binary(string), do: String.to_integer(string)
 
   defp sortable_columns(columns) do
     Enum.flat_map(columns, &if(&1[:sortable], do: [to_string(&1[:field])], else: []))
