@@ -32,7 +32,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
       columns: columns(),
       id: @table_id,
       node: node,
-      page: @page,
+      page_name: @page,
       params: params,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_applications/2

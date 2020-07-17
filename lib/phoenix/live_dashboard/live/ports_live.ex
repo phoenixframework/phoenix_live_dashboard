@@ -30,7 +30,7 @@ defmodule Phoenix.LiveDashboard.PortsLive do
       columns: columns(),
       id: @table_id,
       node: node,
-      page: @page,
+      page_name: @page,
       params: params,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_ports/2
