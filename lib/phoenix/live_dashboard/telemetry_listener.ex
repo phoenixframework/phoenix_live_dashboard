@@ -20,13 +20,21 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
 
     entries =
       for {metric, index} <- metrics,
-          keep?(metric, metadata),
-          measurement = extract_measurement(metric, measurements) do
-        label = tags_to_label(metric, metadata)
+          map = extract_datapoint_for_metric(metric, measurements, metadata, time) do
+        %{label: label, measurement: measurement, time: time} = map
         {index, label, measurement, time}
       end
 
     send(parent, {:telemetry, entries})
+  end
+
+  def extract_datapoint_for_metric(metric, measurements, metadata, time \\ nil) do
+    if keep?(metric, metadata) do
+      time = time || System.system_time(:microsecond)
+      measurement = extract_measurement(metric, measurements)
+      label = tags_to_label(metric, metadata)
+      %{label: label, measurement: measurement, time: time}
+    end
   end
 
   defp keep?(%{keep: keep}, metadata) when keep != nil, do: keep.(metadata)

@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   alias Phoenix.LiveDashboard.ChartComponent
 
   @impl true
-  def mount(params, %{"metrics" => {mod, fun}} = session, socket) do
+  def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history} = session, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_group = Enum.group_by(all_metrics, &group_name/1)
 
@@ -27,6 +27,7 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
+        send_history_for_metrics(metrics, history)
         {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
       first_group && is_nil(group) ->
@@ -77,18 +78,39 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     """
   end
 
-  @impl true
-  def handle_info({:telemetry, entries}, socket) do
+  defp send_updates_for_entries(entries) do
     for {id, label, measurement, time} <- entries do
       data = [{label, measurement, time}]
       send_update(ChartComponent, id: id, data: data)
     end
+  end
 
+  @impl true
+  def handle_info({:telemetry, entries}, socket) do
+    send_updates_for_entries(entries)
     {:noreply, socket}
   end
 
   def handle_info({:node_redirect, node}, socket) do
     params = if group = socket.assigns.group, do: [group: group], else: []
     {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, params))}
+  end
+
+  defp send_history_for_metrics(_, nil), do: :noop
+
+  defp send_history_for_metrics(metrics, history) do
+    for {metric, id} <- Enum.with_index(metrics) do
+      metric
+      |> history_for(id, history)
+      |> send_updates_for_entries()
+    end
+  end
+
+  defp history_for(metric, id, {module, function, opts}) do
+    history = apply(module, function, [metric | opts])
+
+    for %{label: label, measurement: measurement, time: time} <- history do
+      {id, label, measurement, time}
+    end
   end
 end

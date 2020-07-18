@@ -20,16 +20,16 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   Encodes Sockets for URLs.
   """
   def encode_socket(ref) do
-    [_hash, _P, _o, _r, _t | port] = :erlang.port_to_list(ref)
-    "Socket#{port}"
+    '#Port' ++ rest = :erlang.port_to_list(ref)
+    "Socket#{rest}"
   end
 
   @doc """
   Encodes ETSs for URLs.
   """
   def encode_ets(ref) do
-    [_hash, _R, _e, _f | ref] = :erlang.ref_to_list(ref)
-    "ETS#{ref}"
+    '#Ref' ++ rest = :erlang.ref_to_list(ref)
+    "ETS#{rest}"
   end
 
   @doc """
