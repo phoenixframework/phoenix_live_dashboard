@@ -65,6 +65,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   def update(assigns, socket) do
     %{
       columns: columns,
+      id: _id,
       node: node,
       page_name: page_name,
       params: all_params,

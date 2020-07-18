@@ -6,6 +6,15 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
   alias Phoenix.LiveDashboard.TableComponent
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
+  defmodule Router do
+    use Phoenix.Router
+    import Phoenix.LiveDashboard.Router
+
+    scope "/" do
+      live_dashboard("/dashboard")
+    end
+  end
+
   defp row_fetcher(params, node) do
     send(self(), {:row_fetcher, params, node})
     {[[foo: 1, bar: 2, baz: 3], [foo: 4, bar: 5, baz: 6]], 2}
@@ -20,14 +29,14 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
           columns: columns,
           id: :component_id,
           node: node(),
-          page: :foobaz,
+          page_name: :foobaz,
           params: %{},
           row_fetcher: &row_fetcher/2
         ],
         opts
       )
 
-    render_component(TableComponent, opts)
+    render_component(TableComponent, opts, router: Router)
   end
 
   describe "rendering" do
@@ -84,7 +93,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       result = render_table(title: title)
       assert result =~ title
 
-      result = render_table(page: :custom_page)
+      result = render_table(page_name: :custom_page)
       assert result =~ "<h5 class=\"card-title\">Custom page</h5>"
     end
 
@@ -109,7 +118,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       result = render_table(rows_name: "waldos")
       assert result =~ "waldos out of 2"
 
-      result = render_table(page: :waldos)
+      result = render_table(page_name: :waldos)
       assert result =~ "waldos out of 2"
     end
 
