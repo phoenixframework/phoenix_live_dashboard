@@ -129,9 +129,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   def render(assigns) do
     ~L"""
     <div class="tabular-page">
-      <%= if @title do %>
-        <h5 class="card-title"><%= @title %></h5>
-      <% end %>
+      <h5 class="card-title"><%= @title %></h5>
 
       <div class="tabular-search">
         <form phx-change="search" phx-submit="search" phx-target="<%= @myself %>" class="form-inline">
