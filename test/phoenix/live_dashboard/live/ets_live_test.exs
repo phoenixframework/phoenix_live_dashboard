@@ -32,12 +32,12 @@ defmodule Phoenix.LiveDashboard.EtsLiveTest do
 
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/ets?limit=1000")
     rendered = render(live)
-    assert rendered =~ ~r/:table_big.*:table_small/
+    assert rendered =~ ~r/:table_big.*:table_small/s
     assert rendered =~ ets_href(1000, "", :size, :asc)
     refute rendered =~ ets_href(1000, "", :size, :desc)
 
     rendered = render_patch(live, "/dashboard/nonode@nohost/ets?limit=1000&sort_dir=asc")
-    assert rendered =~ ~r/:table_small.*:table_big/
+    assert rendered =~ ~r/:table_small.*:table_big/s
     assert rendered =~ ets_href(1000, "", :size, :desc)
     refute rendered =~ ets_href(1000, "", :size, :asc)
   end
@@ -53,12 +53,12 @@ defmodule Phoenix.LiveDashboard.EtsLiveTest do
     {:ok, live, _} = live(build_conn(), ets_path(1000, "", :memory, :desc))
     rendered = render(live)
 
-    assert rendered =~ ~r/:table_big.*:table_small/
+    assert rendered =~ ~r/:table_big.*:table_small/s
     assert rendered =~ ets_href(1000, "", :memory, :asc)
     refute rendered =~ ets_href(1000, "", :memory, :desc)
 
     rendered = render_patch(live, ets_path(1000, "", :memory, :asc))
-    assert rendered =~ ~r/:table_small.*:table_big/
+    assert rendered =~ ~r/:table_small.*:table_big/s
     assert rendered =~ ets_href(1000, "", :memory, :desc)
     refute rendered =~ ets_href(1000, "", :memory, :asc)
   end

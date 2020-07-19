@@ -76,7 +76,7 @@ defmodule Phoenix.LiveDashboard.SocketsLiveTest do
     assert rendered =~ sockets_href(50, "", :send_oct, :asc)
 
     assert rendered =~ "modal-content"
-    assert rendered =~ ~r/Local Address.*#{address}/
+    assert rendered =~ ~r/Local Address.*#{address}/s
 
     refute live |> element("#modal .close") |> render_click() =~ "modal"
     return_path = sockets_path(50, "", :send_oct, :asc)
