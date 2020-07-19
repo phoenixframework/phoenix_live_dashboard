@@ -1,5 +1,8 @@
-defmodule Phoenix.LiveDashboard.ProcessesLive do
-  use Phoenix.LiveDashboard.Web, :live_view
+defmodule Phoenix.LiveDashboard.ProcessesPage do
+  # TODO: This should be a behaviour?
+
+  import Phoenix.LiveView
+  import Phoenix.LiveView.Helpers
   import Phoenix.LiveDashboard.LiveHelpers
 
   alias Phoenix.LiveDashboard.SystemInfo
@@ -8,29 +11,19 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
   @page :processes
   @table_id :table
 
-  @impl true
-  def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_mount(socket, @page, params, session, true)}
-  end
-
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, socket |> assign_params(params) |> assign(:params, params)}
-  end
-
-  @impl true
+  # @impl true
   def render(assigns) do
     ~L"""
-      <%= live_component(@socket, TableComponent, table_assigns(@params, @menu.node)) %>
+    <%= live_component(@socket, TableComponent, table_assigns(@params, @menu)) %>
     """
   end
 
-  defp table_assigns(params, node) do
+  defp table_assigns(params, menu) do
     %{
       columns: columns(),
       id: @table_id,
-      node: node,
-      page_name: @page,
+      node: menu.node,
+      page_name: menu.page,
       params: params,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_processes/2
@@ -96,18 +89,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLive do
     ]
   end
 
-  @impl true
-  def handle_info({:node_redirect, node}, socket) do
-    {:noreply, push_redirect(socket, to: self_path(socket, node, socket.assigns.params))}
-  end
-
-  def handle_info(:refresh, socket) do
-    %{params: params, menu: menu} = socket.assigns
-    send_update(TableComponent, table_assigns(params, menu.node))
-    {:noreply, socket}
-  end
-
-  @impl true
+  # @impl true
   def handle_event("show_info", %{"pid" => pid}, socket) do
     params = Map.put(socket.assigns.params, :info, pid)
     {:noreply, push_patch(socket, to: self_path(socket, node(), params))}

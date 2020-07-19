@@ -244,6 +244,7 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
 
     socket =
       Phoenix.LiveView.assign(socket, :menu, %{
+        tick: 0,
         refresher?: refresher?,
         page: page,
         info: info(params),
