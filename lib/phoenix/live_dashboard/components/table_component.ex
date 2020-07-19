@@ -66,8 +66,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     %{
       columns: columns,
       id: _id,
-      node: node,
-      page_name: page_name,
+      menu: menu,
       params: all_params,
       row_fetcher: row_fetcher
     } = assigns
@@ -75,21 +74,20 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     limit_options = assigns[:limit_options] || @limit
     columns = normalize_columns(columns)
     table_params = normalize_table_params(all_params, columns, limit_options)
-    {rows, total} = row_fetcher.(table_params, node)
+    {rows, total} = row_fetcher.(table_params, menu.node)
 
     {:ok,
      assign(socket,
        all_params: all_params,
        columns: columns,
        limit_options: limit_options,
-       node: node,
-       page_name: page_name,
+       menu: menu,
        row_attrs: assigns[:row_attrs] || [],
        row_fetcher: row_fetcher,
        rows: rows,
-       rows_name: assigns[:rows_name] || Phoenix.Naming.humanize(page_name) |> String.downcase(),
+       rows_name: assigns[:rows_name] || Phoenix.Naming.humanize(menu.page) |> String.downcase(),
        table_params: table_params,
-       title: assigns[:title] || Phoenix.Naming.humanize(page_name),
+       title: assigns[:title] || Phoenix.Naming.humanize(menu.page),
        total: total
      )}
   end
@@ -166,7 +164,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
                   <%= for column <- @columns do %>
                     <%= tag_with_attrs(:th, column[:header_attrs], [column]) %>
                       <%= if column[:sortable] do %>
-                        <%= sort_link(@socket, @page_name, @node, @all_params, @table_params, column) %>
+                        <%= sort_link(@socket, @menu, @all_params, @table_params, column) %>
                       <% else %>
                         <%= column.header %>
                       <% end %>
@@ -206,15 +204,29 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   @impl true
   def handle_event("search", %{"search" => search}, socket) do
     new_params = %{socket.assigns.table_params | search: search}
-    {:noreply, push_patch(socket, to: self_path(socket, new_params))}
+
+    %{
+      menu: menu,
+      all_params: all_params
+    } = socket.assigns
+
+    to = self_path(socket, menu, all_params, new_params)
+    {:noreply, push_patch(socket, to: to)}
   end
 
   def handle_event("select_limit", %{"limit" => limit}, socket) do
     new_params = %{socket.assigns.table_params | limit: limit}
-    {:noreply, push_patch(socket, to: self_path(socket, new_params))}
+
+    %{
+      menu: menu,
+      all_params: all_params
+    } = socket.assigns
+
+    to = self_path(socket, menu, all_params, new_params)
+    {:noreply, push_patch(socket, to: to)}
   end
 
-  defp sort_link(socket, page_name, node, all_params, table_params, column) do
+  defp sort_link(socket, menu, all_params, table_params, column) do
     field = column.field
 
     case table_params do
@@ -224,7 +236,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         column
         |> column_header()
         |> sort_link_body(sort_dir)
-        |> live_patch(to: self_path(socket, page_name, node, all_params, table_params))
+        |> live_patch(to: self_path(socket, menu, all_params, table_params))
 
       %{} ->
         table_params = %{table_params | sort_dir: :desc, sort_by: field}
@@ -232,7 +244,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         column
         |> column_header()
         |> sort_link_body()
-        |> live_patch(to: self_path(socket, page_name, node, all_params, table_params))
+        |> live_patch(to: self_path(socket, menu, all_params, table_params))
     end
   end
 
@@ -264,18 +276,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   defp opposite_sort_dir(_), do: :desc
 
-  defp self_path(socket, new_params) do
-    %{
-      page_name: page_name,
-      node: node,
-      all_params: all_params
-    } = socket.assigns
-
-    self_path(socket, page_name, node, all_params, new_params)
-  end
-
-  defp self_path(socket, page_name, node, all_params, new_params) do
+  defp self_path(socket, menu, all_params, new_params) do
     new_params = Enum.into(new_params, %{}, fn {k, v} -> {Atom.to_string(k), to_string(v)} end)
-    live_dashboard_path(socket, page_name, node, Map.merge(all_params, new_params))
+    live_dashboard_path(socket, menu.page, menu.node, Map.merge(all_params, new_params))
   end
 end

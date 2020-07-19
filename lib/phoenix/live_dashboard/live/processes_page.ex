@@ -22,8 +22,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
     %{
       columns: columns(),
       id: @table_id,
-      node: menu.node,
-      page_name: menu.page,
+      menu: menu,
       params: params,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_processes/2

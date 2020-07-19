@@ -54,10 +54,6 @@ defmodule Phoenix.LiveDashboard.Router do
         live "/:node/home", Phoenix.LiveDashboard.HomeLive, :home, opts
         live "/:node/os_mon", Phoenix.LiveDashboard.OSMonLive, :os_mon, opts
         live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
-        live "/:node/applications", Phoenix.LiveDashboard.ApplicationsLive, :applications, opts
-        live "/:node/ports", Phoenix.LiveDashboard.PortsLive, :ports, opts
-        live "/:node/sockets", Phoenix.LiveDashboard.SocketsLive, :sockets, opts
-        live "/:node/ets", Phoenix.LiveDashboard.EtsLive, :ets, opts
 
         live "/:node/request_logger",
              Phoenix.LiveDashboard.RequestLoggerLive,
@@ -134,7 +130,11 @@ defmodule Phoenix.LiveDashboard.Router do
       "env_keys" => env_keys,
       "metrics_history" => metrics_history,
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn),
-      "processes" => Phoenix.LiveDashboard.ProcessesPage
+      "processes" => Phoenix.LiveDashboard.ProcessesPage,
+      "ports" => Phoenix.LiveDashboard.PortsPage,
+      "applications" => Phoenix.LiveDashboard.ApplicationsPage,
+      "sockets" => Phoenix.LiveDashboard.SocketsPage,
+      "ets" => Phoenix.LiveDashboard.EtsPage
     }
   end
 end
