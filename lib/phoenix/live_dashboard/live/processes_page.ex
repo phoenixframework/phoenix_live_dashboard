@@ -1,31 +1,29 @@
 defmodule Phoenix.LiveDashboard.ProcessesPage do
   # TODO: This should be a behaviour?
 
-  import Phoenix.LiveView
   import Phoenix.LiveView.Helpers
   import Phoenix.LiveDashboard.LiveHelpers
 
   alias Phoenix.LiveDashboard.SystemInfo
   alias Phoenix.LiveDashboard.TableComponent
 
-  @page :processes
   @table_id :table
 
   # @impl true
   def render(assigns) do
     ~L"""
-    <%= live_component(@socket, TableComponent, table_assigns(@params, @menu)) %>
+    <%= live_component(@socket, TableComponent, table_assigns(@menu)) %>
     """
   end
 
-  defp table_assigns(params, menu) do
+  defp table_assigns(menu) do
     %{
       columns: columns(),
       id: @table_id,
       menu: menu,
-      params: params,
       row_attrs: &row_attrs/1,
-      row_fetcher: &fetch_processes/2
+      row_fetcher: &fetch_processes/2,
+      title: "Processes"
     }
   end
 
@@ -83,18 +81,8 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
   defp row_attrs(process) do
     [
       {"phx-click", "show_info"},
-      {"phx-value-pid", encode_pid(process[:pid])},
+      {"phx-value-info", encode_pid(process[:pid])},
       {"phx-page-loading", true}
     ]
-  end
-
-  # @impl true
-  def handle_event("show_info", %{"pid" => pid}, socket) do
-    params = Map.put(socket.assigns.params, :info, pid)
-    {:noreply, push_patch(socket, to: self_path(socket, node(), params))}
-  end
-
-  defp self_path(socket, node, params) do
-    live_dashboard_path(socket, @page, node, params)
   end
 end

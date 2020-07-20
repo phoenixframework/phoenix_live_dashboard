@@ -245,6 +245,7 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
     socket =
       Phoenix.LiveView.assign(socket, :menu, %{
         tick: 0,
+        params: params,
         refresher?: refresher?,
         page: page,
         info: info(params),
@@ -270,12 +271,27 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   """
   def assign_params(socket, params) do
     menu = socket.assigns.menu
+    socket = Phoenix.LiveView.assign(socket, :menu, %{menu | params: params})
+
     info = info(params)
 
     if menu.info != info do
       Phoenix.LiveView.assign(socket, :menu, %{menu | info: info})
     else
       socket
+    end
+  end
+
+  @doc """
+  Current path and maybe it updates the params
+  """
+  def self_path(socket, menu, new_params_or_fun \\ nil) do
+    case new_params_or_fun || menu.params do
+      fun when is_function(fun, 1) ->
+        live_dashboard_path(socket, menu.page, menu.node, fun.(menu.params))
+
+      params when is_map(params) or is_list(params) ->
+        live_dashboard_path(socket, menu.page, menu.node, params)
     end
   end
 end

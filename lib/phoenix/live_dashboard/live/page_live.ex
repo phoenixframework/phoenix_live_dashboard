@@ -11,7 +11,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
     if module = session[page] do
       {:ok,
        socket
-       |> assign_mount(String.to_atom(page), params, session, true)
+       |> assign_mount(String.to_existing_atom(page), params, session, true)
        |> assign(:module, module)}
     else
       raise Phoenix.LiveDashboard.PageNotFound, "unknown page #{inspect(page)}"
@@ -20,7 +20,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply, socket |> assign_params(params) |> assign(:params, params)}
+    {:noreply, assign_params(socket, params)}
   end
 
   @impl true
@@ -34,13 +34,17 @@ defmodule Phoenix.LiveDashboard.PageLive do
     {:noreply, push_redirect(socket, to: to)}
   end
 
-  @impl true
   def handle_info(:refresh, socket) do
     menu = socket.assigns.menu
     {:noreply, assign(socket, :menu, update_in(menu.tick, &(&1 + 1)))}
   end
 
   @impl true
+  def handle_event("show_info", %{"info" => info}, socket) do
+    to = self_path(socket, socket.assigns.menu, &Map.put(&1, :info, info))
+    {:noreply, push_patch(socket, to: to)}
+  end
+
   def handle_event(event, params, socket) do
     socket.assigns.module.handle_event(event, params, socket)
   end

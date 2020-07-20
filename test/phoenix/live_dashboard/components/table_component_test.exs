@@ -24,8 +24,9 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     columns = [%{field: :foo, sortable: true}, %{field: :bar, sortable: true}, %{field: :baz}]
 
     menu = %{
-      node: node(),
-      page: :foobaz
+      node: Keyword.get(opts, :node, node()),
+      page: Keyword.get(opts, :page, :foobaz),
+      params: Keyword.get(opts, :params, %{})
     }
 
     opts =
@@ -34,8 +35,8 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
           columns: columns,
           id: :component_id,
           menu: menu,
-          params: %{},
-          row_fetcher: &row_fetcher/2
+          row_fetcher: &row_fetcher/2,
+          title: "Title"
         ],
         opts
       )
@@ -117,6 +118,9 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
 
     test "renders rows_name" do
       result = render_table(rows_name: "waldos")
+      assert result =~ "waldos out of 2"
+
+      result = render_table(title: "Waldos")
       assert result =~ "waldos out of 2"
     end
 
