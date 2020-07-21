@@ -1,10 +1,14 @@
 defmodule Phoenix.LiveDashboard.MetricsLive do
-  use Phoenix.LiveDashboard.Web, :live_view
+  # use Phoenix.LiveDashboard.Web, :live_view
+
+  import Phoenix.LiveView
+  import Phoenix.LiveView.Helpers
+  import Phoenix.LiveDashboard.LiveHelpers
 
   alias Phoenix.LiveDashboard.ChartComponent
 
-  @impl true
-  def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history} = session, socket) do
+  # @impl true
+  def mount(params, %{"metrics_fetcher" => {mod, fun}, "metrics_history" => history}, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_group = Enum.group_by(all_metrics, &group_name/1)
 
@@ -12,10 +16,14 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     metrics = metrics_per_group[group]
     {first_group, _} = Enum.at(metrics_per_group, 0, {nil, nil})
 
+    # FIXME temporal hack, this should be easier to access
+    menu = Map.put(socket.assigns.menu, :refresher?, false)
+
     socket =
       socket
-      |> assign_mount(:metrics, params, session)
+      # |> assign_mount(:metrics, params, session)
       |> assign(group: group, groups: Map.keys(metrics_per_group))
+      |> assign(menu: menu)
 
     cond do
       !socket.assigns.menu.metrics ->
@@ -46,12 +54,12 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   defp format_group_name("vm"), do: "VM"
   defp format_group_name(group), do: Phoenix.Naming.camelize(group)
 
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, assign_params(socket, params)}
-  end
+  # @impl true
+  # def handle_params(params, _url, socket) do
+  #   {:noreply, assign_params(socket, params)}
+  # end
 
-  @impl true
+  # @impl true
   def render(assigns) do
     ~L"""
     <div class="row">
@@ -85,16 +93,16 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     end
   end
 
-  @impl true
+  # @impl true
   def handle_info({:telemetry, entries}, socket) do
     send_updates_for_entries(entries)
     {:noreply, socket}
   end
 
-  def handle_info({:node_redirect, node}, socket) do
-    params = if group = socket.assigns.group, do: [group: group], else: []
-    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, params))}
-  end
+  # def handle_info({:node_redirect, node}, socket) do
+  #   params = if group = socket.assigns.group, do: [group: group], else: []
+  #   {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, params))}
+  # end
 
   defp send_history_for_metrics(_, nil), do: :noop
 

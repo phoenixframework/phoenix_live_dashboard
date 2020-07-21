@@ -1,9 +1,13 @@
 defmodule Phoenix.LiveDashboard.RequestLoggerLive do
-  use Phoenix.LiveDashboard.Web, :live_view
+  # use Phoenix.LiveDashboard.Web, :live_view
 
-  @impl true
+  import Phoenix.LiveView
+  import Phoenix.LiveView.Helpers
+  import Phoenix.LiveDashboard.LiveHelpers
+
+  # @impl true
   def mount(%{"stream" => stream} = params, session, socket) do
-    %{"request_logger" => {param_key, cookie_key}} = session
+    %{"request_logger_key" => {param_key, cookie_key}} = session
 
     if connected?(socket) do
       # TODO: Remove || once we support Phoenix v1.5+
@@ -41,22 +45,22 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
      )}
   end
 
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, assign_params(socket, params)}
-  end
+  # @impl true
+  # def handle_params(params, _url, socket) do
+  #   {:noreply, assign_params(socket, params)}
+  # end
 
-  @impl true
+  # @impl true
   def handle_info({:logger, level, message}, socket) do
     {:noreply, assign(socket, messages: [{message, level}], messages_present: true)}
   end
 
-  def handle_info({:node_redirect, node}, socket) do
-    to = live_dashboard_path(socket, :request_logger, node, stream: socket.assigns.stream)
-    {:noreply, push_redirect(socket, to: to)}
-  end
+  # def handle_info({:node_redirect, node}, socket) do
+  #   to = live_dashboard_path(socket, :request_logger, node, stream: socket.assigns.stream)
+  #   {:noreply, push_redirect(socket, to: to)}
+  # end
 
-  @impl true
+  # @impl true
   def handle_event("toggle_cookie", %{"enable" => "true"}, socket) do
     {:noreply, assign(socket, :cookie_enabled, true)}
   end
@@ -69,7 +73,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
     {:noreply, assign(socket, :autoscroll_enabled, !socket.assigns.autoscroll_enabled)}
   end
 
-  @impl true
+  # @impl true
   def render(assigns) do
     ~L"""
     <!-- Card containing log messages -->

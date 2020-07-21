@@ -50,15 +50,15 @@ defmodule Phoenix.LiveDashboard.Router do
         import Phoenix.LiveView.Router, only: [live: 4]
 
         opts = Phoenix.LiveDashboard.Router.__options__(opts)
-        live "/", Phoenix.LiveDashboard.HomeLive, :home, opts
-        live "/:node/home", Phoenix.LiveDashboard.HomeLive, :home, opts
-        live "/:node/os_mon", Phoenix.LiveDashboard.OSMonLive, :os_mon, opts
-        live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
+        live "/", Phoenix.LiveDashboard.PageLive, :home, opts ++ [page: "home", node: node()]
+        # live "/:node/home", Phoenix.LiveDashboard.HomeLive, :home, opts
+        # live "/:node/os_mon", Phoenix.LiveDashboard.OSMonLive, :os_mon, opts
+        # live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
 
-        live "/:node/request_logger",
-             Phoenix.LiveDashboard.RequestLoggerLive,
-             :request_logger,
-             opts
+        # live "/:node/request_logger",
+        #      Phoenix.LiveDashboard.RequestLoggerLive,
+        #      :request_logger,
+        #      opts
 
         # Catch-all for URL generation
         live "/:node/:page", Phoenix.LiveDashboard.PageLive, :page, opts
@@ -126,15 +126,19 @@ defmodule Phoenix.LiveDashboard.Router do
   @doc false
   def __session__(conn, metrics, env_keys, metrics_history) do
     %{
-      "metrics" => metrics,
+      "metrics_fetcher" => metrics,
       "env_keys" => env_keys,
       "metrics_history" => metrics_history,
-      "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn),
+      "request_logger_key" => Phoenix.LiveDashboard.RequestLogger.param_key(conn),
       "processes" => Phoenix.LiveDashboard.ProcessesPage,
       "ports" => Phoenix.LiveDashboard.PortsPage,
       "applications" => Phoenix.LiveDashboard.ApplicationsPage,
       "sockets" => Phoenix.LiveDashboard.SocketsPage,
-      "ets" => Phoenix.LiveDashboard.EtsPage
+      "ets" => Phoenix.LiveDashboard.EtsPage,
+      "os_mon" => Phoenix.LiveDashboard.OSMonLive,
+      "home" => Phoenix.LiveDashboard.HomeLive,
+      "request_logger" => Phoenix.LiveDashboard.RequestLoggerLive,
+      "metrics" => Phoenix.LiveDashboard.MetricsLive
     }
   end
 end

@@ -1,5 +1,9 @@
 defmodule Phoenix.LiveDashboard.OSMonLive do
-  use Phoenix.LiveDashboard.Web, :live_view
+  # use Phoenix.LiveDashboard.Web, :live_view
+
+  import Phoenix.LiveView
+  import Phoenix.LiveView.Helpers
+  import Phoenix.LiveDashboard.LiveHelpers
 
   alias Phoenix.LiveDashboard.{
     SystemInfo,
@@ -32,12 +36,13 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
      "The amount of disk swap memory used from the available swap"}
   ]
 
-  @impl true
-  def mount(%{"node" => _} = params, session, socket) do
-    socket =
-      socket
-      |> assign_mount(:os_mon, params, session, true)
-      |> assign_os_mon()
+  # @impl true
+  # def mount(%{"node" => _} = params, session, socket) do
+  def mount(_params, _session, socket) do
+    # socket =
+    #   socket
+    #   |> assign_mount(:os_mon, params, session, true)
+    socket = assign_os_mon(socket)
 
     if socket.assigns.menu.os_mon do
       {:ok, socket, temporary_assigns: @temporary_assigns}
@@ -47,9 +52,9 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     end
   end
 
-  def mount(_params, _session, socket) do
-    {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, node()))}
-  end
+  # def mount(_params, _session, socket) do
+  #   {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, node()))}
+  # end
 
   defp assign_os_mon(socket) do
     os_mon = SystemInfo.fetch_os_mon_info(socket.assigns.menu.node)
@@ -105,12 +110,12 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     |> Float.ceil(1)
   end
 
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, assign_params(socket, params)}
-  end
+  # @impl true
+  # def handle_params(params, _url, socket) do
+  #   {:noreply, assign_params(socket, params)}
+  # end
 
-  @impl true
+  # @impl true
   def render(assigns) do
     ~L"""
     <div class="row">
@@ -259,12 +264,16 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     end
   end
 
-  @impl true
-  def handle_info({:node_redirect, node}, socket) do
-    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
-  end
+  # @impl true
+  # def handle_info({:node_redirect, node}, socket) do
+  #   {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
+  # end
 
-  def handle_info(:refresh, socket) do
+  # def handle_info(:refresh, socket) do
+  #   {:noreply, assign_os_mon(socket)}
+  # end
+
+  def handle_refresh(socket) do
     {:noreply, assign_os_mon(socket)}
   end
 end
