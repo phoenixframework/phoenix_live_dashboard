@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.PortsPage do
-  # TODO: This should be a behaviour?
+  use Phoenix.LiveDashboard.PageLive
 
   import Phoenix.LiveView.Helpers
   import Phoenix.LiveDashboard.LiveHelpers
@@ -9,7 +9,7 @@ defmodule Phoenix.LiveDashboard.PortsPage do
 
   @table_id :table
 
-  # @impl true
+  @impl true
   def render(assigns) do
     ~L"""
       <%= live_component(assigns.socket, TableComponent, table_assigns(@menu)) %>

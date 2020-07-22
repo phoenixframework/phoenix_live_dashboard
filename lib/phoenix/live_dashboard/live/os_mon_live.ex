@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.OSMonLive do
-  # use Phoenix.LiveDashboard.Web, :live_view
+  use Phoenix.LiveDashboard.PageLive
 
   import Phoenix.LiveView
   import Phoenix.LiveView.Helpers
@@ -36,12 +36,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
      "The amount of disk swap memory used from the available swap"}
   ]
 
-  # @impl true
-  # def mount(%{"node" => _} = params, session, socket) do
   def mount(_params, _session, socket) do
-    # socket =
-    #   socket
-    #   |> assign_mount(:os_mon, params, session, true)
     socket = assign_os_mon(socket)
 
     if socket.assigns.menu.os_mon do
@@ -51,10 +46,6 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
        push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
     end
   end
-
-  # def mount(_params, _session, socket) do
-  #   {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, node()))}
-  # end
 
   defp assign_os_mon(socket) do
     os_mon = SystemInfo.fetch_os_mon_info(socket.assigns.menu.node)
@@ -110,12 +101,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     |> Float.ceil(1)
   end
 
-  # @impl true
-  # def handle_params(params, _url, socket) do
-  #   {:noreply, assign_params(socket, params)}
-  # end
-
-  # @impl true
+  @impl true
   def render(assigns) do
     ~L"""
     <div class="row">
@@ -264,15 +250,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     end
   end
 
-  # @impl true
-  # def handle_info({:node_redirect, node}, socket) do
-  #   {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
-  # end
-
-  # def handle_info(:refresh, socket) do
-  #   {:noreply, assign_os_mon(socket)}
-  # end
-
+  @impl true
   def handle_refresh(socket) do
     {:noreply, assign_os_mon(socket)}
   end

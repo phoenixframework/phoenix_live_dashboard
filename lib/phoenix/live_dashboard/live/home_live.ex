@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.HomeLive do
-  # use Phoenix.LiveDashboard.Web, :live_view
+  use Phoenix.LiveDashboard.PageLive
 
   import Phoenix.LiveView
   import Phoenix.LiveView.Helpers
@@ -29,10 +29,8 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     {:other, "Other", "dark-gray"}
   ]
 
-  # @impl true
+  @impl true
   def mount(_params, session, socket) do
-    # socket = assign_mount(socket, :home, params, session, true)
-
     %{
       # Read once
       system_info: system_info,
@@ -54,16 +52,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     {:ok, socket, temporary_assigns: @temporary_assigns}
   end
 
-  # def mount(_params, _session, socket) do
-  #   {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, node()))}
-  # end
-
-  # @impl true
-  # def handle_params(params, _url, socket) do
-  #   {:noreply, assign_params(socket, params)}
-  # end
-
-  # @impl true
+  @impl true
   def render(assigns) do
     ~L"""
     <div class="row">
@@ -240,12 +229,7 @@ defmodule Phoenix.LiveDashboard.HomeLive do
     end)
   end
 
-  # @impl true
-  # def handle_info({:node_redirect, node}, socket) do
-  #   {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
-  # end
-
-  # def handle_info(:refresh, socket) do
+  @impl true
   def handle_refresh(socket) do
     {:noreply,
      assign(socket, system_usage: SystemInfo.fetch_system_usage(socket.assigns.menu.node))}

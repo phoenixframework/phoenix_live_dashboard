@@ -1,15 +1,12 @@
 defmodule Phoenix.LiveDashboard.SocketsPage do
-  # TODO: This should be a behaviour?
-
-  import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.LiveHelpers
+  use Phoenix.LiveDashboard.PageLive
 
   alias Phoenix.LiveDashboard.SystemInfo
   alias Phoenix.LiveDashboard.TableComponent
 
   @table_id :table
 
-  # @impl true
+  @impl true
   def render(assigns) do
     ~L"""
       <%= live_component(assigns.socket, TableComponent, table_assigns(@menu)) %>
