@@ -51,14 +51,6 @@ defmodule Phoenix.LiveDashboard.Router do
 
         opts = Phoenix.LiveDashboard.Router.__options__(opts)
         live "/", Phoenix.LiveDashboard.PageLive, :home, opts ++ [page: "home", node: node()]
-        # live "/:node/home", Phoenix.LiveDashboard.HomeLive, :home, opts
-        # live "/:node/os_mon", Phoenix.LiveDashboard.OSMonLive, :os_mon, opts
-        # live "/:node/metrics", Phoenix.LiveDashboard.MetricsLive, :metrics, opts
-
-        # live "/:node/request_logger",
-        #      Phoenix.LiveDashboard.RequestLoggerLive,
-        #      :request_logger,
-        #      opts
 
         # Catch-all for URL generation
         live "/:node/:page", Phoenix.LiveDashboard.PageLive, :page, opts
@@ -135,10 +127,10 @@ defmodule Phoenix.LiveDashboard.Router do
       "applications" => Phoenix.LiveDashboard.ApplicationsPage,
       "sockets" => Phoenix.LiveDashboard.SocketsPage,
       "ets" => Phoenix.LiveDashboard.EtsPage,
-      "os_mon" => Phoenix.LiveDashboard.OSMonLive,
-      "home" => Phoenix.LiveDashboard.HomeLive,
-      "request_logger" => Phoenix.LiveDashboard.RequestLoggerLive,
-      "metrics" => Phoenix.LiveDashboard.MetricsLive
+      "os_mon" => Phoenix.LiveDashboard.OSMonPage,
+      "home" => Phoenix.LiveDashboard.HomePage,
+      "request_logger" => Phoenix.LiveDashboard.RequestLoggerPage,
+      "metrics" => Phoenix.LiveDashboard.MetricsPage
     }
   end
 end

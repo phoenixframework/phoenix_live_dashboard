@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.RequestLoggerLive do
+defmodule Phoenix.LiveDashboard.RequestLoggerPage do
   use Phoenix.LiveDashboard.PageLive
 
   import Phoenix.LiveView

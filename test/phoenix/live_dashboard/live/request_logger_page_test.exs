@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.RequestLoggerLiveTest do
+defmodule Phoenix.LiveDashboard.RequestLoggerPageTest do
   use ExUnit.Case, async: true
 
   require Logger

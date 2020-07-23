@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.MetricsLiveTest do
+defmodule Phoenix.LiveDashboard.MetricsPageTest do
   use ExUnit.Case, async: true
 
   import Phoenix.ConnTest

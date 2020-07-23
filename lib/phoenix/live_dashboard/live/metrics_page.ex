@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.MetricsLive do
+defmodule Phoenix.LiveDashboard.MetricsPage do
   use Phoenix.LiveDashboard.PageLive, refresher?: false
 
   alias Phoenix.LiveDashboard.ChartComponent

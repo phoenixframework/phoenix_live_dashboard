@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.HomeLive do
+defmodule Phoenix.LiveDashboard.HomePage do
   use Phoenix.LiveDashboard.PageLive
 
   import Phoenix.LiveView

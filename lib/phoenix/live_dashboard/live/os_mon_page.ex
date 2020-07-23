@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.OSMonLive do
+defmodule Phoenix.LiveDashboard.OSMonPage do
   use Phoenix.LiveDashboard.PageLive
 
   import Phoenix.LiveView
