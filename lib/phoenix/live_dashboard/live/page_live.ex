@@ -52,7 +52,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
       refresher? = Keyword.get(opts, :refresher?, true)
 
-      def __page_live_refresher?() do
+      def __page_live__(:refresher?) do
         unquote(refresher?)
       end
     end
@@ -61,7 +61,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   @impl true
   def mount(%{"node" => _, "page" => page} = params, session, socket) do
     if module = session[page] do
-      refresher? = module.__page_live_refresher?()
+      refresher? = module.__page_live__(:refresher?)
 
       socket
       |> assign_mount(String.to_existing_atom(page), params, session, refresher?)
