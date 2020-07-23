@@ -73,7 +73,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, node()))}
+    {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, node(), []))}
   end
 
   defp maybe_apply_module(socket, fun, params, default) do
@@ -115,7 +115,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   @impl true
   def handle_event("show_info", %{"info" => info}, socket) do
-    to = self_path(socket, socket.assigns.menu, &Map.put(&1, :info, info))
+    to = live_dashboard_path(socket, socket.assigns.menu, &Map.put(&1, :info, info))
     {:noreply, push_patch(socket, to: to)}
   end
 

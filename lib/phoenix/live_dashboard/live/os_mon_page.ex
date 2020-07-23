@@ -43,8 +43,8 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     if socket.assigns.menu.os_mon do
       {:ok, socket, temporary_assigns: @temporary_assigns}
     else
-      {:ok,
-       push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+      to = live_dashboard_path(socket, :home, socket.assigns.menu.node, [])
+      {:ok, push_redirect(socket, to: to)}
     end
   end
 

@@ -203,13 +203,13 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   @impl true
   def handle_event("search", %{"search" => search}, socket) do
     new_params = %{socket.assigns.table_params | search: search}
-    to = self_path(socket, socket.assigns.menu, update_params(new_params))
+    to = live_dashboard_path(socket, socket.assigns.menu, update_params(new_params))
     {:noreply, push_patch(socket, to: to)}
   end
 
   def handle_event("select_limit", %{"limit" => limit}, socket) do
     new_params = %{socket.assigns.table_params | limit: limit}
-    to = self_path(socket, socket.assigns.menu, update_params(new_params))
+    to = live_dashboard_path(socket, socket.assigns.menu, update_params(new_params))
     {:noreply, push_patch(socket, to: to)}
   end
 
@@ -223,7 +223,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         column
         |> column_header()
         |> sort_link_body(sort_dir)
-        |> live_patch(to: self_path(socket, menu, update_params(table_params)))
+        |> live_patch(to: live_dashboard_path(socket, menu, update_params(table_params)))
 
       %{} ->
         table_params = %{table_params | sort_dir: :desc, sort_by: field}
@@ -231,7 +231,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         column
         |> column_header()
         |> sort_link_body()
-        |> live_patch(to: self_path(socket, menu, update_params(table_params)))
+        |> live_patch(to: live_dashboard_path(socket, menu, update_params(table_params)))
     end
   end
 
