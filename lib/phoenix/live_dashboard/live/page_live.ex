@@ -66,7 +66,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
       socket
       |> assign_mount(String.to_existing_atom(page), params, session, refresher?)
       |> assign(:module, module)
-      |> maybe_apply_module(:mount, [params, session, :__socket__], &{:ok, &1})
+      |> maybe_apply_module(:mount, [params, session], &{:ok, &1})
     else
       raise Phoenix.LiveDashboard.PageNotFound, "unknown page #{inspect(page)}"
     end
@@ -77,9 +77,8 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp maybe_apply_module(socket, fun, params, default) do
-    if function_exported?(socket.assigns.module, fun, length(params)) do
-      params = Enum.map(params, &if(&1 == :__socket__, do: socket, else: &1))
-      apply(socket.assigns.module, fun, params)
+    if function_exported?(socket.assigns.module, fun, length(params) + 1) do
+      apply(socket.assigns.module, fun, params ++ [socket])
     else
       default.(socket)
     end
@@ -88,7 +87,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   @impl true
   def handle_params(params, url, socket) do
     socket = assign_params(socket, params)
-    maybe_apply_module(socket, :handle_params, [params, url, :__socket__], &{:noreply, &1})
+    maybe_apply_module(socket, :handle_params, [params, url], &{:noreply, &1})
   end
 
   @impl true
@@ -107,11 +106,11 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
     socket
     |> assign(:menu, update_in(menu.tick, &(&1 + 1)))
-    |> maybe_apply_module(:handle_refresh, [:__socket__], &{:noreply, &1})
+    |> maybe_apply_module(:handle_refresh, [], &{:noreply, &1})
   end
 
   def handle_info(message, socket) do
-    maybe_apply_module(socket, :handle_info, [message, :__socket__], &{:noreply, &1})
+    maybe_apply_module(socket, :handle_info, [message], &{:noreply, &1})
   end
 
   @impl true

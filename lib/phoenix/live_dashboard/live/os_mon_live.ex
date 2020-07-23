@@ -36,6 +36,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
      "The amount of disk swap memory used from the available swap"}
   ]
 
+  @impl true
   def mount(_params, _session, socket) do
     socket = assign_os_mon(socket)
 
