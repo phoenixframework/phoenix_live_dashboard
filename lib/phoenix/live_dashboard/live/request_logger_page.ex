@@ -1,10 +1,6 @@
 defmodule Phoenix.LiveDashboard.RequestLoggerPage do
   use Phoenix.LiveDashboard.PageLive
 
-  import Phoenix.LiveView
-  import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.LiveHelpers
-
   @impl true
   def mount(%{"stream" => stream}, session, socket) do
     %{"request_logger_key" => {param_key, cookie_key}} = session

@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.PortsLiveTest do
+defmodule Phoenix.LiveDashboard.PortsPageTest do
   use ExUnit.Case, async: true
 
   import Phoenix.ConnTest

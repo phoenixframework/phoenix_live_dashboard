@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.EtsLiveTest do
+defmodule Phoenix.LiveDashboard.EtsPageTest do
   use ExUnit.Case, async: true
 
   import Phoenix.ConnTest

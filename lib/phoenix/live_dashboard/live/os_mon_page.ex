@@ -1,10 +1,6 @@
 defmodule Phoenix.LiveDashboard.OSMonPage do
   use Phoenix.LiveDashboard.PageLive
 
-  import Phoenix.LiveView
-  import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.LiveHelpers
-
   alias Phoenix.LiveDashboard.{
     SystemInfo,
     ColorBarComponent,

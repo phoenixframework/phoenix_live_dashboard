@@ -1,9 +1,6 @@
 defmodule Phoenix.LiveDashboard.ProcessesPage do
   use Phoenix.LiveDashboard.PageLive
 
-  import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.LiveHelpers
-
   alias Phoenix.LiveDashboard.SystemInfo
   alias Phoenix.LiveDashboard.TableComponent
 
