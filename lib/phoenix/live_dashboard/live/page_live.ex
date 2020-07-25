@@ -17,17 +17,11 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   @callback render(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
 
-  @callback terminate(reason, socket :: Socket.t()) :: term
-            when reason: :normal | :shutdown | {:shutdown, :left | :closed | term}
-
   @callback handle_params(unsigned_params(), uri :: String.t(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
 
   @callback handle_event(event :: binary, unsigned_params(), socket :: Socket.t()) ::
               {:noreply, Socket.t()} | {:reply, map, Socket.t()}
-
-  @callback handle_call(msg :: term, {pid, reference}, socket :: Socket.t()) ::
-              {:noreply, Socket.t()} | {:reply, term, Socket.t()}
 
   @callback handle_info(msg :: term, socket :: Socket.t()) ::
               {:noreply, Socket.t()}
@@ -36,10 +30,8 @@ defmodule Phoenix.LiveDashboard.PageLive do
               {:noreply, Socket.t()}
 
   @optional_callbacks mount: 3,
-                      terminate: 2,
                       handle_params: 3,
                       handle_event: 3,
-                      handle_call: 3,
                       handle_info: 2,
                       handle_refresh: 1
 
