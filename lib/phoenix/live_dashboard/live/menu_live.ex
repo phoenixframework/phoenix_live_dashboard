@@ -73,7 +73,7 @@ defmodule Phoenix.LiveDashboard.MenuLive do
     if menu.page == page do
       content_tag(:div, text, class: "menu-item active")
     else
-      live_redirect(text, to: live_dashboard_path(socket, page, node), class: "menu-item")
+      live_redirect(text, to: live_dashboard_path(socket, page, node, []), class: "menu-item")
     end
   end
 
@@ -154,6 +154,6 @@ defmodule Phoenix.LiveDashboard.MenuLive do
   end
 
   defp redirect_to_current_node(socket) do
-    push_redirect(socket, to: live_dashboard_path(socket, :home, node()))
+    push_redirect(socket, to: live_dashboard_path(socket, :home, node(), []))
   end
 end

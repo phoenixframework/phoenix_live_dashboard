@@ -1,41 +1,26 @@
-defmodule Phoenix.LiveDashboard.ApplicationsLive do
-  use Phoenix.LiveDashboard.Web, :live_view
+defmodule Phoenix.LiveDashboard.ApplicationsPage do
+  use Phoenix.LiveDashboard.PageLive
 
   alias Phoenix.LiveDashboard.SystemInfo
   alias Phoenix.LiveDashboard.TableComponent
 
-  @page :applications
   @table_id :table
-
-  @impl true
-  def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_mount(socket, @page, params, session, true)}
-  end
-
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply,
-     socket
-     |> assign_params(params)
-     |> assign(:params, params)}
-  end
 
   @impl true
   def render(assigns) do
     ~L"""
-      <%= live_component(assigns.socket, TableComponent, table_assigns(@params, @menu.node)) %>
+      <%= live_component(assigns.socket, TableComponent, table_assigns(@menu)) %>
     """
   end
 
-  defp table_assigns(params, node) do
+  defp table_assigns(menu) do
     %{
       columns: columns(),
       id: @table_id,
-      node: node,
-      page_name: @page,
-      params: params,
+      menu: menu,
       row_attrs: &row_attrs/1,
-      row_fetcher: &fetch_applications/2
+      row_fetcher: &fetch_applications/2,
+      title: "Applications"
     }
   end
 
@@ -88,33 +73,12 @@ defmodule Phoenix.LiveDashboard.ApplicationsLive do
       application[:tree?] ->
         [
           {"phx-click", "show_info"},
-          {"phx-value-app", encode_app(application[:name])},
+          {"phx-value-info", encode_app(application[:name])},
           {"phx-page-loading", true} | attrs
         ]
 
       true ->
         attrs
     end
-  end
-
-  @impl true
-  def handle_info({:node_redirect, node}, socket) do
-    {:noreply, push_redirect(socket, to: self_path(socket, node, socket.assigns.params))}
-  end
-
-  def handle_info(:refresh, socket) do
-    %{params: params, menu: menu} = socket.assigns
-    send_update(TableComponent, table_assigns(params, menu.node))
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("show_info", %{"app" => app}, socket) do
-    params = Map.put(socket.assigns.params, :info, app)
-    {:noreply, push_patch(socket, to: self_path(socket, node(), params))}
-  end
-
-  defp self_path(socket, node, params) do
-    live_dashboard_path(socket, @page, node, params)
   end
 end

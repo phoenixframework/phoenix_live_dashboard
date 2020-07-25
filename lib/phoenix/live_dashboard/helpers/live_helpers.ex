@@ -8,12 +8,29 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   @doc """
   Computes a route path to the live dashboard.
   """
-  def live_dashboard_path(socket, page, node, params \\ []) do
+  def live_dashboard_path(socket, page, node, params) do
     apply(
       socket.router.__helpers__(),
       :live_dashboard_path,
       [socket, :page, node, page, params]
     )
+  end
+
+  @doc """
+  Computes a router path to the current path and maybe updates the params
+  """
+  def live_dashboard_path(
+        socket,
+        %{page: page, node: node, params: params} = _menu,
+        new_params_or_fun \\ nil
+      ) do
+    case new_params_or_fun || params do
+      fun when is_function(fun, 1) ->
+        live_dashboard_path(socket, page, node, fun.(params))
+
+      params when is_map(params) or is_list(params) ->
+        live_dashboard_path(socket, page, node, params)
+    end
   end
 
   @doc """
@@ -244,6 +261,8 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
 
     socket =
       Phoenix.LiveView.assign(socket, :menu, %{
+        tick: 0,
+        params: params,
         refresher?: refresher?,
         page: page,
         info: info(params),
@@ -257,7 +276,7 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
     if found_node do
       socket
     else
-      Phoenix.LiveView.push_redirect(socket, to: live_dashboard_path(socket, :home, node()))
+      Phoenix.LiveView.push_redirect(socket, to: live_dashboard_path(socket, :home, node(), []))
     end
   end
 
@@ -269,6 +288,8 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   """
   def assign_params(socket, params) do
     menu = socket.assigns.menu
+    socket = Phoenix.LiveView.assign(socket, :menu, %{menu | params: params})
+
     info = info(params)
 
     if menu.info != info do

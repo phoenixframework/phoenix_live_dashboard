@@ -1,39 +1,26 @@
-defmodule Phoenix.LiveDashboard.SocketsLive do
-  use Phoenix.LiveDashboard.Web, :live_view
-  import Phoenix.LiveDashboard.LiveHelpers
+defmodule Phoenix.LiveDashboard.SocketsPage do
+  use Phoenix.LiveDashboard.PageLive
 
   alias Phoenix.LiveDashboard.SystemInfo
   alias Phoenix.LiveDashboard.TableComponent
 
-  @page :sockets
   @table_id :table
-
-  @impl true
-  def mount(%{"node" => _} = params, session, socket) do
-    {:ok, assign_mount(socket, @page, params, session, true)}
-  end
-
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, socket |> assign_params(params) |> assign(:params, params)}
-  end
 
   @impl true
   def render(assigns) do
     ~L"""
-      <%= live_component(assigns.socket, TableComponent, table_assigns(@params, @menu.node)) %>
+      <%= live_component(assigns.socket, TableComponent, table_assigns(@menu)) %>
     """
   end
 
-  defp table_assigns(params, node) do
+  defp table_assigns(menu) do
     %{
       columns: columns(),
       id: @table_id,
-      node: node,
-      page_name: @page,
-      params: params,
+      menu: menu,
       row_attrs: &row_attrs/1,
-      row_fetcher: &fetch_sockets/2
+      row_fetcher: &fetch_sockets/2,
+      title: "Sockets"
     }
   end
 
@@ -99,29 +86,8 @@ defmodule Phoenix.LiveDashboard.SocketsLive do
   defp row_attrs(socket) do
     [
       {"phx-click", "show_info"},
-      {"phx-value-socket", encode_socket(socket[:port])},
+      {"phx-value-info", encode_socket(socket[:port])},
       {"phx-page-loading", true}
     ]
-  end
-
-  @impl true
-  def handle_info({:node_redirect, node}, socket) do
-    {:noreply, push_redirect(socket, to: self_path(socket, node, socket.assigns.params))}
-  end
-
-  def handle_info(:refresh, socket) do
-    %{params: params, menu: menu} = socket.assigns
-    send_update(TableComponent, table_assigns(params, menu.node))
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("show_info", %{"socket" => socket_info}, socket) do
-    params = Map.put(socket.assigns.params, :info, socket_info)
-    {:noreply, push_patch(socket, to: self_path(socket, node(), params))}
-  end
-
-  defp self_path(socket, node, params) do
-    live_dashboard_path(socket, @page, node, params)
   end
 end

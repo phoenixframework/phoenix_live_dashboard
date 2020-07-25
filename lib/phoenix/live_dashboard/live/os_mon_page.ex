@@ -1,5 +1,5 @@
-defmodule Phoenix.LiveDashboard.OSMonLive do
-  use Phoenix.LiveDashboard.Web, :live_view
+defmodule Phoenix.LiveDashboard.OSMonPage do
+  use Phoenix.LiveDashboard.PageLive
 
   alias Phoenix.LiveDashboard.{
     SystemInfo,
@@ -33,22 +33,15 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   ]
 
   @impl true
-  def mount(%{"node" => _} = params, session, socket) do
-    socket =
-      socket
-      |> assign_mount(:os_mon, params, session, true)
-      |> assign_os_mon()
+  def mount(_params, _session, socket) do
+    socket = assign_os_mon(socket)
 
     if socket.assigns.menu.os_mon do
       {:ok, socket, temporary_assigns: @temporary_assigns}
     else
-      {:ok,
-       push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+      to = live_dashboard_path(socket, :home, socket.assigns.menu.node, [])
+      {:ok, push_redirect(socket, to: to)}
     end
-  end
-
-  def mount(_params, _session, socket) do
-    {:ok, push_redirect(socket, to: live_dashboard_path(socket, :home, node()))}
   end
 
   defp assign_os_mon(socket) do
@@ -103,11 +96,6 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
     |> Enum.sum()
     |> Kernel./(count)
     |> Float.ceil(1)
-  end
-
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, assign_params(socket, params)}
   end
 
   @impl true
@@ -260,11 +248,7 @@ defmodule Phoenix.LiveDashboard.OSMonLive do
   end
 
   @impl true
-  def handle_info({:node_redirect, node}, socket) do
-    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :home, node))}
-  end
-
-  def handle_info(:refresh, socket) do
+  def handle_refresh(socket) do
     {:noreply, assign_os_mon(socket)}
   end
 end

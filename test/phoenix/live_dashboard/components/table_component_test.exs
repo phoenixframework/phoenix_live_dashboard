@@ -23,15 +23,20 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
   defp render_table(opts) do
     columns = [%{field: :foo, sortable: true}, %{field: :bar, sortable: true}, %{field: :baz}]
 
+    menu = %{
+      node: Keyword.get(opts, :node, node()),
+      page: Keyword.get(opts, :page, :foobaz),
+      params: Keyword.get(opts, :params, %{})
+    }
+
     opts =
       Keyword.merge(
         [
           columns: columns,
           id: :component_id,
-          node: node(),
-          page_name: :foobaz,
-          params: %{},
-          row_fetcher: &row_fetcher/2
+          menu: menu,
+          row_fetcher: &row_fetcher/2,
+          title: "Title"
         ],
         opts
       )
@@ -92,9 +97,6 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       title = "This is the title"
       result = render_table(title: title)
       assert result =~ title
-
-      result = render_table(page_name: :custom_page)
-      assert result =~ "<h5 class=\"card-title\">Custom page</h5>"
     end
 
     test "renders limit options" do
@@ -118,7 +120,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       result = render_table(rows_name: "waldos")
       assert result =~ "waldos out of 2"
 
-      result = render_table(page_name: :waldos)
+      result = render_table(title: "Waldos")
       assert result =~ "waldos out of 2"
     end
 

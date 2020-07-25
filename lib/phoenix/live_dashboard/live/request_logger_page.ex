@@ -1,9 +1,9 @@
-defmodule Phoenix.LiveDashboard.RequestLoggerLive do
-  use Phoenix.LiveDashboard.Web, :live_view
+defmodule Phoenix.LiveDashboard.RequestLoggerPage do
+  use Phoenix.LiveDashboard.PageLive
 
   @impl true
-  def mount(%{"stream" => stream} = params, session, socket) do
-    %{"request_logger" => {param_key, cookie_key}} = session
+  def mount(%{"stream" => stream}, session, socket) do
+    %{"request_logger_key" => {param_key, cookie_key}} = session
 
     if connected?(socket) do
       # TODO: Remove || once we support Phoenix v1.5+
@@ -14,7 +14,6 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
 
     socket =
       socket
-      |> assign_mount(:request_logger, params, session)
       |> assign(
         stream: stream,
         param_key: param_key,
@@ -27,33 +26,21 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
     if socket.assigns.menu.request_logger do
       {:ok, socket, temporary_assigns: [messages: []]}
     else
-      {:ok,
-       push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+      to = live_dashboard_path(socket, :home, socket.assigns.menu.node, [])
+      {:ok, push_redirect(socket, to: to)}
     end
   end
 
   def mount(%{"node" => node}, %{"request_logger" => _}, socket) do
     stream = :crypto.strong_rand_bytes(3) |> Base.url_encode64()
 
-    {:ok,
-     push_redirect(socket,
-       to: live_dashboard_path(socket, :request_logger, node, stream: stream)
-     )}
-  end
-
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, assign_params(socket, params)}
+    to = live_dashboard_path(socket, :request_logger, node, stream: stream)
+    {:ok, push_redirect(socket, to: to)}
   end
 
   @impl true
   def handle_info({:logger, level, message}, socket) do
     {:noreply, assign(socket, messages: [{message, level}], messages_present: true)}
-  end
-
-  def handle_info({:node_redirect, node}, socket) do
-    to = live_dashboard_path(socket, :request_logger, node, stream: socket.assigns.stream)
-    {:noreply, push_redirect(socket, to: to)}
   end
 
   @impl true
@@ -157,7 +144,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerLive do
     <!-- Row with a 'new stream' link -->
     <div class="row mb-3">
       <div class="col text-center">
-        Want to refresh the logger parameter? <%= live_redirect "Start a new stream", to: live_dashboard_path(@socket, :request_logger, @menu.node) %>
+        Want to refresh the logger parameter? <%= live_redirect "Start a new stream", to: live_dashboard_path(@socket, @menu, []) %>
       </div>
     </div>
     """

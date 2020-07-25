@@ -11,7 +11,7 @@ defmodule Phoenix.LiveDashboard.AppInfoComponent do
         <svg width="<%= @width %>" height="<%= @height %>" id="tree" class="tree" >
           <%= for node <- @nodes do %>
             <rect x="<%= node.x %>" y="<%= node.y %>" rx="10" ry="10" width="<%= node.width %>" height="<%= node.height %>"
-            class="node" phx-click="show_info" phx-value-pid="<%= node_encoded_pid(node.value) %>" phx-target=<%= @myself %> phx-page-loading />
+            class="node" phx-click="show_info" phx-value-info="<%= node_encoded_pid(node.value) %>" phx-page-loading />
             <text class="tree-node-text" x="<%= node.x + 10 %>" y="<%= node.y + div(node.height, 2) %>" dominant-baseline="central">
               <%= node.label %>
             </text>
@@ -36,11 +36,6 @@ defmodule Phoenix.LiveDashboard.AppInfoComponent do
   def update(%{id: "App<" <> app, path: path, node: node}, socket) do
     app = app |> String.replace_suffix(">", "") |> String.to_existing_atom()
     {:ok, socket |> assign(app: app, path: path, node: node) |> assign_tree()}
-  end
-
-  @impl true
-  def handle_event("show_info", %{"pid" => pid}, socket) do
-    {:noreply, push_patch(socket, to: socket.assigns.path.(socket.assigns.node, info: pid))}
   end
 
   defp assign_tree(%{assigns: assigns} = socket) do

@@ -1,10 +1,10 @@
-defmodule Phoenix.LiveDashboard.MetricsLive do
-  use Phoenix.LiveDashboard.Web, :live_view
+defmodule Phoenix.LiveDashboard.MetricsPage do
+  use Phoenix.LiveDashboard.PageLive, refresher?: false
 
   alias Phoenix.LiveDashboard.ChartComponent
 
   @impl true
-  def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history} = session, socket) do
+  def mount(params, %{"metrics_fetcher" => {mod, fun}, "metrics_history" => history}, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_group = Enum.group_by(all_metrics, &group_name/1)
 
@@ -12,18 +12,15 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
     metrics = metrics_per_group[group]
     {first_group, _} = Enum.at(metrics_per_group, 0, {nil, nil})
 
-    socket =
-      socket
-      |> assign_mount(:metrics, params, session)
-      |> assign(group: group, groups: Map.keys(metrics_per_group))
+    socket = assign(socket, group: group, groups: Map.keys(metrics_per_group))
 
     cond do
       !socket.assigns.menu.metrics ->
-        {:ok,
-         push_redirect(socket, to: live_dashboard_path(socket, :home, socket.assigns.menu.node))}
+        to = live_dashboard_path(socket, :home, socket.assigns.menu.node, [])
+        {:ok, push_redirect(socket, to: to)}
 
       group && is_nil(metrics) ->
-        {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node()))}
+        {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node(), []))}
 
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
@@ -31,8 +28,8 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
         {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
       first_group && is_nil(group) ->
-        path = live_dashboard_path(socket, :metrics, socket.assigns.menu.node, group: first_group)
-        {:ok, push_redirect(socket, to: path)}
+        to = live_dashboard_path(socket, :metrics, socket.assigns.menu.node, group: first_group)
+        {:ok, push_redirect(socket, to: to)}
 
       true ->
         {:ok, assign(socket, metrics: nil)}
@@ -45,11 +42,6 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
 
   defp format_group_name("vm"), do: "VM"
   defp format_group_name(group), do: Phoenix.Naming.camelize(group)
-
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, assign_params(socket, params)}
-  end
 
   @impl true
   def render(assigns) do
@@ -89,11 +81,6 @@ defmodule Phoenix.LiveDashboard.MetricsLive do
   def handle_info({:telemetry, entries}, socket) do
     send_updates_for_entries(entries)
     {:noreply, socket}
-  end
-
-  def handle_info({:node_redirect, node}, socket) do
-    params = if group = socket.assigns.group, do: [group: group], else: []
-    {:noreply, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node, params))}
   end
 
   defp send_history_for_metrics(_, nil), do: :noop
