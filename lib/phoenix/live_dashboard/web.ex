@@ -41,7 +41,7 @@ defmodule Phoenix.LiveDashboard.Web do
       import Phoenix.LiveView.Helpers
 
       # Import dashboard built-in functions
-      import Phoenix.LiveDashboard.LiveHelpers
+      import Phoenix.LiveDashboard.Helpers
     end
   end
 

@@ -34,6 +34,7 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
       live(build_conn(), "/dashboard/nonode@nohost/metrics?group=unknown")
   end
 
+  @tag skip: true
   test "redirects to new node" do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?group=ecto")
     send(live.pid, {:node_redirect, "foo@bar"})

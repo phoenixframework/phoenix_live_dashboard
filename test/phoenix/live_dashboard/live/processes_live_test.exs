@@ -113,7 +113,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
   defp process_info_path(pid, limit, sort_by, sort_dir) do
     processes_path(limit, "", sort_by, sort_dir) <>
-      "&info=#{Phoenix.LiveDashboard.LiveHelpers.encode_pid(pid)}"
+      "&info=#{Phoenix.LiveDashboard.Helpers.encode_pid(pid)}"
   end
 
   defp processes_path(limit, search, sort_by, sort_dir) do

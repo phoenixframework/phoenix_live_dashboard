@@ -29,6 +29,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPageTest do
     assert render(live) =~ ~s|[error] hello world\n</pre>|
   end
 
+  @tag skip: true
   test "redirects to new node" do
     {:ok, live, _} =
       live(build_conn(), "/dashboard/nonode@nohost/request_logger?stream=helloworld")

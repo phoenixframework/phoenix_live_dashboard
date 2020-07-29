@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.LiveHelpers do
+defmodule Phoenix.LiveDashboard.Helpers do
   @moduledoc false
 
   import Phoenix.LiveView.Helpers
@@ -21,15 +21,15 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   """
   def live_dashboard_path(
         socket,
-        %{page: page, node: node, params: params} = _menu,
+        %{route: route, node: node, params: params} = _page,
         new_params_or_fun \\ nil
       ) do
     case new_params_or_fun || params do
       fun when is_function(fun, 1) ->
-        live_dashboard_path(socket, page, node, fun.(params))
+        live_dashboard_path(socket, route, node, fun.(params))
 
       params when is_map(params) or is_list(params) ->
-        live_dashboard_path(socket, page, node, params)
+        live_dashboard_path(socket, route, node, params)
     end
   end
 
@@ -223,9 +223,9 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   """
   def live_info(_socket, %{info: nil}), do: nil
 
-  def live_info(socket, %{info: {title, params}, node: node, page: page}) do
+  def live_info(socket, %{info: {title, params}, node: node} = page) do
     if component = extract_info_component(title) do
-      path = &live_dashboard_path(socket, page, &1, Enum.into(&2, params))
+      path = &live_dashboard_path(socket, page.route, &1, Enum.into(&2, params))
 
       live_modal(socket, component,
         id: title,
@@ -248,54 +248,4 @@ defmodule Phoenix.LiveDashboard.LiveHelpers do
   All connected nodes (including the current node).
   """
   def nodes(), do: [node()] ++ Node.list(:connected)
-
-  @doc """
-  Callback that must be invoked on all mounts.
-  """
-  def assign_mount(socket, page, params, session, refresher? \\ false) do
-    param_node = Map.fetch!(params, "node")
-    found_node = Enum.find(nodes(), &(Atom.to_string(&1) == param_node))
-    target_node = found_node || node()
-
-    capabilities = Phoenix.LiveDashboard.SystemInfo.ensure_loaded(target_node)
-
-    socket =
-      Phoenix.LiveView.assign(socket, :menu, %{
-        tick: 0,
-        params: params,
-        refresher?: refresher?,
-        page: page,
-        info: info(params),
-        node: target_node,
-        metrics: capabilities.dashboard && session["metrics"],
-        os_mon: capabilities.os_mon,
-        request_logger: capabilities.dashboard && session["request_logger"],
-        dashboard_running?: capabilities.dashboard
-      })
-
-    if found_node do
-      socket
-    else
-      Phoenix.LiveView.push_redirect(socket, to: live_dashboard_path(socket, :home, node(), []))
-    end
-  end
-
-  defp info(%{"info" => info} = params), do: {info, Map.delete(params, "info")}
-  defp info(%{}), do: nil
-
-  @doc """
-  Callback that must be invoked on all handle_params.
-  """
-  def assign_params(socket, params) do
-    menu = socket.assigns.menu
-    socket = Phoenix.LiveView.assign(socket, :menu, %{menu | params: params})
-
-    info = info(params)
-
-    if menu.info != info do
-      Phoenix.LiveView.assign(socket, :menu, %{menu | info: info})
-    else
-      socket
-    end
-  end
 end

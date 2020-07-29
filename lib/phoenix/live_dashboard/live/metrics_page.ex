@@ -4,7 +4,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   alias Phoenix.LiveDashboard.ChartComponent
 
   @impl true
-  def mount(params, %{"metrics_fetcher" => {mod, fun}, "metrics_history" => history}, socket) do
+  def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history}, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_group = Enum.group_by(all_metrics, &group_name/1)
 
@@ -15,20 +15,20 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     socket = assign(socket, group: group, groups: Map.keys(metrics_per_group))
 
     cond do
-      !socket.assigns.menu.metrics ->
-        to = live_dashboard_path(socket, :home, socket.assigns.menu.node, [])
+      !socket.assigns.page.metrics ->
+        to = live_dashboard_path(socket, :home, socket.assigns.page.node, [])
         {:ok, push_redirect(socket, to: to)}
 
       group && is_nil(metrics) ->
         {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node(), []))}
 
       metrics && connected?(socket) ->
-        Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.menu.node, metrics)
+        Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.page.node, metrics)
         send_history_for_metrics(metrics, history)
         {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
       first_group && is_nil(group) ->
-        to = live_dashboard_path(socket, :metrics, socket.assigns.menu.node, group: first_group)
+        to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, group: first_group)
         {:ok, push_redirect(socket, to: to)}
 
       true ->
@@ -52,7 +52,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
           <%= for group <- @groups do %>
             <li class="nav-item">
               <%= live_redirect(format_group_name(group),
-                    to: live_dashboard_path(@socket, :metrics, @menu.node, group: group),
+                    to: live_dashboard_path(@socket, :metrics, @page.node, group: group),
                     class: "nav-link #{if @group == group, do: "active"}") %>
             </li>
           <% end %>

@@ -1,10 +1,6 @@
 defmodule Phoenix.LiveDashboard.HomePage do
   use Phoenix.LiveDashboard.PageLive
 
-  import Phoenix.LiveView
-  import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.LiveHelpers
-
   alias Phoenix.LiveDashboard.{
     SystemInfo,
     CardUsageComponent,
@@ -39,7 +35,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
       system_limits: system_limits,
       # Updated periodically
       system_usage: system_usage
-    } = SystemInfo.fetch_system_info(socket.assigns.menu.node, session["env_keys"])
+    } = SystemInfo.fetch_system_info(socket.assigns.page.node, session["env_keys"])
 
     socket =
       assign(socket,
@@ -232,7 +228,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
   @impl true
   def handle_refresh(socket) do
     {:noreply,
-     assign(socket, system_usage: SystemInfo.fetch_system_usage(socket.assigns.menu.node))}
+     assign(socket, system_usage: SystemInfo.fetch_system_usage(socket.assigns.page.node))}
   end
 
   defp versions_sections(), do: @versions_sections

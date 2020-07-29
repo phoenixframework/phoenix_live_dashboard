@@ -36,16 +36,16 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   def mount(_params, _session, socket) do
     socket = assign_os_mon(socket)
 
-    if socket.assigns.menu.os_mon do
+    if socket.assigns.page.os_mon do
       {:ok, socket, temporary_assigns: @temporary_assigns}
     else
-      to = live_dashboard_path(socket, :home, socket.assigns.menu.node, [])
+      to = live_dashboard_path(socket, :home, socket.assigns.page.node, [])
       {:ok, push_redirect(socket, to: to)}
     end
   end
 
   defp assign_os_mon(socket) do
-    os_mon = SystemInfo.fetch_os_mon_info(socket.assigns.menu.node)
+    os_mon = SystemInfo.fetch_os_mon_info(socket.assigns.page.node)
     cpu_count = length(os_mon.cpu_per_core)
 
     assign(socket,

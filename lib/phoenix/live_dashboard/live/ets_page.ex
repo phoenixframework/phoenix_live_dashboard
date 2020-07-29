@@ -1,9 +1,6 @@
 defmodule Phoenix.LiveDashboard.EtsPage do
   use Phoenix.LiveDashboard.PageLive
 
-  import Phoenix.LiveView.Helpers
-  import Phoenix.LiveDashboard.LiveHelpers
-
   alias Phoenix.LiveDashboard.SystemInfo
   alias Phoenix.LiveDashboard.TableComponent
 
@@ -12,15 +9,15 @@ defmodule Phoenix.LiveDashboard.EtsPage do
   @impl true
   def render(assigns) do
     ~L"""
-      <%= live_component(assigns.socket, TableComponent, table_assigns(@menu)) %>
+      <%= live_component(assigns.socket, TableComponent, table_assigns(@page)) %>
     """
   end
 
-  defp table_assigns(menu) do
+  defp table_assigns(page) do
     %{
       columns: columns(),
       id: @table_id,
-      menu: menu,
+      page: page,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_ets/2,
       rows_name: "tables",

@@ -84,7 +84,7 @@ defmodule Phoenix.LiveDashboard.EtsPageTest do
 
   defp ets_info_path(ref, limit, sort_by, sort_dir) do
     ets_path(limit, "", sort_by, sort_dir) <>
-      "&info=#{Phoenix.LiveDashboard.LiveHelpers.encode_ets(ref)}"
+      "&info=#{Phoenix.LiveDashboard.Helpers.encode_ets(ref)}"
   end
 
   defp ets_path(limit, search, sort_by, sort_dir) do

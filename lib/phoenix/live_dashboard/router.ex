@@ -117,20 +117,25 @@ defmodule Phoenix.LiveDashboard.Router do
 
   @doc false
   def __session__(conn, metrics, env_keys, metrics_history) do
+    metrics_session = %{
+      "metrics" => metrics,
+      "metrics_history" => metrics_history
+    }
+
+    request_logger_session = %{
+      "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
+    }
+
     %{
-      "metrics_fetcher" => metrics,
-      "env_keys" => env_keys,
-      "metrics_history" => metrics_history,
-      "request_logger_key" => Phoenix.LiveDashboard.RequestLogger.param_key(conn),
-      "processes" => Phoenix.LiveDashboard.ProcessesPage,
-      "ports" => Phoenix.LiveDashboard.PortsPage,
-      "applications" => Phoenix.LiveDashboard.ApplicationsPage,
-      "sockets" => Phoenix.LiveDashboard.SocketsPage,
-      "ets" => Phoenix.LiveDashboard.EtsPage,
-      "os_mon" => Phoenix.LiveDashboard.OSMonPage,
-      "home" => Phoenix.LiveDashboard.HomePage,
-      "request_logger" => Phoenix.LiveDashboard.RequestLoggerPage,
-      "metrics" => Phoenix.LiveDashboard.MetricsPage
+      "processes" => {Phoenix.LiveDashboard.ProcessesPage, %{}},
+      "ports" => {Phoenix.LiveDashboard.PortsPage, %{}},
+      "applications" => {Phoenix.LiveDashboard.ApplicationsPage, %{}},
+      "sockets" => {Phoenix.LiveDashboard.SocketsPage, %{}},
+      "ets" => {Phoenix.LiveDashboard.EtsPage, %{}},
+      "os_mon" => {Phoenix.LiveDashboard.OSMonPage, %{}},
+      "home" => {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys}},
+      "request_logger" => {Phoenix.LiveDashboard.RequestLoggerPage, request_logger_session},
+      "metrics" => {Phoenix.LiveDashboard.MetricsPage, metrics_session}
     }
   end
 end

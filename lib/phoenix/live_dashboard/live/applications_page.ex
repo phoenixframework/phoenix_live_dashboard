@@ -9,15 +9,15 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
   @impl true
   def render(assigns) do
     ~L"""
-      <%= live_component(assigns.socket, TableComponent, table_assigns(@menu)) %>
+      <%= live_component(assigns.socket, TableComponent, table_assigns(@page)) %>
     """
   end
 
-  defp table_assigns(menu) do
+  defp table_assigns(page) do
     %{
       columns: columns(),
       id: @table_id,
-      menu: menu,
+      page: page,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_applications/2,
       title: "Applications"

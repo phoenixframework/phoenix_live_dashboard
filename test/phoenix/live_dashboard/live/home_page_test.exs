@@ -26,7 +26,8 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
 
   test "redirects to new node" do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/home")
-    send(live.pid, {:node_redirect, "foo@bar"})
+    # send(live.pid, {:node_redirect, "foo@bar"})
+    render_change(live, "select_node", %{"node" => "foo@bar"})
     assert_redirect(live, "/dashboard/foo%40bar/home")
   end
 
