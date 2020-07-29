@@ -100,11 +100,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp assign_mount(socket, page_live, page_session, params, session) do
-    socket =
-      Phoenix.LiveView.assign(socket, :page, %__MODULE__{
-        page_live: page_live,
-        session: page_session
-      })
+    socket = assign(socket, :page, %__MODULE__{page_live: page_live, session: page_session})
 
     with %Socket{redirected: nil} = socket <- assign_params(socket, params),
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
