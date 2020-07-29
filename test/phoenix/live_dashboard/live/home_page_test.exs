@@ -24,6 +24,7 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
              ~s|<h6 class=\"banner-card-title\">Uptime</h6><div class=\"banner-card-value\">0m</div>|
   end
 
+  @tag skip: true
   test "redirects to new node" do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/home")
     # send(live.pid, {:node_redirect, "foo@bar"})

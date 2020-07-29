@@ -127,15 +127,15 @@ defmodule Phoenix.LiveDashboard.Router do
     }
 
     %{
-      "processes" => {Phoenix.LiveDashboard.ProcessesPage, %{}},
-      "ports" => {Phoenix.LiveDashboard.PortsPage, %{}},
       "applications" => {Phoenix.LiveDashboard.ApplicationsPage, %{}},
-      "sockets" => {Phoenix.LiveDashboard.SocketsPage, %{}},
       "ets" => {Phoenix.LiveDashboard.EtsPage, %{}},
-      "os_mon" => {Phoenix.LiveDashboard.OSMonPage, %{}},
       "home" => {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys}},
+      "metrics" => {Phoenix.LiveDashboard.MetricsPage, metrics_session},
+      "os_mon" => {Phoenix.LiveDashboard.OSMonPage, %{}},
+      "ports" => {Phoenix.LiveDashboard.PortsPage, %{}},
+      "processes" => {Phoenix.LiveDashboard.ProcessesPage, %{}},
       "request_logger" => {Phoenix.LiveDashboard.RequestLoggerPage, request_logger_session},
-      "metrics" => {Phoenix.LiveDashboard.MetricsPage, metrics_session}
+      "sockets" => {Phoenix.LiveDashboard.SocketsPage, %{}}
     }
   end
 end

@@ -112,7 +112,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
          %Socket{redirected: nil} = socket <- assign_capabilities(socket, session) do
       maybe_apply_module(socket, :mount, [params, page_session], &{:ok, &1})
     else
-      redirected_socket -> {:ok, redirected_socket}
+      %Socket{} = redirected_socket -> {:ok, redirected_socket}
     end
   end
 
@@ -231,11 +231,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   def handle_event("select_node", params, socket) do
     param_node = params["node"]
 
-    # FIXME
-    node = String.to_atom(param_node)
-
-    # Enum.find(nodes(), &(Atom.to_string(&1) == param_node))
-    # |> IO.inspect()
+    node = Enum.find(nodes(), &(Atom.to_string(&1) == param_node))
 
     page = socket.assigns.page
 
