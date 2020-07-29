@@ -24,14 +24,6 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
              ~s|<h6 class=\"banner-card-title\">Uptime</h6><div class=\"banner-card-value\">0m</div>|
   end
 
-  @tag skip: true
-  test "redirects to new node" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/home")
-    # send(live.pid, {:node_redirect, "foo@bar"})
-    render_change(live, "select_node", %{"node" => "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/home")
-  end
-
   test "shows memory usage information" do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/home")
     rendered = render(live)

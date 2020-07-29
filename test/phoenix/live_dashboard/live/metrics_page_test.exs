@@ -34,17 +34,6 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
       live(build_conn(), "/dashboard/nonode@nohost/metrics?group=unknown")
   end
 
-  @tag skip: true
-  test "redirects to new node" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?group=ecto")
-    send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/metrics?group=ecto")
-
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?group=phx")
-    send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/metrics?group=phx")
-  end
-
   test "renders history for metrics" do
     {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?group=phx")
 
