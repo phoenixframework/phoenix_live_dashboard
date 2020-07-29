@@ -6,7 +6,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.Helpers
   alias Phoenix.LiveView.Socket
-  alias Phoenix.LiveDashboard.MenuLive
+  alias Phoenix.LiveDashboard.MenuComponent
 
   defstruct dashboard_running?: nil,
             info: nil,
@@ -197,7 +197,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
           <span class="header-title-part">Phoenix </span>
           <span class="header-title-part">LiveDashboard<span>
         </h1>
-        <%= live_component(assigns.socket, MenuLive, page: @page) %>
+        <%= live_component(assigns.socket, MenuComponent, page: @page) %>
       </div>
     </header>
     <%= live_info(@socket, @page) %>

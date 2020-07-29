@@ -1,8 +1,8 @@
-defmodule Phoenix.LiveDashboard.MenuLiveTest do
+defmodule Phoenix.LiveDashboard.MenuComponentTest do
   use ExUnit.Case, async: true
 
   import Phoenix.LiveViewTest
-  alias Phoenix.LiveDashboard.MenuLive
+  alias Phoenix.LiveDashboard.MenuComponent
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   defp render_menu(menu) do
@@ -20,7 +20,7 @@ defmodule Phoenix.LiveDashboard.MenuLiveTest do
         info: nil
       })
 
-    render_component(MenuLive, %{page: menu}, router: Phoenix.LiveDashboardTest.Router)
+    render_component(MenuComponent, %{page: menu}, router: Phoenix.LiveDashboardTest.Router)
   end
 
   describe "refresher" do
