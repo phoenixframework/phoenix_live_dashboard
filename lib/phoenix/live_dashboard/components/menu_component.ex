@@ -2,11 +2,6 @@ defmodule Phoenix.LiveDashboard.MenuComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
   @impl true
-  def update(%{page: page}, socket) do
-    {:ok, assign(socket, page: page)}
-  end
-
-  @impl true
   def render(assigns) do
     ~L"""
     <div id="menu">
