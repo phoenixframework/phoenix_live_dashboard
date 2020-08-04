@@ -209,42 +209,6 @@ defmodule Phoenix.LiveDashboard.Helpers do
   end
 
   @doc """
-  Builds a modal.
-  """
-  def live_modal(socket, component, opts) do
-    path = Keyword.fetch!(opts, :return_to)
-    title = Keyword.fetch!(opts, :title)
-    modal_opts = [id: :modal, return_to: path, component: component, opts: opts, title: title]
-    live_component(socket, Phoenix.LiveDashboard.ModalComponent, modal_opts)
-  end
-
-  @doc """
-  Builds a detail model based on detail parameters.
-  """
-  def live_info(_socket, %{info: nil}), do: nil
-
-  def live_info(socket, %{info: {title, params}, node: node} = page) do
-    if component = extract_info_component(title) do
-      path = &live_dashboard_path(socket, page.route, &1, Enum.into(&2, params))
-
-      live_modal(socket, component,
-        id: title,
-        return_to: path.(node, []),
-        title: title,
-        path: path,
-        node: node
-      )
-    end
-  end
-
-  defp extract_info_component("PID<" <> _), do: Phoenix.LiveDashboard.ProcessInfoComponent
-  defp extract_info_component("Port<" <> _), do: Phoenix.LiveDashboard.PortInfoComponent
-  defp extract_info_component("Socket<" <> _), do: Phoenix.LiveDashboard.SocketInfoComponent
-  defp extract_info_component("ETS<" <> _), do: Phoenix.LiveDashboard.EtsInfoComponent
-  defp extract_info_component("App<" <> _), do: Phoenix.LiveDashboard.AppInfoComponent
-  defp extract_info_component(_), do: nil
-
-  @doc """
   All connected nodes (including the current node).
   """
   def nodes(), do: [node()] ++ Node.list(:connected)
