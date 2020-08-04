@@ -13,12 +13,8 @@ defmodule Phoenix.LiveDashboard.PageLive do
             metrics: nil,
             module: nil,
             node: nil,
-            nodes: nil,
             os_mon: nil,
             params: nil,
-            refresh: nil,
-            refresh_options: nil,
-            refresher?: nil,
             request_logger: nil,
             route: nil,
             session: nil,
@@ -106,7 +102,9 @@ defmodule Phoenix.LiveDashboard.PageLive do
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
          %Socket{redirected: nil} = socket <- assign_refresh(socket),
          %Socket{redirected: nil} = socket <- assign_capabilities(socket, session) do
-      maybe_apply_module(socket, :mount, [params, page_session], &{:ok, &1})
+      socket
+      |> init_schedule_refresh()
+      |> maybe_apply_module(:mount, [params, page_session], &{:ok, &1})
     else
       %Socket{} = redirected_socket -> {:ok, redirected_socket}
     end
@@ -129,17 +127,19 @@ defmodule Phoenix.LiveDashboard.PageLive do
         :net_kernel.monitor_nodes(true, node_type: :all)
       end
 
-      update_page(socket, node: found_node, nodes: nodes())
+      socket
+      |> update_page(node: found_node)
+      |> assign(nodes: nodes())
     else
       redirect_to_current_node(socket)
     end
   end
 
-  def assign_refresh(socket) do
+  defp assign_refresh(socket) do
     module = socket.assigns.page.module
 
     socket
-    |> update_page(
+    |> assign(
       refresher?: module.__page_live__(:refresher?),
       refresh: module.__page_live__(:refresh),
       refresh_options: module.__page_live__(:refresh_options)
@@ -148,7 +148,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp init_schedule_refresh(socket) do
-    if connected?(socket) and socket.assigns.page.refresher? do
+    if connected?(socket) and socket.assigns.refresher? do
       schedule_refresh(socket)
     else
       assign(socket, timer: nil)
@@ -156,7 +156,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp schedule_refresh(socket) do
-    assign(socket, timer: Process.send_after(self(), :refresh, socket.assigns.page.refresh * 1000))
+    assign(socket, timer: Process.send_after(self(), :refresh, socket.assigns.refresh * 1000))
   end
 
   def assign_capabilities(socket, session) do
@@ -193,7 +193,14 @@ defmodule Phoenix.LiveDashboard.PageLive do
           <span class="header-title-part">Phoenix </span>
           <span class="header-title-part">LiveDashboard<span>
         </h1>
-        <%= live_component(assigns.socket, MenuComponent, page: @page) %>
+        <%= live_component(@socket, MenuComponent,
+          id: :menu,
+          page: @page,
+          refresher?: @refresher?,
+          refresh: @refresh,
+          refresh_options: @refresh_options,
+          nodes: @nodes
+        ) %>
       </div>
     </header>
     <%= live_info(@socket, @page) %>
@@ -235,28 +242,14 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   @impl true
   def handle_info({:nodeup, _, _}, socket) do
-    {:noreply, update_page(socket, nodes: nodes())}
+    {:noreply, assign(socket, nodes: nodes())}
   end
 
   def handle_info({:nodedown, _, _}, socket) do
     {:noreply, validate_nodes_or_redirect(socket)}
   end
 
-  def handle_info(:refresh, socket) do
-    socket
-    |> update(:page, fn page -> %{page | tick: page.tick + 1} end)
-    |> schedule_refresh()
-    |> maybe_apply_module(:handle_refresh, [], &{:noreply, &1})
-  end
-
-  def handle_info(message, socket) do
-    maybe_apply_module(socket, :handle_info, [message], &{:noreply, &1})
-  end
-
-  @impl true
-  def handle_event("select_node", params, socket) do
-    param_node = params["node"]
-
+  def handle_info({:update_node, param_node}, socket) do
     node = Enum.find(nodes(), &(Atom.to_string(&1) == param_node))
 
     page = socket.assigns.page
@@ -269,13 +262,22 @@ defmodule Phoenix.LiveDashboard.PageLive do
     end
   end
 
-  def handle_event("select_refresh", params, socket) do
-    case Integer.parse(params["refresh"]) do
-      {refresh, ""} -> {:noreply, update_page(socket, refresh: refresh)}
-      _ -> {:noreply, socket}
-    end
+  def handle_info(:refresh, socket) do
+    socket
+    |> update(:page, fn page -> %{page | tick: page.tick + 1} end)
+    |> schedule_refresh()
+    |> maybe_apply_module(:handle_refresh, [], &{:noreply, &1})
   end
 
+  def handle_info({:update_refresh, refresh}, socket) do
+    {:noreply, assign(socket, refresh: refresh)}
+  end
+
+  def handle_info(message, socket) do
+    maybe_apply_module(socket, :handle_info, [message], &{:noreply, &1})
+  end
+
+  @impl true
   def handle_event("show_info", %{"info" => info}, socket) do
     to = live_dashboard_path(socket, socket.assigns.page, &Map.put(&1, :info, info))
     {:noreply, push_patch(socket, to: to)}
@@ -293,7 +295,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
       |> put_flash(:error, "Node #{socket.assigns.page.node} disconnected.")
       |> redirect_to_current_node()
     else
-      update_page(socket, nodes: nodes())
+      assign(socket, nodes: nodes())
     end
   end
 
