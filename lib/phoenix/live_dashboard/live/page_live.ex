@@ -11,10 +11,10 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defstruct dashboard_running?: nil,
             info: nil,
             metrics: nil,
+            module: nil,
             node: nil,
             nodes: nil,
             os_mon: nil,
-            page_live: nil,
             params: nil,
             refresh: nil,
             refresh_options: nil,
@@ -83,8 +83,8 @@ defmodule Phoenix.LiveDashboard.PageLive do
   @impl true
   def mount(%{"node" => _, "page" => page} = params, session, socket) do
     case Map.fetch(session, page) do
-      {:ok, {page_live, page_session}} ->
-        assign_mount(socket, page_live, page_session, params, session)
+      {:ok, {module, page_session}} ->
+        assign_mount(socket, module, page_session, params, session)
 
       {:ok, value} ->
         msg = "invalid value: #{inspect(value)} must be `{ModulePage, session}`"
@@ -99,8 +99,8 @@ defmodule Phoenix.LiveDashboard.PageLive do
     {:ok, redirect_to_current_node(socket)}
   end
 
-  defp assign_mount(socket, page_live, page_session, params, session) do
-    socket = assign(socket, :page, %__MODULE__{page_live: page_live, session: page_session})
+  defp assign_mount(socket, module, page_session, params, session) do
+    socket = assign(socket, :page, %__MODULE__{module: module, session: page_session})
 
     with %Socket{redirected: nil} = socket <- assign_params(socket, params),
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
@@ -136,13 +136,13 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   def assign_refresh(socket) do
-    page_live = socket.assigns.page.page_live
+    module = socket.assigns.page.module
 
     socket
     |> update_page(
-      refresher?: page_live.__page_live__(:refresher?),
-      refresh: page_live.__page_live__(:refresh),
-      refresh_options: page_live.__page_live__(:refresh_options)
+      refresher?: module.__page_live__(:refresher?),
+      refresh: module.__page_live__(:refresh),
+      refresh_options: module.__page_live__(:refresh_options)
     )
     |> init_schedule_refresh()
   end
@@ -171,8 +171,8 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp maybe_apply_module(socket, fun, params, default) do
-    if function_exported?(socket.assigns.page.page_live, fun, length(params) + 1) do
-      apply(socket.assigns.page.page_live, fun, params ++ [socket])
+    if function_exported?(socket.assigns.page.module, fun, length(params) + 1) do
+      apply(socket.assigns.page.module, fun, params ++ [socket])
     else
       default.(socket)
     end
@@ -198,7 +198,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
     </header>
     <%= live_info(@socket, @page) %>
     <section id="main" role="main" class="container">
-      <%= @page.page_live.render(assigns) %>
+      <%= @page.module.render(assigns) %>
     </section>
     """
   end
@@ -252,7 +252,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   def handle_event(event, params, socket) do
-    socket.assigns.page.page_live.handle_event(event, params, socket)
+    socket.assigns.page.module.handle_event(event, params, socket)
   end
 
   ## Node helpers
