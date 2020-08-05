@@ -49,29 +49,20 @@ defmodule Phoenix.LiveDashboard.PageLive do
                       handle_info: 2,
                       handle_refresh: 1
 
+  @default_refresh 5
+  @refresh_options [{"1s", 1}, {"2s", 2}, {"5s", 5}, {"15s", 15}, {"30s", 30}]
+
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
       import Phoenix.LiveView
       import Phoenix.LiveView.Helpers
       import Phoenix.LiveDashboard.Helpers
       @behaviour Phoenix.LiveDashboard.PageLive
-      @default_refresh 5
-      @supported_refresh [{"1s", 1}, {"2s", 2}, {"5s", 5}, {"15s", 15}, {"30s", 30}]
 
       refresher? = Keyword.get(opts, :refresher?, true)
-      refresh = Keyword.get(opts, :refresh, @default_refresh)
-      refresh_options = Keyword.get(opts, :refresh_options, @supported_refresh)
 
       def __page_live__(:refresher?) do
         unquote(refresher?)
-      end
-
-      def __page_live__(:refresh) do
-        unquote(refresh)
-      end
-
-      def __page_live__(:refresh_options) do
-        unquote(refresh_options)
       end
     end
   end
@@ -81,10 +72,6 @@ defmodule Phoenix.LiveDashboard.PageLive do
     case Map.fetch(session, page) do
       {:ok, {module, page_session}} ->
         assign_mount(socket, module, page_session, params, session)
-
-      {:ok, value} ->
-        msg = "invalid value: #{inspect(value)} must be `{ModulePage, session}`"
-        raise Phoenix.LiveDashboard.PageNotFound, msg
 
       :error ->
         raise Phoenix.LiveDashboard.PageNotFound, "unknown page #{inspect(page)}"
@@ -141,8 +128,8 @@ defmodule Phoenix.LiveDashboard.PageLive do
     socket
     |> assign(
       refresher?: module.__page_live__(:refresher?),
-      refresh: module.__page_live__(:refresh),
-      refresh_options: module.__page_live__(:refresh_options)
+      refresh: @default_refresh,
+      refresh_options: @refresh_options
     )
     |> init_schedule_refresh()
   end
@@ -249,7 +236,19 @@ defmodule Phoenix.LiveDashboard.PageLive do
     {:noreply, validate_nodes_or_redirect(socket)}
   end
 
-  def handle_info({:update_node, param_node}, socket) do
+  def handle_info(:refresh, socket) do
+    socket
+    |> update(:page, fn page -> %{page | tick: page.tick + 1} end)
+    |> schedule_refresh()
+    |> maybe_apply_module(:handle_refresh, [], &{:noreply, &1})
+  end
+
+  def handle_info(message, socket) do
+    maybe_apply_module(socket, :handle_info, [message], &{:noreply, &1})
+  end
+
+  @impl true
+  def handle_event("select_node", %{"node" => param_node}, socket) do
     node = Enum.find(nodes(), &(Atom.to_string(&1) == param_node))
 
     page = socket.assigns.page
@@ -262,22 +261,13 @@ defmodule Phoenix.LiveDashboard.PageLive do
     end
   end
 
-  def handle_info(:refresh, socket) do
-    socket
-    |> update(:page, fn page -> %{page | tick: page.tick + 1} end)
-    |> schedule_refresh()
-    |> maybe_apply_module(:handle_refresh, [], &{:noreply, &1})
+  def handle_event("select_refresh", params, socket) do
+    case Integer.parse(params["refresh"]) do
+      {refresh, ""} -> {:noreply, assign(socket, refresh: refresh)}
+      _ -> {:noreply, socket}
+    end
   end
 
-  def handle_info({:update_refresh, refresh}, socket) do
-    {:noreply, assign(socket, refresh: refresh)}
-  end
-
-  def handle_info(message, socket) do
-    maybe_apply_module(socket, :handle_info, [message], &{:noreply, &1})
-  end
-
-  @impl true
   def handle_event("show_info", %{"info" => info}, socket) do
     to = live_dashboard_path(socket, socket.assigns.page, &Map.put(&1, :info, info))
     {:noreply, push_patch(socket, to: to)}
