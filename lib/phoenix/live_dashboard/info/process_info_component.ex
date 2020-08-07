@@ -88,6 +88,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
        when key in [:links, :monitors, :monitored_by],
        do: format_value(val, live_dashboard_path)
 
+  defp format_info(:current_function, :undefined, _), do: "undefined"
   defp format_info(:current_function, val, _), do: format_call(val)
   defp format_info(:initial_call, val, _), do: format_call(val)
   defp format_info(:current_stacktrace, val, _), do: format_stacktrace(val)
