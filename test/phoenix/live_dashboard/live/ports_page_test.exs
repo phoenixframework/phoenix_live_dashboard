@@ -91,7 +91,7 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
 
   defp port_info_path(port, limit, sort_by, sort_dir) do
     ports_path(limit, "", sort_by, sort_dir) <>
-      "&info=#{Phoenix.LiveDashboard.LiveHelpers.encode_port(port)}"
+      "&info=#{Phoenix.LiveDashboard.Helpers.encode_port(port)}"
   end
 
   defp ports_path(limit, search, sort_by, sort_dir) do

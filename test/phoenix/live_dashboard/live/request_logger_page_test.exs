@@ -28,12 +28,4 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPageTest do
     # Guarantees the stream has arrived
     assert render(live) =~ ~s|[error] hello world\n</pre>|
   end
-
-  test "redirects to new node" do
-    {:ok, live, _} =
-      live(build_conn(), "/dashboard/nonode@nohost/request_logger?stream=helloworld")
-
-    send(live.pid, {:node_redirect, "foo@bar"})
-    assert_redirect(live, "/dashboard/foo%40bar/request_logger?stream=helloworld")
-  end
 end
