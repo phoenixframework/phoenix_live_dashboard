@@ -18,7 +18,7 @@ defmodule Phoenix.LiveDashboard.Web do
   def live_view do
     quote do
       @moduledoc false
-      use Phoenix.LiveView, layout: {Phoenix.LiveDashboard.LayoutView, "live.html"}
+      use Phoenix.LiveView
       unquote(view_helpers())
     end
   end
