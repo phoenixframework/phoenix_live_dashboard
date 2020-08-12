@@ -3,20 +3,30 @@ name: CI
 on:
   pull_request:
   push:
-      branches:
+    branches:
       - master
 
 jobs:
   mix_test:
-    name: mix test (OTP ${{matrix.otp}} | Elixir ${{matrix.elixir}})
-    strategy:
-      matrix:
-        otp: [21.x, 22.x]
-        elixir: [1.7.x, 1.8.x, 1.9.x, 1.10.x]
+    name: mix test (Elixir ${{matrix.elixir}} | OTP ${{matrix.otp}})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        otp: [21.3.8.17, 22.3.4.5]
+        elixir: [1.7.4, 1.8.2, 1.9.4, 1.10.4]
+        include:
+          - elixir: 1.9.4
+            otp: 21.3.8.17
+            warnings_as_errors: true # not 1.10 as its --warnigs-as-errors has bugs https://github.com/elixir-lang/elixir/issues/10073
+          - elixir: 1.10.4
+            otp: 23.0.3
+            check_formatted: true
+    env:
+      MIX_ENV: test
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-elixir@v1.2.0
+    - uses: actions/checkout@v2
+    - uses: actions/setup-elixir@v1
       with:
         otp-version: ${{matrix.otp}}
         elixir-version: ${{matrix.elixir}}
@@ -25,6 +35,10 @@ jobs:
         mix local.rebar --force
         mix local.hex --force
         mix deps.get
+    - run: mix format --check-formatted
+      if: matrix.check_formatted
+    - run: mix compile --warnings-as-errors
+      if: matrix.warnings_as_errors
     - name: Run Tests
       run: mix test
 
@@ -32,8 +46,8 @@ jobs:
     name: npm test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-elixir@v1.2.0
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
         with:
           otp-version: 22.x
           elixir-version: 1.9.x
