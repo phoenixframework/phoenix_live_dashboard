@@ -16,7 +16,8 @@ defmodule Phoenix.LiveDashboard do
   Note that it is expected that the event name was already validated as
   part of the metric.
   """
-  @spec extract_datapoint_for_metric(Telemetry.Metric.t, map(), map(), pos_integer | nil) ::
-    %{label: binary(), measurement: number, time: pos_integer} | nil
-  defdelegate extract_datapoint_for_metric(metric, measurements, metadata, time \\ nil), to: Phoenix.LiveDashboard.TelemetryListener
+  @spec extract_datapoint_for_metric(Telemetry.Metric.t(), map(), map(), pos_integer | nil) ::
+          %{label: binary(), measurement: number, time: pos_integer} | nil
+  defdelegate extract_datapoint_for_metric(metric, measurements, metadata, time \\ nil),
+    to: Phoenix.LiveDashboard.TelemetryListener
 end
