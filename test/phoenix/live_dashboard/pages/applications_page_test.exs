@@ -5,6 +5,10 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
   import Phoenix.LiveViewTest
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
+  test "menu_link/2" do
+    assert {:ok, "Applications"} = Phoenix.LiveDashboard.ApplicationsPage.menu_link(nil, nil)
+  end
+
   test "shows applications with limit" do
     {:ok, _live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/applications")
     assert rendered |> :binary.matches("</tr>") |> length() <= 100

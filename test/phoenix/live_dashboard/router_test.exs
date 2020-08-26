@@ -5,7 +5,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
   test "default options" do
     assert Router.__options__([]) == [
-             session: {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil]},
+             session: {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, []]},
              private: %{live_socket_path: "/live"},
              layout: {Phoenix.LiveDashboard.LayoutView, :dash},
              as: :live_dashboard
@@ -19,10 +19,10 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
   test "configures metrics" do
     assert Router.__options__(metrics: Foo)[:session] ==
-             {Phoenix.LiveDashboard.Router, :__session__, [{Foo, :metrics}, nil, nil]}
+             {Phoenix.LiveDashboard.Router, :__session__, [{Foo, :metrics}, nil, nil, []]}
 
     assert Router.__options__(metrics: {Foo, :bar})[:session] ==
-             {Phoenix.LiveDashboard.Router, :__session__, [{Foo, :bar}, nil, nil]}
+             {Phoenix.LiveDashboard.Router, :__session__, [{Foo, :bar}, nil, nil, []]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(metrics: [])
@@ -31,7 +31,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
   test "configures env_keys" do
     assert Router.__options__(env_keys: ["USER", "ROOTDIR"])[:session] ==
-             {Phoenix.LiveDashboard.Router, :__session__, [nil, ["USER", "ROOTDIR"], nil]}
+             {Phoenix.LiveDashboard.Router, :__session__, [nil, ["USER", "ROOTDIR"], nil, []]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(env_keys: "FOO")
@@ -41,7 +41,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "accepts metrics_history option" do
     assert Router.__options__(metrics_history: {MyStorage, :metrics_history, []})[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, nil, {MyStorage, :metrics_history, []}]}
+              [nil, nil, {MyStorage, :metrics_history, []}, []]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(metrics_history: %{namespace: {MyStorage, :metrics_history, []}})
@@ -49,6 +49,29 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
     assert_raise ArgumentError, fn ->
       Router.__options__(metrics_history: %{[:namespace, :metric] => MyStorage})
+    end
+  end
+
+  test "configures additional_pages" do
+    assert Router.__options__(additional_pages: [])[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, []]}
+
+    assert Router.__options__(additional_pages: [CustomPage])[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, [{CustomPage, []}]]}
+
+    assert Router.__options__(additional_pages: [{CustomPage, [1]}])[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, [{CustomPage, [1]}]]}
+
+    assert_raise ArgumentError, fn ->
+      Router.__options__(additional_pages: [{CustomPage, 1}])
+    end
+
+    assert_raise ArgumentError, fn ->
+      Router.__options__(additional_pages: [1])
+    end
+
+    assert_raise ArgumentError, fn ->
+      Router.__options__(additional_pages: CustomPage)
     end
   end
 end

@@ -107,16 +107,42 @@ defmodule Phoenix.LiveDashboard.Router do
                   inspect(other)
       end
 
+    additional_pages =
+      case options[:additional_pages] do
+        nil ->
+          []
+
+        pages when is_list(pages) ->
+          normalize_additional_pages(pages)
+
+        other ->
+          raise ArgumentError, ":additional_pages must be a keyword, got: " <> inspect(other)
+      end
+
     [
-      session: {__MODULE__, :__session__, [metrics, env_keys, metrics_history]},
+      session: {__MODULE__, :__session__, [metrics, env_keys, metrics_history, additional_pages]},
       private: %{live_socket_path: live_socket_path},
       layout: {Phoenix.LiveDashboard.LayoutView, :dash},
       as: :live_dashboard
     ]
   end
 
+  defp normalize_additional_pages(pages) do
+    Enum.map(pages, fn
+      module when is_atom(module) ->
+        {module, []}
+
+      {module, args} when is_atom(module) and is_list(args) ->
+        {module, args}
+
+      other ->
+        raise ArgumentError,
+              "invalid :additional_page, must be a tuple {module, args}, got: " <> inspect(other)
+    end)
+  end
+
   @doc false
-  def __session__(conn, metrics, env_keys, metrics_history) do
+  def __session__(conn, metrics, env_keys, metrics_history, additional_pages) do
     metrics_session = %{
       "metrics" => metrics,
       "metrics_history" => metrics_history
@@ -126,16 +152,23 @@ defmodule Phoenix.LiveDashboard.Router do
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
     }
 
+    pages =
+      [
+        {"home", {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys}}},
+        {"os_mon", {Phoenix.LiveDashboard.OSMonPage, %{}}},
+        {"metrics", {Phoenix.LiveDashboard.MetricsPage, metrics_session}},
+        {"request_logger", {Phoenix.LiveDashboard.RequestLoggerPage, request_logger_session}},
+        {"applications", {Phoenix.LiveDashboard.ApplicationsPage, %{}}},
+        {"processes", {Phoenix.LiveDashboard.ProcessesPage, %{}}},
+        {"ports", {Phoenix.LiveDashboard.PortsPage, %{}}},
+        {"sockets", {Phoenix.LiveDashboard.SocketsPage, %{}}},
+        {"ets", {Phoenix.LiveDashboard.EtsPage, %{}}}
+      ]
+      |> Enum.concat(additional_pages)
+      |> Enum.map(fn {key, {module, opts}} -> {key, {module, module.init(opts)}} end)
+
     %{
-      "applications" => {Phoenix.LiveDashboard.ApplicationsPage, %{}},
-      "ets" => {Phoenix.LiveDashboard.EtsPage, %{}},
-      "home" => {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys}},
-      "metrics" => {Phoenix.LiveDashboard.MetricsPage, metrics_session},
-      "os_mon" => {Phoenix.LiveDashboard.OSMonPage, %{}},
-      "ports" => {Phoenix.LiveDashboard.PortsPage, %{}},
-      "processes" => {Phoenix.LiveDashboard.ProcessesPage, %{}},
-      "request_logger" => {Phoenix.LiveDashboard.RequestLoggerPage, request_logger_session},
-      "sockets" => {Phoenix.LiveDashboard.SocketsPage, %{}}
+      "pages" => pages
     }
   end
 end

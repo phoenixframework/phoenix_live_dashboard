@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.HomePage do
-  use Phoenix.LiveDashboard.PageLive
+  use Phoenix.LiveDashboard.PageBuilder
 
   alias Phoenix.LiveDashboard.{
     SystemInfo,
@@ -25,6 +25,8 @@ defmodule Phoenix.LiveDashboard.HomePage do
     {:other, "Other", "dark-gray"}
   ]
 
+  @menu_text "Home"
+
   @impl true
   def mount(_params, session, socket) do
     %{
@@ -46,6 +48,11 @@ defmodule Phoenix.LiveDashboard.HomePage do
       )
 
     {:ok, socket, temporary_assigns: @temporary_assigns}
+  end
+
+  @impl true
+  def menu_link(_, _) do
+    {:ok, @menu_text}
   end
 
   @impl true

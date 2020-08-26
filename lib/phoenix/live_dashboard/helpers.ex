@@ -6,6 +6,13 @@ defmodule Phoenix.LiveDashboard.Helpers do
   @format_limit 100
 
   @doc """
+  Renders a `Phoenix.LiveDashboard.TableComponent` component
+  """
+  def table(%Phoenix.LiveView.Socket{} = socket, table_assigns) do
+    live_component(socket, Phoenix.LiveDashboard.TableComponent, table_assigns)
+  end
+
+  @doc """
   Computes a route path to the live dashboard.
   """
   def live_dashboard_path(socket, page, node, params) do

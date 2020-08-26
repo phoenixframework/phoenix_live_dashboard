@@ -5,6 +5,10 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
   import Phoenix.LiveViewTest
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
+  test "menu_link/2" do
+    assert {:ok, "Processes"} = Phoenix.LiveDashboard.ProcessesPage.menu_link(nil, nil)
+  end
+
   test "shows processes with limit" do
     {:ok, live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/processes")
     assert rendered |> :binary.matches("</tr>") |> length() <= 100
