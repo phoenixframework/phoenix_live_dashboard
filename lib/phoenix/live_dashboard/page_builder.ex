@@ -1,8 +1,4 @@
 defmodule Phoenix.LiveDashboard.PageBuilder do
-  # import Phoenix.LiveDashboard.Helpers
-  # alias Phoenix.LiveView.Socket
-  # alias Phoenix.LiveDashboard.MenuComponent
-
   defstruct capabilities: nil,
             info: nil,
             module: nil,
