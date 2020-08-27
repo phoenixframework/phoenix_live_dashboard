@@ -10,9 +10,6 @@ defmodule Phoenix.LiveDashboard.PageLive do
   alias Phoenix.LiveView.Socket
   alias Phoenix.LiveDashboard.{MenuComponent, PageBuilder}
 
-  @default_refresh 5
-  @refresh_options [{"1s", 1}, {"2s", 2}, {"5s", 5}, {"15s", 15}, {"30s", 30}]
-
   @impl true
   def mount(%{"node" => _, "page" => page} = params, session, socket) do
     %{"pages" => pages} = session
@@ -32,10 +29,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   defp assign_mount(socket, module, page_session, params, pages) do
     socket =
-      assign(socket,
-        page: %PageBuilder{module: module},
-        pages: pages
-      )
+      assign(socket, page: %PageBuilder{module: module}, menu: %MenuComponent{pages: pages})
 
     with %Socket{redirected: nil} = socket <- assign_params(socket, params),
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
@@ -68,7 +62,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
       socket
       |> update_page(node: found_node)
-      |> assign(nodes: nodes())
+      |> update_menu(nodes: nodes())
     else
       redirect_to_current_node(socket)
     end
@@ -78,29 +72,26 @@ defmodule Phoenix.LiveDashboard.PageLive do
     module = socket.assigns.page.module
 
     socket
-    |> assign(
-      refresher?: module.__page_live__(:refresher?),
-      refresh: @default_refresh,
-      refresh_options: @refresh_options
-    )
+    |> update_menu(refresher?: module.__page_live__(:refresher?))
     |> init_schedule_refresh()
   end
 
   defp init_schedule_refresh(socket) do
-    if connected?(socket) and socket.assigns.refresher? do
+    if connected?(socket) and socket.assigns.menu.refresher? do
       schedule_refresh(socket)
     else
-      assign(socket, timer: nil)
+      socket
     end
   end
 
   defp schedule_refresh(socket) do
-    assign(socket, timer: Process.send_after(self(), :refresh, socket.assigns.refresh * 1000))
+    update_menu(socket,
+      timer: Process.send_after(self(), :refresh, socket.assigns.menu.refresh * 1000)
+    )
   end
 
   defp assign_capabilities(socket) do
     capabilities = Phoenix.LiveDashboard.SystemInfo.ensure_loaded(socket.assigns.page.node)
-
     update_page(socket, capabilities: capabilities)
   end
 
@@ -127,15 +118,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
           <span class="header-title-part">Phoenix </span>
           <span class="header-title-part">LiveDashboard<span>
         </h1>
-        <%= live_component(@socket, MenuComponent,
-          id: :menu,
-          page: @page,
-          pages: @pages,
-          refresher?: @refresher?,
-          refresh: @refresh,
-          refresh_options: @refresh_options,
-          nodes: @nodes
-        ) %>
+        <%= live_component(@socket, MenuComponent, id: :menu, page: @page, menu: @menu) %>
       </div>
     </header>
     <%= live_info(@socket, @page) %>
@@ -243,6 +226,14 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   defp update_page(socket, assigns) do
     update(socket, :page, fn page ->
+      Enum.reduce(assigns, page, fn {key, value}, page ->
+        Map.replace!(page, key, value)
+      end)
+    end)
+  end
+
+  defp update_menu(socket, assigns) do
+    update(socket, :menu, fn page ->
       Enum.reduce(assigns, page, fn {key, value}, page ->
         Map.replace!(page, key, value)
       end)

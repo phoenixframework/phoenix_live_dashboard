@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.MenuComponentTest do
   use ExUnit.Case, async: true
 
   import Phoenix.LiveViewTest
-  alias Phoenix.LiveDashboard.MenuComponent
+  alias Phoenix.LiveDashboard.{MenuComponent, PageBuilder}
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   defmodule Link do
@@ -35,29 +35,30 @@ defmodule Phoenix.LiveDashboard.MenuComponentTest do
 
   defp render_menu(menu \\ [], page \\ []) do
     page =
-      Enum.into(page, %{
-        capabilities: %{enabled: true},
-        node: node(),
-        route: :home
-      })
+      struct(
+        %PageBuilder{
+          capabilities: %{enabled: true},
+          node: node(),
+          route: :home
+        }, page
+        )
 
     menu =
-      Enum.into(menu, %{
-        id: :menu,
-        nodes: [node()],
-        page: page,
-        pages: [
-          {"link", {Link, "Link"}},
-          {"disabled", {Disabled, "Disabled"}},
-          {"disabled_link", {DisabledLink, "DisabledLink"}},
-          {"skip", {Skip, "Skip"}}
-        ],
-        refresh: 5,
-        refresh_options: [{"1s", 1}, {"2s", 2}, {"5s", 5}],
-        refresher?: false
-      })
+    struct(
+      %MenuComponent{
+          nodes: [node()],
+          pages: [
+            {"link", {Link, "Link"}},
+            {"disabled", {Disabled, "Disabled"}},
+            {"disabled_link", {DisabledLink, "DisabledLink"}},
+            {"skip", {Skip, "Skip"}}
+          ],
+          refresh: 5,
+          refresh_options: [{"1s", 1}, {"2s", 2}, {"5s", 5}],
+          refresher?: false
+        }, menu)
 
-    render_component(MenuComponent, menu, router: Phoenix.LiveDashboardTest.Router)
+    render_component(MenuComponent, [id: :menu, menu: menu, page: page], router: Phoenix.LiveDashboardTest.Router)
   end
 
   describe "refresher" do
