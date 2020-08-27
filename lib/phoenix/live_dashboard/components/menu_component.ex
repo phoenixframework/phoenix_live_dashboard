@@ -14,8 +14,8 @@ defmodule Phoenix.LiveDashboard.MenuComponent do
     ~L"""
     <div id="menu">
       <nav id="menu-bar">
-        <%= for {route, {module, session}} <- @menu.pages do %>
-          <%= maybe_link(@socket, @page, module, session, route) %>
+        <%= for {route, result} <- @menu.pages do %>
+          <%= maybe_link(@socket, @page, route, result) %>
         <% end %>
       </nav>
 
@@ -52,8 +52,8 @@ defmodule Phoenix.LiveDashboard.MenuComponent do
     """
   end
 
-  defp maybe_link(socket, page, module, session, route) do
-    case module.menu_link(session, page.capabilities) do
+  defp maybe_link(socket, page, route, result) do
+    case result do
       {:ok, text} ->
         if Atom.to_string(page.route) == route do
           content_tag(:div, text, class: "menu-item active")

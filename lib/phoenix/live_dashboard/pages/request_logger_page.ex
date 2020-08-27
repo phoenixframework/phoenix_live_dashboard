@@ -15,8 +15,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
     end
 
     socket =
-      socket
-      |> assign(
+      assign(socket,
         stream: stream,
         param_key: param_key,
         cookie_key: cookie_key,
@@ -25,12 +24,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
         messages_present: false
       )
 
-    if socket.assigns.page.capabilities.dashboard do
-      {:ok, socket, temporary_assigns: [messages: []]}
-    else
-      to = live_dashboard_path(socket, :home, socket.assigns.page.node, [])
-      {:ok, push_redirect(socket, to: to)}
-    end
+    {:ok, socket, temporary_assigns: [messages: []]}
   end
 
   def mount(%{"node" => node}, %{"request_logger" => _}, socket) do

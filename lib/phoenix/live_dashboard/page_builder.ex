@@ -1,6 +1,5 @@
 defmodule Phoenix.LiveDashboard.PageBuilder do
-  defstruct capabilities: nil,
-            info: nil,
+  defstruct info: nil,
             module: nil,
             node: nil,
             params: nil,

@@ -28,13 +28,12 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp assign_mount(socket, module, page_session, params, pages) do
-    socket =
-      assign(socket, page: %PageBuilder{module: module}, menu: %MenuComponent{pages: pages})
+    socket = assign(socket, page: %PageBuilder{module: module}, menu: %MenuComponent{})
 
     with %Socket{redirected: nil} = socket <- assign_params(socket, params),
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
          %Socket{redirected: nil} = socket <- assign_refresh(socket),
-         %Socket{redirected: nil} = socket <- assign_capabilities(socket) do
+         %Socket{redirected: nil} = socket <- assign_pages(socket, pages) do
       socket
       |> init_schedule_refresh()
       |> maybe_apply_module(:mount, [params, page_session], &{:ok, &1})
@@ -90,9 +89,25 @@ defmodule Phoenix.LiveDashboard.PageLive do
     )
   end
 
-  defp assign_capabilities(socket) do
+  defp assign_pages(socket, pages) do
     capabilities = Phoenix.LiveDashboard.SystemInfo.ensure_loaded(socket.assigns.page.node)
-    update_page(socket, capabilities: capabilities)
+    current_route = socket.assigns.page.route
+
+    {pages, socket} =
+      Enum.map_reduce(pages, socket, fn {route, {module, session}}, socket ->
+        result = module.menu_link(session, capabilities)
+
+        socket =
+          if route == current_route and not match?({:ok, _}, result) do
+            redirect_to_current_node(socket)
+          else
+            socket
+          end
+
+        {{route, result}, socket}
+      end)
+
+    update_menu(socket, pages: pages)
   end
 
   defp maybe_apply_module(socket, fun, params, default) do

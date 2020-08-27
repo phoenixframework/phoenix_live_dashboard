@@ -5,60 +5,36 @@ defmodule Phoenix.LiveDashboard.MenuComponentTest do
   alias Phoenix.LiveDashboard.{MenuComponent, PageBuilder}
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
-  defmodule Link do
-    def menu_link(text, capabilities) do
-      assert capabilities == %{enabled: true}
-      {:ok, text}
-    end
-  end
-
-  defmodule Disabled do
-    def menu_link(text, capabilities) do
-      assert capabilities == %{enabled: true}
-      {:disabled, text}
-    end
-  end
-
-  defmodule DisabledLink do
-    def menu_link(text, capabilities) do
-      assert capabilities == %{enabled: true}
-      {:disabled, text, "https://example.com"}
-    end
-  end
-
-  defmodule Skip do
-    def menu_link(_text, capabilities) do
-      assert capabilities == %{enabled: true}
-      :skip
-    end
-  end
-
   defp render_menu(menu \\ [], page \\ []) do
     page =
       struct(
         %PageBuilder{
-          capabilities: %{enabled: true},
           node: node(),
           route: :home
-        }, page
-        )
+        },
+        page
+      )
 
     menu =
-    struct(
-      %MenuComponent{
+      struct(
+        %MenuComponent{
           nodes: [node()],
           pages: [
-            {"link", {Link, "Link"}},
-            {"disabled", {Disabled, "Disabled"}},
-            {"disabled_link", {DisabledLink, "DisabledLink"}},
-            {"skip", {Skip, "Skip"}}
+            {"link", {:ok, "Link"}},
+            {"disabled", {:disabled, "Disabled"}},
+            {"disabled_link", {:disabled, "DisabledLink", "https://example.com"}},
+            {"skip", :skip}
           ],
           refresh: 5,
           refresh_options: [{"1s", 1}, {"2s", 2}, {"5s", 5}],
           refresher?: false
-        }, menu)
+        },
+        menu
+      )
 
-    render_component(MenuComponent, [id: :menu, menu: menu, page: page], router: Phoenix.LiveDashboardTest.Router)
+    render_component(MenuComponent, [id: :menu, menu: menu, page: page],
+      router: Phoenix.LiveDashboardTest.Router
+    )
   end
 
   describe "refresher" do

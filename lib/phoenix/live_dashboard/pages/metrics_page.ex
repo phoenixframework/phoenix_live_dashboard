@@ -17,10 +17,6 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     socket = assign(socket, group: group, groups: Map.keys(metrics_per_group))
 
     cond do
-      !socket.assigns.page.capabilities.dashboard ->
-        to = live_dashboard_path(socket, :home, socket.assigns.page.node, [])
-        {:ok, push_redirect(socket, to: to)}
-
       group && is_nil(metrics) ->
         {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node(), []))}
 
