@@ -33,7 +33,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp assign_mount(socket, module, page_session, params, pages) do
     socket =
       assign(socket,
-        page: %PageBuilder{module: module, session: page_session},
+        page: %PageBuilder{module: module},
         pages: pages
       )
 

@@ -5,7 +5,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             node: nil,
             params: nil,
             route: nil,
-            session: nil,
             tick: 0
 
   @type session :: map
