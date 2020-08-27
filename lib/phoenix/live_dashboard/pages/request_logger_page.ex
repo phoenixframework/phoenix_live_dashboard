@@ -41,7 +41,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
   end
 
   @impl true
-  def menu_link(_, %{running_dashboard?: false}) do
+  def menu_link(_, %{dashboard: false}) do
     :skip
   end
 

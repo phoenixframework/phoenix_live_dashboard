@@ -8,21 +8,25 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             session: nil,
             tick: 0
 
+  @type session :: map
   @type unsigned_params :: map
 
-  @callback init(term()) :: term()
+  @doc """
+  Callback invoked when a page is declared in the router.
 
-  @callback menu_link(session :: term(), map()) ::
+  It receives the router options and it must return the
+  page session that will be serialized to the client and
+  received on `mount`.
+  """
+  @callback init(term()) :: session
+
+  @callback menu_link(session, map()) ::
               {:ok, String.t()}
               | {:disabled, String.t()}
               | {:disabled, String.t(), String.t()}
               | :skip
 
-  @callback mount(
-              unsigned_params() | :not_mounted_at_router,
-              session :: term(),
-              socket :: Socket.t()
-            ) ::
+  @callback mount(unsigned_params(), session, socket :: Socket.t()) ::
               {:ok, Socket.t()} | {:ok, Socket.t(), keyword()}
 
   @callback render(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
