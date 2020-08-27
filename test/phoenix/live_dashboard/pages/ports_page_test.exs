@@ -5,6 +5,10 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
   import Phoenix.LiveViewTest
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
+  test "menu_link/2" do
+    assert {:ok, "Ports"} = Phoenix.LiveDashboard.PortsPage.menu_link(nil, nil)
+  end
+
   test "shows ports with limit" do
     {:ok, live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/ports")
     assert rendered |> :binary.matches("</tr>") |> length() <= 100

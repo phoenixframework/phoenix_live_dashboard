@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.OSMonPage do
-  use Phoenix.LiveDashboard.PageLive
+  use Phoenix.LiveDashboard.PageBuilder
 
   alias Phoenix.LiveDashboard.{
     SystemInfo,
@@ -32,11 +32,13 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
      "The amount of disk swap memory used from the available swap"}
   ]
 
+  @menu_text "OS Data"
+
   @impl true
   def mount(_params, _session, socket) do
     socket = assign_os_mon(socket)
 
-    if socket.assigns.page.os_mon do
+    if socket.assigns.page.capabilities.os_mon do
       {:ok, socket, temporary_assigns: @temporary_assigns}
     else
       to = live_dashboard_path(socket, :home, socket.assigns.page.node, [])
@@ -96,6 +98,15 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     |> Enum.sum()
     |> Kernel./(count)
     |> Float.ceil(1)
+  end
+
+  @impl true
+  def menu_link(_, %{os_mon: enabled?}) do
+    if enabled? do
+      {:ok, @menu_text}
+    else
+      {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/os_mon.html"}
+    end
   end
 
   @impl true

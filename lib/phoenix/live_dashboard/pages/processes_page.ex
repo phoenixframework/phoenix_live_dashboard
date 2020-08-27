@@ -1,15 +1,15 @@
 defmodule Phoenix.LiveDashboard.ProcessesPage do
-  use Phoenix.LiveDashboard.PageLive
+  use Phoenix.LiveDashboard.PageBuilder
 
   alias Phoenix.LiveDashboard.SystemInfo
-  alias Phoenix.LiveDashboard.TableComponent
 
   @table_id :table
+  @menu_text "Processes"
 
   @impl true
   def render(assigns) do
     ~L"""
-    <%= live_component(@socket, TableComponent, table_assigns(@page)) %>
+    <%= table(@socket, table_assigns(@page)) %>
     """
   end
 
@@ -81,5 +81,10 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       {"phx-value-info", encode_pid(process[:pid])},
       {"phx-page-loading", true}
     ]
+  end
+
+  @impl true
+  def menu_link(_, _) do
+    {:ok, @menu_text}
   end
 end

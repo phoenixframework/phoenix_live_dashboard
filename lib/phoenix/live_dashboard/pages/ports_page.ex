@@ -1,15 +1,15 @@
 defmodule Phoenix.LiveDashboard.PortsPage do
-  use Phoenix.LiveDashboard.PageLive
+  use Phoenix.LiveDashboard.PageBuilder
 
   alias Phoenix.LiveDashboard.SystemInfo
-  alias Phoenix.LiveDashboard.TableComponent
 
   @table_id :table
+  @menu_text "Ports"
 
   @impl true
   def render(assigns) do
     ~L"""
-      <%= live_component(assigns.socket, TableComponent, table_assigns(@page)) %>
+      <%= table(@socket, table_assigns(@page)) %>
     """
   end
 
@@ -81,5 +81,10 @@ defmodule Phoenix.LiveDashboard.PortsPage do
       {"phx-value-info", encode_port(port[:port])},
       {"phx-page-loading", true}
     ]
+  end
+
+  @impl true
+  def menu_link(_, _) do
+    {:ok, @menu_text}
   end
 end

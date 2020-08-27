@@ -5,6 +5,10 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
   import Phoenix.LiveViewTest
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
+  test "menu_link/2" do
+    assert {:ok, "Home"} = Phoenix.LiveDashboard.HomePage.menu_link(nil, nil)
+  end
+
   test "redirects when host is missing" do
     conn = get(build_conn(), "/dashboard")
     assert redirected_to(conn) == "/dashboard/nonode%40nohost/home"

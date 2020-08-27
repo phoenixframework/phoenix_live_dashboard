@@ -1,7 +1,9 @@
 defmodule Phoenix.LiveDashboard.MetricsPage do
-  use Phoenix.LiveDashboard.PageLive, refresher?: false
+  use Phoenix.LiveDashboard.PageBuilder, refresher?: false
 
   alias Phoenix.LiveDashboard.ChartComponent
+
+  @menu_text "Metrics"
 
   @impl true
   def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history}, socket) do
@@ -15,7 +17,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     socket = assign(socket, group: group, groups: Map.keys(metrics_per_group))
 
     cond do
-      !socket.assigns.page.metrics ->
+      !socket.assigns.page.capabilities.dashboard ->
         to = live_dashboard_path(socket, :home, socket.assigns.page.node, [])
         {:ok, push_redirect(socket, to: to)}
 
@@ -42,6 +44,19 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
 
   defp format_group_name("vm"), do: "VM"
   defp format_group_name(group), do: Phoenix.Naming.camelize(group)
+
+  @impl true
+  def menu_link(_, %{running_dashboard?: false}) do
+    :skip
+  end
+
+  def menu_link(%{"metrics" => nil}, _) do
+    {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/metrics.html"}
+  end
+
+  def menu_link(_, _) do
+    {:ok, @menu_text}
+  end
 
   @impl true
   def render(assigns) do

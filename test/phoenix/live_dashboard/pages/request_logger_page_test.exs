@@ -8,6 +8,25 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPageTest do
   alias Phoenix.LiveDashboardTest.PubSub
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
+  test "menu_link/2" do
+    assert :skip =
+             Phoenix.LiveDashboard.RequestLoggerPage.menu_link(%{}, %{running_dashboard?: false})
+
+    link = "https://hexdocs.pm/phoenix_live_dashboard/request_logger.html"
+
+    assert {:disabled, "Request Logger", ^link} =
+             Phoenix.LiveDashboard.RequestLoggerPage.menu_link(
+               %{"request_logger" => nil},
+               %{running_dashboard?: true}
+             )
+
+    assert {:ok, "Request Logger"} =
+             Phoenix.LiveDashboard.RequestLoggerPage.menu_link(
+               %{"request_logger" => {"param", "cookie"}},
+               %{running_dashboard?: true}
+             )
+  end
+
   test "redirects to stream" do
     {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/request_logger?stream=" <> _}}} =
       live(build_conn(), "/dashboard/nonode@nohost/request_logger")

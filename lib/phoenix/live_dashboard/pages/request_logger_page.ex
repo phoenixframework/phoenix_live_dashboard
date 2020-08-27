@@ -1,5 +1,7 @@
 defmodule Phoenix.LiveDashboard.RequestLoggerPage do
-  use Phoenix.LiveDashboard.PageLive
+  use Phoenix.LiveDashboard.PageBuilder
+
+  @menu_text "Request Logger"
 
   @impl true
   def mount(%{"stream" => stream}, session, socket) do
@@ -23,7 +25,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
         messages_present: false
       )
 
-    if socket.assigns.page.request_logger do
+    if socket.assigns.page.capabilities.dashboard do
       {:ok, socket, temporary_assigns: [messages: []]}
     else
       to = live_dashboard_path(socket, :home, socket.assigns.page.node, [])
@@ -36,6 +38,19 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
 
     to = live_dashboard_path(socket, :request_logger, node, stream: stream)
     {:ok, push_redirect(socket, to: to)}
+  end
+
+  @impl true
+  def menu_link(_, %{running_dashboard?: false}) do
+    :skip
+  end
+
+  def menu_link(%{"request_logger" => nil}, _) do
+    {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/request_logger.html"}
+  end
+
+  def menu_link(_, _) do
+    {:ok, @menu_text}
   end
 
   @impl true

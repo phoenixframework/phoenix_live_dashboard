@@ -5,6 +5,10 @@ defmodule Phoenix.LiveDashboard.EtsPageTest do
   import Phoenix.LiveViewTest
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
+  test "menu_link/2" do
+    assert {:ok, "ETS"} = Phoenix.LiveDashboard.EtsPage.menu_link(nil, nil)
+  end
+
   test "search" do
     :ets.new(Bar, [:bag, :protected])
     :ets.new(:foo_bar, [:set, :protected])

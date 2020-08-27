@@ -5,6 +5,24 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
   import Phoenix.LiveViewTest
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
+  test "menu_link/2" do
+    assert :skip = Phoenix.LiveDashboard.MetricsPage.menu_link(%{}, %{running_dashboard?: false})
+
+    link = "https://hexdocs.pm/phoenix_live_dashboard/metrics.html"
+
+    assert {:disabled, "Metrics", ^link} =
+             Phoenix.LiveDashboard.MetricsPage.menu_link(
+               %{"metrics" => nil},
+               %{running_dashboard?: true}
+             )
+
+    assert {:ok, "Metrics"} =
+             Phoenix.LiveDashboard.MetricsPage.menu_link(
+               %{"metrics" => {Module, :fun}},
+               %{running_dashboard?: true}
+             )
+  end
+
   test "redirects to the first metrics group if no metric group is provided" do
     {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics?group=ecto"}}} =
       live(build_conn(), "/dashboard/nonode@nohost/metrics")

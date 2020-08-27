@@ -3,75 +3,23 @@ defmodule Phoenix.LiveDashboard.PageNotFound do
 end
 
 defmodule Phoenix.LiveDashboard.PageLive do
+  @moduledoc false
+
   use Phoenix.LiveDashboard.Web, :live_view
   import Phoenix.LiveDashboard.Helpers
   alias Phoenix.LiveView.Socket
-  alias Phoenix.LiveDashboard.MenuComponent
-
-  defstruct dashboard_running?: nil,
-            info: nil,
-            metrics: nil,
-            module: nil,
-            node: nil,
-            os_mon: nil,
-            params: nil,
-            request_logger: nil,
-            route: nil,
-            session: nil,
-            tick: 0
-
-  @type unsigned_params :: map
-
-  @callback mount(
-              unsigned_params() | :not_mounted_at_router,
-              session :: map,
-              socket :: Socket.t()
-            ) ::
-              {:ok, Socket.t()} | {:ok, Socket.t(), keyword()}
-
-  @callback render(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
-
-  @callback handle_params(unsigned_params(), uri :: String.t(), socket :: Socket.t()) ::
-              {:noreply, Socket.t()}
-
-  @callback handle_event(event :: binary, unsigned_params(), socket :: Socket.t()) ::
-              {:noreply, Socket.t()} | {:reply, map, Socket.t()}
-
-  @callback handle_info(msg :: term, socket :: Socket.t()) ::
-              {:noreply, Socket.t()}
-
-  @callback handle_refresh(socket :: Socket.t()) ::
-              {:noreply, Socket.t()}
-
-  @optional_callbacks mount: 3,
-                      handle_params: 3,
-                      handle_event: 3,
-                      handle_info: 2,
-                      handle_refresh: 1
+  alias Phoenix.LiveDashboard.{MenuComponent, PageBuilder}
 
   @default_refresh 5
   @refresh_options [{"1s", 1}, {"2s", 2}, {"5s", 5}, {"15s", 15}, {"30s", 30}]
 
-  defmacro __using__(opts) do
-    quote bind_quoted: [opts: opts] do
-      import Phoenix.LiveView
-      import Phoenix.LiveView.Helpers
-      import Phoenix.LiveDashboard.Helpers
-      @behaviour Phoenix.LiveDashboard.PageLive
-
-      refresher? = Keyword.get(opts, :refresher?, true)
-
-      def __page_live__(:refresher?) do
-        unquote(refresher?)
-      end
-    end
-  end
-
   @impl true
   def mount(%{"node" => _, "page" => page} = params, session, socket) do
-    case Map.fetch(session, page) do
-      {:ok, {module, page_session}} ->
-        assign_mount(socket, module, page_session, params, session)
+    %{"pages" => pages} = session
+
+    case List.keyfind(pages, page, 0, :error) do
+      {_id, {module, page_session}} ->
+        assign_mount(socket, module, page_session, params, pages)
 
       :error ->
         raise Phoenix.LiveDashboard.PageNotFound, "unknown page #{inspect(page)}"
@@ -82,13 +30,17 @@ defmodule Phoenix.LiveDashboard.PageLive do
     {:ok, redirect_to_current_node(socket)}
   end
 
-  defp assign_mount(socket, module, page_session, params, session) do
-    socket = assign(socket, :page, %__MODULE__{module: module, session: page_session})
+  defp assign_mount(socket, module, page_session, params, pages) do
+    socket =
+      assign(socket,
+        page: %PageBuilder{module: module, session: page_session},
+        pages: pages
+      )
 
     with %Socket{redirected: nil} = socket <- assign_params(socket, params),
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
          %Socket{redirected: nil} = socket <- assign_refresh(socket),
-         %Socket{redirected: nil} = socket <- assign_capabilities(socket, session) do
+         %Socket{redirected: nil} = socket <- assign_capabilities(socket) do
       socket
       |> init_schedule_refresh()
       |> maybe_apply_module(:mount, [params, page_session], &{:ok, &1})
@@ -146,15 +98,10 @@ defmodule Phoenix.LiveDashboard.PageLive do
     assign(socket, timer: Process.send_after(self(), :refresh, socket.assigns.refresh * 1000))
   end
 
-  def assign_capabilities(socket, session) do
+  defp assign_capabilities(socket) do
     capabilities = Phoenix.LiveDashboard.SystemInfo.ensure_loaded(socket.assigns.page.node)
 
-    update_page(socket,
-      metrics: capabilities.dashboard && session["metrics"],
-      os_mon: capabilities.os_mon,
-      request_logger: capabilities.dashboard && session["request_logger"],
-      dashboard_running?: capabilities.dashboard
-    )
+    update_page(socket, capabilities: capabilities)
   end
 
   defp maybe_apply_module(socket, fun, params, default) do
@@ -183,6 +130,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
         <%= live_component(@socket, MenuComponent,
           id: :menu,
           page: @page,
+          pages: @pages,
           refresher?: @refresher?,
           refresh: @refresh,
           refresh_options: @refresh_options,

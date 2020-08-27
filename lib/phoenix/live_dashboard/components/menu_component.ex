@@ -6,17 +6,9 @@ defmodule Phoenix.LiveDashboard.MenuComponent do
     ~L"""
     <div id="menu">
       <nav id="menu-bar">
-        <%= maybe_active_live_redirect @socket, @page, "Home", :home %>
-        <%= maybe_enabled_live_redirect @socket, @page, "OS Data", :os_mon %>
-        <%= if @page.dashboard_running? do %>
-          <%= maybe_enabled_live_redirect @socket, @page, "Metrics", :metrics %>
-          <%= maybe_enabled_live_redirect @socket, @page, "Request Logger", :request_logger %>
+        <%= for {route, {module, session}} <- @pages do %>
+          <%= maybe_link(@socket, @page, module, session, route) %>
         <% end %>
-        <%= maybe_active_live_redirect @socket, @page, "Applications", :applications %>
-        <%= maybe_active_live_redirect @socket, @page, "Processes", :processes %>
-        <%= maybe_active_live_redirect @socket, @page, "Ports", :ports %>
-        <%= maybe_active_live_redirect @socket, @page, "Sockets", :sockets %>
-        <%= maybe_active_live_redirect @socket, @page, "ETS", :ets %>
       </nav>
 
       <form id="node-selection" phx-change="select_node" class="d-inline">
@@ -52,30 +44,38 @@ defmodule Phoenix.LiveDashboard.MenuComponent do
     """
   end
 
-  defp maybe_active_live_redirect(socket, page, text, route) do
-    if page.route == route do
-      content_tag(:div, text, class: "menu-item active")
-    else
-      live_redirect(text,
-        to: live_dashboard_path(socket, route, page.node, []),
-        class: "menu-item"
-      )
+  defp maybe_link(socket, page, module, session, route) do
+    case module.menu_link(session, page.capabilities) do
+      {:ok, text} ->
+        if Atom.to_string(page.route) == route do
+          content_tag(:div, text, class: "menu-item active")
+        else
+          live_redirect(text,
+            to: live_dashboard_path(socket, route, page.node, []),
+            class: "menu-item"
+          )
+        end
+
+      {:disabled, text} ->
+        assigns = %{text: text}
+
+        ~L"""
+        <div class="menu-item menu-item-disabled">
+          <%= @text %>
+        </div>
+        """
+
+      {:disabled, text, more_info_url} ->
+        assigns = %{more_info_url: more_info_url, text: text}
+
+        ~L"""
+        <div class="menu-item menu-item-disabled">
+          <%= @text %> <%= link "Enable", to: @more_info_url, class: "menu-item-enable-button" %>
+        </div>
+        """
+
+      :skip ->
+        []
     end
   end
-
-  defp maybe_enabled_live_redirect(socket, page, text, route) do
-    if Map.get(page, route) do
-      maybe_active_live_redirect(socket, page, text, route)
-    else
-      assigns = %{route: route, text: text}
-
-      ~L"""
-      <div class="menu-item menu-item-disabled">
-        <%= @text %> <%= link "Enable", to: guide(@route), class: "menu-item-enable-button" %>
-      </div>
-      """
-    end
-  end
-
-  defp guide(name), do: "https://hexdocs.pm/phoenix_live_dashboard/#{name}.html"
 end

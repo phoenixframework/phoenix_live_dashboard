@@ -5,6 +5,10 @@ defmodule Phoenix.LiveDashboard.SocketsPageTest do
   import Phoenix.LiveViewTest
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
+  test "menu_link/2" do
+    assert {:ok, "Sockets"} = Phoenix.LiveDashboard.SocketsPage.menu_link(nil, nil)
+  end
+
   test "search" do
     %{formatted_address: first_address, port: first_socket_port} = open_socket()
     %{formatted_address: second_address} = open_socket()

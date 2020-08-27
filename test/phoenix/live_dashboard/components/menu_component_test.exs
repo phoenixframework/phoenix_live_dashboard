@@ -5,14 +5,39 @@ defmodule Phoenix.LiveDashboard.MenuComponentTest do
   alias Phoenix.LiveDashboard.MenuComponent
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
+  defmodule Link do
+    def menu_link(text, capabilities) do
+      assert capabilities == %{enabled: true}
+      {:ok, text}
+    end
+  end
+
+  defmodule Disabled do
+    def menu_link(text, capabilities) do
+      assert capabilities == %{enabled: true}
+      {:disabled, text}
+    end
+  end
+
+  defmodule DisabledLink do
+    def menu_link(text, capabilities) do
+      assert capabilities == %{enabled: true}
+      {:disabled, text, "https://example.com"}
+    end
+  end
+
+  defmodule Skip do
+    def menu_link(_text, capabilities) do
+      assert capabilities == %{enabled: true}
+      :skip
+    end
+  end
+
   defp render_menu(menu \\ [], page \\ []) do
     page =
       Enum.into(page, %{
-        dashboard_running?: true,
-        info: nil,
-        metrics: nil,
+        capabilities: %{enabled: true},
         node: node(),
-        request_logger: nil,
         route: :home
       })
 
@@ -21,6 +46,12 @@ defmodule Phoenix.LiveDashboard.MenuComponentTest do
         id: :menu,
         nodes: [node()],
         page: page,
+        pages: [
+          {"link", {Link, "Link"}},
+          {"disabled", {Disabled, "Disabled"}},
+          {"disabled_link", {DisabledLink, "DisabledLink"}},
+          {"skip", {Skip, "Skip"}}
+        ],
         refresh: 5,
         refresh_options: [{"1s", 1}, {"2s", 2}, {"5s", 5}],
         refresher?: false
@@ -45,43 +76,29 @@ defmodule Phoenix.LiveDashboard.MenuComponentTest do
   end
 
   describe "menu" do
-    test "disables metrics and request logger" do
+    test "creates link elements" do
       render = render_menu()
-      assert render =~ ~r"Metrics <a[^>]+>Enable</a>"
-      assert render =~ ~r"Request Logger <a[^>]+>Enable</a>"
+      assert render =~ ~r"<a[^>]*href=\"/dashboard/nonode%40nohost/link\"[^>]*>Link</a>"
     end
 
-    test "enables metrics and request logger" do
-      render = render_menu([], metrics: {Foo.Bar, :baz}, request_logger: {"key1", "key2"})
-      assert render =~ ~r"Metrics</a>"
-      assert render =~ ~r"Request Logger</a>"
+    test "when a link is active" do
+      render = render_menu([], route: :link)
+      assert render =~ ~s|<div class="menu-item active">Link</div>|
     end
 
-    test "when home is active" do
-      render = render_menu([], route: :home)
-      assert render =~ ~s|<div class="menu-item active">Home</div>|
+    test "disables elements with enable link" do
+      render = render_menu()
+      assert render =~ ~r"DisabledLink <a[^>]*href=\"https://example.com\"[^>]*>Enable</a>"
     end
 
-    test "when metrics is active" do
-      render = render_menu([], route: :metrics, metrics: {Foo.Bar, :baz})
-      assert render =~ ~s|<div class="menu-item active">Metrics</div>|
+    test "disables elements without enable link" do
+      render = render_menu()
+      assert render =~ ~r"Disabled[^<]*</div>"
     end
 
-    test "when request logger is active" do
-      render = render_menu([], route: :request_logger, request_logger: {"key1", "key2"})
-      assert render =~ ~s|<div class="menu-item active">Request Logger</div>|
-    end
-
-    test "when processes is active" do
-      render = render_menu([], route: :processes)
-      assert render =~ ~s|<div class="menu-item active">Processes</div>|
-      assert render =~ ~r"<a[^>]+>Home</a>"
-    end
-
-    test "when no live dashboard detected" do
-      render = render_menu([], dashboard_running?: false)
-      refute render =~ ~s|<div class="menu-item">Metrics</div>|
-      refute render =~ ~s|<div class="menu-item">Request Logger</div>|
+    test "skips" do
+      render = render_menu()
+      refute render =~ ~r"Skip"
     end
   end
 end
