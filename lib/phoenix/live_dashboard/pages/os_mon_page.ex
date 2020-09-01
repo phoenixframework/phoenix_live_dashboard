@@ -36,7 +36,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
   @impl true
   def init(opts) do
-    {:ok, opts, application: :os_mon}
+    {:ok, opts, applications: :os_mon}
   end
 
   @impl true

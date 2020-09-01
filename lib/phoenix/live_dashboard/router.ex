@@ -184,9 +184,9 @@ defmodule Phoenix.LiveDashboard.Router do
 
   defp normalize_requirements(requirements) do
     %{
-      applications: normalize_requirement(requirements, :application),
-      modules: normalize_requirement(requirements, :module),
-      pids: normalize_requirement(requirements, :pid)
+      applications: normalize_requirement(requirements, :applications),
+      modules: normalize_requirement(requirements, :modules),
+      pids: normalize_requirement(requirements, :pids)
     }
   end
 

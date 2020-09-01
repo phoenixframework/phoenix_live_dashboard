@@ -30,9 +30,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   argument in the `c:menu_link/2` callback.
   The possible values are:
 
-  * `:app` to detect if the app is running or not.
-  * `:module` to detect if the module is loaded or not.
-  * `:pid` to detect if the pid exists or not.
+  * `:applications` list of applications that are running or not.
+  * `:modules` list of modules that are loaded or not.
+  * `:pids` list of processes that alive or not.
   """
   @callback init(term()) :: {:ok, session} | {:ok, session, requirements}
 
