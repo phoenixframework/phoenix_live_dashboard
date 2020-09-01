@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.MenuComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
   @derive {Inspect, only: []}
-  defstruct pages: %{},
+  defstruct links: [],
             nodes: [],
             refresher?: true,
             refresh: 5,
@@ -14,8 +14,8 @@ defmodule Phoenix.LiveDashboard.MenuComponent do
     ~L"""
     <div id="menu">
       <nav id="menu-bar">
-        <%= for {route, result} <- @menu.pages do %>
-          <%= maybe_link(@socket, @page, route, result) %>
+        <%= for link <- @menu.links do %>
+          <%= maybe_link(@socket, @page, link) %>
         <% end %>
       </nav>
 
@@ -52,38 +52,34 @@ defmodule Phoenix.LiveDashboard.MenuComponent do
     """
   end
 
-  defp maybe_link(socket, page, route, result) do
-    case result do
-      {:ok, text} ->
-        if Atom.to_string(page.route) == route do
-          content_tag(:div, text, class: "menu-item active")
-        else
-          live_redirect(text,
-            to: live_dashboard_path(socket, route, page.node, []),
-            class: "menu-item"
-          )
-        end
+  defp maybe_link(_socket, _page, {:current, text}) do
+    content_tag(:div, text, class: "menu-item active")
+  end
 
-      {:disabled, text} ->
-        assigns = %{text: text}
+  defp maybe_link(socket, page, {:enabled, text, route}) do
+    live_redirect(text,
+      to: live_dashboard_path(socket, route, page.node, []),
+      class: "menu-item"
+    )
+  end
 
-        ~L"""
-        <div class="menu-item menu-item-disabled">
-          <%= @text %>
-        </div>
-        """
+  defp maybe_link(_socket, _page, {:disabled, text}) do
+    assigns = %{text: text}
 
-      {:disabled, text, more_info_url} ->
-        assigns = %{more_info_url: more_info_url, text: text}
+    ~L"""
+    <div class="menu-item menu-item-disabled">
+      <%= @text %>
+    </div>
+    """
+  end
 
-        ~L"""
-        <div class="menu-item menu-item-disabled">
-          <%= @text %> <%= link "Enable", to: @more_info_url, class: "menu-item-enable-button" %>
-        </div>
-        """
+  defp maybe_link(_socket, _page, {:disabled, text, more_info_url}) do
+    assigns = %{more_info_url: more_info_url, text: text}
 
-      :skip ->
-        []
-    end
+    ~L"""
+    <div class="menu-item menu-item-disabled">
+      <%= @text %> <%= link "Enable", to: @more_info_url, class: "menu-item-enable-button" %>
+    </div>
+    """
   end
 end

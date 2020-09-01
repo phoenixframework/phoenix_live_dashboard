@@ -7,18 +7,50 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             tick: 0
 
   @type session :: map
+  @type requirements :: keyword
   @type unsigned_params :: map
+  @type capabilities :: %{
+          apps: %{optional(atom()) => boolean()},
+          modules: %{optional(module()) => boolean()},
+          pids: %{optional(pid()) => boolean()},
+          dashboard: nil | pid(),
+          system_info: nil | binary()
+        }
 
   @doc """
   Callback invoked when a page is declared in the router.
 
   It receives the router options and it must return the
-  page session that will be serialized to the client and
+  tuple `{:ok, session, requirements}`.
+  The page session will be serialized to the client and
   received on `mount`.
-  """
-  @callback init(term()) :: session
+  The requirements is an optional keyword to detect the
+  state of the node.
+  The result of this detection will be passed as second
+  argument in the `c:menu_link/2` callback.
+  The possible values are:
 
-  @callback menu_link(session, map()) ::
+  * `:app` to detect if the app is running or not.
+  * `:module` to detect if the module is loaded or not.
+  * `:pid` to detect if the pid exists or not.
+  """
+  @callback init(term()) :: {:ok, session} | {:ok, session, requirements}
+
+  @doc """
+  Callback invoked when a page is declared in the router.
+
+  It receives the session returned by the `c:init/1` callback
+  and the capabilities of the current node.
+
+  The possible return values are:
+
+  * `{:ok, text}` when the link should be enable and text to be shown.
+  * `{:disabled, text}` when the link should be disable and text to be shown.
+  * `{:disabled, text, more_info_url}` similar to the previous one but
+  it also includes a link to provide more information to the user.
+  * `:skip` when the link should not be shown at all.
+  """
+  @callback menu_link(session, capabilities()) ::
               {:ok, String.t()}
               | {:disabled, String.t()}
               | {:disabled, String.t(), String.t()}
@@ -62,7 +94,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         unquote(refresher?)
       end
 
-      def init(opts), do: opts
+      def init(opts), do: {:ok, opts}
 
       defoverridable init: 1
     end

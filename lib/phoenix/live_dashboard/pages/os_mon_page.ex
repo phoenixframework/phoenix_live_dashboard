@@ -35,6 +35,11 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   @menu_text "OS Data"
 
   @impl true
+  def init(opts) do
+    {:ok, opts, application: :os_mon}
+  end
+
+  @impl true
   def mount(_params, _session, socket) do
     socket = assign_os_mon(socket)
     {:ok, socket, temporary_assigns: @temporary_assigns}
@@ -95,12 +100,12 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   end
 
   @impl true
-  def menu_link(_, %{os_mon: enabled?}) do
-    if enabled? do
-      {:ok, @menu_text}
-    else
-      {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/os_mon.html"}
-    end
+  def menu_link(_, %{applications: %{os_mon: true}}) do
+    {:ok, @menu_text}
+  end
+
+  def menu_link(_, %{applications: %{os_mon: false}}) do
+    {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/os_mon.html"}
   end
 
   @impl true

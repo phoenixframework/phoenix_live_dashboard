@@ -165,10 +165,34 @@ defmodule Phoenix.LiveDashboard.Router do
         {"ets", {Phoenix.LiveDashboard.EtsPage, %{}}}
       ]
       |> Enum.concat(additional_pages)
-      |> Enum.map(fn {key, {module, opts}} -> {key, {module, module.init(opts)}} end)
+      |> Enum.map(fn {key, {module, opts}} ->
+        {session, requirements} = initialize_page(module, opts)
+        {key, {module, session, requirements}}
+      end)
 
     %{
       "pages" => pages
     }
+  end
+
+  defp initialize_page(module, opts) do
+    case module.init(opts) do
+      {:ok, session} -> {session, normalize_requirements([])}
+      {:ok, session, requirements} -> {session, normalize_requirements(requirements)}
+    end
+  end
+
+  defp normalize_requirements(requirements) do
+    %{
+      applications: normalize_requirement(requirements, :application),
+      modules: normalize_requirement(requirements, :module),
+      pids: normalize_requirement(requirements, :pid)
+    }
+  end
+
+  defp normalize_requirement(requirements, key) do
+    requirements
+    |> Keyword.get_values(key)
+    |> List.flatten()
   end
 end

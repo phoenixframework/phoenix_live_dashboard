@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
     %{"pages" => pages} = session
 
     case List.keyfind(pages, page, 0, :error) do
-      {_id, {module, page_session}} ->
+      {_id, {module, page_session, _requirements}} ->
         assign_mount(socket, module, page_session, params, pages)
 
       :error ->
@@ -33,7 +33,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
     with %Socket{redirected: nil} = socket <- assign_params(socket, params),
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
          %Socket{redirected: nil} = socket <- assign_refresh(socket),
-         %Socket{redirected: nil} = socket <- assign_pages(socket, pages) do
+         %Socket{redirected: nil} = socket <- assign_menu_links(socket, pages) do
       socket
       |> init_schedule_refresh()
       |> maybe_apply_module(:mount, [params, page_session], &{:ok, &1})
@@ -89,25 +89,68 @@ defmodule Phoenix.LiveDashboard.PageLive do
     )
   end
 
-  defp assign_pages(socket, pages) do
-    capabilities = Phoenix.LiveDashboard.SystemInfo.ensure_loaded(socket.assigns.page.node)
+  defp assign_menu_links(socket, pages) do
+    requirements = unify_page_requirements(pages)
+    node = socket.assigns.page.node
+
+    node_capabilities = Phoenix.LiveDashboard.SystemInfo.node_capabilities(node, requirements)
+
+    assign_menu_links(socket, pages, node_capabilities)
+  end
+
+  defp unify_page_requirements(pages) do
+    %{
+      applications: get_page_requirements(pages, :applications),
+      modules: get_page_requirements(pages, :modules),
+      pids: get_page_requirements(pages, :pids)
+    }
+  end
+
+  defp get_page_requirements(pages, key) do
+    pages
+    |> Enum.flat_map(fn {_, {_, _, requirements}} -> Map.fetch!(requirements, key) end)
+    |> Enum.uniq()
+  end
+
+  defp assign_menu_links(socket, pages, node_capabilities) do
     current_route = socket.assigns.page.route
 
-    {pages, socket} =
-      Enum.map_reduce(pages, socket, fn {route, {module, session}}, socket ->
-        result = module.menu_link(session, capabilities)
+    {links, socket} =
+      Enum.map_reduce(pages, socket, fn {route, {module, session, requirements}}, socket ->
+        current? = route == current_route
+        page_capabilities = page_capabilities(requirements, node_capabilities)
+        menu_link = module.menu_link(session, page_capabilities)
 
-        socket =
-          if route == current_route and not match?({:ok, _}, result) do
-            redirect_to_current_node(socket)
-          else
-            socket
-          end
+        case {current?, menu_link} do
+          {true, {:ok, anchor}} ->
+            {{:current, anchor}, socket}
 
-        {{route, result}, socket}
+          {true, _} ->
+            {nil, redirect_to_current_node(socket)}
+
+          {false, {:ok, anchor}} ->
+            {{:enabled, anchor, route}, socket}
+
+          {false, :skip} ->
+            {nil, socket}
+
+          {false, {:disabled, anchor}} ->
+            {{:disabled, anchor, nil}, socket}
+
+          {false, {:disabled, anchor, more_info_url}} ->
+            {{:disabled, anchor, more_info_url}, socket}
+        end
       end)
 
-    update_menu(socket, pages: pages)
+    update_menu(socket, links: links)
+  end
+
+  defp page_capabilities(requirements, node_capabilities) do
+    %{
+      dashboard: node_capabilities.dashboard,
+      applications: Map.take(node_capabilities.applications, requirements.applications),
+      modules: Map.take(node_capabilities.modules, requirements.modules)
+    }
   end
 
   defp maybe_apply_module(socket, fun, params, default) do
