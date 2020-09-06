@@ -42,7 +42,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   defp format_group_name(group), do: Phoenix.Naming.camelize(group)
 
   @impl true
-  def menu_link(_, %{dashboard: false}) do
+  def menu_link(_, %{dashboard_running?: false}) do
     :skip
   end
 

@@ -6,7 +6,7 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   test "menu_link/2" do
-    assert :skip = Phoenix.LiveDashboard.MetricsPage.menu_link(%{}, %{dashboard: false})
+    assert :skip = Phoenix.LiveDashboard.MetricsPage.menu_link(%{}, %{dashboard_running?: false})
 
     link = "https://hexdocs.pm/phoenix_live_dashboard/metrics.html"
 

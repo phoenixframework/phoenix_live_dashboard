@@ -36,7 +36,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
   @impl true
   def init(opts) do
-    {:ok, opts, applications: :os_mon}
+    {:ok, opts, application: :os_mon}
   end
 
   @impl true
@@ -100,12 +100,12 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   end
 
   @impl true
-  def menu_link(_, %{applications: %{os_mon: true}}) do
-    {:ok, @menu_text}
-  end
-
-  def menu_link(_, %{applications: %{os_mon: false}}) do
-    {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/os_mon.html"}
+  def menu_link(_, capabilities) do
+    if :os_mon in capabilities.applications do
+      {:ok, @menu_text}
+    else
+      {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/os_mon.html"}
+    end
   end
 
   @impl true

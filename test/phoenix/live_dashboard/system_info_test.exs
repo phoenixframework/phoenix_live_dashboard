@@ -4,50 +4,27 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
 
   describe "node_capabilities/2" do
     test "detects started applications" do
-      requirements = %{
-        applications: [:logger, :non_existing_app],
-        modules: [],
-        pids: []
-      }
+      requirements = [application: :logger, application: :non_existing_app]
 
-      assert %{applications: %{logger: true, non_existing_app: false}} =
-               SystemInfo.node_capabilities(node(), requirements)
+      assert %{applications: [:logger]} = SystemInfo.node_capabilities(node(), requirements)
     end
 
     test "detects loaded modules" do
-      requirements = %{
-        applications: [],
-        modules: [SystemInfo, NonExistingModule],
-        pids: []
-      }
+      requirements = [module: SystemInfo, module: NonExistingModule]
 
-      assert %{modules: %{SystemInfo => true, NonExistingModule => false}} =
-               SystemInfo.node_capabilities(node(), requirements)
+      assert %{modules: [SystemInfo]} = SystemInfo.node_capabilities(node(), requirements)
     end
 
-    test "detects alive pids" do
-      requirements = %{
-        applications: [],
-        modules: [],
-        pids: [Phoenix.LiveDashboard.DynamicSupervisor, NonExistingPid]
-      }
+    test "detects alive processes" do
+      requirements = [process: Phoenix.LiveDashboard.DynamicSupervisor, process: NonExistingPid]
 
-      assert %{pids: %{Phoenix.LiveDashboard.DynamicSupervisor => true, NonExistingPid => false}} =
+      assert %{processes: [Phoenix.LiveDashboard.DynamicSupervisor]} =
                SystemInfo.node_capabilities(node(), requirements)
     end
 
     test "returns if dashboard is running and module md5" do
-      requirements = %{
-        applications: [],
-        modules: [],
-        pids: []
-      }
-
-      assert %{dashboard: pid, system_info: md5} =
-               SystemInfo.node_capabilities(node(), requirements)
-
-      assert is_pid(pid)
-      assert is_binary(md5)
+      assert %{dashboard_running?: true, system_info: <<_::binary>>} =
+               SystemInfo.node_capabilities(node(), [])
     end
   end
 

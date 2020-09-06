@@ -7,13 +7,13 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             tick: 0
 
   @type session :: map
-  @type requirements :: keyword
+  @type requirements :: [{:application | :process | :module, atom()}]
   @type unsigned_params :: map
   @type capabilities :: %{
-          apps: %{optional(atom()) => boolean()},
-          modules: %{optional(module()) => boolean()},
-          pids: %{optional(pid()) => boolean()},
-          dashboard: nil | pid(),
+          applications: [atom()],
+          modules: [atom()],
+          processes: [atom()],
+          dashboard_running?: boolean(),
           system_info: nil | binary()
         }
 

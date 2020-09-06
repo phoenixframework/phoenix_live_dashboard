@@ -16,7 +16,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp maybe_replace(node, capabilities, requirements) do
-    if !capabilities.dashboard && capabilities.system_info != __MODULE__.__info__(:md5) do
+    if not capabilities.dashboard_running? and
+         capabilities.system_info != __MODULE__.__info__(:md5) do
       load(node, requirements)
     else
       capabilities
@@ -131,23 +132,23 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   def capabilities_callback(requirements) do
     %{
       system_info: __MODULE__.__info__(:md5),
-      dashboard: Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor),
-      applications: capabilities_callback_applications(requirements.applications),
-      modules: capabilities_callback_modules(requirements.modules),
-      pids: capabilities_callback_pids(requirements.pids)
+      dashboard_running?: is_pid(Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor)),
+      applications: capabilities_callback_applications(requirements),
+      modules: capabilities_callback_modules(requirements),
+      processes: capabilities_callback_processes(requirements)
     }
   end
 
-  defp capabilities_callback_applications(applications) do
-    Map.new(applications, &{&1, Application.get_application(&1) != nil})
+  defp capabilities_callback_applications(requirements) do
+    for {:application, app} <- requirements, Application.get_application(app), do: app
   end
 
-  defp capabilities_callback_modules(modules) do
-    Map.new(modules, &{&1, Code.ensure_loaded?(&1)})
+  defp capabilities_callback_modules(requirements) do
+    for {:module, mod} <- requirements, Code.ensure_loaded?(mod), do: mod
   end
 
-  defp capabilities_callback_pids(pids) do
-    Map.new(pids, &{&1, Process.whereis(&1) != nil})
+  defp capabilities_callback_processes(requirements) do
+    for {:process, process} <- requirements, Process.whereis(process), do: process
   end
 
   defp io() do

@@ -14,7 +14,7 @@ defmodule Phoenix.LiveDashboard.MenuComponent do
     ~L"""
     <div id="menu">
       <nav id="menu-bar">
-        <%= for link <- @menu.links do %>
+        <%= for link <- @menu.links, link != :skip do %>
           <%= maybe_link(@socket, @page, link) %>
         <% end %>
       </nav>

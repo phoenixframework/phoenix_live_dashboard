@@ -6,14 +6,12 @@ defmodule Phoenix.LiveDashboard.OSMonPageTest do
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   test "menu_link/2" do
-    link = "https://hexdocs.pm/phoenix_live_dashboard/os_mon.html"
+    capabilities = %{applications: []}
 
-    capabilities = %{applications: %{os_mon: false}}
-
-    assert {:disabled, "OS Data", ^link} =
+    assert {:disabled, "OS Data", "https://hexdocs.pm/phoenix_live_dashboard/os_mon.html"} =
              Phoenix.LiveDashboard.OSMonPage.menu_link(%{}, capabilities)
 
-    capabilities = %{applications: %{os_mon: true}}
+    capabilities = %{applications: [:os_mon]}
     assert {:ok, "OS Data"} = Phoenix.LiveDashboard.OSMonPage.menu_link(%{}, capabilities)
   end
 

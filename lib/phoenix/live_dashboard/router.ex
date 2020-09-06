@@ -152,7 +152,7 @@ defmodule Phoenix.LiveDashboard.Router do
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
     }
 
-    pages =
+    {pages, requirements} =
       [
         {"home", {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys}}},
         {"os_mon", {Phoenix.LiveDashboard.OSMonPage, %{}}},
@@ -167,32 +167,30 @@ defmodule Phoenix.LiveDashboard.Router do
       |> Enum.concat(additional_pages)
       |> Enum.map(fn {key, {module, opts}} ->
         {session, requirements} = initialize_page(module, opts)
-        {key, {module, session, requirements}}
+        {{key, {module, session}}, requirements}
       end)
+      |> Enum.unzip()
 
     %{
-      "pages" => pages
+      "pages" => pages,
+      "requirements" => Enum.uniq(requirements)
     }
   end
 
   defp initialize_page(module, opts) do
     case module.init(opts) do
-      {:ok, session} -> {session, normalize_requirements([])}
-      {:ok, session, requirements} -> {session, normalize_requirements(requirements)}
+      {:ok, session} -> {session, []}
+      {:ok, session, requirements} -> {session, validate_requirements(module, requirements)}
     end
   end
 
-  defp normalize_requirements(requirements) do
-    %{
-      applications: normalize_requirement(requirements, :applications),
-      modules: normalize_requirement(requirements, :modules),
-      pids: normalize_requirement(requirements, :pids)
-    }
-  end
+  defp validate_requirements(module, requirements) do
+    Enum.each(requirements, fn
+      {key, value} when key in [:application, :module, :process] and is_atom(value) ->
+        :ok
 
-  defp normalize_requirement(requirements, key) do
-    requirements
-    |> Keyword.get_values(key)
-    |> List.flatten()
+      other ->
+        raise "unknown requirement #{inspect(other)} from #{inspect(module)}"
+    end)
   end
 end
