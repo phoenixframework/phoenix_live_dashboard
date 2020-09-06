@@ -38,7 +38,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     * `:pids` list of processes that alive or not.
 
   """
-  @callback init(term()) :: {:ok, session} | {:ok, session, requirements}
+  @callback init(term()) :: {:ok, session()} | {:ok, session(), requirements()}
 
   @doc """
   Callback invoked when a page is declared in the router.
@@ -48,19 +48,22 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   The possible return values are:
 
-  * `{:ok, text}` when the link should be enable and text to be shown.
-  * `{:disabled, text}` when the link should be disable and text to be shown.
-  * `{:disabled, text, more_info_url}` similar to the previous one but
-  it also includes a link to provide more information to the user.
-  * `:skip` when the link should not be shown at all.
+    * `{:ok, text}` when the link should be enable and text to be shown.
+
+    * `{:disabled, text}` when the link should be disable and text to be shown.
+
+    * `{:disabled, text, more_info_url}` similar to the previous one but
+      it also includes a link to provide more information to the user.
+
+    * `:skip` when the link should not be shown at all.
   """
-  @callback menu_link(session, capabilities()) ::
+  @callback menu_link(session(), capabilities()) ::
               {:ok, String.t()}
               | {:disabled, String.t()}
               | {:disabled, String.t(), String.t()}
               | :skip
 
-  @callback mount(unsigned_params(), session, socket :: Socket.t()) ::
+  @callback mount(unsigned_params(), session(), socket :: Socket.t()) ::
               {:ok, Socket.t()} | {:ok, Socket.t(), keyword()}
 
   @callback render(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
