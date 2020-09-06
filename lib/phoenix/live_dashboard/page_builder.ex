@@ -22,17 +22,21 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   It receives the router options and it must return the
   tuple `{:ok, session, requirements}`.
+
   The page session will be serialized to the client and
   received on `mount`.
+
   The requirements is an optional keyword to detect the
   state of the node.
+
   The result of this detection will be passed as second
   argument in the `c:menu_link/2` callback.
   The possible values are:
 
-  * `:applications` list of applications that are running or not.
-  * `:modules` list of modules that are loaded or not.
-  * `:pids` list of processes that alive or not.
+    * `:applications` list of applications that are running or not.
+    * `:modules` list of modules that are loaded or not.
+    * `:pids` list of processes that alive or not.
+
   """
   @callback init(term()) :: {:ok, session} | {:ok, session, requirements}
 
