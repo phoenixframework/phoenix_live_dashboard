@@ -2,6 +2,55 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
   use ExUnit.Case, async: true
   alias Phoenix.LiveDashboard.SystemInfo
 
+  describe "node_capabilities/2" do
+    test "detects started applications" do
+      requirements = %{
+        applications: [:logger, :non_existing_app],
+        modules: [],
+        pids: []
+      }
+
+      assert %{applications: %{logger: true, non_existing_app: false}} =
+               SystemInfo.node_capabilities(node(), requirements)
+    end
+
+    test "detects loaded modules" do
+      requirements = %{
+        applications: [],
+        modules: [SystemInfo, NonExistingModule],
+        pids: []
+      }
+
+      assert %{modules: %{SystemInfo => true, NonExistingModule => false}} =
+               SystemInfo.node_capabilities(node(), requirements)
+    end
+
+    test "detects alive pids" do
+      requirements = %{
+        applications: [],
+        modules: [],
+        pids: [Phoenix.LiveDashboard.DynamicSupervisor, NonExistingPid]
+      }
+
+      assert %{pids: %{Phoenix.LiveDashboard.DynamicSupervisor => true, NonExistingPid => false}} =
+               SystemInfo.node_capabilities(node(), requirements)
+    end
+
+    test "returns if dashboard is running and module md5" do
+      requirements = %{
+        applications: [],
+        modules: [],
+        pids: []
+      }
+
+      assert %{dashboard: pid, system_info: md5} =
+               SystemInfo.node_capabilities(node(), requirements)
+
+      assert is_pid(pid)
+      assert is_binary(md5)
+    end
+  end
+
   describe "processes" do
     test "all with limit" do
       {processes, count} = SystemInfo.fetch_processes(node(), "", :memory, :asc, 5000)

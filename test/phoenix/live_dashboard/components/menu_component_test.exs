@@ -19,11 +19,11 @@ defmodule Phoenix.LiveDashboard.MenuComponentTest do
       struct(
         %MenuComponent{
           nodes: [node()],
-          pages: [
-            {"link", {:ok, "Link"}},
-            {"disabled", {:disabled, "Disabled"}},
-            {"disabled_link", {:disabled, "DisabledLink", "https://example.com"}},
-            {"skip", :skip}
+          links: [
+            {:current, "Current"},
+            {:enabled, "Link", "link"},
+            {:disabled, "Disabled"},
+            {:disabled, "DisabledLink", "https://example.com"}
           ],
           refresh: 5,
           refresh_options: [{"1s", 1}, {"2s", 2}, {"5s", 5}],
@@ -59,8 +59,8 @@ defmodule Phoenix.LiveDashboard.MenuComponentTest do
     end
 
     test "when a link is active" do
-      render = render_menu([], route: :link)
-      assert render =~ ~s|<div class="menu-item active">Link</div>|
+      render = render_menu()
+      assert render =~ ~s|<div class="menu-item active">Current</div>|
     end
 
     test "disables elements with enable link" do

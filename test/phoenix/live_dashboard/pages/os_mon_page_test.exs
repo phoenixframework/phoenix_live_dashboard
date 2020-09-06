@@ -8,10 +8,13 @@ defmodule Phoenix.LiveDashboard.OSMonPageTest do
   test "menu_link/2" do
     link = "https://hexdocs.pm/phoenix_live_dashboard/os_mon.html"
 
-    assert {:disabled, "OS Data", ^link} =
-             Phoenix.LiveDashboard.OSMonPage.menu_link(%{}, %{os_mon: false})
+    capabilities = %{applications: %{os_mon: false}}
 
-    assert {:ok, "OS Data"} = Phoenix.LiveDashboard.OSMonPage.menu_link(%{}, %{os_mon: true})
+    assert {:disabled, "OS Data", ^link} =
+             Phoenix.LiveDashboard.OSMonPage.menu_link(%{}, capabilities)
+
+    capabilities = %{applications: %{os_mon: true}}
+    assert {:ok, "OS Data"} = Phoenix.LiveDashboard.OSMonPage.menu_link(%{}, capabilities)
   end
 
   describe "OS mon page" do

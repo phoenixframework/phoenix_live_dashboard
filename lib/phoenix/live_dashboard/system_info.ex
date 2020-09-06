@@ -2,31 +2,31 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   # Helpers for fetching and formatting system info.
   @moduledoc false
 
-  def ensure_loaded(node) do
+  def node_capabilities(node, requirements) do
     case :rpc.call(node, :code, :is_loaded, [__MODULE__]) do
       {:file, _} ->
-        maybe_replace(node, fetch_capabilities(node))
+        maybe_replace(node, fetch_capabilities(node, requirements), requirements)
 
       false ->
-        load(node)
+        load(node, requirements)
 
       {:error, reason} ->
         raise("Failed to load #{__MODULE__} on #{node}: #{inspect(reason)}")
     end
   end
 
-  defp maybe_replace(node, capabilities) do
+  defp maybe_replace(node, capabilities, requirements) do
     if !capabilities.dashboard && capabilities.system_info != __MODULE__.__info__(:md5) do
-      load(node)
+      load(node, requirements)
     else
       capabilities
     end
   end
 
-  defp load(node) do
+  defp load(node, requirements) do
     {_module, binary, filename} = :code.get_object_code(__MODULE__)
     :rpc.call(node, :code, :load_binary, [__MODULE__, filename, binary])
-    fetch_capabilities(node)
+    fetch_capabilities(node, requirements)
   end
 
   ## Fetchers
@@ -83,8 +83,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :os_mon_callback, [])
   end
 
-  def fetch_capabilities(node) do
-    :rpc.call(node, __MODULE__, :capabilities_callback, [])
+  def fetch_capabilities(node, requirements) do
+    :rpc.call(node, __MODULE__, :capabilities_callback, [requirements])
   end
 
   def fetch_app_tree(node, application) do
@@ -128,12 +128,26 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   @doc false
-  def capabilities_callback do
+  def capabilities_callback(requirements) do
     %{
       system_info: __MODULE__.__info__(:md5),
       dashboard: Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor),
-      os_mon: Application.get_application(:os_mon)
+      applications: capabilities_callback_applications(requirements.applications),
+      modules: capabilities_callback_modules(requirements.modules),
+      pids: capabilities_callback_pids(requirements.pids)
     }
+  end
+
+  defp capabilities_callback_applications(applications) do
+    Map.new(applications, &{&1, Application.get_application(&1) != nil})
+  end
+
+  defp capabilities_callback_modules(modules) do
+    Map.new(modules, &{&1, Code.ensure_loaded?(&1)})
+  end
+
+  defp capabilities_callback_pids(pids) do
+    Map.new(pids, &{&1, Process.whereis(&1) != nil})
   end
 
   defp io() do
