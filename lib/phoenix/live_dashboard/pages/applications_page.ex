@@ -8,21 +8,14 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
   @menu_text "Applications"
 
   @impl true
-  def render(assigns) do
-    ~L"""
-      <%= table(@socket, table_assigns(@page)) %>
-    """
-  end
-
-  defp table_assigns(page) do
-    %{
+  def render_page(_assigns) do
+    table(
       columns: columns(),
       id: @table_id,
-      page: page,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_applications/2,
       title: "Applications"
-    }
+    )
   end
 
   defp fetch_applications(params, node) do

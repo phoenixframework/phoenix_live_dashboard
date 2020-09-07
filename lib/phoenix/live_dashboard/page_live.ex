@@ -151,9 +151,25 @@ defmodule Phoenix.LiveDashboard.PageLive do
     </header>
     <%= live_info(@socket, @page) %>
     <section id="main" role="main" class="container">
-      <%= @page.module.render(assigns) %>
+      <%= render_page(@socket, @page.module, assigns) %>
     </section>
     """
+  end
+
+  # Those pages are handled especially outside of the component tree.
+  defp render_page(_socket, module, assigns)
+       when module in [
+              Phoenix.LiveDashboard.HomePage,
+              Phoenix.LiveDashboard.MetricsPage,
+              Phoenix.LiveDashboard.OSMonPage,
+              Phoenix.LiveDashboard.RequestLoggerPage
+            ] do
+    module.render(assigns)
+  end
+
+  defp render_page(socket, module, assigns) do
+    {component, component_assigns} = module.render_page(assigns)
+    live_component(socket, component, [page: assigns.page] ++ component_assigns)
   end
 
   defp live_info(_socket, %{info: nil}), do: nil
