@@ -1,4 +1,5 @@
 defmodule Phoenix.LiveDashboard.MetricsPage do
+  @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder, refresher?: false
 
   alias Phoenix.LiveDashboard.ChartComponent

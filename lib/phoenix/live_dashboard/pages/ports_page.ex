@@ -1,4 +1,5 @@
 defmodule Phoenix.LiveDashboard.PortsPage do
+  @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
 
   alias Phoenix.LiveDashboard.SystemInfo

@@ -1,4 +1,5 @@
 defmodule Phoenix.LiveDashboard.RequestLoggerPage do
+  @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
 
   @menu_text "Request Logger"
