@@ -57,6 +57,8 @@ defmodule Phoenix.LiveDashboard.HomePage do
   end
 
   @impl true
+  def render_page(_assigns), do: raise("this page is special cased to use render/2 instead")
+
   def render(assigns) do
     ~L"""
     <div class="row">

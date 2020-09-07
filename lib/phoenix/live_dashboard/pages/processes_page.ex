@@ -8,21 +8,14 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
   @menu_text "Processes"
 
   @impl true
-  def render(assigns) do
-    ~L"""
-    <%= table(@socket, table_assigns(@page)) %>
-    """
-  end
-
-  defp table_assigns(page) do
-    %{
+  def render_page(_assigns) do
+    table(
       columns: columns(),
       id: @table_id,
-      page: page,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_processes/2,
       title: "Processes"
-    }
+    )
   end
 
   defp fetch_processes(params, node) do

@@ -8,21 +8,14 @@ defmodule Phoenix.LiveDashboard.PortsPage do
   @menu_text "Ports"
 
   @impl true
-  def render(assigns) do
-    ~L"""
-      <%= table(@socket, table_assigns(@page)) %>
-    """
-  end
-
-  defp table_assigns(page) do
-    %{
+  def render_page(_assigns) do
+    table(
       columns: columns(),
       id: @table_id,
-      page: page,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_ports/2,
       title: "Ports"
-    }
+    )
   end
 
   defp fetch_ports(params, node) do

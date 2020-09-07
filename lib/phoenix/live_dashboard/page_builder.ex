@@ -6,6 +6,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             route: nil,
             tick: 0
 
+  @opaque component :: {module, keyword}
+
   @type session :: map
   @type requirements :: [{:application | :process | :module, atom()}]
   @type unsigned_params :: map
@@ -66,7 +68,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @callback mount(unsigned_params(), session(), socket :: Socket.t()) ::
               {:ok, Socket.t()} | {:ok, Socket.t(), keyword()}
 
-  @callback render(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  @callback render_page(assigns :: Socket.assigns()) :: component()
 
   @callback handle_params(unsigned_params(), uri :: String.t(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
@@ -86,6 +88,63 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
                       handle_info: 2,
                       handle_refresh: 1
 
+  @doc """
+  Renders a table component.
+
+  This component is used in different pages like applications or sockets.
+  It can be used in a `Phoenix.LiveView` in the `render/1` function:
+
+      def render_page(assigns) do
+        table(
+          columns: columns(),
+          id: @table_id,
+          row_attrs: &row_attrs/1,
+          row_fetcher: &fetch_applications/2,
+          title: "Applications"
+        )
+      end
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:id` - Required. Because is a stateful `Phoenix.LiveComponent` an unique id is needed.
+
+    * `:columns` - Required. A `Keyword` list with the following keys:
+      * `:field` - Required. An identifier for the column.
+      * `:header` - Label to show in the current column. Default value is calculated from `:field`.
+      * `:header_attrs` - A list with HTML attributes for the column header.
+        More info: `Phoenix.HTML.Tag.tag/1`. Default `[]`.
+      * `:format` - Function which receives the row data and returns the cell information.
+        Default is calculated from `:field`: `row[:field]`.
+      * `:cell_attrs` - A list with HTML attributes for the table cell.
+        It also can be a function which receives the row data and returns an attribute list.
+        More info: `Phoenix.HTML.Tag.tag/1`. Default: `[]`.
+      * `:sortable` - A boolean. When it is true the column header is clickable
+        and it fetches again rows with the new order.  At least one column should be sortable.
+        Default: `false`
+
+    * `:limit_options` - A list of integers to limit the number of rows to show.
+      Default: `[50, 100, 500, 1000, 5000]`
+
+    * `:params` - Required. All the params received by the parent `Phoenix.LiveView`,
+      so the table can handle its own parameters.
+
+    * `:row_fetcher` - Required. A function which receives the params and the node and
+      returns a tuple with the rows and the total number:
+      `(params(), node()) -> {list(), integer() | binary()}`
+
+    * `:rows_name` - A string to name the representation of the rows.
+      Default is calculated from the current page.
+
+    * `:title` - The title of the table.
+      Default is calculated with the current page.
+  """
+  @spec table(keyword()) :: component()
+  def table(table_assigns) do
+    {Phoenix.LiveDashboard.TableComponent, table_assigns}
+  end
+
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
       import Phoenix.LiveView
@@ -94,7 +153,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       import Phoenix.LiveDashboard.PageBuilder
 
       @behaviour Phoenix.LiveDashboard.PageBuilder
-
       refresher? = Keyword.get(opts, :refresher?, true)
 
       def __page_live__(:refresher?) do
@@ -102,7 +160,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       end
 
       def init(opts), do: {:ok, opts}
-
       defoverridable init: 1
     end
   end
