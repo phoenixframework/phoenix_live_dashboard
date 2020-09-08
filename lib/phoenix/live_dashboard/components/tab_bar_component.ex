@@ -47,19 +47,23 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
           </ul>
         </div>
       </div>
-      <%= render_content(@entries, @current, @socket) %>
+      <%= render_content(@socket, @page, @entries, @current) %>
     </div>
     """
   end
 
-  defp render_content(socket, entries, current) do
+  defp render_content(socket, page, entries, current) do
     entries
     |> Keyword.fetch!(current)
-    |> Map.fetch!(:render)
+    |> Access.fetch!(:render)
     |> case do
-      {component, component_assigns} -> live_component(socket, component, component_assigns)
-      # Needed for the metrics page.
-      fun when is_function(fun, 1) -> fun.(socket)
+      {component, component_assigns} ->
+        component_assigns = Keyword.put(component_assigns, :page, page)
+        live_component(socket, component, component_assigns)
+
+      # Needed for the metrics page, should be removed soon
+      fun when is_function(fun, 1) ->
+        fun.(socket)
     end
   end
 
