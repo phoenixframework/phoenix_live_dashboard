@@ -40,4 +40,10 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
     assert rendered =~ ~r|<span>Other </span>|
     assert rendered =~ ~r|Total usage: \d+.\d+|
   end
+
+  test "is the current page in menu component" do
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/home")
+    rendered = render(live)
+    assert rendered =~ ~s|<div class="menu-item active">Home</div>|
+  end
 end
