@@ -42,7 +42,7 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
   end
 
   test "is the current page in menu component" do
-    {:ok, live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/home")
+    {:ok, _live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/home")
     assert rendered =~ ~s|<div class="menu-item active">Home</div>|
   end
 end
