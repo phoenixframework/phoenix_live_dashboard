@@ -173,14 +173,18 @@ defmodule Phoenix.LiveDashboard.Router do
 
     %{
       "pages" => pages,
-      "requirements" => Enum.uniq(requirements)
+      "requirements" => requirements |> Enum.concat() |> Enum.uniq()
     }
   end
 
   defp initialize_page(module, opts) do
     case module.init(opts) do
-      {:ok, session} -> {session, []}
-      {:ok, session, requirements} -> {session, validate_requirements(module, requirements)}
+      {:ok, session} ->
+        {session, []}
+
+      {:ok, session, requirements} ->
+        validate_requirements(module, requirements)
+        {session, requirements}
     end
   end
 

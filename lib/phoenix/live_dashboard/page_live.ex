@@ -93,7 +93,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp assign_menu_links(socket, pages, requirements) do
     node = socket.assigns.page.node
     capabilities = Phoenix.LiveDashboard.SystemInfo.node_capabilities(node, requirements)
-    current_route = socket.assigns.page.route
+    current_route = socket.assigns.page.route |> Atom.to_string()
 
     {links, socket} =
       Enum.map_reduce(pages, socket, fn {route, {module, session}}, socket ->
