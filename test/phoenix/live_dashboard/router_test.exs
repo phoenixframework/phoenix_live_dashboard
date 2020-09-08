@@ -2,6 +2,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   use ExUnit.Case, async: true
 
   alias Phoenix.LiveDashboard.Router
+  import Phoenix.ConnTest
 
   test "default options" do
     assert Router.__options__([]) == [
@@ -72,6 +73,27 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
     assert_raise ArgumentError, fn ->
       Router.__options__(additional_pages: CustomPage)
+    end
+  end
+
+  describe "__session__/5" do
+    test "generates pages & requirements" do
+      assert %{
+               "pages" => [
+                 {"home", {Phoenix.LiveDashboard.HomePage, %{"env_keys" => []}}},
+                 {"os_mon", {Phoenix.LiveDashboard.OSMonPage, %{}}},
+                 {"metrics",
+                  {Phoenix.LiveDashboard.MetricsPage, %{"metrics" => [], "metrics_history" => []}}},
+                 {"request_logger",
+                  {Phoenix.LiveDashboard.RequestLoggerPage, %{"request_logger" => nil}}},
+                 {"applications", {Phoenix.LiveDashboard.ApplicationsPage, %{}}},
+                 {"processes", {Phoenix.LiveDashboard.ProcessesPage, %{}}},
+                 {"ports", {Phoenix.LiveDashboard.PortsPage, %{}}},
+                 {"sockets", {Phoenix.LiveDashboard.SocketsPage, %{}}},
+                 {"ets", {Phoenix.LiveDashboard.EtsPage, %{}}}
+               ],
+               "requirements" => [{:application, :os_mon}]
+             } = Phoenix.LiveDashboard.Router.__session__(build_conn(), [], [], [], [])
     end
   end
 end
