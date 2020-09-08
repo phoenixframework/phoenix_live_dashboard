@@ -145,6 +145,11 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {Phoenix.LiveDashboard.TableComponent, table_assigns}
   end
 
+  @spec tab_bar(keyword()) :: component()
+  def tab_bar(tab_bar_assigns) do
+    {Phoenix.LiveDashboard.TabBarComponent, tab_bar_assigns}
+  end
+
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
       import Phoenix.LiveView

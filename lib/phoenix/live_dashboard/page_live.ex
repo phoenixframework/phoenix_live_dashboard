@@ -161,7 +161,6 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp render_page(_socket, module, assigns)
        when module in [
               Phoenix.LiveDashboard.HomePage,
-              Phoenix.LiveDashboard.MetricsPage,
               Phoenix.LiveDashboard.OSMonPage,
               Phoenix.LiveDashboard.RequestLoggerPage
             ] do

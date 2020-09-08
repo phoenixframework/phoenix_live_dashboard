@@ -10,12 +10,17 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history}, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_group = Enum.group_by(all_metrics, &group_name/1)
-
     group = params["group"]
     metrics = metrics_per_group[group]
     {first_group, _} = Enum.at(metrics_per_group, 0, {nil, nil})
 
-    socket = assign(socket, group: group, groups: Map.keys(metrics_per_group))
+    tabs =
+      for {name, metrics} <- metrics_per_group do
+        {String.to_atom(name),
+         [name: format_group_name(name), render: render_metrics(Enum.with_index(metrics))]}
+      end
+
+    socket = assign(socket, tabs: tabs, group: group, groups: Map.keys(metrics_per_group))
 
     cond do
       group && is_nil(metrics) ->
@@ -24,6 +29,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.page.node, metrics)
         send_history_for_metrics(metrics, history)
+
         {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
       first_group && is_nil(group) ->
@@ -56,32 +62,22 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   end
 
   @impl true
-  def render_page(_assigns), do: raise("this page is special cased to use render/2 instead")
+  def render_page(assigns), do: tab_bar(entries: assigns.tabs)
 
-  def render(assigns) do
-    ~L"""
-    <div class="row">
-      <div class="container">
-        <ul class="nav nav-tabs mb-4 charts-nav">
-          <%= for group <- @groups do %>
-            <li class="nav-item">
-              <%= live_redirect(format_group_name(group),
-                    to: live_dashboard_path(@socket, :metrics, @page.node, group: group),
-                    class: "nav-link #{if @group == group, do: "active"}") %>
-            </li>
-          <% end %>
-        </ul>
-      </div>
-    </div>
+  def render_metrics(metrics) do
+    fn socket ->
+      assigns = %{socket: socket, metrics: metrics}
 
-    <%= if @metrics do %>
-      <div class="phx-dashboard-metrics-grid row">
-      <%= for {metric, id} <- @metrics do %>
-        <%= live_component @socket, ChartComponent, id: id, metric: metric %>
+      ~L"""
+      <%= if @metrics do %>
+        <div class="phx-dashboard-metrics-grid row">
+        <%= for {metric, id} <- @metrics do %>
+          <%= live_component @socket, ChartComponent, id: id, metric: metric %>
+        <% end %>
+        </div>
       <% end %>
-      </div>
-    <% end %>
-    """
+      """
+    end
   end
 
   defp send_updates_for_entries(entries) do
