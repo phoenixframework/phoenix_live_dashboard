@@ -158,14 +158,14 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   @impl true
   def handle_event("search", %{"search" => search}, socket) do
-    new_params = %{socket.assigns.table_params | search: search}
-    to = live_dashboard_path(socket, socket.assigns.page, update_params(new_params))
+    table_params = %{socket.assigns.table_params | search: search}
+    to = live_dashboard_path(socket, socket.assigns.page, table_params)
     {:noreply, push_patch(socket, to: to)}
   end
 
   def handle_event("select_limit", %{"limit" => limit}, socket) do
-    new_params = %{socket.assigns.table_params | limit: limit}
-    to = live_dashboard_path(socket, socket.assigns.page, update_params(new_params))
+    table_params = %{socket.assigns.table_params | limit: limit}
+    to = live_dashboard_path(socket, socket.assigns.page, table_params)
     {:noreply, push_patch(socket, to: to)}
   end
 
@@ -179,7 +179,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         column
         |> column_header()
         |> sort_link_body(sort_dir)
-        |> live_patch(to: live_dashboard_path(socket, page, update_params(table_params)))
+        |> live_patch(to: live_dashboard_path(socket, page, table_params))
 
       %{} ->
         table_params = %{table_params | sort_dir: :desc, sort_by: field}
@@ -187,7 +187,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         column
         |> column_header()
         |> sort_link_body()
-        |> live_patch(to: live_dashboard_path(socket, page, update_params(table_params)))
+        |> live_patch(to: live_dashboard_path(socket, page, table_params))
     end
   end
 
@@ -216,13 +216,5 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp opposite_sort_dir(%{sort_dir: :desc}), do: :asc
-
   defp opposite_sort_dir(_), do: :desc
-
-  defp update_params(new_params) do
-    fn all_params ->
-      new_params = Enum.into(new_params, %{}, fn {k, v} -> {Atom.to_string(k), to_string(v)} end)
-      Map.merge(all_params, new_params)
-    end
-  end
 end
