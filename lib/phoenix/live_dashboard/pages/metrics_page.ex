@@ -10,7 +10,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history}, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_group = Enum.group_by(all_metrics, &group_name/1)
-    group = params["group"]
+    group = params["tab"]
     metrics = metrics_per_group[group]
     {first_group, _} = Enum.at(metrics_per_group, 0, {nil, nil})
 
@@ -33,7 +33,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
         {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
       first_group && is_nil(group) ->
-        to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, group: first_group)
+        to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, tab: first_group)
         {:ok, push_redirect(socket, to: to)}
 
       true ->
@@ -62,7 +62,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   end
 
   @impl true
-  def render_page(assigns), do: tab_bar(entries: assigns.tabs)
+  def render_page(assigns), do: tab_bar(tabs: assigns.tabs)
 
   def render_metrics(metrics) do
     fn socket ->
