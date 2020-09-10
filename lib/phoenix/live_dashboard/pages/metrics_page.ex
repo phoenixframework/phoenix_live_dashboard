@@ -10,6 +10,12 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history}, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_tab = Enum.group_by(all_metrics, &tab_name/1)
+
+    # FIXME we have duplicated logic here and in TabBarComponent
+    # to detect the current tab
+    # We need to know the current tab here to send the history for the metrics.
+    # Maybe we should redirect in TabBarComponent.validate_params/1 ?
+    # Maybe a callback to be called when the active tab is selected?
     tab = params["tab"]
     metrics = metrics_per_tab[tab]
     {first_tab, _} = Enum.at(metrics_per_tab, 0, {nil, nil})
