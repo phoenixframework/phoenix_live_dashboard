@@ -9,44 +9,38 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   @impl true
   def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history}, socket) do
     all_metrics = apply(mod, fun, [])
-    metrics_per_group = Enum.group_by(all_metrics, &group_name/1)
-    group = params["tab"]
-    metrics = metrics_per_group[group]
-    {first_group, _} = Enum.at(metrics_per_group, 0, {nil, nil})
+    metrics_per_tab = Enum.group_by(all_metrics, &tab_name/1)
+    tab = params["tab"]
+    metrics = metrics_per_tab[tab]
+    {first_tab, _} = Enum.at(metrics_per_tab, 0, {nil, nil})
 
-    tabs =
-      for {name, metrics} <- metrics_per_group do
-        {String.to_atom(name),
-         [name: format_group_name(name), render: render_metrics(Enum.with_index(metrics))]}
-      end
-
-    socket = assign(socket, tabs: tabs, group: group, groups: Map.keys(metrics_per_group))
+    socket = assign(socket, metrics_per_tab: metrics_per_tab)
 
     cond do
-      group && is_nil(metrics) ->
+      tab && is_nil(metrics) ->
         {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node(), []))}
 
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.page.node, metrics)
         send_history_for_metrics(metrics, history)
 
-        {:ok, assign(socket, metrics: Enum.with_index(metrics))}
+        {:ok, socket}
 
-      first_group && is_nil(group) ->
-        to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, tab: first_group)
+      first_tab && is_nil(tab) ->
+        to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, tab: first_tab)
         {:ok, push_redirect(socket, to: to)}
 
       true ->
-        {:ok, assign(socket, metrics: nil)}
+        {:ok, socket}
     end
   end
 
-  defp group_name(metric) do
-    to_string(metric.reporter_options[:group] || hd(metric.name))
+  defp tab_name(metric) do
+    to_string(metric.reporter_options[:tab] || hd(metric.name))
   end
 
-  defp format_group_name("vm"), do: "VM"
-  defp format_group_name(group), do: Phoenix.Naming.camelize(group)
+  defp format_tab_name("vm"), do: "VM"
+  defp format_tab_name(tab), do: Phoenix.Naming.camelize(tab)
 
   @impl true
   def menu_link(_, %{dashboard_running?: false}) do
@@ -62,11 +56,19 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   end
 
   @impl true
-  def render_page(assigns), do: tab_bar(tabs: assigns.tabs)
+  def render_page(assigns) do
+    tabs =
+      for {name, metrics} <- assigns.metrics_per_tab do
+        {String.to_atom(name),
+         [name: format_tab_name(name), render: render_metrics(Enum.with_index(metrics), assigns)]}
+      end
 
-  def render_metrics(metrics) do
-    fn socket ->
-      assigns = %{socket: socket, metrics: metrics}
+    tab_bar(tabs: tabs, page: assigns.page)
+  end
+
+  def render_metrics(metrics, assigns) do
+    fn ->
+      assigns = Map.put(assigns, :metrics, metrics)
 
       ~L"""
       <%= if @metrics do %>
