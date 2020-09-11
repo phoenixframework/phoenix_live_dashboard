@@ -35,7 +35,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
   defp validate_page(params) do
     case Map.fetch(params, :page) do
       :error ->
-        {:error, "expected `:page` parameter to be received"}
+        {:error, "expected :page parameter to be received"}
 
       {:ok, %Phoenix.LiveDashboard.PageBuilder{}} ->
         :ok
@@ -113,9 +113,9 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
           <ul class="nav nav-tabs mb-4 charts-nav">
             <%= for {id, tab} <- @tabs do %>
               <li class="nav-item">
-                <%= live_redirect(Access.fetch!(tab, :name),
+                <%= live_redirect(tab[:name],
                       to: live_dashboard_path(@socket, @page, tab: id),
-                      class: "nav-link #{if @current == id, do: "active"}") %>
+                      class: "nav-link#{if @current == id, do: " active"}") %>
               </li>
             <% end %>
           </ul>
