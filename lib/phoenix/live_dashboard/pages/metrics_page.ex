@@ -69,12 +69,10 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
 
   def render_metrics(metrics, assigns) do
     fn ->
-      assigns = Map.put(assigns, :metrics, metrics)
-
       ~L"""
-      <%= if @metrics do %>
+      <%= if metrics do %>
         <div class="phx-dashboard-metrics-grid row">
-        <%= for {metric, id} <- @metrics do %>
+        <%= for {metric, id} <- metrics do %>
           <%= live_component @socket, ChartComponent, id: id, metric: metric %>
         <% end %>
         </div>
