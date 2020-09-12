@@ -24,12 +24,12 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
   end
 
   test "redirects to the first metrics group if no metric group is provided" do
-    {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics?group=ecto"}}} =
+    {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics?tab=ecto"}}} =
       live(build_conn(), "/dashboard/nonode@nohost/metrics")
   end
 
   test "shows given group metrics" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?group=phx")
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?tab=phx")
     rendered = render(live)
     assert rendered =~ "Updates automatically"
     assert rendered =~ "Phx"
@@ -49,11 +49,11 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
 
   test "redirects on unknown group" do
     {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics"}}} =
-      live(build_conn(), "/dashboard/nonode@nohost/metrics?group=unknown")
+      live(build_conn(), "/dashboard/nonode@nohost/metrics?tab=unknown")
   end
 
   test "renders history for metrics" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?group=phx")
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?tab=phx")
 
     # Guarantees the components have been updated
     assert render(live) =~

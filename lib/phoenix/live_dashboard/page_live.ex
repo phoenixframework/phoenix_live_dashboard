@@ -161,7 +161,6 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp render_page(_socket, module, assigns)
        when module in [
               Phoenix.LiveDashboard.HomePage,
-              Phoenix.LiveDashboard.MetricsPage,
               Phoenix.LiveDashboard.OSMonPage,
               Phoenix.LiveDashboard.RequestLoggerPage
             ] do
@@ -170,7 +169,8 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   defp render_page(socket, module, assigns) do
     {component, component_assigns} = module.render_page(assigns)
-    live_component(socket, component, [page: assigns.page] ++ component_assigns)
+    component_assigns = Map.put(component_assigns, :page, assigns.page)
+    live_component(socket, component, component_assigns)
   end
 
   defp live_info(_socket, %{info: nil}), do: nil

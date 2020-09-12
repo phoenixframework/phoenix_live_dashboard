@@ -6,7 +6,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             route: nil,
             tick: 0
 
-  @opaque component :: {module, keyword}
+  @opaque component :: {module, map}
 
   @type session :: map
   @type requirements :: [{:application | :process | :module, atom()}]
@@ -18,6 +18,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           dashboard_running?: boolean(),
           system_info: nil | binary()
         }
+
+  alias Phoenix.LiveDashboard.{TableComponent, TabBarComponent}
 
   @doc """
   Callback invoked when a page is declared in the router.
@@ -142,7 +144,18 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   """
   @spec table(keyword()) :: component()
   def table(table_assigns) do
-    {Phoenix.LiveDashboard.TableComponent, table_assigns}
+    {TableComponent, Map.new(table_assigns)}
+  end
+
+  @spec tab_bar(keyword()) :: component()
+  def tab_bar(assigns) do
+    assigns = Map.new(assigns)
+
+    with :ok <- TabBarComponent.validate_params(assigns) do
+      {TabBarComponent, assigns}
+    else
+      {:error, msg} -> raise ArgumentError, msg
+    end
   end
 
   defmacro __using__(opts) do
