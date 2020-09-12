@@ -6,7 +6,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             route: nil,
             tick: 0
 
-  @opaque component :: {module, keyword}
+  @opaque component :: {module, map}
 
   @type session :: map
   @type requirements :: [{:application | :process | :module, atom()}]
