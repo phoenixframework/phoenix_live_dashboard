@@ -28,22 +28,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
   end
 
   def validate_params(params) do
-    with :ok <- validate_tabs(params),
-         do: validate_page(params)
-  end
-
-  defp validate_page(params) do
-    case Map.fetch(params, :page) do
-      :error ->
-        {:error, "expected :page parameter to be received"}
-
-      {:ok, %Phoenix.LiveDashboard.PageBuilder{}} ->
-        :ok
-
-      {:ok, invalid} ->
-        msg = "expected :page parameter to be a %PageBuilder{}, received: "
-        {:error, msg <> inspect(invalid)}
-    end
+    validate_tabs(params)
   end
 
   def validate_tabs(params) do

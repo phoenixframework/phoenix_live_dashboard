@@ -144,13 +144,13 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   """
   @spec table(keyword()) :: component()
   def table(table_assigns) do
-    {TableComponent, table_assigns}
+    {TableComponent, Map.new(table_assigns)}
   end
 
   @spec tab_bar(keyword()) :: component()
   def tab_bar(assigns) do
     assigns = Map.new(assigns)
-    
+
     with :ok <- TabBarComponent.validate_params(assigns) do
       {TabBarComponent, assigns}
     else

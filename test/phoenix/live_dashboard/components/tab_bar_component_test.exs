@@ -66,23 +66,6 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
   end
 
   describe "validate_params" do
-    test "validates :page" do
-      tabs = [page: [name: "name", render: {Module, [:args]}]]
-      assert {:error, msg} = TabBarComponent.validate_params(%{tabs: tabs})
-      assert msg == "expected :page parameter to be received"
-
-      assert {:error, msg} = TabBarComponent.validate_params(%{tabs: tabs, page: :invalid})
-      assert msg == "expected :page parameter to be a %PageBuilder{}, received: :invalid"
-
-      assert :ok =
-               TabBarComponent.validate_params(%{
-                 tabs: tabs,
-                 page: %Phoenix.LiveDashboard.PageBuilder{}
-               })
-
-      assert msg == "expected :page parameter to be a %PageBuilder{}, received: :invalid"
-    end
-
     test "validates :tabs" do
       page = %Phoenix.LiveDashboard.PageBuilder{}
 
