@@ -27,11 +27,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
     id
   end
 
-  def validate_params(params) do
-    validate_tabs(params)
-  end
-
-  def validate_tabs(params) do
+  def normalize_params(params) do
     case Map.fetch(params, :tabs) do
       :error ->
         {:error, "expected :tabs parameter to be received"}
@@ -41,23 +37,36 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
         {:error, msg <> inspect(no_list)}
 
       {:ok, tabs} ->
-        Enum.find_value(tabs, :ok, fn
-          {atom, tab} when is_atom(atom) and is_list(tab) ->
-            with :ok <- validate_tab(tab), do: nil
-
-          invalid ->
-            msg =
-              "expected :tabs to be [{atom(), [name: string(), render: component()], received: "
-
-            {:error, msg <> inspect(invalid)}
-        end)
+        with {:ok, tabs} <- normalize_tabs(tabs) do
+          {:ok, %{tabs: tabs}}
+        end
     end
   end
 
-  defp validate_tab(tab) do
+  def normalize_tabs(tabs) do
+    Enum.reduce_while(tabs, [], fn tab, tabs ->
+      case normalize_tab(tab) do
+        {:ok, tab} -> {:cont, [tab | tabs]}
+        {:error, error} -> {:halt, {:error, error}}
+      end
+    end)
+    |> case do
+      {:error, error} -> {:error, error}
+      tabs when is_list(tabs) -> {:ok, Enum.reverse(tabs)}
+    end
+  end
+
+  defp normalize_tab({id, tab}) when is_atom(id) and is_list(tab) do
     with :ok <- validate_tab_render(tab),
          :ok <- validate_tab_name(tab),
-         do: :ok
+         {:ok, tab} <- normalize_tab_method(tab),
+         do: {:ok, {id, tab}}
+  end
+
+  defp normalize_tab(invalid_tab) do
+    msg = "expected :tabs to be [{atom(), [name: string(), render: component()], received: "
+
+    {:error, msg <> inspect(invalid_tab)}
   end
 
   defp validate_tab_render(tab) do
@@ -89,6 +98,20 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
     end
   end
 
+  defp normalize_tab_method(tab) do
+    case Keyword.fetch(tab, :method) do
+      :error ->
+        {:ok, tab ++ [method: :patch]}
+
+      {:ok, method} when method in [:patch, :redirect] ->
+        {:ok, tab}
+
+      {:ok, method} ->
+        msg = "expected :method parameter in tab to be :patch or :redirect, received: "
+        {:error, msg <> inspect(method)}
+    end
+  end
+
   @impl true
   def render(assigns) do
     ~L"""
@@ -98,9 +121,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
           <ul class="nav nav-tabs mb-4 charts-nav">
             <%= for {id, tab} <- @tabs do %>
               <li class="nav-item">
-                <%= live_redirect(tab[:name],
-                      to: live_dashboard_path(@socket, @page, tab: id),
-                      class: "nav-link#{if @current == id, do: " active"}") %>
+                <%= render_tab_link(@socket, @page, tab, @current, id) %>
               </li>
             <% end %>
           </ul>
@@ -109,6 +130,16 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
       <%= render_content(@socket, @page, @tabs, @current) %>
     </div>
     """
+  end
+
+  defp render_tab_link(socket, page, tab, current, id) do
+    path = live_dashboard_path(socket, page, tab: id)
+    class = "nav-link#{if current == id, do: " active"}"
+
+    case tab[:method] do
+      :patch -> live_patch(tab[:name], to: path, class: class)
+      :redirect -> live_redirect(tab[:name], to: path, class: class)
+    end
   end
 
   defp render_content(socket, page, tabs, current) do

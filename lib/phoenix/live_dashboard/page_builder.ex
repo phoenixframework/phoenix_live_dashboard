@@ -151,7 +151,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   def tab_bar(assigns) do
     assigns = Map.new(assigns)
 
-    with :ok <- TabBarComponent.validate_params(assigns) do
+    with {:ok, assigns} <- TabBarComponent.normalize_params(assigns) do
       {TabBarComponent, assigns}
     else
       {:error, msg} -> raise ArgumentError, msg

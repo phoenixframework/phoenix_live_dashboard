@@ -29,8 +29,8 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
     opts =
       [
         tabs: [
-          foo: [name: "Foo", render: {SimpleComponent, [text: "foo_text"]}],
-          bar: [name: "Bar", render: {SimpleComponent, [text: "bar_text"]}]
+          foo: [name: "Foo", method: :patch, render: {SimpleComponent, [text: "foo_text"]}],
+          bar: [name: "Bar", method: :redirect, render: {SimpleComponent, [text: "bar_text"]}]
         ],
         page: %Phoenix.LiveDashboard.PageBuilder{
           node: Keyword.get(opts, :node, node()),
@@ -48,10 +48,10 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
       result = render_tabs([])
 
       assert result =~
-               ~r|<a[^>]*class=\"nav-link active\"[^>]*href=\"/dashboard/nonode%40nohost/foobaz\?tab=foo\"[^>]*>Foo</a>|
+               ~s|<a class="nav-link active" data-phx-link="patch" data-phx-link-state="push" href="/dashboard/nonode%40nohost/foobaz?tab=foo">Foo</a>|
 
       assert result =~
-               ~r|<a[^>]*class=\"nav-link\"[^>]*href=\"/dashboard/nonode%40nohost/foobaz\?tab=bar\"[^>]*>Bar</a>|
+               ~s|<a class="nav-link" data-phx-link="redirect" data-phx-link-state="push" href="/dashboard/nonode%40nohost/foobaz?tab=bar">Bar</a>|
 
       assert result =~ ~s|<div>foo_text</div>|
     end
@@ -65,26 +65,26 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
     end
   end
 
-  describe "validate_params" do
+  describe "normalize_params" do
     test "validates :tabs" do
       page = %Phoenix.LiveDashboard.PageBuilder{}
 
-      assert {:error, msg} = TabBarComponent.validate_params(%{page: page})
+      assert {:error, msg} = TabBarComponent.normalize_params(%{page: page})
       assert msg == "expected :tabs parameter to be received"
 
-      assert {:error, msg} = TabBarComponent.validate_params(%{page: page, tabs: :invalid})
+      assert {:error, msg} = TabBarComponent.normalize_params(%{page: page, tabs: :invalid})
       assert msg == "expected :tabs parameter to be a list, received: :invalid"
 
-      assert {:error, msg} = TabBarComponent.validate_params(%{page: page, tabs: [:invalid]})
+      assert {:error, msg} = TabBarComponent.normalize_params(%{page: page, tabs: [:invalid]})
 
       assert msg ==
                "expected :tabs to be [{atom(), [name: string(), render: component()], received: :invalid"
 
-      assert {:error, msg} = TabBarComponent.validate_params(%{page: page, tabs: [id: []]})
+      assert {:error, msg} = TabBarComponent.normalize_params(%{page: page, tabs: [id: []]})
       assert msg == "expected :render parameter to be received in tab: []"
 
       assert {:error, msg} =
-               TabBarComponent.validate_params(%{
+               TabBarComponent.normalize_params(%{
                  page: page,
                  tabs: [id: [render: :invalid]]
                })
@@ -93,7 +93,7 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
                "expected :render parameter in tab to be a component, received: [render: :invalid]"
 
       assert {:error, msg} =
-               TabBarComponent.validate_params(%{
+               TabBarComponent.normalize_params(%{
                  page: page,
                  tabs: [id: [render: {Component, [:args]}]]
                })
@@ -101,17 +101,34 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
       assert msg ==
                "expected :name parameter to be received in tab: [render: {Component, [:args]}]"
 
-      assert :ok =
-               TabBarComponent.validate_params(%{
+      assert {:error, msg} =
+               TabBarComponent.normalize_params(%{
+                 page: page,
+                 tabs: [id: [name: "name", render: {Component, [:args]}, method: :invalid]]
+               })
+
+      assert msg ==
+               "expected :method parameter in tab to be :patch or :redirect, received: :invalid"
+
+      assert {:ok, %{tabs: [id: tab]}} =
+               TabBarComponent.normalize_params(%{
                  page: page,
                  tabs: [id: [name: "name", render: {Component, [:args]}]]
                })
 
-      assert :ok =
-               TabBarComponent.validate_params(%{
+      assert tab[:name] == "name"
+      assert tab[:render] == {Component, [:args]}
+      assert tab[:method] == :patch
+
+      assert {:ok, %{tabs: [id: tab]}} =
+               TabBarComponent.normalize_params(%{
                  page: page,
-                 tabs: [id: [name: "name", render: fn -> nil end]]
+                 tabs: [id: [name: "name", method: :redirect, render: fn -> nil end]]
                })
+
+      assert tab[:name] == "name"
+      assert tab[:render]
+      assert tab[:method] == :redirect
     end
   end
 end
