@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     metrics = metrics_per_tab[tab]
     {first_tab, _} = Enum.at(metrics_per_tab, 0, {nil, nil})
 
-    socket = assign(socket, metrics_per_tab: metrics_per_tab)
+    socket = assign(socket, tabs: Map.keys(metrics_per_tab))
 
     cond do
       tab && is_nil(metrics) ->
@@ -24,15 +24,14 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.page.node, metrics)
         send_history_for_metrics(metrics, history)
-
-        {:ok, socket}
+        {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
       first_tab && is_nil(tab) ->
         to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, tab: first_tab)
         {:ok, push_redirect(socket, to: to)}
 
       true ->
-        {:ok, socket}
+        {:ok, assign(socket, metrics: nil)}
     end
   end
 
@@ -59,20 +58,19 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   @impl true
   def render_page(assigns) do
     tabs =
-      for {name, metrics} <- assigns.metrics_per_tab do
-        {String.to_atom(name),
-         [name: format_tab_name(name), render: render_metrics(Enum.with_index(metrics), assigns)]}
+      for name <- assigns.tabs do
+        {String.to_atom(name), name: format_tab_name(name), render: render_metrics(assigns)}
       end
 
     tab_bar(tabs: tabs)
   end
 
-  def render_metrics(metrics, assigns) do
+  def render_metrics(assigns) do
     fn ->
       ~L"""
-      <%= if metrics do %>
+      <%= if @metrics do %>
         <div class="phx-dashboard-metrics-grid row">
-        <%= for {metric, id} <- metrics do %>
+        <%= for {metric, id} <- @metrics do %>
           <%= live_component @socket, ChartComponent, id: id, metric: metric %>
         <% end %>
         </div>
