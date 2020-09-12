@@ -149,7 +149,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   @spec tab_bar(keyword()) :: component()
   def tab_bar(assigns) do
-    with :ok <- TabBarComponent.validate_params(Map.new(assigns)) do
+    assigns = Map.new(assigns)
+    
+    with :ok <- TabBarComponent.validate_params(assigns) do
       {TabBarComponent, assigns}
     else
       {:error, msg} -> raise ArgumentError, msg
