@@ -64,7 +64,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
          [name: format_tab_name(name), render: render_metrics(Enum.with_index(metrics), assigns)]}
       end
 
-    tab_bar(tabs: tabs, page: assigns.page)
+    tab_bar(tabs: tabs)
   end
 
   def render_metrics(metrics, assigns) do
