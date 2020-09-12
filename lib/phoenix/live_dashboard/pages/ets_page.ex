@@ -8,10 +8,11 @@ defmodule Phoenix.LiveDashboard.EtsPage do
   @menu_text "ETS"
 
   @impl true
-  def render_page(_assigns) do
+  def render_page(assigns) do
     table(
       columns: columns(),
       id: @table_id,
+      page: assigns.page,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_ets/2,
       rows_name: "tables",

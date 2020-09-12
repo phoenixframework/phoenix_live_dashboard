@@ -30,16 +30,18 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     }
 
     opts =
-      Keyword.merge(
-        [
+      Map.merge(
+        %{
           columns: columns,
           id: :component_id,
           page: page,
           row_fetcher: &row_fetcher/2,
           title: "Title"
-        ],
-        opts
+        },
+        Map.new(opts)
       )
+
+    {:ok, opts} = TableComponent.normalize_params(opts)
 
     render_component(TableComponent, opts, router: Router)
   end
@@ -138,5 +140,9 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       assert result =~ "<tr class=\"row-attrs-1\">"
       assert result =~ "<tr class=\"row-attrs-4\">"
     end
+  end
+
+  describe "normalize_params/1" do
+    test "TODO"
   end
 end
