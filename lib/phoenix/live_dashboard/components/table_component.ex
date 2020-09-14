@@ -17,26 +17,12 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {:ok, socket}
   end
 
-  @impl true
-  def update(assigns, socket) do
-    %{
-      table_params: table_params,
-      page: page,
-      row_fetcher: row_fetcher
-    } = assigns
-
-    {rows, total} = row_fetcher.(table_params, page.node)
-    assigns = Map.merge(assigns, %{rows: rows, total: total})
-    {:ok, assign(socket, assigns)}
-  end
-
   def normalize_params(params) do
-    with :ok <- validate_required(params, [:columns, :id, :page, :row_fetcher, :title]),
-         {:ok, params} <- normalize_columns(params),
-         {:ok, params} <- normalize_limit(params),
-         {:ok, params} <- normalize_table_params(params) do
+    with :ok <- validate_required(params, [:columns, :id, :row_fetcher, :title]),
+         {:ok, params} <- normalize_columns(params) do
       {:ok,
        params
+       |> Map.put_new(:limit_options, @limit)
        |> Map.put_new(:row_attrs, [])
        |> Map.put_new_lazy(:rows_name, fn ->
          Phoenix.Naming.humanize(params.title) |> String.downcase()
@@ -68,22 +54,43 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {:error, "expected :columns to be a list, received: #{inspect(columns)}"}
   end
 
-  defp normalize_column(%{field: field} = column) do
-    {:ok,
-     column
-     |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
-     |> Map.put_new(:header_attrs, [])
-     |> Map.put_new(:format, & &1[field])
-     |> Map.put_new(:cell_attrs, [])
-     |> Map.put_new(:sortable, false)}
-  end
-
   defp normalize_column(column) do
-    {:error, "expected :field parameter to be received in column: #{inspect(column)}"}
+    case Access.fetch(column, :field) do
+      {:ok, nil} ->
+        {:error, "expected :field parameter to not be nil, column received: #{inspect(column)}"}
+
+      {:ok, field} when is_atom(field) or is_binary(field) ->
+        {:ok,
+         column
+         |> Map.new()
+         |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
+         |> Map.put_new(:header_attrs, [])
+         |> Map.put_new(:format, & &1[field])
+         |> Map.put_new(:cell_attrs, [])
+         |> Map.put_new(:sortable, false)}
+
+      {:ok, _} ->
+        {:error,
+         "expected :field parameter to be an atom or a string, column received: #{inspect(column)}"}
+
+      :error ->
+        {:error, "expected :field parameter to be received, column received: #{inspect(column)}"}
+    end
   end
 
-  defp normalize_limit(params) do
-    {:ok, Map.put_new(params, :limit_options, @limit)}
+  @impl true
+  def update(assigns, socket) do
+    assigns = normalize_table_params(assigns)
+
+    %{
+      table_params: table_params,
+      page: page,
+      row_fetcher: row_fetcher
+    } = assigns
+
+    {rows, total} = row_fetcher.(table_params, page.node)
+    assigns = Map.merge(assigns, %{rows: rows, total: total})
+    {:ok, assign(socket, assigns)}
   end
 
   defp normalize_table_params(assigns) do
@@ -102,7 +109,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     search = if search == "", do: nil, else: search
 
     table_params = %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search}
-    {:ok, Map.put(assigns, :table_params, table_params)}
+    Map.put(assigns, :table_params, table_params)
   end
 
   defp sortable_columns(columns) do
