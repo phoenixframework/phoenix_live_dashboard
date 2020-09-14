@@ -236,7 +236,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
                title: "title"
              } = params
 
-      assert fun == (&row_fetcher/2)
+      assert is_function(fun, 2)
     end
   end
 end
