@@ -144,24 +144,22 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   """
   @spec table(keyword()) :: component()
   def table(assigns) do
-    assigns = Map.new(assigns)
+    assigns =
+      assigns
+      |> Map.new()
+      |> TableComponent.normalize_params()
 
-    with {:ok, assigns} <- TableComponent.normalize_params(assigns) do
-      {TableComponent, assigns}
-    else
-      {:error, msg} -> raise ArgumentError, msg
-    end
+    {TableComponent, assigns}
   end
 
   @spec tab_bar(keyword()) :: component()
   def tab_bar(assigns) do
-    assigns = Map.new(assigns)
+    assigns =
+      assigns
+      |> Map.new()
+      |> TabBarComponent.normalize_params()
 
-    with {:ok, assigns} <- TabBarComponent.normalize_params(assigns) do
-      {TabBarComponent, assigns}
-    else
-      {:error, msg} -> raise ArgumentError, msg
-    end
+    {TabBarComponent, assigns}
   end
 
   defmacro __using__(opts) do

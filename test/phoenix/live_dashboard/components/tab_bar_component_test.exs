@@ -69,48 +69,58 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
     test "validates :tabs" do
       page = %Phoenix.LiveDashboard.PageBuilder{}
 
-      assert {:error, msg} = TabBarComponent.normalize_params(%{page: page})
-      assert msg == "expected :tabs parameter to be received"
+      assert_raise ArgumentError, "expected :tabs parameter to be received", fn ->
+        TabBarComponent.normalize_params(%{page: page})
+      end
 
-      assert {:error, msg} = TabBarComponent.normalize_params(%{page: page, tabs: :invalid})
-      assert msg == "expected :tabs parameter to be a list, received: :invalid"
+      msg = "expected :tabs parameter to be a list, received: :invalid"
 
-      assert {:error, msg} = TabBarComponent.normalize_params(%{page: page, tabs: [:invalid]})
+      assert_raise ArgumentError, msg, fn ->
+        TabBarComponent.normalize_params(%{page: page, tabs: :invalid})
+      end
 
-      assert msg ==
-               "expected :tabs to be [{atom(), [name: string(), render: component()], received: :invalid"
+      msg =
+        "expected :tabs to be [{atom(), [name: string(), render: component()], received: :invalid"
 
-      assert {:error, msg} = TabBarComponent.normalize_params(%{page: page, tabs: [id: []]})
-      assert msg == "expected :render parameter to be received in tab: []"
+      assert_raise ArgumentError, msg, fn ->
+        TabBarComponent.normalize_params(%{page: page, tabs: [:invalid]})
+      end
 
-      assert {:error, msg} =
-               TabBarComponent.normalize_params(%{
-                 page: page,
-                 tabs: [id: [render: :invalid]]
-               })
+      msg = "expected :render parameter to be received in tab: []"
 
-      assert msg ==
+      assert_raise ArgumentError, msg, fn ->
+        TabBarComponent.normalize_params(%{page: page, tabs: [id: []]})
+      end
+
+      assert msg =
                "expected :render parameter in tab to be a component, received: [render: :invalid]"
 
-      assert {:error, msg} =
-               TabBarComponent.normalize_params(%{
-                 page: page,
-                 tabs: [id: [render: {Component, [:args]}]]
-               })
+      assert_raise ArgumentError, msg, fn ->
+        TabBarComponent.normalize_params(%{
+          page: page,
+          tabs: [id: [render: :invalid]]
+        })
+      end
 
-      assert msg ==
-               "expected :name parameter to be received in tab: [render: {Component, [:args]}]"
+      msg = "expected :name parameter to be received in tab: [render: {Component, [:args]}]"
 
-      assert {:error, msg} =
-               TabBarComponent.normalize_params(%{
-                 page: page,
-                 tabs: [id: [name: "name", render: {Component, [:args]}, method: :invalid]]
-               })
+      assert_raise ArgumentError, msg, fn ->
+        TabBarComponent.normalize_params(%{
+          page: page,
+          tabs: [id: [render: {Component, [:args]}]]
+        })
+      end
 
-      assert msg ==
-               "expected :method parameter in tab to be :patch or :redirect, received: :invalid"
+      msg = "expected :method parameter in tab to be :patch or :redirect, received: :invalid"
 
-      assert {:ok, %{tabs: [id: tab]}} =
+      assert_raise ArgumentError, msg, fn ->
+        TabBarComponent.normalize_params(%{
+          page: page,
+          tabs: [id: [name: "name", render: {Component, [:args]}, method: :invalid]]
+        })
+      end
+
+      assert %{tabs: [id: tab]} =
                TabBarComponent.normalize_params(%{
                  page: page,
                  tabs: [id: [name: "name", render: {Component, [:args]}]]
@@ -120,7 +130,7 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
       assert tab[:render] == {Component, [:args]}
       assert tab[:method] == :patch
 
-      assert {:ok, %{tabs: [id: tab]}} =
+      assert %{tabs: [id: tab]} =
                TabBarComponent.normalize_params(%{
                  page: page,
                  tabs: [id: [name: "name", method: :redirect, render: fn -> nil end]]
