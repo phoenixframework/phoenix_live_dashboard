@@ -143,15 +143,21 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       Default is calculated with the current page.
   """
   @spec table(keyword()) :: component()
-  def table(table_assigns) do
-    {TableComponent, Map.new(table_assigns)}
+  def table(assigns) do
+    assigns = Map.new(assigns)
+
+    with {:ok, assigns} <- TableComponent.normalize_params(assigns) do
+      {TableComponent, assigns}
+    else
+      {:error, msg} -> raise ArgumentError, msg
+    end
   end
 
   @spec tab_bar(keyword()) :: component()
   def tab_bar(assigns) do
     assigns = Map.new(assigns)
 
-    with :ok <- TabBarComponent.validate_params(assigns) do
+    with {:ok, assigns} <- TabBarComponent.normalize_params(assigns) do
       {TabBarComponent, assigns}
     else
       {:error, msg} -> raise ArgumentError, msg

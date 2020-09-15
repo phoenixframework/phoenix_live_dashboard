@@ -30,16 +30,18 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     }
 
     opts =
-      Keyword.merge(
-        [
+      Map.merge(
+        %{
           columns: columns,
           id: :component_id,
           page: page,
           row_fetcher: &row_fetcher/2,
           title: "Title"
-        ],
-        opts
+        },
+        Map.new(opts)
       )
+
+    {:ok, opts} = TableComponent.normalize_params(opts)
 
     render_component(TableComponent, opts, router: Router)
   end
@@ -137,6 +139,104 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       result = render_table(row_attrs: row_attrs)
       assert result =~ "<tr class=\"row-attrs-1\">"
       assert result =~ "<tr class=\"row-attrs-4\">"
+    end
+  end
+
+  describe "normalize_params/1" do
+    test "validates required params" do
+      assert {:error, error} = TableComponent.normalize_params(%{})
+      assert error == "expected :columns parameter to be received"
+
+      assert {:error, error} = TableComponent.normalize_params(%{columns: []})
+      assert error == "expected :id parameter to be received"
+
+      assert {:error, error} = TableComponent.normalize_params(%{id: "id", columns: []})
+      assert error == "expected :row_fetcher parameter to be received"
+
+      assert {:error, error} =
+               TableComponent.normalize_params(%{
+                 row_fetcher: &row_fetcher/2,
+                 id: "id",
+                 columns: []
+               })
+
+      assert error == "expected :title parameter to be received"
+    end
+
+    test "normalizes columns" do
+      assert {:error, error} =
+               TableComponent.normalize_params(%{
+                 title: "title",
+                 row_fetcher: &row_fetcher/2,
+                 id: "id",
+                 columns: [[]]
+               })
+
+      assert error == "expected :field parameter to be received, column received: []"
+
+      assert {:error, error} =
+               TableComponent.normalize_params(%{
+                 title: "title",
+                 row_fetcher: &row_fetcher/2,
+                 id: "id",
+                 columns: [[field: nil]]
+               })
+
+      assert error == "expected :field parameter to not be nil, column received: [field: nil]"
+
+      assert {:error, error} =
+               TableComponent.normalize_params(%{
+                 title: "title",
+                 row_fetcher: &row_fetcher/2,
+                 id: "id",
+                 columns: [[field: 7]]
+               })
+
+      assert error ==
+               "expected :field parameter to be an atom or a string, column received: [field: 7]"
+
+      assert {:ok, params} =
+               TableComponent.normalize_params(%{
+                 title: "title",
+                 row_fetcher: &row_fetcher/2,
+                 id: "id",
+                 columns: [[field: "id"]]
+               })
+
+      assert [
+               %{
+                 cell_attrs: [],
+                 field: "id",
+                 format: format_fun,
+                 header: "Id",
+                 header_attrs: [],
+                 sortable: false
+               }
+             ] = params.columns
+
+      assert "id" = format_fun.(%{"id" => "id"})
+    end
+
+    test "adds default values" do
+      assert {:ok, params} =
+               TableComponent.normalize_params(%{
+                 title: "title",
+                 row_fetcher: &row_fetcher/2,
+                 id: "id",
+                 columns: [[field: :id]]
+               })
+
+      assert %{
+               columns: [_],
+               id: "id",
+               limit_options: [50, 100, 500, 1000, 5000],
+               row_attrs: [],
+               row_fetcher: fun,
+               rows_name: "title",
+               title: "title"
+             } = params
+
+      assert is_function(fun, 2)
     end
   end
 end

@@ -17,48 +17,89 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {:ok, socket}
   end
 
+  def normalize_params(params) do
+    with :ok <- validate_required(params, [:columns, :id, :row_fetcher, :title]),
+         {:ok, params} <- normalize_columns(params) do
+      {:ok,
+       params
+       |> Map.put_new(:limit_options, @limit)
+       |> Map.put_new(:row_attrs, [])
+       |> Map.put_new_lazy(:rows_name, fn ->
+         Phoenix.Naming.humanize(params.title) |> String.downcase()
+       end)}
+    end
+  end
+
+  defp validate_required(params, list) do
+    case Enum.find(list, &(!Map.has_key?(params, &1))) do
+      nil -> :ok
+      key -> {:error, "expected #{inspect(key)} parameter to be received"}
+    end
+  end
+
+  defp normalize_columns(%{columns: columns} = params) when is_list(columns) do
+    Enum.reduce_while(columns, [], fn column, columns ->
+      case normalize_column(column) do
+        {:ok, column} -> {:cont, [column | columns]}
+        {:error, error} -> {:halt, {:error, error}}
+      end
+    end)
+    |> case do
+      {:error, error} -> {:error, error}
+      columns -> {:ok, %{params | columns: Enum.reverse(columns)}}
+    end
+  end
+
+  defp normalize_columns(%{columns: columns}) do
+    {:error, "expected :columns to be a list, received: #{inspect(columns)}"}
+  end
+
+  defp normalize_column(column) do
+    case Access.fetch(column, :field) do
+      {:ok, nil} ->
+        {:error, "expected :field parameter to not be nil, column received: #{inspect(column)}"}
+
+      {:ok, field} when is_atom(field) or is_binary(field) ->
+        {:ok,
+         column
+         |> Map.new()
+         |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
+         |> Map.put_new(:header_attrs, [])
+         |> Map.put_new(:format, & &1[field])
+         |> Map.put_new(:cell_attrs, [])
+         |> Map.put_new(:sortable, false)}
+
+      {:ok, _} ->
+        {:error,
+         "expected :field parameter to be an atom or a string, column received: #{inspect(column)}"}
+
+      :error ->
+        {:error, "expected :field parameter to be received, column received: #{inspect(column)}"}
+    end
+  end
+
   @impl true
   def update(assigns, socket) do
+    assigns = normalize_table_params(assigns)
+
     %{
-      columns: columns,
-      id: _id,
+      table_params: table_params,
       page: page,
-      row_fetcher: row_fetcher,
-      title: title
+      row_fetcher: row_fetcher
     } = assigns
 
-    limit_options = assigns[:limit_options] || @limit
-    columns = normalize_columns(columns)
-    table_params = normalize_table_params(page.params, columns, limit_options)
     {rows, total} = row_fetcher.(table_params, page.node)
-
-    {:ok,
-     assign(socket,
-       columns: columns,
-       limit_options: limit_options,
-       page: page,
-       row_attrs: assigns[:row_attrs] || [],
-       row_fetcher: row_fetcher,
-       rows: rows,
-       rows_name: assigns[:rows_name] || Phoenix.Naming.humanize(title) |> String.downcase(),
-       table_params: table_params,
-       title: title,
-       total: total
-     )}
+    assigns = Map.merge(assigns, %{rows: rows, total: total})
+    {:ok, assign(socket, assigns)}
   end
 
-  defp normalize_columns(columns) do
-    Enum.map(columns, fn %{field: field} = column ->
-      column
-      |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
-      |> Map.put_new(:header_attrs, [])
-      |> Map.put_new(:format, & &1[field])
-      |> Map.put_new(:cell_attrs, [])
-      |> Map.put_new(:sortable, false)
-    end)
-  end
+  defp normalize_table_params(assigns) do
+    %{
+      columns: columns,
+      page: %{params: all_params},
+      limit_options: limit_options
+    } = assigns
 
-  defp normalize_table_params(all_params, columns, limit_options) do
     sortable_columns = sortable_columns(columns)
     sort_by = all_params |> get_in_or_first("sort_by", sortable_columns) |> String.to_atom()
     sort_dir = all_params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
@@ -66,7 +107,9 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     limit = all_params |> get_in_or_first("limit", limit_options) |> String.to_integer()
     search = all_params["search"]
     search = if search == "", do: nil, else: search
-    %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search}
+
+    table_params = %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search}
+    Map.put(assigns, :table_params, table_params)
   end
 
   defp sortable_columns(columns) do

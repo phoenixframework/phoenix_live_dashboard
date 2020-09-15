@@ -59,7 +59,8 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   def render_page(assigns) do
     tabs =
       for name <- assigns.tabs do
-        {String.to_atom(name), name: format_tab_name(name), render: render_metrics(assigns)}
+        {String.to_atom(name),
+         name: format_tab_name(name), render: render_metrics(assigns), method: :redirect}
       end
 
     tab_bar(tabs: tabs)
