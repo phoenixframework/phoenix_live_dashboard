@@ -101,7 +101,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
   defp normalize_tab_method(tab) do
     case Keyword.fetch(tab, :method) do
       :error ->
-        {:ok, tab ++ [method: :patch]}
+        {:ok, [method: :patch] ++ tab}
 
       {:ok, method} when method in [:patch, :redirect] ->
         {:ok, tab}
