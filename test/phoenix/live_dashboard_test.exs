@@ -12,7 +12,10 @@ defmodule Phoenix.LiveDashboardTest do
   end
 
   test "embeds csp nonces" do
-    assert build_conn() |> assign(:csp_nonce, "abcdef") |> get("/dashboard/nonode@nohost/home") |> html_response(200) =~
+    assert build_conn()
+           |> assign(:csp_nonce, "abcdef")
+           |> get("/dashboard/nonode@nohost/home")
+           |> html_response(200) =~
              ~s|<script nonce="abcdef">|
   end
 end
