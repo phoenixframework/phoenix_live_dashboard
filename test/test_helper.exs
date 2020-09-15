@@ -41,7 +41,8 @@ defmodule Phoenix.LiveDashboardTest.Router do
 
     live_dashboard("/dashboard",
       metrics: Phoenix.LiveDashboardTest.Telemetry,
-      metrics_history: {TestHistory, :test_data, []}
+      metrics_history: {TestHistory, :test_data, []},
+      csp_nonce_assign_key: :csp_nonce
     )
   end
 end

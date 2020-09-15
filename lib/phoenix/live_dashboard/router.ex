@@ -11,6 +11,9 @@ defmodule Phoenix.LiveDashboard.Router do
 
   ## Options
 
+    * `:csp_nonce_assign_key` - an assign key to find the CSP nonce
+      value used for assets
+
     * `:metrics` - Configures the module to retrieve metrics from.
       It can be a `module` or a `{module, function}`. If nothing is
       given, the metrics functionality will be disabled.
@@ -119,9 +122,12 @@ defmodule Phoenix.LiveDashboard.Router do
           raise ArgumentError, ":additional_pages must be a keyword, got: " <> inspect(other)
       end
 
+    csp_nonce_assign_key = options[:csp_nonce_assign_key]
+    session_args = [metrics, env_keys, metrics_history, additional_pages]
+
     [
-      session: {__MODULE__, :__session__, [metrics, env_keys, metrics_history, additional_pages]},
-      private: %{live_socket_path: live_socket_path},
+      session: {__MODULE__, :__session__, session_args},
+      private: %{live_socket_path: live_socket_path, csp_nonce_assign_key: csp_nonce_assign_key},
       layout: {Phoenix.LiveDashboard.LayoutView, :dash},
       as: :live_dashboard
     ]

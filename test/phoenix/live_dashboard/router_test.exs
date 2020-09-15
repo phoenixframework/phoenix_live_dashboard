@@ -7,15 +7,18 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "default options" do
     assert Router.__options__([]) == [
              session: {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, []]},
-             private: %{live_socket_path: "/live"},
+             private: %{live_socket_path: "/live", csp_nonce_assign_key: nil},
              layout: {Phoenix.LiveDashboard.LayoutView, :dash},
              as: :live_dashboard
            ]
   end
 
   test "configures live_socket_path" do
-    assert Router.__options__(live_socket_path: "/custom/live")[:private] ==
-             %{live_socket_path: "/custom/live"}
+    assert Router.__options__(
+             live_socket_path: "/custom/live",
+             csp_nonce_assign_key: :csp_nonce
+           )[:private] ==
+             %{live_socket_path: "/custom/live", csp_nonce_assign_key: :csp_nonce}
   end
 
   test "configures metrics" do

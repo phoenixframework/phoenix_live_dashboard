@@ -14,6 +14,14 @@ defmodule Phoenix.LiveDashboard.LayoutView do
   def render("app.js", _), do: @app_js
   def render("app.css", _), do: @app_css
 
+  defp csp_nonce(conn) do
+    csp_nonce_assign_key = conn.private.csp_nonce_assign_key
+
+    if csp_nonce = conn.assigns[csp_nonce_assign_key] do
+      raw("nonce=\"#{csp_nonce}\"")
+    end
+  end
+
   def live_socket_path(conn) do
     [Enum.map(conn.script_name, &["/" | &1]) | conn.private.live_socket_path]
   end
