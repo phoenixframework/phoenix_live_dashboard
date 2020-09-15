@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.8 (2020-09-15)
+
+* Support `csp_nonce_assign_key` to better handle CSP policies
+* Do not crash when `:current_function` is undefined
+
 ## v0.2.7 (2020-07-07)
 
 * Add hooks for historical data on metrics dashboard
