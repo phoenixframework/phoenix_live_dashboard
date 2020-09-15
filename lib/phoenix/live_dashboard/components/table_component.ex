@@ -18,63 +18,55 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   def normalize_params(params) do
-    with :ok <- validate_required(params, [:columns, :id, :row_fetcher, :title]),
-         {:ok, params} <- normalize_columns(params) do
-      {:ok,
-       params
-       |> Map.put_new(:limit_options, @limit)
-       |> Map.put_new(:row_attrs, [])
-       |> Map.put_new_lazy(:rows_name, fn ->
-         Phoenix.Naming.humanize(params.title) |> String.downcase()
-       end)}
-    end
+    params
+    |> validate_required([:columns, :id, :row_fetcher, :title])
+    |> normalize_columns()
+    |> Map.put_new(:limit_options, @limit)
+    |> Map.put_new(:row_attrs, [])
+    |> Map.put_new_lazy(:rows_name, fn ->
+      Phoenix.Naming.humanize(params.title) |> String.downcase()
+    end)
   end
 
   defp validate_required(params, list) do
     case Enum.find(list, &(!Map.has_key?(params, &1))) do
       nil -> :ok
-      key -> {:error, "expected #{inspect(key)} parameter to be received"}
+      key -> raise ArgumentError, "expected #{inspect(key)} parameter to be received"
     end
+
+    params
   end
 
   defp normalize_columns(%{columns: columns} = params) when is_list(columns) do
-    Enum.reduce_while(columns, [], fn column, columns ->
-      case normalize_column(column) do
-        {:ok, column} -> {:cont, [column | columns]}
-        {:error, error} -> {:halt, {:error, error}}
-      end
-    end)
-    |> case do
-      {:error, error} -> {:error, error}
-      columns -> {:ok, %{params | columns: Enum.reverse(columns)}}
-    end
+    %{params | columns: Enum.map(columns, &normalize_column/1)}
   end
 
   defp normalize_columns(%{columns: columns}) do
-    {:error, "expected :columns to be a list, received: #{inspect(columns)}"}
+    raise ArgumentError, "expected :columns to be a list, received: #{inspect(columns)}"
   end
 
   defp normalize_column(column) do
     case Access.fetch(column, :field) do
       {:ok, nil} ->
-        {:error, "expected :field parameter to not be nil, column received: #{inspect(column)}"}
+        msg = "expected :field parameter to not be nil, column received: #{inspect(column)}"
+        raise ArgumentError, msg
 
       {:ok, field} when is_atom(field) or is_binary(field) ->
-        {:ok,
-         column
-         |> Map.new()
-         |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
-         |> Map.put_new(:header_attrs, [])
-         |> Map.put_new(:format, & &1[field])
-         |> Map.put_new(:cell_attrs, [])
-         |> Map.put_new(:sortable, false)}
+        column
+        |> Map.new()
+        |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
+        |> Map.put_new(:header_attrs, [])
+        |> Map.put_new(:format, & &1[field])
+        |> Map.put_new(:cell_attrs, [])
+        |> Map.put_new(:sortable, false)
 
       {:ok, _} ->
-        {:error,
-         "expected :field parameter to be an atom or a string, column received: #{inspect(column)}"}
+        msg = "expected :field parameter to be an atom or a string, column received: "
+        raise ArgumentError, msg <> inspect(column)
 
       :error ->
-        {:error, "expected :field parameter to be received, column received: #{inspect(column)}"}
+        msg = "expected :field parameter to be received, column received: #{inspect(column)}"
+        raise ArgumentError, msg
     end
   end
 

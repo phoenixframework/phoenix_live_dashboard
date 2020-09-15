@@ -40,8 +40,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         },
         Map.new(opts)
       )
-
-    {:ok, opts} = TableComponent.normalize_params(opts)
+      |> TableComponent.normalize_params()
 
     render_component(TableComponent, opts, router: Router)
   end
@@ -144,58 +143,70 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
 
   describe "normalize_params/1" do
     test "validates required params" do
-      assert {:error, error} = TableComponent.normalize_params(%{})
-      assert error == "expected :columns parameter to be received"
+      msg = "expected :columns parameter to be received"
 
-      assert {:error, error} = TableComponent.normalize_params(%{columns: []})
-      assert error == "expected :id parameter to be received"
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{})
+      end
 
-      assert {:error, error} = TableComponent.normalize_params(%{id: "id", columns: []})
-      assert error == "expected :row_fetcher parameter to be received"
+      msg = "expected :id parameter to be received"
 
-      assert {:error, error} =
-               TableComponent.normalize_params(%{
-                 row_fetcher: &row_fetcher/2,
-                 id: "id",
-                 columns: []
-               })
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{columns: []})
+      end
 
-      assert error == "expected :title parameter to be received"
+      msg = "expected :row_fetcher parameter to be received"
+
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{id: "id", columns: []})
+      end
+
+      msg = "expected :title parameter to be received"
+
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{
+          row_fetcher: &row_fetcher/2,
+          id: "id",
+          columns: []
+        })
+      end
     end
 
     test "normalizes columns" do
-      assert {:error, error} =
-               TableComponent.normalize_params(%{
-                 title: "title",
-                 row_fetcher: &row_fetcher/2,
-                 id: "id",
-                 columns: [[]]
-               })
+      msg = "expected :field parameter to be received, column received: []"
 
-      assert error == "expected :field parameter to be received, column received: []"
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{
+          title: "title",
+          row_fetcher: &row_fetcher/2,
+          id: "id",
+          columns: [[]]
+        })
+      end
 
-      assert {:error, error} =
-               TableComponent.normalize_params(%{
-                 title: "title",
-                 row_fetcher: &row_fetcher/2,
-                 id: "id",
-                 columns: [[field: nil]]
-               })
+      msg = "expected :field parameter to not be nil, column received: [field: nil]"
 
-      assert error == "expected :field parameter to not be nil, column received: [field: nil]"
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{
+          title: "title",
+          row_fetcher: &row_fetcher/2,
+          id: "id",
+          columns: [[field: nil]]
+        })
+      end
 
-      assert {:error, error} =
-               TableComponent.normalize_params(%{
-                 title: "title",
-                 row_fetcher: &row_fetcher/2,
-                 id: "id",
-                 columns: [[field: 7]]
-               })
+      msg = "expected :field parameter to be an atom or a string, column received: [field: 7]"
 
-      assert error ==
-               "expected :field parameter to be an atom or a string, column received: [field: 7]"
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{
+          title: "title",
+          row_fetcher: &row_fetcher/2,
+          id: "id",
+          columns: [[field: 7]]
+        })
+      end
 
-      assert {:ok, params} =
+      assert params =
                TableComponent.normalize_params(%{
                  title: "title",
                  row_fetcher: &row_fetcher/2,
@@ -218,14 +229,6 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     end
 
     test "adds default values" do
-      assert {:ok, params} =
-               TableComponent.normalize_params(%{
-                 title: "title",
-                 row_fetcher: &row_fetcher/2,
-                 id: "id",
-                 columns: [[field: :id]]
-               })
-
       assert %{
                columns: [_],
                id: "id",
@@ -234,7 +237,13 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
                row_fetcher: fun,
                rows_name: "title",
                title: "title"
-             } = params
+             } =
+               TableComponent.normalize_params(%{
+                 title: "title",
+                 row_fetcher: &row_fetcher/2,
+                 id: "id",
+                 columns: [[field: :id]]
+               })
 
       assert is_function(fun, 2)
     end

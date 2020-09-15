@@ -30,85 +30,79 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
   def normalize_params(params) do
     case Map.fetch(params, :tabs) do
       :error ->
-        {:error, "expected :tabs parameter to be received"}
+        raise ArgumentError, "expected :tabs parameter to be received"
 
       {:ok, no_list} when not is_list(no_list) ->
         msg = "expected :tabs parameter to be a list, received: "
-        {:error, msg <> inspect(no_list)}
+        raise ArgumentError, msg <> inspect(no_list)
 
       {:ok, tabs} ->
-        with {:ok, tabs} <- normalize_tabs(tabs) do
-          {:ok, %{tabs: tabs}}
-        end
+        %{tabs: normalize_tabs(tabs)}
     end
   end
 
   def normalize_tabs(tabs) do
-    Enum.reduce_while(tabs, [], fn tab, tabs ->
-      case normalize_tab(tab) do
-        {:ok, tab} -> {:cont, [tab | tabs]}
-        {:error, error} -> {:halt, {:error, error}}
-      end
-    end)
-    |> case do
-      {:error, error} -> {:error, error}
-      tabs when is_list(tabs) -> {:ok, Enum.reverse(tabs)}
-    end
+    Enum.map(tabs, &normalize_tab/1)
   end
 
   defp normalize_tab({id, tab}) when is_atom(id) and is_list(tab) do
-    with :ok <- validate_tab_render(tab),
-         :ok <- validate_tab_name(tab),
-         {:ok, tab} <- normalize_tab_method(tab),
-         do: {:ok, {id, tab}}
+    {id,
+     tab
+     |> validate_tab_render()
+     |> validate_tab_name()
+     |> normalize_tab_method()}
   end
 
   defp normalize_tab(invalid_tab) do
     msg = "expected :tabs to be [{atom(), [name: string(), render: component()], received: "
 
-    {:error, msg <> inspect(invalid_tab)}
+    raise ArgumentError, msg <> inspect(invalid_tab)
   end
 
   defp validate_tab_render(tab) do
     case Keyword.fetch(tab, :render) do
       :error ->
-        {:error, "expected :render parameter to be received in tab: #{inspect(tab)}"}
+        msg = "expected :render parameter to be received in tab: #{inspect(tab)}"
+        raise ArgumentError, msg
 
       {:ok, render} when is_function(render, 0) ->
-        :ok
+        tab
 
       {:ok, {component, args}} when is_atom(component) and is_list(args) ->
-        :ok
+        tab
 
       {:ok, _invalid} ->
-        {:error, "expected :render parameter in tab to be a component, received: #{inspect(tab)}"}
+        msg = "expected :render parameter in tab to be a component, received: #{inspect(tab)}"
+        raise ArgumentError, msg
     end
   end
 
   defp validate_tab_name(tab) do
     case Keyword.fetch(tab, :name) do
       :error ->
-        {:error, "expected :name parameter to be received in tab: #{inspect(tab)}"}
+        msg = "expected :name parameter to be received in tab: #{inspect(tab)}"
+        raise ArgumentError, msg
 
       {:ok, string} when is_binary(string) ->
-        :ok
+        tab
 
       {:ok, _invalid} ->
-        {:error, "expected :name parameter in tab to be a string, received: #{inspect(tab)}"}
+        msg = "expected :name parameter in tab to be a string, received: #{inspect(tab)}"
+        raise ArgumentError, msg
     end
   end
 
   defp normalize_tab_method(tab) do
     case Keyword.fetch(tab, :method) do
       :error ->
-        {:ok, [method: :patch] ++ tab}
+        [method: :patch] ++ tab
 
       {:ok, method} when method in [:patch, :redirect] ->
-        {:ok, tab}
+        tab
 
       {:ok, method} ->
         msg = "expected :method parameter in tab to be :patch or :redirect, received: "
-        {:error, msg <> inspect(method)}
+        raise ArgumentError, msg <> inspect(method)
     end
   end
 
