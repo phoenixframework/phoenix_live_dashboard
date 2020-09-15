@@ -3,6 +3,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             module: nil,
             node: nil,
             params: nil,
+            params_keys: [],
             route: nil,
             tick: 0
 

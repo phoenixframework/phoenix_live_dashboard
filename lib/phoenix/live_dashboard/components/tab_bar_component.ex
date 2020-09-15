@@ -10,12 +10,12 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
   @impl true
   def update(assigns, socket) do
     %{page: page, tabs: tabs} = assigns
-    current = current_tab(page.params, tabs)
+    current = current_tab(page, tabs)
     {:ok, assign(socket, tabs: tabs, current: current, page: page)}
   end
 
-  defp current_tab(params, tabs) do
-    with %{"tab" => tab} <- params,
+  defp current_tab(page, tabs) do
+    with tab when not is_nil(tab) <- component_params(page)["current"],
          true <- Enum.any?(tabs, fn {id, _} -> Atom.to_string(id) == tab end) do
       String.to_existing_atom(tab)
     else
@@ -37,7 +37,10 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
         raise ArgumentError, msg <> inspect(no_list)
 
       {:ok, tabs} ->
-        %{tabs: normalize_tabs(tabs)}
+        %{
+          tabs: normalize_tabs(tabs),
+          param_key: params[:param_key] || "tabs"
+        }
     end
   end
 
@@ -127,7 +130,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
   end
 
   defp render_tab_link(socket, page, tab, current, id) do
-    path = live_dashboard_path(socket, page, tab: id)
+    path = live_dashboard_path(socket, page, current: id)
     class = "nav-link#{if current == id, do: " active"}"
 
     case tab[:method] do
@@ -139,7 +142,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
   defp render_content(socket, page, tabs, current) do
     case tabs[current][:render] do
       {component, component_assigns} ->
-        live_component(socket, component, [page: page] ++ component_assigns)
+        render_page_component(socket, page, component, component_assigns)
 
       # Needed for the metrics page, should be removed soon
       fun when is_function(fun, 0) ->

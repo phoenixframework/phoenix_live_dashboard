@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   @moduledoc false
   use Phoenix.LiveDashboard.Web, :live_component
 
-  @sort_dir ~w(desc asc)
+  @sort_dir ~w(asc desc)
   @limit [50, 100, 500, 1000, 5000]
 
   @type params() :: %{
@@ -26,6 +26,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     |> Map.put_new_lazy(:rows_name, fn ->
       Phoenix.Naming.humanize(params.title) |> String.downcase()
     end)
+    |> Map.put_new_lazy(:param_key, fn -> to_string(params.id) end)
   end
 
   defp validate_required(params, list) do
@@ -88,19 +89,22 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   defp normalize_table_params(assigns) do
     %{
       columns: columns,
-      page: %{params: all_params},
+      page: page,
       limit_options: limit_options
     } = assigns
 
+    params = component_params(page)
+
     sortable_columns = sortable_columns(columns)
-    sort_by = all_params |> get_in_or_first("sort_by", sortable_columns) |> String.to_atom()
-    sort_dir = all_params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
+    sort_by = params |> get_in_or_first("sort_by", sortable_columns) |> String.to_atom()
+    sort_dir = params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
     limit_options = Enum.map(limit_options, &to_string/1)
-    limit = all_params |> get_in_or_first("limit", limit_options) |> String.to_integer()
-    search = all_params["search"]
+    limit = params |> get_in_or_first("limit", limit_options) |> String.to_integer()
+    search = params["search"]
     search = if search == "", do: nil, else: search
 
     table_params = %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search}
+
     Map.put(assigns, :table_params, table_params)
   end
 

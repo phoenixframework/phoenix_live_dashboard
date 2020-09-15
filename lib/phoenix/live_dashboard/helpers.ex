@@ -2,6 +2,8 @@ defmodule Phoenix.LiveDashboard.Helpers do
   @moduledoc false
 
   import Phoenix.LiveView.Helpers
+
+  alias Phoenix.LiveDashboard.PageBuilder
   @format_limit 100
 
   @doc """
@@ -18,16 +20,55 @@ defmodule Phoenix.LiveDashboard.Helpers do
   @doc """
   Computes a router path to the current page.
   """
-  def live_dashboard_path(socket, %{route: route, node: node, params: params}) do
-    live_dashboard_path(socket, route, node, params)
+  def live_dashboard_path(socket, %PageBuilder{} = page) do
+    live_dashboard_path(socket, page.route, page.node, page.params)
   end
 
   @doc """
   Computes a router path to the current page with merged params.
   """
-  def live_dashboard_path(socket, %{route: route, node: node, params: params}, extra) do
-    params = Enum.into(extra, params, fn {k, v} -> {Atom.to_string(k), v} end)
+  def live_dashboard_path(socket, %PageBuilder{} = page, extra) do
+    %{route: route, node: node, params_keys: params_keys, params: params} = page
+    current_key = hd(params_keys)
+    params_keys = [:info | params_keys]
+
+    params =
+      params
+      |> Map.take(params_keys)
+      |> Map.put(current_key, Map.new(extra, fn {k, v} -> {Atom.to_string(k), v} end))
+
     live_dashboard_path(socket, route, node, params)
+  end
+
+  @doc """
+  Computes a router path to the current page with info popup
+  """
+  def show_info_path(socket, %PageBuilder{} = page, info) do
+    %{route: route, node: node, params: params} = page
+    params = Map.put(params, :info, info)
+    live_dashboard_path(socket, route, node, params)
+  end
+
+  @doc """
+  Get current component params
+  """
+  def component_params(%PageBuilder{} = page) do
+    %{
+      params_keys: [key | _],
+      params: params
+    } = page
+
+    params[to_string(key)]
+  end
+
+  @doc """
+  Renders a page component
+  """
+  def render_page_component(socket, page, component, component_assigns) do
+    component_param_key = Map.fetch!(component_assigns, :param_key)
+    page = Map.update!(page, :params_keys, &[component_param_key | &1])
+    component_assigns = Map.put(component_assigns, :page, page)
+    live_component(socket, component, component_assigns)
   end
 
   @doc """

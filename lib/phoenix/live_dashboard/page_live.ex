@@ -169,8 +169,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   defp render_page(socket, module, assigns) do
     {component, component_assigns} = module.render_page(assigns)
-    component_assigns = Map.put(component_assigns, :page, assigns.page)
-    live_component(socket, component, component_assigns)
+    render_page_component(socket, assigns.page, component, component_assigns)
   end
 
   defp live_info(_socket, %{info: nil}), do: nil
@@ -245,7 +244,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   def handle_event("show_info", %{"info" => info}, socket) do
-    to = live_dashboard_path(socket, socket.assigns.page, info: info)
+    to = show_info_path(socket, socket.assigns.page, info)
     {:noreply, push_patch(socket, to: to)}
   end
 

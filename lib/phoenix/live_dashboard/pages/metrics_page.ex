@@ -11,7 +11,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     all_metrics = apply(mod, fun, [])
     metrics_per_tab = Enum.group_by(all_metrics, &tab_name/1)
 
-    tab = params["tab"]
+    tab = params["tabs"]["current"]
     metrics = metrics_per_tab[tab]
     {first_tab, _} = Enum.at(metrics_per_tab, 0, {nil, nil})
 
@@ -27,7 +27,8 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
         {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
       first_tab && is_nil(tab) ->
-        to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, tab: first_tab)
+        url_params = [tabs: [current: first_tab]]
+        to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, url_params)
         {:ok, push_redirect(socket, to: to)}
 
       true ->
