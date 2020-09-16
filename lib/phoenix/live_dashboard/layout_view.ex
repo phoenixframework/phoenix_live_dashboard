@@ -2,8 +2,11 @@ defmodule Phoenix.LiveDashboard.LayoutView do
   @moduledoc false
   use Phoenix.LiveDashboard.Web, :view
 
-  js_path = Path.join(__DIR__, "../../../priv/static/js/app.js")
-  css_path = Path.join(__DIR__, "../../../priv/static/css/app.css")
+  js_bundle = if Mix.env() == "prod", do: "app.js", else: "app.dev.js"
+  css_bundle = if Mix.env() == "prod", do: "app.css", else: "app.dev.css"
+
+  js_path = Path.join(__DIR__, "../../../priv/static/js/" <> js_bundle)
+  css_path = Path.join(__DIR__, "../../../priv/static/css/" <> css_bundle)
 
   @external_resource js_path
   @external_resource css_path
