@@ -127,7 +127,8 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
   end
 
   defp render_tab_link(socket, page, tab, current, id) do
-    path = live_dashboard_path(socket, page, tab: id)
+    params = [tab: id] |> maybe_put(:info, page.params.info)
+    path = live_dashboard_path(socket, page.route, page.node, params)
     class = "nav-link#{if current == id, do: " active"}"
 
     case tab[:method] do
@@ -135,6 +136,9 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
       :redirect -> live_redirect(tab[:name], to: path, class: class)
     end
   end
+
+  defp maybe_put(keyword, _key, nil), do: keyword
+  defp maybe_put(keyword, key, value), do: [{key, value} | keyword]
 
   defp render_content(socket, page, tabs, current) do
     case tabs[current][:render] do
