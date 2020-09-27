@@ -174,7 +174,11 @@ defmodule DemoWeb.Router do
     live_dashboard("/dashboard",
       metrics: DemoWeb.Telemetry,
       env_keys: ["USER", "ROOTDIR"],
-      metrics_history: {DemoWeb.History, :data, []}
+      metrics_history: {DemoWeb.History, :data, []},
+      additional_pages: [
+        {"ecto_psql_extras",
+         {Phoenix.LiveDashboard.Pages.EctoPsqlExtrasPage, %{repo: DemoWeb.Repo}}}
+      ]
     )
   end
 end
@@ -202,13 +206,29 @@ defmodule DemoWeb.Endpoint do
   plug DemoWeb.Router
 end
 
+# Configures the endpoint
+Application.put_env(:phoenix_live_dashboard, DemoWeb.Repo,
+  database: "PUT_YOUR_OWN_DATABASE",
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost"
+)
+
+defmodule DemoWeb.Repo do
+  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
+end
+
 Application.ensure_all_started(:os_mon)
+Application.ensure_all_started(:postgrex)
+Application.ensure_all_started(:ecto_sql)
+Application.ensure_all_started(:ecto)
 Application.put_env(:phoenix, :serve_endpoints, true)
 
 Task.start(fn ->
   children = [
     {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
     {DemoWeb.History, DemoWeb.Telemetry.metrics()},
+    DemoWeb.Repo,
     DemoWeb.Endpoint
   ]
 

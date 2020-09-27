@@ -68,7 +68,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
       {:ok, render} when is_function(render, 0) ->
         tab
 
-      {:ok, {component, args}} when is_atom(component) and is_list(args) ->
+      {:ok, {component, _args}} when is_atom(component) ->
         tab
 
       {:ok, _invalid} ->
@@ -127,7 +127,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
   end
 
   defp render_tab_link(socket, page, tab, current, id) do
-    params = [tab: id] |> maybe_put(:info, page.params.info)
+    params = [tab: id] |> maybe_put(:info, page.params[:info])
     path = live_dashboard_path(socket, page.route, page.node, params)
     class = "nav-link#{if current == id, do: " active"}"
 
@@ -143,7 +143,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
   defp render_content(socket, page, tabs, current) do
     case tabs[current][:render] do
       {component, component_assigns} ->
-        live_component(socket, component, [page: page] ++ component_assigns)
+        live_component(socket, component, Map.put(component_assigns, :page, page))
 
       # Needed for the metrics page, should be removed soon
       fun when is_function(fun, 0) ->
