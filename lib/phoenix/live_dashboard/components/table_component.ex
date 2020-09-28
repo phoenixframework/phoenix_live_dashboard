@@ -116,7 +116,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp sortable_dirs(columns, field) do
-    case Enum.find(columns, & &1[:field] == field) do
+    case Enum.find(columns, &(&1[:field] == field)) do
       %{sortable: :desc} -> ~w(desc asc)
       %{sortable: :asc} -> ~w(asc desc)
     end
