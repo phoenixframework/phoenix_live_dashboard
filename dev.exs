@@ -14,7 +14,7 @@ Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
     node: [
       "node_modules/webpack/bin/webpack.js",
       "--mode",
-      "production",
+      System.get_env("NODE_ENV") || "production",
       "--watch-stdin",
       cd: "assets"
     ]
