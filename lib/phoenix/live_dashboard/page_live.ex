@@ -5,11 +5,20 @@ end
 
 defmodule Phoenix.LiveDashboard.PageLive do
   @moduledoc false
-
   use Phoenix.LiveDashboard.Web, :live_view
+
   import Phoenix.LiveDashboard.Helpers
   alias Phoenix.LiveView.Socket
-  alias Phoenix.LiveDashboard.{MenuComponent, PageBuilder}
+  alias Phoenix.LiveDashboard.PageBuilder
+  alias __MODULE__
+
+  @derive {Inspect, only: []}
+  defstruct links: [],
+            nodes: [],
+            refresher?: true,
+            refresh: 5,
+            refresh_options: for(i <- [1, 2, 5, 15, 30], do: {"#{i}s", i}),
+            timer: nil
 
   @impl true
   def mount(%{"node" => _, "page" => page} = params, session, socket) do
@@ -29,7 +38,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp assign_mount(socket, module, page_session, params, pages, requirements) do
-    socket = assign(socket, page: %PageBuilder{module: module}, menu: %MenuComponent{})
+    socket = assign(socket, page: %PageBuilder{module: module}, menu: %PageLive{})
 
     with %Socket{redirected: nil} = socket <- assign_params(socket, params),
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
@@ -142,12 +151,34 @@ defmodule Phoenix.LiveDashboard.PageLive do
   def render(assigns) do
     ~L"""
     <header class="d-flex">
-      <div class="container d-flex flex-column">
-        <h1>
-          <span class="header-title-part">Phoenix </span>
-          <span class="header-title-part">LiveDashboard<span>
-        </h1>
-        <%= live_component(@socket, MenuComponent, id: :menu, page: @page, menu: @menu) %>
+      <div id="menu" class="container d-flex flex-column">
+        <h1>Phoenix LiveDashboard</h1>
+
+        <div id="nav-dropdowns">
+          <form id="refresher" phx-change="select_refresh">
+            <%= if @menu.refresher? do %>
+              <label for="refresh-interval-select">Update every</label>
+              <select name="refresh" class="custom-select custom-select-sm" id="refresh-interval-select">
+                <%= options_for_select(@menu.refresh_options, @menu.refresh) %>
+              </select>
+            <% else %>
+              <label class="no-select">Updates automatically</label>
+            <% end %>
+          </form>
+
+          <form id="node-selection" phx-change="select_node">
+            <label for="node-select">Selected node</label>
+            <select name="node" class="custom-select custom-select-sm" id="node-select">
+              <%= options_for_select(@menu.nodes, @page.node) %>
+            </select>
+          </form>
+        </div>
+
+        <nav id="menu-bar">
+          <%= for link <- @menu.links, link != :skip do %>
+            <%= maybe_link(@socket, @page, link) %>
+          <% end %>
+        </nav>
       </div>
     </header>
     <%= live_info(@socket, @page) %>
@@ -251,6 +282,39 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   def handle_event(event, params, socket) do
     socket.assigns.page.module.handle_event(event, params, socket)
+  end
+
+  ## Navbar handling
+
+  defp maybe_link(_socket, _page, {:current, text}) do
+    content_tag(:div, text, class: "menu-item active")
+  end
+
+  defp maybe_link(socket, page, {:enabled, text, route}) do
+    live_redirect(text,
+      to: live_dashboard_path(socket, route, page.node, []),
+      class: "menu-item"
+    )
+  end
+
+  defp maybe_link(_socket, _page, {:disabled, text}) do
+    assigns = %{text: text}
+
+    ~L"""
+    <div class="menu-item menu-item-disabled">
+      <%= @text %>
+    </div>
+    """
+  end
+
+  defp maybe_link(_socket, _page, {:disabled, text, more_info_url}) do
+    assigns = %{more_info_url: more_info_url, text: text}
+
+    ~L"""
+    <div class="menu-item menu-item-disabled">
+      <%= @text %> <%= link "Enable", to: @more_info_url, class: "menu-item-enable-button" %>
+    </div>
+    """
   end
 
   ## Node helpers
