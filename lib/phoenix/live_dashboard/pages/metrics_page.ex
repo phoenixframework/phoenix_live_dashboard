@@ -9,16 +9,16 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   @impl true
   def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history}, socket) do
     all_metrics = apply(mod, fun, [])
-    metrics_per_tab = Enum.group_by(all_metrics, &tab_name/1)
+    metrics_per_nav = Enum.group_by(all_metrics, &nav_name/1)
 
-    tab = params["tab"]
-    metrics = metrics_per_tab[tab]
-    {first_tab, _} = Enum.at(metrics_per_tab, 0, {nil, nil})
+    nav = params["nav"]
+    metrics = metrics_per_nav[nav]
+    {first_nav, _} = Enum.at(metrics_per_nav, 0, {nil, nil})
 
-    socket = assign(socket, tabs: Map.keys(metrics_per_tab))
+    socket = assign(socket, items: Map.keys(metrics_per_nav))
 
     cond do
-      tab && is_nil(metrics) ->
+      nav && is_nil(metrics) ->
         {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node(), []))}
 
       metrics && connected?(socket) ->
@@ -26,8 +26,8 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
         send_history_for_metrics(metrics, history)
         {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
-      first_tab && is_nil(tab) ->
-        to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, tab: first_tab)
+      first_nav && is_nil(nav) ->
+        to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, nav: first_nav)
         {:ok, push_redirect(socket, to: to)}
 
       true ->
@@ -35,12 +35,12 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     end
   end
 
-  defp tab_name(metric) do
-    to_string(metric.reporter_options[:tab] || hd(metric.name))
+  defp nav_name(metric) do
+    to_string(metric.reporter_options[:nav] || hd(metric.name))
   end
 
-  defp format_tab_name("vm"), do: "VM"
-  defp format_tab_name(tab), do: Phoenix.Naming.camelize(tab)
+  defp format_nav_name("vm"), do: "VM"
+  defp format_nav_name(nav), do: Phoenix.Naming.camelize(nav)
 
   @impl true
   def menu_link(_, %{dashboard_running?: false}) do
@@ -57,13 +57,13 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
 
   @impl true
   def render_page(assigns) do
-    tabs =
-      for name <- assigns.tabs do
+    items =
+      for name <- assigns.items do
         {String.to_atom(name),
-         name: format_tab_name(name), render: render_metrics(assigns), method: :redirect}
+         name: format_nav_name(name), render: render_metrics(assigns), method: :redirect}
       end
 
-    tab_bar(tabs: tabs)
+    nav_bar(items: items)
   end
 
   def render_metrics(assigns) do

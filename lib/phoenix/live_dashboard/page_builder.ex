@@ -19,7 +19,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           system_info: nil | binary()
         }
 
-  alias Phoenix.LiveDashboard.{TableComponent, TabBarComponent}
+  alias Phoenix.LiveDashboard.{TableComponent, NavBarComponent}
 
   @doc """
   Callback invoked when a page is declared in the router.
@@ -152,14 +152,14 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {TableComponent, assigns}
   end
 
-  @spec tab_bar(keyword()) :: component()
-  def tab_bar(assigns) do
+  @spec nav_bar(keyword()) :: component()
+  def nav_bar(assigns) do
     assigns =
       assigns
       |> Map.new()
-      |> TabBarComponent.normalize_params()
+      |> NavBarComponent.normalize_params()
 
-    {TabBarComponent, assigns}
+    {NavBarComponent, assigns}
   end
 
   defmacro __using__(opts) do
