@@ -73,6 +73,7 @@ $box-shadow-darker: 0 2px 5px change-color($color-shadow-dark, $alpha: 0.15), 0 
 $color-header: #4a4473;
 $color-button-primary: #756f9a;
 $color-button-secondary: $color-gray-warm-700;
+$nav-pills-link-active-bg: #756f9a;
 
 // Grid
 $grid-breakpoints: (
@@ -101,5 +102,6 @@ $font-family-sans-serif: 'LiveDashboardFont', -apple-system, BlinkMacSystemFont,
 $badge-border-radius: 3px;
 $btn-border-radius: 3px;
 $primary: $color-dashboard;
+
 // Other
 $border-radius: 6px;

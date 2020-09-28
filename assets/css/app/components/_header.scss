@@ -1,73 +1,14 @@
 // Header and menu styles
 header {
   background: $color-header;
+  position: relative;
 
   h1 {
     text-shadow: 2px 2px 0 change-color($color-shadow-dark, $alpha: 0.5);
     color: $color-gray-200;
     font-size: 1.75rem;
-    margin-top: 2.25rem;
+    margin-top: 2.75rem;
     margin-bottom: 0;
-  }
-
-  #menu-bar {
-    margin-top: auto;
-    box-shadow: $box-shadow-lighter;
-    border-radius: $border-radius;
-    background-color: #fff;
-    display: inline-block;
-    padding: 0 0.75rem;
-    margin-top: 1rem;
-    margin-bottom: -1.5rem;
-    position: relative;
-    width: 100%;
-  }
-
-  #menu {
-    position: relative;
-
-    .menu-item {
-      display: inline-block;
-      padding: 0.75rem;
-      position: relative;
-
-      text-decoration: none;
-      color: change-color($primary, $alpha: 0.75);
-
-      &:hover {
-        color: $color-elixir-800;
-      }
-
-      &.active {
-        color: $color-elixir-800;
-        text-shadow: 1px 1px change-color($primary, $alpha: 0.1);
-      }
-    }
-
-    .menu-item-disabled {
-      color: $text-muted;
-
-      &:hover {
-        color: $text-muted;
-      }
-    }
-
-    .menu-item-enable-button {
-      background-color: $color-button-primary;
-      border-radius: 3px;
-      color: $color-gray-warm-100;
-      position: absolute;
-      font-size: 0.75rem;
-      right: 50%;
-      bottom: -15px;
-      padding: 0.15rem 0.5rem;
-      transform: translateX(50%);
-
-      &:hover {
-        background-color: lighten($color-button-primary, 5%);
-        text-decoration: none;
-      }
-    }
   }
 
   .container {
@@ -76,25 +17,131 @@ header {
   }
 }
 
-@media (max-width: map-get($grid-breakpoints, sm)) {
-  header .header-title-part {
-    display: block;
-    font-size: 1.25rem;
-    padding: 0.1rem 0;
+#menu-bar {
+  margin-top: auto;
+  box-shadow: $box-shadow-lighter;
+  border-radius: $border-radius;
+  background-color: #fff;
+  display: inline-block;
+  padding: 0 0.75rem;
+  margin-top: 1rem;
+  margin-bottom: -1.5rem;
+  position: relative;
+  width: 100%;
+
+  .menu-item {
+    display: inline-block;
+    padding: 0.75rem;
+    position: relative;
+
+    text-decoration: none;
+    color: change-color($primary, $alpha: 0.75);
+
+    &:hover {
+      color: $color-elixir-800;
+    }
+
+    &.active {
+      color: $color-elixir-800;
+      text-shadow: 1px 1px change-color($primary, $alpha: 0.1);
+    }
   }
 
+  .menu-item-disabled {
+    color: $text-muted;
+
+    &:hover {
+      color: $text-muted;
+    }
+  }
+
+  .menu-item-enable-button {
+    background-color: $color-button-primary;
+    border-radius: 3px;
+    color: $color-gray-warm-100;
+    position: absolute;
+    font-size: 0.75rem;
+    right: 50%;
+    bottom: -15px;
+    padding: 0.15rem 0.5rem;
+    transform: translateX(50%);
+
+    &:hover {
+      background-color: lighten($color-button-primary, 5%);
+      text-decoration: none;
+    }
+  }
+}
+
+// Node selection dropdown
+#nav-dropdowns {
+  position: absolute;
+  top: 0rem;
+  right: 0rem;
+  padding-top: 0.25rem;
+  padding-right: 0.75rem;
+  font-size: 0.9rem;
+
+  form {
+    margin: 0.5em 0;
+    justify-content: flex-end;
+    display: flex;
+    flex-flow: row wrap;
+  }
+
+  label {
+    color: $color-gray;
+    margin: 0 0.5rem 0 0;
+    line-height: 1.9rem;
+    display: flex;
+  }
+
+  label.no-select {
+    margin: 0
+  }
+
+  .custom-select {
+    background-color: change-color($color-gray, $alpha: 0.75);
+    border-radius: $border-radius;
+    border-width: 0;
+    color: black;
+    width: auto;
+  }
+}
+
+@media (max-width: map-get($grid-breakpoints, md)) {
   header h1 {
+    font-size: 1.25rem;
     margin-top: 1.25rem;
   }
 
-  header #menu-bar {
+  #menu-bar {
     padding: 0 0.5rem;
+    margin-top: 0;
 
-  }
-
-  #menu {
     .menu-item {
       padding: 0.75rem 0.5rem;
+    }
+  }
+
+  #nav-dropdowns {
+    position: relative;
+    text-align: center;
+    width: 100%;
+    padding: 0;
+    margin-bottom: 0.4rem;
+
+    form {
+      justify-content: flex-start;
+    }
+
+    label {
+      line-height: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .custom-select {
+      width: 100%;
     }
   }
 }

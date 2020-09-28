@@ -114,27 +114,6 @@
   }
 }
 
-.charts-nav {
-  border-bottom: 1px solid change-color($color-gray-600, $alpha: 0.7);
-  margin-top: -0.5rem;
-
-  .nav-link {
-    opacity: 0.7;
-    &:hover {
-      border-bottom-color: change-color($color-gray-600, $alpha: 0.7);
-      opacity: 1;
-    }
-  }
-
-  .nav-link.active {
-    background-color: transparent;
-    border-color: change-color($color-gray-600, $alpha: 0.7);
-    border-bottom-color: $color-gray-300;
-    color: $color-elixir-800;
-    opacity: 1;
-  }
-}
-
 @media (min-width: map-get($grid-breakpoints, xxl)) {
   [data-phx-view="LiveDashboard.MetricsLive"] #main.container{
     max-width: 95%;

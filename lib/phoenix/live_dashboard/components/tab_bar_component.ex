@@ -112,7 +112,7 @@ defmodule Phoenix.LiveDashboard.TabBarComponent do
     <div>
       <div class="row">
         <div class="container">
-          <ul class="nav nav-tabs mb-4 charts-nav">
+          <ul class="nav nav-pills mt-n2 mb-4">
             <%= for {id, tab} <- @tabs do %>
               <li class="nav-item">
                 <%= render_tab_link(@socket, @page, tab, @current, id) %>

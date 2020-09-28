@@ -23,9 +23,3 @@ body {
 .layout-wrapper {
   min-height: 100%;
 }
-
-@media (max-width: map-get($grid-breakpoints, lg)) {
-  #main {
-    padding-top: 6.5rem;
-  }
-}
