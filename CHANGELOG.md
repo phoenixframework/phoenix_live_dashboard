@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.2.9 (2020-09-28)
+
+* Update `phoenix_live_view` to 0.14.7
+* Make the default sorting order configurable in table component
+* Fix an issue with JS failures on color charts with legends
+* Fix an issue with refresh configuration not being set and update default to be 15 seconds
+* Move "Update every" prompt to the top, change tabs to pills to better handle multiple lines
+
 ## v0.2.8 (2020-09-15)
 
 * Support `csp_nonce_assign_key` to better handle CSP policies
