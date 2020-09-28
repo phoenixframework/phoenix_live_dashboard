@@ -1,5 +1,4 @@
 defmodule Phoenix.LiveDashboard.NavBarComponent do
-  @moduledoc false
   use Phoenix.LiveDashboard.Web, :live_component
 
   @impl true

@@ -1,5 +1,4 @@
 defmodule Phoenix.LiveDashboard.TableComponent do
-  @moduledoc false
   use Phoenix.LiveDashboard.Web, :live_component
 
   @sort_dir ~w(desc asc)
