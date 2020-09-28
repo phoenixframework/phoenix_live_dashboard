@@ -34,7 +34,7 @@ defmodule Phoenix.LiveDashboard.SocketsPage do
       },
       %{
         field: :module,
-        sortable: true
+        sortable: :asc
       },
       %{
         field: :send_oct,
@@ -42,7 +42,7 @@ defmodule Phoenix.LiveDashboard.SocketsPage do
         header_attrs: [class: "text-right pr-4"],
         format: &format_bytes(&1[:send_oct]),
         cell_attrs: [class: "tabular-column-bytes pr-4"],
-        sortable: true
+        sortable: :desc
       },
       %{
         field: :recv_oct,
@@ -50,24 +50,24 @@ defmodule Phoenix.LiveDashboard.SocketsPage do
         header_attrs: [class: "text-right pr-4"],
         format: &format_bytes(&1[:recv_oct]),
         cell_attrs: [class: "tabular-column-bytes pr-4"],
-        sortable: true
+        sortable: :desc
       },
       %{
         field: :local_address,
         header: "Local Address",
-        sortable: true
+        sortable: :asc
       },
       %{
         field: :foreign_address,
-        sortable: true
+        sortable: :asc
       },
       %{
         field: :state,
-        sortable: true
+        sortable: :asc
       },
       %{
         field: :type,
-        sortable: true
+        sortable: :asc
       },
       %{
         field: :connected,

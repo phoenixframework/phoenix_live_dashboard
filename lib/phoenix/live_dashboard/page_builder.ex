@@ -122,9 +122,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       * `:cell_attrs` - A list with HTML attributes for the table cell.
         It also can be a function which receives the row data and returns an attribute list.
         More info: `Phoenix.HTML.Tag.tag/1`. Default: `[]`.
-      * `:sortable` - A boolean. When it is true the column header is clickable
-        and it fetches again rows with the new order.  At least one column should be sortable.
-        Default: `false`
+      * `:sortable` - Either `:asc` or `:desc` with the default sorting. When set, the column
+        header is clickable and it fetches again rows with the new order. At least one column
+        should be sortable. Default: `nil`
 
     * `:limit_options` - A list of integers to limit the number of rows to show.
       Default: `[50, 100, 500, 1000, 5000]`

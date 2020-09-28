@@ -43,7 +43,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
         header: "Memory",
         header_attrs: [class: "text-right"],
         cell_attrs: [class: "text-right"],
-        sortable: true,
+        sortable: :desc,
         format: &format_bytes(&1[:memory])
       },
       %{
@@ -51,14 +51,14 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
         header: "Reductions",
         header_attrs: [class: "text-right"],
         cell_attrs: [class: "text-right"],
-        sortable: true
+        sortable: :desc
       },
       %{
         field: :message_queue_len,
         header: "MsgQ",
         header_attrs: [class: "text-right"],
         cell_attrs: [class: "text-right"],
-        sortable: true
+        sortable: :desc
       },
       %{
         field: :current_function,

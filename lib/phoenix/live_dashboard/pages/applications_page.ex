@@ -5,7 +5,6 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
   alias Phoenix.LiveDashboard.SystemInfo
 
   @table_id :table
-
   @menu_text "Applications"
 
   @impl true
@@ -32,7 +31,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
         header: "Name",
         header_attrs: [class: "pl-4"],
         cell_attrs: [class: "pl-4"],
-        sortable: true
+        sortable: :asc
       },
       %{
         field: :description,
@@ -41,7 +40,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
       %{
         field: :state,
         header: "State",
-        sortable: true
+        sortable: :asc
       },
       %{
         field: :tree?,

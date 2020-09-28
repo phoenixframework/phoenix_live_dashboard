@@ -48,14 +48,14 @@ defmodule Phoenix.LiveDashboard.PortsPage do
         header_attrs: [class: "text-right"],
         cell_attrs: [class: "tabular-column-bytes"],
         format: &format_bytes(&1[:input]),
-        sortable: true
+        sortable: :desc
       },
       %{
         field: :output,
         header_attrs: [class: "text-right pr-4"],
         cell_attrs: [class: "tabular-column-bytes pr-4"],
         format: &format_bytes(&1[:output]),
-        sortable: true
+        sortable: :desc
       },
       %{
         field: :id,

@@ -21,7 +21,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
   end
 
   defp render_table(opts) do
-    columns = [%{field: :foo, sortable: true}, %{field: :bar, sortable: true}, %{field: :baz}]
+    columns = [%{field: :foo, sortable: :desc}, %{field: :bar, sortable: :desc}, %{field: :baz}]
 
     page = %{
       node: Keyword.get(opts, :node, node()),
@@ -69,7 +69,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
           header_attrs: [class: "header-foo-class"],
           format: &"foo-format-#{&1[:foo]}",
           cell_attrs: [class: "cell-foo-class"],
-          sortable: true
+          sortable: :desc
         },
         %{field: :bar, cell_attrs: &[class: "cell-bar-class-#{&1[:bar]}"]},
         %{field: :baz}
@@ -221,7 +221,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
                  format: format_fun,
                  header: "Id",
                  header_attrs: [],
-                 sortable: false
+                 sortable: nil
                }
              ] = params.columns
 

@@ -42,13 +42,13 @@ defmodule Phoenix.LiveDashboard.EtsPage do
       %{
         field: :size,
         cell_attrs: [class: "text-right"],
-        sortable: true
+        sortable: :desc
       },
       %{
         field: :memory,
         cell_attrs: [class: "tabular-column-bytes"],
         format: &format_words(&1[:memory]),
-        sortable: true
+        sortable: :desc
       },
       %{
         field: :owner,

@@ -1,7 +1,6 @@
 defmodule Phoenix.LiveDashboard.TableComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
-  @sort_dir ~w(desc asc)
   @limit [50, 100, 500, 1000, 5000]
 
   @type params() :: %{
@@ -28,7 +27,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp validate_required(params, list) do
-    case Enum.find(list, &(!Map.has_key?(params, &1))) do
+    case Enum.find(list, &(not Map.has_key?(params, &1))) do
       nil -> :ok
       key -> raise ArgumentError, "expected #{inspect(key)} parameter to be received"
     end
@@ -57,7 +56,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         |> Map.put_new(:header_attrs, [])
         |> Map.put_new(:format, & &1[field])
         |> Map.put_new(:cell_attrs, [])
-        |> Map.put_new(:sortable, false)
+        |> Map.put_new(:sortable, nil)
 
       {:ok, _} ->
         msg = "expected :field parameter to be an atom or a string, column received: "
@@ -92,8 +91,17 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     } = assigns
 
     sortable_columns = sortable_columns(columns)
-    sort_by = all_params |> get_in_or_first("sort_by", sortable_columns) |> String.to_atom()
-    sort_dir = all_params |> get_in_or_first("sort_dir", @sort_dir) |> String.to_atom()
+
+    sort_by =
+      all_params
+      |> get_in_or_first("sort_by", sortable_columns)
+      |> String.to_atom()
+
+    sort_dir =
+      all_params
+      |> get_in_or_first("sort_dir", sortable_dirs(columns, sort_by))
+      |> String.to_atom()
+
     limit_options = Enum.map(limit_options, &to_string/1)
     limit = all_params |> get_in_or_first("limit", limit_options) |> String.to_integer()
     search = all_params["search"]
@@ -104,7 +112,14 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp sortable_columns(columns) do
-    Enum.flat_map(columns, &if(&1[:sortable], do: [to_string(&1[:field])], else: []))
+    for column <- columns, column[:sortable], do: to_string(column[:field])
+  end
+
+  defp sortable_dirs(columns, field) do
+    case Enum.find(columns, & &1[:field] == field) do
+      %{sortable: :desc} -> ~w(desc asc)
+      %{sortable: :asc} -> ~w(asc desc)
+    end
   end
 
   defp get_in_or_first(params, key, valid) do
@@ -152,8 +167,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
                 <tr>
                   <%= for column <- @columns do %>
                     <%= tag_with_attrs(:th, column[:header_attrs], [column]) %>
-                      <%= if column[:sortable] do %>
-                        <%= sort_link(@socket, @page, @table_params, column) %>
+                      <%= if direction = column[:sortable] do %>
+                        <%= sort_link(@socket, @page, @table_params, column, direction) %>
                       <% else %>
                         <%= column.header %>
                       <% end %>
@@ -203,7 +218,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {:noreply, push_patch(socket, to: to)}
   end
 
-  defp sort_link(socket, page, table_params, column) do
+  defp sort_link(socket, page, table_params, column, direction) do
     field = column.field
 
     case table_params do
@@ -216,7 +231,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         |> live_patch(to: live_dashboard_path(socket, page, table_params))
 
       %{} ->
-        table_params = %{table_params | sort_dir: :desc, sort_by: field}
+        table_params = %{table_params | sort_dir: direction, sort_by: field}
 
         column
         |> column_header()
