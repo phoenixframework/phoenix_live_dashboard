@@ -135,15 +135,19 @@ defmodule Phoenix.LiveDashboard.Router do
 
   defp normalize_additional_pages(pages) do
     Enum.map(pages, fn
-      module when is_atom(module) ->
-        {module, []}
+      {path, module} when is_binary(path) and is_atom(module) ->
+        {path, {module, %{}}}
 
-      {module, args} when is_atom(module) and is_list(args) ->
-        {module, args}
+      {path, {module, args}} when is_binary(path) and is_atom(module) ->
+        {path, {module, args}}
 
       other ->
-        raise ArgumentError,
-              "invalid :additional_page, must be a tuple {module, args}, got: " <> inspect(other)
+        msg =
+          "invalid value in :additional_pages, " <>
+            "must be a tuple {path, {module, args}}, where path is a binary and " <>
+            "the module implements Phoenix.LiveDashboard.PageBuilder, got: "
+
+        raise ArgumentError, msg <> inspect(other)
     end)
   end
 
