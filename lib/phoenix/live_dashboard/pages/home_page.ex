@@ -202,7 +202,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
         </h5>
 
         <div class="card resource-usage mb-4">
-          <div class="card-body" phx-hook="PhxColorBarHighlight">
+          <div class="card-body" phx-hook="PhxColorBarHighlight" id="memory-color-bars">
             <%= live_component @socket, ColorBarComponent, data: memory_usage_sections_percent(@system_usage.memory, @system_usage.memory.total) %>
             <%= live_component @socket, ColorBarLegendComponent, data: memory_usage_sections(@system_usage.memory), formatter: &format_bytes(&1) %>
             <div class="row">
