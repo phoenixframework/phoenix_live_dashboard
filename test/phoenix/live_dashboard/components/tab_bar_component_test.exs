@@ -29,8 +29,8 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
     opts =
       [
         tabs: [
-          foo: [name: "Foo", method: :patch, render: {SimpleComponent, [text: "foo_text"]}],
-          bar: [name: "Bar", method: :redirect, render: {SimpleComponent, [text: "bar_text"]}]
+          foo: [name: "Foo", method: :patch, render: {SimpleComponent, %{text: "foo_text"}}],
+          bar: [name: "Bar", method: :redirect, render: {SimpleComponent, %{text: "bar_text"}}]
         ],
         page: %Phoenix.LiveDashboard.PageBuilder{
           node: Keyword.get(opts, :node, node()),
@@ -102,12 +102,12 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
         })
       end
 
-      msg = "expected :name parameter to be received in tab: [render: {Component, [:args]}]"
+      msg = "expected :name parameter to be received in tab: [render: {Component, %{}}]"
 
       assert_raise ArgumentError, msg, fn ->
         TabBarComponent.normalize_params(%{
           page: page,
-          tabs: [id: [render: {Component, [:args]}]]
+          tabs: [id: [render: {Component, %{}}]]
         })
       end
 
@@ -116,18 +116,18 @@ defmodule Phoenix.LiveDashboard.Components.TabBarComponentTest do
       assert_raise ArgumentError, msg, fn ->
         TabBarComponent.normalize_params(%{
           page: page,
-          tabs: [id: [name: "name", render: {Component, [:args]}, method: :invalid]]
+          tabs: [id: [name: "name", render: {Component, %{}}, method: :invalid]]
         })
       end
 
       assert %{tabs: [id: tab]} =
                TabBarComponent.normalize_params(%{
                  page: page,
-                 tabs: [id: [name: "name", render: {Component, [:args]}]]
+                 tabs: [id: [name: "name", render: {Component, %{}}]]
                })
 
       assert tab[:name] == "name"
-      assert tab[:render] == {Component, [:args]}
+      assert tab[:render] == {Component, %{}}
       assert tab[:method] == :patch
 
       assert %{tabs: [id: tab]} =

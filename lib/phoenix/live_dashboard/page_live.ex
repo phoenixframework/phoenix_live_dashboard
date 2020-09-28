@@ -114,7 +114,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
             {:skip, socket}
 
           {false, {:disabled, anchor}} ->
-            {{:disabled, anchor, nil}, socket}
+            {{:disabled, anchor}, socket}
 
           {false, {:disabled, anchor, more_info_url}} ->
             {{:disabled, anchor, more_info_url}, socket}

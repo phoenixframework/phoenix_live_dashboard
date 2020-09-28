@@ -60,11 +60,13 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     assert Router.__options__(additional_pages: [])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, []]}
 
-    assert Router.__options__(additional_pages: [CustomPage])[:session] ==
-             {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, [{CustomPage, []}]]}
+    assert Router.__options__(additional_pages: [{"custom", CustomPage}])[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, nil, nil, [{"custom", {CustomPage, %{}}}]]}
 
-    assert Router.__options__(additional_pages: [{CustomPage, [1]}])[:session] ==
-             {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, [{CustomPage, [1]}]]}
+    assert Router.__options__(additional_pages: [{"custom", {CustomPage, [1]}}])[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, nil, nil, [{"custom", {CustomPage, [1]}}]]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(additional_pages: [{CustomPage, 1}])
@@ -75,7 +77,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     end
 
     assert_raise ArgumentError, fn ->
-      Router.__options__(additional_pages: CustomPage)
+      Router.__options__(additional_pages: {"custom", CustomPage})
     end
   end
 
