@@ -16,7 +16,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defstruct links: [],
             nodes: [],
             refresher?: true,
-            refresh: 5,
+            refresh: 15,
             refresh_options: for(i <- [1, 2, 5, 15, 30], do: {"#{i}s", i}),
             timer: nil
 
@@ -270,7 +270,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   def handle_event("select_refresh", params, socket) do
     case Integer.parse(params["refresh"]) do
-      {refresh, ""} -> {:noreply, assign(socket, refresh: refresh)}
+      {refresh, ""} -> {:noreply, update_menu(socket, refresh: refresh)}
       _ -> {:noreply, socket}
     end
   end
