@@ -113,7 +113,7 @@ scope "/" do
 end
 ```
 
-If you are running your application behind a proxy or a webserver, you also have to make sure they are configured for allowing WebSocket upgrades. For example, [here is an article](https://dennisreimann.de/articles/phoenix-nginx-config.html) on how to configure Nginx with Phoenix and WebSockets.
+If you are running your application behind a proxy or a webserver, you also have to make sure they are configured for allowing WebSocket upgrades. For example, [here is an article](https://web.archive.org/web/20171104012240/https://dennisreimann.de/articles/phoenix-nginx-config.html) on how to configure Nginx with Phoenix and WebSockets.
 
 Finally, you will also want to configure your `config/prod.exs` and use your domain name under the `check_origin` configuration:
 
