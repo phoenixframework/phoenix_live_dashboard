@@ -3,7 +3,7 @@
 const setCookie = (params) => {
   let cookie = `${params.key}=${params.value};samesite=strict;path=/`
   if (params.domain) {
-    cookie += `domain=${params.domain}`
+    cookie += `;domain=${params.domain}`
   }
   document.cookie = cookie
 }
