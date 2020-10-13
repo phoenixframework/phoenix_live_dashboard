@@ -139,8 +139,8 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
                   <div phx-hook="PhxRequestLoggerCookie" id="request-logger-cookie-buttons"
                     data-cookie-key=<%=@cookie_key %>
                     data-cookie-value=<%=sign(@socket, @cookie_key, @stream) %>
-                    data-cookie-enabled="<%= @cookie_enabled %>"
-                    data-cookie-domain=<%=@cookie_domain %>>
+                    <%= if @cookie_domain do %>data-cookie-domain="<%=@cookie_domain %>"<% end %>
+                    data-cookie-enabled="<%= @cookie_enabled %>">
 
                     <%= if @cookie_enabled do %>
                       <button phx-click="toggle_cookie" phx-value-enable="false" class="btn btn-secondary float-right">Disable cookie</button>
