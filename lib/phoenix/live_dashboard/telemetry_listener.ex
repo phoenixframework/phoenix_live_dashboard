@@ -31,7 +31,7 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
   def extract_datapoint_for_metric(metric, measurements, metadata, time \\ nil) do
     if keep?(metric, metadata) do
       time = time || System.system_time(:microsecond)
-      measurement = extract_measurement(metric, measurements)
+      measurement = extract_measurement(metric, measurements, metadata)
       label = tags_to_label(metric, metadata)
       %{label: label, measurement: measurement, time: time}
     end
@@ -40,8 +40,9 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
   defp keep?(%{keep: keep}, metadata) when keep != nil, do: keep.(metadata)
   defp keep?(_metric, _metadata), do: true
 
-  defp extract_measurement(metric, measurements) do
+  defp extract_measurement(metric, measurements, metadata) do
     case metric.measurement do
+      fun when is_function(fun, 2) -> fun.(measurements, metadata)
       fun when is_function(fun, 1) -> fun.(measurements)
       key -> measurements[key]
     end
