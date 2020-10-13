@@ -23,7 +23,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
         stream: stream,
         param_key: param_key,
         cookie_key: cookie_key,
-        cookie_domain: cookie_domain,
+        cookie_domain: read_cookie_domain(socket, cookie_domain),
         cookie_enabled: false,
         autoscroll_enabled: true,
         messages_present: false
@@ -182,4 +182,15 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
     </div>
     """
   end
+
+  defp read_cookie_domain(socket, :parent) do
+    host = socket.host_uri.host
+
+    case Regex.named_captures(~r/[^\.]*\.(?<parent_domain>.*)$/, host) do
+      %{"parent_domain" => parent_domain} -> parent_domain
+      _ -> host
+    end
+  end
+
+  defp read_cookie_domain(_socket, domain), do: domain
 end

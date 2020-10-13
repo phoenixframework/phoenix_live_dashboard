@@ -32,9 +32,12 @@ defmodule Phoenix.LiveDashboard.Router do
       data that occurs while the browser page is open.
 
     * `:request_logger_cookie_domain` - Configures the domain the request_logger
-      cookie will be written to.
-      It must be a string. When not set, the cookie will be scoped to current
-      domain.
+      cookie will be written to. It can be a string or `:parent` atom.
+      When a string is given, it will directly  set cookie domain to the given
+      value.
+      When `:parent` is given, it will take the parent domain from current endpoint
+      host (if host is "www.acme.com" the cookie will be scoped on ".acme.com").
+      When not set, the cookie will be scoped to current domain.
 
   ## Examples
 
@@ -136,9 +139,13 @@ defmodule Phoenix.LiveDashboard.Router do
         domain when is_binary(domain) ->
           domain
 
+        :parent ->
+          :parent
+
         other ->
           raise ArgumentError,
-                ":request_logger_cookie_domain must be a binary, got: " <> inspect(other)
+                ":request_logger_cookie_domain must be a binary or :parent atom, got: " <>
+                  inspect(other)
       end
 
     csp_nonce_assign_key = options[:csp_nonce_assign_key]

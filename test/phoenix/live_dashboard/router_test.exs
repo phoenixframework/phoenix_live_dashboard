@@ -89,6 +89,13 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     assert Router.__options__(request_logger_cookie_domain: ".acme.com")[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, [], ".acme.com"]}
 
+    assert Router.__options__(request_logger_cookie_domain: :parent)[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, [], :parent]}
+
+    assert_raise ArgumentError, fn ->
+      Router.__options__(request_logger_cookie_domain: :unknown_atom)
+    end
+
     assert_raise ArgumentError, fn ->
       Router.__options__(request_logger_cookie_domain: [])
     end
