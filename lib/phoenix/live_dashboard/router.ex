@@ -31,6 +31,14 @@ defmodule Phoenix.LiveDashboard.Router do
       If not set, metrics will start out empty/blank and only display
       data that occurs while the browser page is open.
 
+    * `:request_logger_cookie_domain` - Configures the domain the request_logger
+      cookie will be written to. It can be a string or `:parent` atom.
+      When a string is given, it will directly  set cookie domain to the given
+      value.
+      When `:parent` is given, it will take the parent domain from current endpoint
+      host (if host is "www.acme.com" the cookie will be scoped on "acme.com").
+      When not set, the cookie will be scoped to current domain.
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -42,7 +50,8 @@ defmodule Phoenix.LiveDashboard.Router do
           live_dashboard "/dashboard",
             metrics: {MyAppWeb.Telemetry, :metrics},
             env_keys: ["APP_USER", "VERSION"],
-            metrics_history: {MyStorage, :metrics_history, []}
+            metrics_history: {MyStorage, :metrics_history, []},
+            request_logger_cookie_domain: ".acme.com"
         end
       end
 
@@ -122,8 +131,32 @@ defmodule Phoenix.LiveDashboard.Router do
           raise ArgumentError, ":additional_pages must be a keyword, got: " <> inspect(other)
       end
 
+    request_logger_cookie_domain =
+      case options[:request_logger_cookie_domain] do
+        nil ->
+          nil
+
+        domain when is_binary(domain) ->
+          domain
+
+        :parent ->
+          :parent
+
+        other ->
+          raise ArgumentError,
+                ":request_logger_cookie_domain must be a binary or :parent atom, got: " <>
+                  inspect(other)
+      end
+
     csp_nonce_assign_key = options[:csp_nonce_assign_key]
-    session_args = [metrics, env_keys, metrics_history, additional_pages]
+
+    session_args = [
+      metrics,
+      env_keys,
+      metrics_history,
+      additional_pages,
+      request_logger_cookie_domain
+    ]
 
     [
       session: {__MODULE__, :__session__, session_args},
@@ -152,14 +185,22 @@ defmodule Phoenix.LiveDashboard.Router do
   end
 
   @doc false
-  def __session__(conn, metrics, env_keys, metrics_history, additional_pages) do
+  def __session__(
+        conn,
+        metrics,
+        env_keys,
+        metrics_history,
+        additional_pages,
+        request_logger_cookie_domain
+      ) do
     metrics_session = %{
       "metrics" => metrics,
       "metrics_history" => metrics_history
     }
 
     request_logger_session = %{
-      "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn)
+      "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn),
+      "request_logger_cookie_domain" => request_logger_cookie_domain
     }
 
     {pages, requirements} =

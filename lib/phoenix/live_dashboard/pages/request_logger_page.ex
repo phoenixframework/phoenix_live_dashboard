@@ -6,7 +6,10 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
 
   @impl true
   def mount(%{"stream" => stream}, session, socket) do
-    %{"request_logger" => {param_key, cookie_key}} = session
+    %{
+      "request_logger" => {param_key, cookie_key},
+      "request_logger_cookie_domain" => cookie_domain
+    } = session
 
     if connected?(socket) do
       # TODO: Remove || once we support Phoenix v1.5+
@@ -20,6 +23,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
         stream: stream,
         param_key: param_key,
         cookie_key: cookie_key,
+        cookie_domain: read_cookie_domain(socket, cookie_domain),
         cookie_enabled: false,
         autoscroll_enabled: true,
         messages_present: false
@@ -135,6 +139,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
                   <div phx-hook="PhxRequestLoggerCookie" id="request-logger-cookie-buttons"
                     data-cookie-key=<%=@cookie_key %>
                     data-cookie-value=<%=sign(@socket, @cookie_key, @stream) %>
+                    <%= if @cookie_domain do %>data-cookie-domain="<%=@cookie_domain %>"<% end %>
                     data-cookie-enabled="<%= @cookie_enabled %>">
 
                     <%= if @cookie_enabled do %>
@@ -177,4 +182,10 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
     </div>
     """
   end
+
+  defp read_cookie_domain(socket, :parent) do
+    socket.host_uri.host |> String.split(".", parts: 2) |> List.last()
+  end
+
+  defp read_cookie_domain(_socket, domain), do: domain
 end

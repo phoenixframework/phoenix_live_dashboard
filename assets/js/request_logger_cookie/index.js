@@ -1,7 +1,11 @@
 /** LiveView Hook **/
 
 const setCookie = (params) => {
-  document.cookie = `${params.key}=${params.value};samesite=strict;path=/`;
+  let cookie = `${params.key}=${params.value};samesite=strict;path=/`
+  if (params.domain) {
+    cookie += `;domain=${params.domain}`
+  }
+  document.cookie = cookie
 }
 
 const removeCookie = (params) => {
@@ -16,7 +20,8 @@ const isCookieEnabled = (hook) => {
 const cookieParams = (hook) => {
   return {
     key: hook.el.getAttribute('data-cookie-key'),
-    value: hook.el.getAttribute('data-cookie-value')
+    value: hook.el.getAttribute('data-cookie-value'),
+    domain: hook.el.getAttribute('data-cookie-domain')
   }
 }
 
