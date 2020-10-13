@@ -184,12 +184,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
   end
 
   defp read_cookie_domain(socket, :parent) do
-    host = socket.host_uri.host
-
-    case Regex.named_captures(~r/[^\.]*\.(?<parent_domain>.*)$/, host) do
-      %{"parent_domain" => parent_domain} -> parent_domain
-      _ -> host
-    end
+    socket.host_uri.host |> String.split(".", parts: 2) |> List.last()
   end
 
   defp read_cookie_domain(_socket, domain), do: domain
