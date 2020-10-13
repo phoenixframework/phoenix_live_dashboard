@@ -36,7 +36,7 @@ defmodule Phoenix.LiveDashboard.Router do
       When a string is given, it will directly  set cookie domain to the given
       value.
       When `:parent` is given, it will take the parent domain from current endpoint
-      host (if host is "www.acme.com" the cookie will be scoped on ".acme.com").
+      host (if host is "www.acme.com" the cookie will be scoped on "acme.com").
       When not set, the cookie will be scoped to current domain.
 
   ## Examples
