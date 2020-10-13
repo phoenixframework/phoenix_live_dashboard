@@ -34,10 +34,9 @@ defmodule Phoenix.LiveDashboard.Router do
     * `:request_logger_cookie_domain` - Configures the domain the request_logger
       cookie will be written to. It can be a string or `:parent` atom.
       When a string is given, it will directly  set cookie domain to the given
-      value.
-      When `:parent` is given, it will take the parent domain from current endpoint
-      host (if host is "www.acme.com" the cookie will be scoped on "acme.com").
-      When not set, the cookie will be scoped to current domain.
+      value. When `:parent` is given, it will take the parent domain from current
+      endpoint host (if host is "www.acme.com" the cookie will be scoped on
+      "acme.com"). When not set, the cookie will be scoped to current domain.
 
   ## Examples
 
@@ -200,7 +199,7 @@ defmodule Phoenix.LiveDashboard.Router do
 
     request_logger_session = %{
       "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn),
-      "request_logger_cookie_domain" => request_logger_cookie_domain
+      "cookie_domain" => request_logger_cookie_domain
     }
 
     {pages, requirements} =

@@ -8,7 +8,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
   def mount(%{"stream" => stream}, session, socket) do
     %{
       "request_logger" => {param_key, cookie_key},
-      "request_logger_cookie_domain" => cookie_domain
+      "cookie_domain" => cookie_domain
     } = session
 
     if connected?(socket) do

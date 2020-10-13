@@ -47,4 +47,21 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPageTest do
     # Guarantees the stream has arrived
     assert render(live) =~ ~s|[error] hello world\n</pre>|
   end
+
+  test "does not include cookie domain by default" do
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/request_logger?stream=sample")
+    refute render(live) =~ "data-cookie-domain"
+  end
+
+  test "includes cookie domain when configured" do
+    {:ok, live, _} = live(build_conn(), "/config/nonode@nohost/request_logger?stream=sample")
+    assert render(live) =~ "data-cookie-domain=\"my.domain\""
+  end
+
+  test "includes cookie domain from parent" do
+    {:ok, live, _} =
+      live(build_conn(), "/parent_cookie_domain/nonode@nohost/request_logger?stream=sample")
+
+    assert render(live) =~ "data-cookie-domain=\"localhost\""
+  end
 end

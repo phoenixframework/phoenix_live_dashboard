@@ -53,10 +53,12 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
   end
 
   test "renders history for metrics" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?nav=phx")
+    data = ~s|<span data-x="#{TestHistory.label()}" data-y="#{TestHistory.measurement()}"|
 
-    # Guarantees the components have been updated
-    assert render(live) =~
-             ~s|<span data-x="#{TestHistory.label()}" data-y="#{TestHistory.measurement()}"|
+    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?nav=phx")
+    refute render(live) =~ data
+
+    {:ok, live, _} = live(build_conn(), "/config/nonode@nohost/metrics?nav=phx")
+    assert render(live) =~ data
   end
 end

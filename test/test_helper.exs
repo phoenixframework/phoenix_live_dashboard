@@ -1,3 +1,5 @@
+System.put_env("PHX_DASHBOARD_TEST", "PHX_DASHBOARD_ENV_VALUE")
+
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Endpoint,
   url: [host: "localhost", port: 4000],
   secret_key_base: "Hu4qQN3iKzTV4fJxhorPQlA/osH9fAMtbtjVS58PFgfw3ja5Z18Q/WSNR9wP4OfW",
@@ -39,11 +41,19 @@ defmodule Phoenix.LiveDashboardTest.Router do
   scope "/", ThisWontBeUsed, as: :this_wont_be_used do
     pipe_through :browser
 
-    live_dashboard("/dashboard",
+    live_dashboard "/dashboard",
+      metrics: Phoenix.LiveDashboardTest.Telemetry
+
+    live_dashboard "/config",
       metrics: Phoenix.LiveDashboardTest.Telemetry,
       metrics_history: {TestHistory, :test_data, []},
-      csp_nonce_assign_key: :csp_nonce
-    )
+      csp_nonce_assign_key: :csp_nonce,
+      live_socket_path: "/custom/live",
+      request_logger_cookie_domain: "my.domain",
+      env_keys: ["PHX_DASHBOARD_TEST"]
+
+    live_dashboard "/parent_cookie_domain",
+      request_logger_cookie_domain: :parent
   end
 end
 

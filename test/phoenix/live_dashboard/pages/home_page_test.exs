@@ -45,4 +45,11 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
     {:ok, _live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/home")
     assert rendered =~ ~s|<div class="menu-item active">Home</div>|
   end
+
+  test "shows env keys" do
+    {:ok, live, _} = live(build_conn(), "/config/nonode@nohost/home")
+    rendered = render(live)
+    assert rendered =~ "PHX_DASHBOARD_TEST"
+    assert rendered =~ "PHX_DASHBOARD_ENV_VALUE"
+  end
 end

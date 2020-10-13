@@ -82,7 +82,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     end
   end
 
-  test "configures request_logger_cookie_domain" do
+  test "configures cookie_domain" do
     assert Router.__options__(request_logger_cookie_domain: nil)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__, [nil, nil, nil, [], nil]}
 
@@ -111,7 +111,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                   {Phoenix.LiveDashboard.MetricsPage, %{"metrics" => [], "metrics_history" => []}}},
                  {"request_logger",
                   {Phoenix.LiveDashboard.RequestLoggerPage,
-                   %{"request_logger" => nil, "request_logger_cookie_domain" => nil}}},
+                   %{"request_logger" => nil, "cookie_domain" => nil}}},
                  {"applications", {Phoenix.LiveDashboard.ApplicationsPage, %{}}},
                  {"processes", {Phoenix.LiveDashboard.ProcessesPage, %{}}},
                  {"ports", {Phoenix.LiveDashboard.PortsPage, %{}}},
