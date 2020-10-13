@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.10 (2020-10-13)
+
+* Support `:request_logger_cookie_domain` configuration
+* Support latest `telemetry_metrics` package
+
 ## v0.2.9 (2020-09-28)
 
 * Update `phoenix_live_view` to 0.14.7
