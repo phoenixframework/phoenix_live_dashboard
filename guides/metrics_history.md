@@ -54,7 +54,7 @@ As an example, if you want history for all metrics, you can store history for th
     defp attach_handler(%{event_name: name_list} = metric) do
       :telemetry.attach(
         {__MODULE__, metric, self()},
-		name_list,
+        name_list,
         &__MODULE__.handle_event/4,
         metric
       )
