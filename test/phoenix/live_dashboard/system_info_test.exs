@@ -38,7 +38,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "all with search" do
-      {pids, _count} = SystemInfo.fetch_processes(node(), "user", :memory, :asc, 100)
+      {pids, _count} = SystemInfo.fetch_processes(node(), ":user", :memory, :asc, 100)
       assert [[pid, name | _]] = pids
       assert pid == {:pid, Process.whereis(:user)}
       assert name == {:name_or_initial_call, ":user"}
