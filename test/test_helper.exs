@@ -106,4 +106,4 @@ Supervisor.start_link(
   strategy: :one_for_one
 )
 
-ExUnit.start()
+ExUnit.start(exclude: :integration)

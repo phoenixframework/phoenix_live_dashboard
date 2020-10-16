@@ -117,6 +117,9 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   # Phoenix.HMTL.Safe may be not be implemented for Decimal
   # if PhoenixEcto is not available, so we handle it here.
-  defp convert_value(%Decimal{} = decimal), do: Decimal.to_string(decimal)
-  defp convert_value(value), do: value
+  defp convert_value(%struct{} = decimal) when struct == Decimal,
+    do: Decimal.to_string(decimal)
+
+  defp convert_value(value),
+    do: value
 end

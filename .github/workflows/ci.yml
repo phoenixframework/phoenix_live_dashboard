@@ -40,7 +40,7 @@ jobs:
     - run: mix compile --warnings-as-errors
       if: matrix.warnings_as_errors
     - name: Run Tests
-      run: mix test
+      run: mix test --include integration
 
   npm_test:
     name: npm test
