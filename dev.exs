@@ -172,9 +172,10 @@ defmodule DemoWeb.Router do
     get "/hello/:name", DemoWeb.PageController, :hello
 
     live_dashboard("/dashboard",
-      metrics: DemoWeb.Telemetry,
       env_keys: ["USER", "ROOTDIR"],
-      metrics_history: {DemoWeb.History, :data, []}
+      metrics: DemoWeb.Telemetry,
+      metrics_history: {DemoWeb.History, :data, []},
+      allow_destructive_actions: true
     )
   end
 end

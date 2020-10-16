@@ -21,12 +21,10 @@ defmodule Phoenix.LiveDashboard.PageLive do
             timer: nil
 
   @impl true
-  def mount(%{"node" => _, "page" => page} = params, session, socket) do
-    %{"pages" => pages, "requirements" => requirements} = session
-
+  def mount(%{"node" => _, "page" => page} = params, %{"pages" => pages} = session, socket) do
     case List.keyfind(pages, page, 0, :error) do
       {_id, {module, page_session}} ->
-        assign_mount(socket, module, page_session, params, pages, requirements)
+        assign_mount(socket, module, pages, page_session, params, session)
 
       :error ->
         raise Phoenix.LiveDashboard.PageNotFound, "unknown page #{inspect(page)}"
@@ -37,8 +35,14 @@ defmodule Phoenix.LiveDashboard.PageLive do
     {:ok, redirect_to_current_node(socket)}
   end
 
-  defp assign_mount(socket, module, page_session, params, pages, requirements) do
-    socket = assign(socket, page: %PageBuilder{module: module}, menu: %PageLive{})
+  defp assign_mount(socket, module, pages, page_session, params, session) do
+    %{
+      "requirements" => requirements,
+      "allow_destructive_actions" => allow_destructive_actions
+    } = session
+
+    page = %PageBuilder{module: module, allow_destructive_actions: allow_destructive_actions}
+    socket = assign(socket, page: page, menu: %PageLive{})
 
     with %Socket{redirected: nil} = socket <- assign_params(socket, params),
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
@@ -215,6 +219,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
         return_to: path.(node, []),
         title: title,
         path: path,
+        page: page,
         node: node
       )
     end

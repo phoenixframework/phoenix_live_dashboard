@@ -38,6 +38,15 @@ defmodule Phoenix.LiveDashboard.Router do
       endpoint host (if host is "www.acme.com" the cookie will be scoped on
       "acme.com"). When not set, the cookie will be scoped to current domain.
 
+    * `:allow_destructive_actions` - When true, allow destructive actions directly
+      from the UI. Defaults to `false`. The following destructive actions are
+      available in the dashboard:
+
+        * "Kill process" - a "Kill process" button on the process modal
+
+      Note that custom pages given to "Additional pages" may support their own
+      destructive actions.
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -149,9 +158,12 @@ defmodule Phoenix.LiveDashboard.Router do
 
     csp_nonce_assign_key = options[:csp_nonce_assign_key]
 
+    allow_destructive_actions = Keyword.get(options, :allow_destructive_actions, false)
+
     session_args = [
-      metrics,
       env_keys,
+      allow_destructive_actions,
+      metrics,
       metrics_history,
       additional_pages,
       request_logger_cookie_domain
@@ -186,8 +198,9 @@ defmodule Phoenix.LiveDashboard.Router do
   @doc false
   def __session__(
         conn,
-        metrics,
         env_keys,
+        allow_destructive_actions,
+        metrics,
         metrics_history,
         additional_pages,
         request_logger_cookie_domain
@@ -223,6 +236,7 @@ defmodule Phoenix.LiveDashboard.Router do
 
     %{
       "pages" => pages,
+      "allow_destructive_actions" => allow_destructive_actions,
       "requirements" => requirements |> Enum.concat() |> Enum.uniq()
     }
   end

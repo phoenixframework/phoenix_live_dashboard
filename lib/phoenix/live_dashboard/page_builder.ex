@@ -4,7 +4,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             node: nil,
             params: nil,
             route: nil,
-            tick: 0
+            tick: 0,
+            allow_destructive_actions: false
 
   @opaque component :: {module, map}
 

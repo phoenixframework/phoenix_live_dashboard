@@ -53,6 +53,12 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
             <tr><td>Current stacktrace</td><td><pre><%= @current_stacktrace %></pre></td></tr>
           </tbody>
         </table>
+
+        <%= if @page.allow_destructive_actions do %>
+          <div class="modal-footer">
+            <button class="btn btn-danger" phx-target="<%= @myself %>" phx-click="kill">Kill process</button>
+          </div>
+        <% end %>
       <% else %>
         <div class="tabular-info-not-exists mt-1 mb-3">Process is not alive or does not exist.</div>
       <% end %>
@@ -66,9 +72,18 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   end
 
   @impl true
-  def update(%{id: "PID" <> pid, path: path}, socket) do
+  def update(%{id: "PID" <> pid, path: path, return_to: return_to, page: page}, socket) do
     pid = :erlang.list_to_pid(String.to_charlist(pid))
-    {:ok, socket |> assign(:pid, pid) |> assign(:path, path) |> assign_info()}
+
+    {:ok,
+     socket |> assign(pid: pid, path: path, page: page, return_to: return_to) |> assign_info()}
+  end
+
+  @impl true
+  def handle_event("kill", _, socket) do
+    true = socket.assigns.page.allow_destructive_actions
+    Process.exit(socket.assigns.pid, :kill)
+    {:noreply, push_patch(socket, to: socket.assigns.return_to)}
   end
 
   defp assign_info(%{assigns: assigns} = socket) do

@@ -45,12 +45,13 @@ defmodule Phoenix.LiveDashboardTest.Router do
       metrics: Phoenix.LiveDashboardTest.Telemetry
 
     live_dashboard "/config",
+      live_socket_path: "/custom/live",
+      csp_nonce_assign_key: :csp_nonce,
+      env_keys: ["PHX_DASHBOARD_TEST"],
+      allow_destructive_actions: true,
       metrics: Phoenix.LiveDashboardTest.Telemetry,
       metrics_history: {TestHistory, :test_data, []},
-      csp_nonce_assign_key: :csp_nonce,
-      live_socket_path: "/custom/live",
-      request_logger_cookie_domain: "my.domain",
-      env_keys: ["PHX_DASHBOARD_TEST"]
+      request_logger_cookie_domain: "my.domain"
 
     live_dashboard "/parent_cookie_domain",
       request_logger_cookie_domain: :parent

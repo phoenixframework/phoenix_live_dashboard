@@ -95,6 +95,8 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     refute rendered =~ processes_href(1000, "", :message_queue_len, :asc)
   end
 
+  @kill_process_label "Kill process"
+
   test "shows process info modal" do
     {:ok, pid} = Task.start_link(fn -> Process.sleep(:infinity) end)
     Process.register(pid, :selected_process)
@@ -111,17 +113,44 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     assert_patch(live, return_path)
   end
 
+  @tag :capture_log
+  test "cannot kill process when disabled" do
+    {:ok, pid} = Task.start_link(fn -> Process.sleep(:infinity) end)
+    Process.register(pid, :selected_process)
+
+    {:ok, live, _} = live(build_conn(), process_info_path(pid, 1000, :message_queue_len, :desc))
+    refute render(live) =~ @kill_process_label
+
+    Process.flag(:trap_exit, true)
+    catch_exit(render_click(live, "kill"))
+  end
+
+  test "can kill process when enabled" do
+    {:ok, pid} = Task.start(fn -> Process.sleep(:infinity) end)
+    Process.register(pid, :selected_process)
+    ref = Process.monitor(pid)
+
+    {:ok, live, _} =
+      live(build_conn(), process_info_path("config", pid, 1000, :message_queue_len, :desc))
+
+    live |> element("button", @kill_process_label) |> render_click()
+    assert_received {:DOWN, ^ref, _, _, :killed}
+
+    return_path = processes_path(1000, "", :message_queue_len, :desc)
+    assert_patch(live, return_path)
+  end
+
   defp processes_href(limit, search, sort_by, sort_dir) do
     ~s|href="#{Plug.HTML.html_escape_to_iodata(processes_path(limit, search, sort_by, sort_dir))}"|
   end
 
-  defp process_info_path(pid, limit, sort_by, sort_dir) do
-    processes_path(limit, "", sort_by, sort_dir) <>
+  defp process_info_path(prefix \\ "dashboard", pid, limit, sort_by, sort_dir) do
+    processes_path(prefix, limit, "", sort_by, sort_dir) <>
       "&info=#{Phoenix.LiveDashboard.Helpers.encode_pid(pid)}"
   end
 
-  defp processes_path(limit, search, sort_by, sort_dir) do
-    "/dashboard/nonode%40nohost/processes?" <>
+  defp processes_path(prefix \\ "dashboard", limit, search, sort_by, sort_dir) do
+    "/#{prefix}/nonode%40nohost/processes?" <>
       "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end
