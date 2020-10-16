@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.3.0 (2020-10-16)
+
+* Use `$initial_call` from process dictionary as the initial call whenever available
+* Allow custom pages via `Phoenix.LiveDashboard.PageBuilder`
+* Allow processes to be killed when `:allow_destructive_actions` is enabled
+* Add an Ecto Stats page that shows stats from PSQL databases
+
 ## v0.2.10 (2020-10-13)
 
 * Support `:request_logger_cookie_domain` configuration

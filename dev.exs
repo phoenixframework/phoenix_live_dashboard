@@ -2,7 +2,8 @@
 Logger.configure(level: :debug)
 
 pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
-Application.put_env(:phoenix_live_dashboard, Demo.Repo, url: "ecto://#{pg_url}/phx_dashboard_dev")
+pg_database = System.get_env("PG_DATABASE") || "phx_dashboard_dev"
+Application.put_env(:phoenix_live_dashboard, Demo.Repo, url: "ecto://#{pg_url}/bytepack_dev")
 
 defmodule Demo.Repo do
   use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
