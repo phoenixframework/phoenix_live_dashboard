@@ -3,29 +3,6 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @info_keys [
-    :registered_name,
-    :current_function,
-    :initial_call,
-    :dictionary,
-    :status,
-    :message_queue_len,
-    :links,
-    :monitors,
-    :monitored_by,
-    :trap_exit,
-    :error_handler,
-    :priority,
-    :group_leader,
-    :total_heap_size,
-    :heap_size,
-    :stack_size,
-    :reductions,
-    :garbage_collection,
-    :suspending,
-    :current_stacktrace
-  ]
-
   @impl true
   def render(assigns) do
     ~L"""
@@ -35,7 +12,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
           <tbody>
             <tr><td class="border-top-0">Registered name</td><td class="border-top-0"><pre><%= @registered_name %></pre></td></tr>
             <tr><td>Current function</td><td><pre><%= @current_function %></pre></td></tr>
-            <tr><td>Initial call</td><td><pre><%= @dictionary || @initial_call %></pre></td></tr>
+            <tr><td>Initial call</td><td><pre><%= @initial_call %></pre></td></tr>
             <tr><td>Status</td><td><pre><%= @status %></pre></td></tr>
             <tr><td>Message queue length</td><td><pre><%= @message_queue_len %></pre></td></tr>
             <tr><td>Links</td><td><pre><%= @links %></pre></td></tr>
@@ -68,11 +45,6 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   end
 
   @impl true
-  def mount(socket) do
-    {:ok, Enum.reduce(@info_keys, socket, &assign(&2, &1, nil))}
-  end
-
-  @impl true
   def update(%{id: "PID" <> pid, path: path, return_to: return_to, page: page}, socket) do
     pid = :erlang.list_to_pid(String.to_charlist(pid))
 
@@ -88,7 +60,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   end
 
   defp assign_info(%{assigns: assigns} = socket) do
-    case SystemInfo.fetch_process_info(assigns.pid, @info_keys) do
+    case SystemInfo.fetch_process_info(assigns.pid) do
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
           assign(acc, key, format_info(key, val, assigns.path))
@@ -104,16 +76,9 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
        when key in [:links, :monitors, :monitored_by],
        do: format_value(val, live_dashboard_path)
 
-  defp format_info(:dictionary, dictionary, _) when is_list(dictionary) do
-    case Keyword.get(dictionary, :"$initial_call") do
-      nil -> nil
-      initial_call -> format_call(initial_call)
-    end
-  end
-
   defp format_info(:current_function, :undefined, _), do: "undefined"
   defp format_info(:current_function, val, _), do: format_call(val)
-  defp format_info(:initial_call, val, _), do: format_call(val)
+  defp format_info(:initial_call, val, _), do: format_initial_call(val)
   defp format_info(:current_stacktrace, val, _), do: format_stacktrace(val)
   defp format_info(_key, val, live_dashboard_path), do: format_value(val, live_dashboard_path)
 end

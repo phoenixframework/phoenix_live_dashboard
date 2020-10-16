@@ -51,8 +51,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node(port), __MODULE__, :socket_info_callback, [port, keys])
   end
 
-  def fetch_process_info(pid, keys) do
-    :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid, keys])
+  def fetch_process_info(pid) do
+    :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid])
   end
 
   def fetch_ports(node, search, sort_by, sort_dir, limit) do
@@ -178,7 +178,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Process Callbacks
 
-  @process_info [
+  @processes_keys [
     :registered_name,
     :initial_call,
     :dictionary,
@@ -204,11 +204,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp process_info(pid) do
-    if info = Process.info(pid, @process_info) do
+    if info = Process.info(pid, @processes_keys) do
       [{:registered_name, name}, {:initial_call, initial_call}, {:dictionary, dict} | rest] = info
 
       initial_call = Keyword.get(dict, :"$initial_call", initial_call)
-      name_or_initial_call = if is_atom(name), do: inspect(name), else: format_call(initial_call)
+
+      name_or_initial_call =
+        if is_atom(name), do: inspect(name), else: format_initial_call(initial_call)
+
       [pid: pid, name_or_initial_call: name_or_initial_call] ++ rest
     end
   end
@@ -223,10 +226,37 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     pid =~ search or String.downcase(name_or_call) =~ search
   end
 
-  def process_info_callback(pid, keys) do
-    case Process.info(pid, keys) do
-      [_ | _] = info -> {:ok, info}
-      nil -> :error
+  @process_info_keys [
+    :initial_call,
+    :dictionary,
+    :registered_name,
+    :current_function,
+    :status,
+    :message_queue_len,
+    :links,
+    :monitors,
+    :monitored_by,
+    :trap_exit,
+    :error_handler,
+    :priority,
+    :group_leader,
+    :total_heap_size,
+    :heap_size,
+    :stack_size,
+    :reductions,
+    :garbage_collection,
+    :suspending,
+    :current_stacktrace
+  ]
+
+  def process_info_callback(pid) do
+    case Process.info(pid, @process_info_keys) do
+      [{:initial_call, initial_call}, {:dictionary, dict} | info] ->
+        initial_call = Keyword.get(dict, :"$initial_call", initial_call)
+        {:ok, [{:initial_call, initial_call} | info]}
+
+      nil ->
+        :error
     end
   end
 
@@ -534,7 +564,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Helpers
 
-  defp format_call({m, f, a}), do: Exception.format_mfa(m, f, a)
+  defp format_initial_call({:supervisor, mod, arity}), do: Exception.format_mfa(mod, :init, arity)
+  defp format_initial_call({m, f, a}), do: Exception.format_mfa(m, f, a)
 
   # The address is formatted based on the implementation of `:inet.fmt_addr/2`
   defp format_address({:error, :enotconn}), do: "*:*"

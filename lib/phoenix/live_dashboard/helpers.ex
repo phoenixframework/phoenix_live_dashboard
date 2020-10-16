@@ -93,6 +93,14 @@ defmodule Phoenix.LiveDashboard.Helpers do
   def format_value(other, _socket), do: inspect(other, pretty: true, limit: @format_limit)
 
   @doc """
+  Formats initial calls.
+
+  Same as `format_call` but takes into account Supervisor's special format.
+  """
+  def format_initial_call({:supervisor, mod, arity}), do: format_call({mod, :init, arity})
+  def format_initial_call(call), do: format_call(call)
+
+  @doc """
   Formats MFAs.
   """
   def format_call({m, f, a}), do: Exception.format_mfa(m, f, a)

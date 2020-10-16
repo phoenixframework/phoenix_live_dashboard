@@ -45,14 +45,16 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "info" do
-      {:ok, pid} =
-        SystemInfo.fetch_process_info(Process.whereis(:user), [
-          :registered_name,
-          :message_queue_len
-        ])
-
+      {:ok, pid} = SystemInfo.fetch_process_info(Process.whereis(:user))
       assert pid[:registered_name] == :user
       assert is_integer(pid[:message_queue_len])
+      assert pid[:initial_call] == {:erlang, :apply, 2}
+
+      {:ok, pid} =
+        SystemInfo.fetch_process_info(Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor))
+
+      assert pid[:registered_name] == Phoenix.LiveDashboard.DynamicSupervisor
+      assert pid[:initial_call] == {:supervisor, Supervisor.Default, 1}
     end
   end
 

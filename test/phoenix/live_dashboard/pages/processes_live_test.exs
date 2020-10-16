@@ -98,27 +98,26 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
   @kill_process_label "Kill process"
 
   test "shows process info modal" do
-    {:ok, pid} = Task.start_link(fn -> Process.sleep(:infinity) end)
-    Process.register(pid, :selected_process)
+    pid = Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor)
 
-    {:ok, live, _} = live(build_conn(), process_info_path(pid, 1000, :message_queue_len, :desc))
+    {:ok, live, _} = live(build_conn(), process_info_path(pid, 10, :message_queue_len, :desc))
     rendered = render(live)
-    assert rendered =~ processes_href(1000, "", :message_queue_len, :desc)
+    assert rendered =~ processes_href(10, "", :message_queue_len, :desc)
 
     assert rendered =~ "modal-content"
-    assert rendered =~ ~r/Registered name.*selected_process/
+    assert rendered =~ ~r/Registered name.*Phoenix.LiveDashboard.DynamicSupervisor/
+    assert rendered =~ ~r/Initial call.*Supervisor.Default.init\/1/
 
     refute live |> element("#modal .close") |> render_click() =~ "modal"
-    return_path = processes_path(1000, "", :message_queue_len, :desc)
+    return_path = processes_path(10, "", :message_queue_len, :desc)
     assert_patch(live, return_path)
   end
 
   @tag :capture_log
   test "cannot kill process when disabled" do
     {:ok, pid} = Task.start_link(fn -> Process.sleep(:infinity) end)
-    Process.register(pid, :selected_process)
 
-    {:ok, live, _} = live(build_conn(), process_info_path(pid, 1000, :message_queue_len, :desc))
+    {:ok, live, _} = live(build_conn(), process_info_path(pid, 10, :message_queue_len, :desc))
     refute render(live) =~ @kill_process_label
 
     Process.flag(:trap_exit, true)
@@ -127,16 +126,15 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
   test "can kill process when enabled" do
     {:ok, pid} = Task.start(fn -> Process.sleep(:infinity) end)
-    Process.register(pid, :selected_process)
     ref = Process.monitor(pid)
 
     {:ok, live, _} =
-      live(build_conn(), process_info_path("config", pid, 1000, :message_queue_len, :desc))
+      live(build_conn(), process_info_path("config", pid, 10, :message_queue_len, :desc))
 
     live |> element("button", @kill_process_label) |> render_click()
     assert_received {:DOWN, ^ref, _, _, :killed}
 
-    return_path = processes_path(1000, "", :message_queue_len, :desc)
+    return_path = processes_path(10, "", :message_queue_len, :desc)
     assert_patch(live, return_path)
   end
 
