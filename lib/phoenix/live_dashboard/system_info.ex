@@ -181,6 +181,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   @process_info [
     :registered_name,
     :initial_call,
+    :dictionary,
     :memory,
     :reductions,
     :message_queue_len,
@@ -204,7 +205,9 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   defp process_info(pid) do
     if info = Process.info(pid, @process_info) do
-      [{:registered_name, name}, {:initial_call, initial_call} | rest] = info
+      [{:registered_name, name}, {:initial_call, initial_call}, {:dictionary, dict} | rest] = info
+
+      initial_call = Keyword.get(dict, :"$initial_call", initial_call)
       name_or_initial_call = if is_atom(name), do: inspect(name), else: format_call(initial_call)
       [pid: pid, name_or_initial_call: name_or_initial_call] ++ rest
     end

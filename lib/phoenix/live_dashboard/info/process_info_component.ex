@@ -7,6 +7,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
     :registered_name,
     :current_function,
     :initial_call,
+    :dictionary,
     :status,
     :message_queue_len,
     :links,
@@ -34,7 +35,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
           <tbody>
             <tr><td class="border-top-0">Registered name</td><td class="border-top-0"><pre><%= @registered_name %></pre></td></tr>
             <tr><td>Current function</td><td><pre><%= @current_function %></pre></td></tr>
-            <tr><td>Initial call</td><td><pre><%= @initial_call %></pre></td></tr>
+            <tr><td>Initial call</td><td><pre><%= @dictionary || @initial_call %></pre></td></tr>
             <tr><td>Status</td><td><pre><%= @status %></pre></td></tr>
             <tr><td>Message queue length</td><td><pre><%= @message_queue_len %></pre></td></tr>
             <tr><td>Links</td><td><pre><%= @links %></pre></td></tr>
@@ -102,6 +103,13 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   defp format_info(key, val, live_dashboard_path)
        when key in [:links, :monitors, :monitored_by],
        do: format_value(val, live_dashboard_path)
+
+  defp format_info(:dictionary, dictionary, _) when is_list(dictionary) do
+    case Keyword.get(dictionary, :"$initial_call") do
+      nil -> nil
+      initial_call -> format_call(initial_call)
+    end
+  end
 
   defp format_info(:current_function, :undefined, _), do: "undefined"
   defp format_info(:current_function, val, _), do: format_call(val)
