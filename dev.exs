@@ -1,5 +1,14 @@
-# iex -S mix run dev.exs
+# iex -S mix dev
 Logger.configure(level: :debug)
+
+pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
+Application.put_env(:phoenix_live_dashboard, Demo.Repo, url: "ecto://#{pg_url}/phx_dashboard_dev")
+
+defmodule Demo.Repo do
+  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
+end
+
+_ = Ecto.Adapters.Postgres.storage_up(Demo.Repo.config())
 
 # Configures the endpoint
 Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
@@ -175,7 +184,8 @@ defmodule DemoWeb.Router do
       env_keys: ["USER", "ROOTDIR"],
       metrics: DemoWeb.Telemetry,
       metrics_history: {DemoWeb.History, :data, []},
-      allow_destructive_actions: true
+      allow_destructive_actions: true,
+      ecto_repos: [Demo.Repo]
     )
   end
 end
@@ -208,6 +218,7 @@ Application.put_env(:phoenix, :serve_endpoints, true)
 
 Task.start(fn ->
   children = [
+    Demo.Repo,
     {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
     {DemoWeb.History, DemoWeb.Telemetry.metrics()},
     DemoWeb.Endpoint

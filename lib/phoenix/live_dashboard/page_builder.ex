@@ -1,4 +1,6 @@
 defmodule Phoenix.LiveDashboard.PageBuilder do
+  # TODO: Document me
+
   defstruct info: nil,
             module: nil,
             node: nil,
@@ -127,12 +129,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         header is clickable and it fetches again rows with the new order. At least one column
         should be sortable. Default: `nil`
 
-    * `:limit_options` - A list of integers to limit the number of rows to show.
-      Default: `[50, 100, 500, 1000, 5000]`
-
-    * `:params` - Required. All the params received by the parent `Phoenix.LiveView`,
-      so the table can handle its own parameters.
-
     * `:row_fetcher` - Required. A function which receives the params and the node and
       returns a tuple with the rows and the total number:
       `(params(), node()) -> {list(), integer() | binary()}`
@@ -142,6 +138,14 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
     * `:title` - The title of the table.
       Default is calculated with the current page.
+
+    * `:limit` - A list of integers to limit the number of rows to show.
+      Default: `[50, 100, 500, 1000, 5000]`. May be set to `false` to disable the `limit`.
+
+    * `:search` - A boolean indicating if the search functionality is enabled.
+      Default: `true`.
+
+    * `:hint` - A textual hint to show close to the title. Default: `nil`.
   """
   @spec table(keyword()) :: component()
   def table(assigns) do
@@ -153,6 +157,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {TableComponent, assigns}
   end
 
+  # TODO: Document me
   @spec nav_bar(keyword()) :: component()
   def nav_bar(assigns) do
     assigns =

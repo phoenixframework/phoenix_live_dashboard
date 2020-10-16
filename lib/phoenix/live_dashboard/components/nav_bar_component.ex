@@ -120,7 +120,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
           </ul>
         </div>
       </div>
-      <%= render_content(@socket, @page, @items, @current) %>
+      <%= render_content(@socket, @page, @items[@current][:render]) %>
     </div>
     """
   end
@@ -139,14 +139,17 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   defp maybe_put(keyword, _key, nil), do: keyword
   defp maybe_put(keyword, key, value), do: [{key, value} | keyword]
 
-  defp render_content(socket, page, items, current) do
-    case items[current][:render] do
+  defp render_content(socket, page, component_or_fun) do
+    case component_or_fun do
       {component, component_assigns} ->
         live_component(socket, component, Map.put(component_assigns, :page, page))
 
-      # Needed for the metrics page, should be removed soon
       fun when is_function(fun, 0) ->
-        fun.()
+        render_content(socket, page, fun.())
+
+      # TODO: Remove me once we port metrics
+      %Phoenix.LiveView.Rendered{} = other ->
+        other
     end
   end
 end

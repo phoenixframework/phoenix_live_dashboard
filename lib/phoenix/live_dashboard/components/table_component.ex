@@ -7,7 +7,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
           limit: pos_integer(),
           sort_by: :atom,
           sort_dir: :desc | :asc,
-          search: binary()
+          search: binary(),
+          hint: binary() | nil
         }
 
   @impl true
@@ -19,8 +20,10 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     params
     |> validate_required([:columns, :id, :row_fetcher, :title])
     |> normalize_columns()
-    |> Map.put_new(:limit_options, @limit)
+    |> Map.put_new(:search, true)
+    |> Map.put_new(:limit, @limit)
     |> Map.put_new(:row_attrs, [])
+    |> Map.put_new(:hint, nil)
     |> Map.put_new_lazy(:rows_name, fn ->
       Phoenix.Naming.humanize(params.title) |> String.downcase()
     end)
@@ -84,11 +87,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp normalize_table_params(assigns) do
-    %{
-      columns: columns,
-      page: %{params: all_params},
-      limit_options: limit_options
-    } = assigns
+    %{columns: columns, page: %{params: all_params}} = assigns
 
     sortable_columns = sortable_columns(columns)
 
@@ -102,8 +101,15 @@ defmodule Phoenix.LiveDashboard.TableComponent do
       |> get_in_or_first("sort_dir", sortable_dirs(columns, sort_by))
       |> String.to_atom()
 
-    limit_options = Enum.map(limit_options, &to_string/1)
-    limit = all_params |> get_in_or_first("limit", limit_options) |> String.to_integer()
+    limit =
+      if assigns.limit do
+        all_params
+        |> get_in_or_first("limit", Enum.map(assigns.limit, &to_string/1))
+        |> String.to_integer()
+      else
+        nil
+      end
+
     search = all_params["search"]
     search = if search == "", do: nil, else: search
 
@@ -131,31 +137,39 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   def render(assigns) do
     ~L"""
     <div class="tabular-page">
-      <h5 class="card-title"><%= @title %></h5>
+      <h5 class="card-title"><%= @title %> <%= @hint && hint(do: @hint) %></h5>
 
-      <div class="tabular-search">
-        <form phx-change="search" phx-submit="search" phx-target="<%= @myself %>" class="form-inline">
-          <div class="form-row align-items-center">
-            <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value="<%= @table_params.search %>" placeholder="Search" phx-debounce="300">
+      <%= if @search do %>
+        <div class="tabular-search">
+          <form phx-change="search" phx-submit="search" phx-target="<%= @myself %>" class="form-inline">
+            <div class="form-row align-items-center">
+              <div class="col-auto">
+                <input type="search" name="search" class="form-control form-control-sm" value="<%= @table_params.search %>" placeholder="Search" phx-debounce="300">
+              </div>
             </div>
-          </div>
-        </form>
-      </div>
+          </form>
+        </div>
+      <% end %>
 
       <form phx-change="select_limit" phx-target="<%= @myself %>" class="form-inline">
         <div class="form-row align-items-center">
-          <div class="col-auto">Showing at most</div>
-          <div class="col-auto">
-            <div class="input-group input-group-sm">
-              <select name="limit" class="custom-select" id="limit-select">
-                <%= options_for_select(@limit_options, @table_params.limit) %>
-              </select>
+          <%= if @limit do %>
+            <div class="col-auto">Showing at most</div>
+            <div class="col-auto">
+              <div class="input-group input-group-sm">
+                <select name="limit" class="custom-select" id="limit-select">
+                  <%= options_for_select(@limit, @table_params.limit) %>
+                </select>
+              </div>
             </div>
-          </div>
-          <div class="col-auto">
-            <%= @rows_name %> out of <%= @total %>
-          </div>
+            <div class="col-auto">
+              <%= @rows_name %> out of <%= @total %>
+            </div>
+          <% else %>
+            <div class="col-auto">
+              Showing <%= @total %> <%= @rows_name %>
+            </div>
+          <% end %>
         </div>
       </form>
 
@@ -246,7 +260,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     [link_name | sort_link_icon(sort_dir)]
   end
 
-  defp sort_link_icon(:asc) do
+  defp sort_link_icon(:desc) do
     {:safe,
      """
      <div class="dash-table-icon">
@@ -255,7 +269,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
      """}
   end
 
-  defp sort_link_icon(:desc) do
+  defp sort_link_icon(:asc) do
     {:safe,
      """
      <div class="dash-table-icon">

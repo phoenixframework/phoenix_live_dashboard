@@ -11,19 +11,22 @@ defmodule Phoenix.LiveDashboard.Router do
 
   ## Options
 
+    * `:live_socket_path` - Configures the socket path. it must match
+      the `socket "/live", Phoenix.LiveView.Socket` in your endpoint.
+
     * `:csp_nonce_assign_key` - an assign key to find the CSP nonce
       value used for assets
 
-    * `:metrics` - Configures the module to retrieve metrics from.
-      It can be a `module` or a `{module, function}`. If nothing is
-      given, the metrics functionality will be disabled.
+    * `:ecto_repos` - the repositories to show database information.
+      Currently only PSQL databases are supported
 
     * `:env_keys` - Configures environment variables to display.
       It is defined as a list of string keys. If not set, the environment
       information will not be displayed.
 
-    * `:live_socket_path` - Configures the socket path. it must match
-      the `socket "/live", Phoenix.LiveView.Socket` in your endpoint.
+    * `:metrics` - Configures the module to retrieve metrics from.
+      It can be a `module` or a `{module, function}`. If nothing is
+      given, the metrics functionality will be disabled.
 
     * `:metrics_history` - Configures a callback for retreiving metric history.
       It must be an "MFA" tuple of  `{Module, :function, arguments}` such as
@@ -156,9 +159,9 @@ defmodule Phoenix.LiveDashboard.Router do
                   inspect(other)
       end
 
+    ecto_repos = options[:ecto_repos]
     csp_nonce_assign_key = options[:csp_nonce_assign_key]
-
-    allow_destructive_actions = Keyword.get(options, :allow_destructive_actions, false)
+    allow_destructive_actions = options[:allow_destructive_actions] || false
 
     session_args = [
       env_keys,
@@ -166,7 +169,8 @@ defmodule Phoenix.LiveDashboard.Router do
       metrics,
       metrics_history,
       additional_pages,
-      request_logger_cookie_domain
+      request_logger_cookie_domain,
+      ecto_repos
     ]
 
     [
@@ -203,7 +207,8 @@ defmodule Phoenix.LiveDashboard.Router do
         metrics,
         metrics_history,
         additional_pages,
-        request_logger_cookie_domain
+        request_logger_cookie_domain,
+        ecto_repos
       ) do
     metrics_session = %{
       "metrics" => metrics,
@@ -217,16 +222,17 @@ defmodule Phoenix.LiveDashboard.Router do
 
     {pages, requirements} =
       [
-        {"home", {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys}}},
-        {"os_mon", {Phoenix.LiveDashboard.OSMonPage, %{}}},
-        {"metrics", {Phoenix.LiveDashboard.MetricsPage, metrics_session}},
-        {"request_logger", {Phoenix.LiveDashboard.RequestLoggerPage, request_logger_session}},
-        {"applications", {Phoenix.LiveDashboard.ApplicationsPage, %{}}},
-        {"processes", {Phoenix.LiveDashboard.ProcessesPage, %{}}},
-        {"ports", {Phoenix.LiveDashboard.PortsPage, %{}}},
-        {"sockets", {Phoenix.LiveDashboard.SocketsPage, %{}}},
-        {"ets", {Phoenix.LiveDashboard.EtsPage, %{}}}
+        home: {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys}},
+        os_mon: {Phoenix.LiveDashboard.OSMonPage, %{}},
+        metrics: {Phoenix.LiveDashboard.MetricsPage, metrics_session},
+        request_logger: {Phoenix.LiveDashboard.RequestLoggerPage, request_logger_session},
+        applications: {Phoenix.LiveDashboard.ApplicationsPage, %{}},
+        processes: {Phoenix.LiveDashboard.ProcessesPage, %{}},
+        ports: {Phoenix.LiveDashboard.PortsPage, %{}},
+        sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
+        ets: {Phoenix.LiveDashboard.EtsPage, %{}}
       ]
+      |> Enum.concat(ecto_info(ecto_repos))
       |> Enum.concat(additional_pages)
       |> Enum.map(fn {key, {module, opts}} ->
         {session, requirements} = initialize_page(module, opts)
@@ -239,6 +245,21 @@ defmodule Phoenix.LiveDashboard.Router do
       "allow_destructive_actions" => allow_destructive_actions,
       "requirements" => requirements |> Enum.concat() |> Enum.uniq()
     }
+  end
+
+  defp ecto_info(nil), do: [{:ecto_info, {Phoenix.LiveDashboard.EctoInfoPage, %{repo: nil}}}]
+
+  defp ecto_info(repos) do
+    for repo <- List.wrap(repos) do
+      page =
+        repo
+        |> Macro.underscore()
+        |> String.replace("/", "_")
+        |> Kernel.<>("_info")
+        |> String.to_atom()
+
+      {page, {Phoenix.LiveDashboard.EctoInfoPage, %{repo: repo}}}
+    end
   end
 
   defp initialize_page(module, opts) do

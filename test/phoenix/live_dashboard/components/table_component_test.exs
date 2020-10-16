@@ -101,20 +101,31 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     end
 
     test "renders limit options" do
-      result = render_table(limit_options: [10, 100, 1000])
+      result = render_table(limit: [10, 100, 1000])
 
       assert result =~
                ~s|<option value=\"10\" selected>10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
 
-      result = render_table(params: %{"limit" => "5"}, limit_options: [10, 100, 1000])
+      result = render_table(params: %{"limit" => "5"}, limit: [10, 100, 1000])
 
       assert result =~
                ~s|<option value=\"10\" selected>10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
 
-      result = render_table(params: %{"limit" => "100"}, limit_options: [10, 100, 1000])
+      result = render_table(params: %{"limit" => "100"}, limit: [10, 100, 1000])
 
       assert result =~
                ~s|<option value=\"10\">10</option><option value=\"100\" selected>100</option><option value=\"1000\">1000</option>|
+    end
+
+    test "disables limit" do
+      result = render_table(limit: false)
+      refute result =~ "<select name=\"limit\""
+      assert result =~ "Showing 2 title"
+    end
+
+    test "disables search" do
+      assert render_table(search: true) =~ "<input type=\"search\" name=\"search\""
+      refute render_table(search: false) =~ "<input type=\"search\" name=\"search\""
     end
 
     test "renders rows_name" do
@@ -232,11 +243,13 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       assert %{
                columns: [_],
                id: "id",
-               limit_options: [50, 100, 500, 1000, 5000],
+               limit: [50, 100, 500, 1000, 5000],
                row_attrs: [],
                row_fetcher: fun,
                rows_name: "title",
-               title: "title"
+               title: "title",
+               search: true,
+               hint: nil
              } =
                TableComponent.normalize_params(%{
                  title: "title",

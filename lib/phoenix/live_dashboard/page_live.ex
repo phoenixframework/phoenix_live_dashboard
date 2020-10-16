@@ -22,7 +22,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   @impl true
   def mount(%{"node" => _, "page" => page} = params, %{"pages" => pages} = session, socket) do
-    case List.keyfind(pages, page, 0, :error) do
+    case Enum.find(pages, :error, fn {key, _} -> Atom.to_string(key) == page end) do
       {_id, {module, page_session}} ->
         assign_mount(socket, module, pages, page_session, params, session)
 
@@ -110,7 +110,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
     {links, socket} =
       Enum.map_reduce(pages, socket, fn {route, {module, session}}, socket ->
-        current? = route == current_route
+        current? = Atom.to_string(route) == current_route
         menu_link = module.menu_link(session, capabilities)
 
         case {current?, menu_link} do
