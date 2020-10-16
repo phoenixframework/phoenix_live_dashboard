@@ -80,7 +80,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
 
   defp extras do
     [
-      "guides/ecto_info.md",
+      "guides/ecto_stats.md",
       "guides/metrics.md",
       "guides/metrics_history.md",
       "guides/os_mon.md",

@@ -24,7 +24,7 @@ LiveDashboard provides real-time performance monitoring and debugging tools for 
 
   * ETS - See, filter, and search ETS tables (in-memory storage) in the current node
 
-  * Ecto Info - Shows index, table, and general usage about the underlying Ecto Repo storage
+  * Ecto Stats - Shows index, table, and general usage about the underlying Ecto Repo storage
 
 The dashboard also works across nodes. If your nodes are connected via Distributed Erlang, then you can access information from node B while accessing the dashboard on node A.
 

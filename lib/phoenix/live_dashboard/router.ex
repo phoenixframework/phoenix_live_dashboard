@@ -234,7 +234,7 @@ defmodule Phoenix.LiveDashboard.Router do
         sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
         ets: {Phoenix.LiveDashboard.EtsPage, %{}}
       ]
-      |> Enum.concat(ecto_info(ecto_repos))
+      |> Enum.concat(ecto_stats(ecto_repos))
       |> Enum.concat(additional_pages)
       |> Enum.map(fn {key, {module, opts}} ->
         {session, requirements} = initialize_page(module, opts)
@@ -249,9 +249,9 @@ defmodule Phoenix.LiveDashboard.Router do
     }
   end
 
-  defp ecto_info(nil), do: [{:ecto_info, {Phoenix.LiveDashboard.EctoInfoPage, %{repo: nil}}}]
+  defp ecto_stats(nil), do: [{:ecto_stats, {Phoenix.LiveDashboard.EctoStatsPage, %{repo: nil}}}]
 
-  defp ecto_info(repos) do
+  defp ecto_stats(repos) do
     for repo <- List.wrap(repos) do
       page =
         repo
@@ -260,7 +260,7 @@ defmodule Phoenix.LiveDashboard.Router do
         |> Kernel.<>("_info")
         |> String.to_atom()
 
-      {page, {Phoenix.LiveDashboard.EctoInfoPage, %{repo: repo}}}
+      {page, {Phoenix.LiveDashboard.EctoStatsPage, %{repo: repo}}}
     end
   end
 

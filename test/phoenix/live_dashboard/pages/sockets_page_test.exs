@@ -18,7 +18,7 @@ defmodule Phoenix.LiveDashboard.SocketsPageTest do
     assert rendered =~ first_address
     assert rendered =~ second_address
     assert rendered =~ "*:*"
-    assert rendered =~ "sockets out of 2"
+    assert rendered =~ ~r"sockets out of \d+"
     assert rendered =~ sockets_href(50, "", :send_oct, :asc)
 
     {:ok, live, _} = live(build_conn(), sockets_path(50, first_socket_port, :send_oct, :desc))
@@ -26,14 +26,14 @@ defmodule Phoenix.LiveDashboard.SocketsPageTest do
     rendered = render(live)
     assert rendered =~ first_address
     refute rendered =~ second_address
-    assert rendered =~ "sockets out of 1"
+    assert rendered =~ ~r"sockets out of \d+"
     assert rendered =~ sockets_href(50, first_socket_port, :send_oct, :asc)
 
     {:ok, live, _} = live(build_conn(), sockets_path(50, "localhost", :send_oct, :desc))
     rendered = render(live)
     assert rendered =~ first_address
     assert rendered =~ second_address
-    assert rendered =~ "sockets out of 2"
+    assert rendered =~ ~r"sockets out of \d+"
     assert rendered =~ sockets_href(50, "localhost", :send_oct, :asc)
   end
 

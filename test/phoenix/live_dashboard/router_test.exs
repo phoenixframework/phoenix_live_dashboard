@@ -124,7 +124,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                  ports: {Phoenix.LiveDashboard.PortsPage, %{}},
                  sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
                  ets: {Phoenix.LiveDashboard.EtsPage, %{}},
-                 ecto_info: {Phoenix.LiveDashboard.EctoInfoPage, %{repo: nil}}
+                 ecto_stats: {Phoenix.LiveDashboard.EctoStatsPage, %{repo: nil}}
                ],
                "requirements" => [{:application, :os_mon}]
              } =
@@ -147,8 +147,8 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
       assert [
                ets: _,
-               foo_info: {Phoenix.LiveDashboard.EctoInfoPage, %{repo: Foo}},
-               bar_baz_info: {Phoenix.LiveDashboard.EctoInfoPage, %{repo: Bar.Baz}}
+               foo_info: {Phoenix.LiveDashboard.EctoStatsPage, %{repo: Foo}},
+               bar_baz_info: {Phoenix.LiveDashboard.EctoStatsPage, %{repo: Bar.Baz}}
              ] = Enum.take(pages, -3)
     end
   end

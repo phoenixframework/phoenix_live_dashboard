@@ -1,9 +1,9 @@
-defmodule Phoenix.LiveDashboard.EctoInfoPage do
+defmodule Phoenix.LiveDashboard.EctoStatsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
 
   @compile {:no_warn_undefined, [Decimal, EctoPSQLExtras]}
-  @disabled_link "https://hexdocs.pm/phoenix_live_dashboard/ecto_info.html"
+  @disabled_link "https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html"
 
   @impl true
   def init(%{repo: nil}), do: {:ok, %{repo: nil}}
@@ -17,7 +17,7 @@ defmodule Phoenix.LiveDashboard.EctoInfoPage do
   @impl true
   def menu_link(%{repo: nil}, _capabilities) do
     if Code.ensure_loaded?(Ecto.Adapters.SQL) do
-      {:disabled, "Ecto Info", @disabled_link}
+      {:disabled, "Ecto Stats", @disabled_link}
     else
       :skip
     end
@@ -25,7 +25,7 @@ defmodule Phoenix.LiveDashboard.EctoInfoPage do
 
   @impl true
   def menu_link(%{repo: repo}, capabilities) do
-    title = "#{repo |> inspect() |> String.replace(".", " ")} Info"
+    title = "#{repo |> inspect() |> String.replace(".", " ")} Stats"
     extra = info_module_for(repo)
 
     cond do
@@ -101,7 +101,10 @@ defmodule Phoenix.LiveDashboard.EctoInfoPage do
     mapped =
       if search do
         Enum.filter(mapped, fn map ->
-          Enum.any?(searchable, &(Map.fetch!(map, &1) =~ search))
+          Enum.any?(searchable, fn column ->
+            value = Map.fetch!(map, column)
+            value && value =~ search
+          end)
         end)
       else
         mapped
