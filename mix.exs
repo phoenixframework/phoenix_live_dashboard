@@ -42,10 +42,13 @@ defmodule Phoenix.LiveDashboard.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      # Actual deps
       {:phoenix_live_view, "~> 0.14.3", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.4.0 or ~> 0.5.0 or ~> 0.6.0"},
       {:phoenix_html, "~> 2.14.1 or ~> 2.15"},
       {:ecto_psql_extras, "~> 0.2", optional: true},
+
+      # Dev and test
       {:circular_buffer, "~> 0.2", only: :dev},
       {:telemetry_poller, "~> 0.4", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
