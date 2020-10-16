@@ -64,13 +64,13 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     assert Router.__options__(additional_pages: [])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__, [nil, false, nil, nil, [], nil, nil]}
 
-    assert Router.__options__(additional_pages: [{"custom", CustomPage}])[:session] ==
+    assert Router.__options__(additional_pages: [custom: CustomPage])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, nil, nil, [{"custom", {CustomPage, %{}}}], nil, nil]}
+              [nil, false, nil, nil, [custom: {CustomPage, []}], nil, nil]}
 
-    assert Router.__options__(additional_pages: [{"custom", {CustomPage, [1]}}])[:session] ==
+    assert Router.__options__(additional_pages: [custom: {CustomPage, [1]}])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, nil, nil, [{"custom", {CustomPage, [1]}}], nil, nil]}
+              [nil, false, nil, nil, [custom: {CustomPage, [1]}], nil, nil]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(additional_pages: [{CustomPage, 1}])

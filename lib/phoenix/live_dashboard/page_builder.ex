@@ -1,5 +1,111 @@
 defmodule Phoenix.LiveDashboard.PageBuilder do
-  # TODO: Document me
+  @moduledoc """
+  Page builder is the default mechanism for building custom dashboard pages.
+
+  Each dashboard page is a LiveView with additional callbacks for
+  customizing the menu appearance. One notable difference, however,
+  is that a page implements a `render_page/1` callback, which must
+  return one or more page builder components, instead of a `render/1`
+  callback that returns `~L`.
+
+  A simple and straight-forward example of a custom page is the
+  `Phoenix.LiveDashboard.ETSPage` that ships with the dashboard:
+
+      defmodule Phoenix.LiveDashboard.EtsPage do
+        @moduledoc false
+        use Phoenix.LiveDashboard.PageBuilder
+
+        @impl true
+        def menu_link(_, _) do
+          {:ok, "ETS"}
+        end
+
+        @impl true
+        def render_page(_assigns) do
+          table(
+            columns: columns(),
+            id: :ets_table,
+            row_attrs: &row_attrs/1,
+            row_fetcher: &fetch_ets/2,
+            rows_name: "tables",
+            title: "ETS"
+          )
+        end
+
+        defp fetch_ets(params, node) do
+          %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
+
+          # Here goes the code that goes through all ETS tables, searches
+          # (if not nil), sorts, and limits them.
+          #
+          # It must return a tuple where the first element is list with
+          # the current entries (up to limit) and an integer with the
+          # total amount of entries.
+          # ...
+        end
+
+        defp columns() do
+          [
+            %{
+              field: :name,
+              header: "Name or module",
+            },
+            %{
+              field: :protection
+            },
+            %{
+              field: :type
+            },
+            %{
+              field: :size,
+              cell_attrs: [class: "text-right"],
+              sortable: :desc
+            },
+            %{
+              field: :memory,
+              format: &format_words(&1[:memory]),
+              sortable: :desc
+            },
+            %{
+              field: :owner,
+              format: &encode_pid(&1[:owner])
+            }
+          ]
+        end
+
+        defp row_attrs(table) do
+          [
+            {"phx-click", "show_info"},
+            {"phx-value-info", encode_ets(table[:id])},
+            {"phx-page-loading", true}
+          ]
+        end
+      end
+
+  Once a page is defined, it must be declared in your `live_dashboard`
+  route as follows:
+
+      live_dashboard "/dashboard",
+        additional_pages: [
+          route_name: MyAppWeb.MyCustomPage
+        ]
+
+  Or alternatively:
+
+      live_dashboard "/dashboard",
+        additional_pages: [
+          route_name: {MyAppWeb.MyCustomPage, some_option: ...}
+        ]
+
+  The second argument of the tuple will be given to the `c:init/1`
+  callback. If not tuple is given, `c:init/1` will receive an empty
+  list.
+
+  ## Components
+
+  A page can only have the components listed with this page.
+  At the moment, only `nav_bar/1` and `table/1` are supported.
+  """
 
   defstruct info: nil,
             module: nil,
@@ -96,8 +202,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @doc """
   Renders a table component.
 
-  This component is used in different pages like applications or sockets.
-  It can be used in a `Phoenix.LiveView` in the `render/1` function:
+  It can be rendered in any dashboard page via the `render_page/1` function:
 
       def render_page(assigns) do
         table(
@@ -108,6 +213,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           title: "Applications"
         )
       end
+
+  You can see it in use the applications, processes, sockets pages and
+  many others.
 
   # Options
 
@@ -157,7 +265,29 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {TableComponent, assigns}
   end
 
-  # TODO: Document me
+  @doc """
+  Renders a nav bar.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        nav_bar(
+          items: [
+            phoenix_metrics: [
+              name: "Phoenix Metrics",
+              render: table(...)
+            ],
+
+            vm_metrics: [
+              name: "VM Metrics",
+              render: fn -> table(...expensive_parameters) end
+            ]
+          ]
+        )
+      end
+
+  You can see it in use the Metrics and Ecto info pages.
+  """
   @spec nav_bar(keyword()) :: component()
   def nav_bar(assigns) do
     assigns =

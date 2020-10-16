@@ -50,6 +50,8 @@ defmodule Phoenix.LiveDashboard.Router do
       Note that custom pages given to "Additional pages" may support their own
       destructive actions.
 
+    * `:additional_pages` - A keyword list of addictional pages
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -183,10 +185,10 @@ defmodule Phoenix.LiveDashboard.Router do
 
   defp normalize_additional_pages(pages) do
     Enum.map(pages, fn
-      {path, module} when is_binary(path) and is_atom(module) ->
-        {path, {module, %{}}}
+      {path, module} when is_atom(path) and is_atom(module) ->
+        {path, {module, []}}
 
-      {path, {module, args}} when is_binary(path) and is_atom(module) ->
+      {path, {module, args}} when is_atom(path) and is_atom(module) ->
         {path, {module, args}}
 
       other ->
