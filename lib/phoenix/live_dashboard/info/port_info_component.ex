@@ -48,7 +48,7 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
   end
 
   defp assign_info(%{assigns: assigns} = socket) do
-    case SystemInfo.fetch_port_info(assigns.port, @info_keys) do
+    case SystemInfo.fetch_port_info(assigns.port) do
       {:ok, info} ->
         Enum.reduce(info, socket, fn {key, val}, acc ->
           assign(acc, key, format_info(key, val, assigns.path))

@@ -3,6 +3,34 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
+  @info_keys [
+    :initial_call,
+    :dictionary,
+    :registered_name,
+    :current_function,
+    :status,
+    :message_queue_len,
+    :links,
+    :monitors,
+    :monitored_by,
+    :trap_exit,
+    :error_handler,
+    :priority,
+    :group_leader,
+    :total_heap_size,
+    :heap_size,
+    :stack_size,
+    :reductions,
+    :garbage_collection,
+    :suspending,
+    :current_stacktrace
+  ]
+
+  @impl true
+  def mount(socket) do
+    {:ok, Enum.reduce(@info_keys, socket, &assign(&2, &1, nil))}
+  end
+
   @impl true
   def render(assigns) do
     ~L"""

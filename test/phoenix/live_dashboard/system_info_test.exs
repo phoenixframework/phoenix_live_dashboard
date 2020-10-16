@@ -75,7 +75,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "info" do
-      {:ok, port} = SystemInfo.fetch_port_info(hd(Port.list()), [:name, :connected])
+      {:ok, port} = SystemInfo.fetch_port_info(hd(Port.list()))
       assert port[:name] == 'forker'
       assert inspect(port[:connected]) == "#PID<0.0.0>"
     end
@@ -107,9 +107,9 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       open_socket()
       open_socket()
 
-      {sockets, count} = SystemInfo.fetch_sockets(node(), "", :input, :asc, 100)
+      {sockets, count} = SystemInfo.fetch_sockets(node(), "", :send_oct, :asc, 100)
       assert Enum.count(sockets) == count
-      {sockets, count} = SystemInfo.fetch_sockets(node(), "", :input, :asc, 1)
+      {sockets, count} = SystemInfo.fetch_sockets(node(), "", :send_oct, :asc, 1)
       assert Enum.count(sockets) == 1
       assert count > 1
     end
@@ -117,9 +117,9 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     test "all with search" do
       open_socket()
 
-      {[socket], _count} = SystemInfo.fetch_sockets(node(), "*:*", :input, :asc, 100)
+      {[socket], _count} = SystemInfo.fetch_sockets(node(), "*:*", :send_oct, :asc, 100)
       assert socket[:foreign_address] == "*:*"
-      {sockets, _count} = SystemInfo.fetch_sockets(node(), "impossible", :input, :asc, 100)
+      {sockets, _count} = SystemInfo.fetch_sockets(node(), "impossible", :send_oct, :asc, 100)
       assert Enum.empty?(sockets)
     end
 

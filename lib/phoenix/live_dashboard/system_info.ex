@@ -64,8 +64,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
   end
 
-  def fetch_port_info(port, keys) do
-    :rpc.call(node(port), __MODULE__, :port_info_callback, [port, keys])
+  def fetch_port_info(port) do
+    :rpc.call(node(port), __MODULE__, :port_info_callback, [port])
   end
 
   def fetch_ets_info(node, ref) do
@@ -413,7 +413,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   @doc false
-  def port_info_callback(port, _keys) do
+  def port_info_callback(port) do
     case Port.info(port) do
       [_ | _] = info -> {:ok, info}
       nil -> :error
@@ -488,10 +488,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     {sockets, count}
   end
 
-  def socket_info_callback(port, keys) do
+  def socket_info_callback(port) do
     case socket_info(port) do
       nil -> :error
-      info -> {:ok, Keyword.take(info, keys)}
+      info -> {:ok, info}
     end
   end
 
@@ -503,13 +503,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
          {:ok, {_, type}} <- :prim_inet.gettype(port),
          module <- inet_module_lookup(port) do
       [
-        port: port,
         module: module,
+        port: port,
         local_address: format_address(:inet.sockname(port)),
         foreign_address: format_address(:inet.peername(port)),
         state: format_socket_state(state),
-        type: type
-      ] ++ info ++ stat
+        type: type,
+        connected: info[:connected]
+      ] ++ stat
     else
       _ -> nil
     end
