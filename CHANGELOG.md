@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.1 (2020-10-17)
+
+* Ensure the dashboard compiles without optional dependencies
+
 ## v0.3.0 (2020-10-16)
 
 * Use `$initial_call` from process dictionary as the initial call whenever available
