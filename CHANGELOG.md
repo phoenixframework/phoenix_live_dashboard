@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.2 (2020-10-18)
+
+* Improve sorting and formatting in Ecto Stats tables
+
 ## v0.3.1 (2020-10-17)
 
 * Ensure the dashboard compiles without optional dependencies
