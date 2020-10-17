@@ -24,6 +24,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     |> Map.put_new(:limit, @limit)
     |> Map.put_new(:row_attrs, [])
     |> Map.put_new(:hint, nil)
+    |> Map.update(:default_sort_by, nil, &(&1 && to_string(&1)))
     |> Map.put_new_lazy(:rows_name, fn ->
       Phoenix.Naming.humanize(params.title) |> String.downcase()
     end)
@@ -57,7 +58,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         |> Map.new()
         |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
         |> Map.put_new(:header_attrs, [])
-        |> Map.put_new(:format, & &1[field])
+        |> Map.put_new(:format, & &1)
         |> Map.put_new(:cell_attrs, [])
         |> Map.put_new(:sortable, nil)
 
@@ -87,13 +88,12 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp normalize_table_params(assigns) do
-    %{columns: columns, page: %{params: all_params}} = assigns
-
+    %{columns: columns, page: %{params: all_params}, default_sort_by: sort_by} = assigns
     sortable_columns = sortable_columns(columns)
 
     sort_by =
       all_params
-      |> get_in_or_first("sort_by", sortable_columns)
+      |> get_in_or_first("sort_by", sort_by, sortable_columns)
       |> String.to_atom()
 
     sort_dir =
@@ -118,19 +118,19 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp sortable_columns(columns) do
-    for column <- columns, column[:sortable], do: to_string(column[:field])
+    for column <- columns, column.sortable, do: to_string(column.field)
   end
 
   defp sortable_dirs(columns, field) do
-    case Enum.find(columns, &(&1[:field] == field)) do
+    case Enum.find(columns, &(&1.field == field)) do
       %{sortable: :desc} -> ~w(desc asc)
       %{sortable: :asc} -> ~w(asc desc)
     end
   end
 
-  defp get_in_or_first(params, key, valid) do
+  defp get_in_or_first(params, key, default \\ nil, valid) do
     value = params[key]
-    if value in valid, do: value, else: hd(valid)
+    if value in valid, do: value, else: default || hd(valid)
   end
 
   @impl true
@@ -180,8 +180,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
               <thead>
                 <tr>
                   <%= for column <- @columns do %>
-                    <%= tag_with_attrs(:th, column[:header_attrs], [column]) %>
-                      <%= if direction = column[:sortable] do %>
+                    <%= tag_with_attrs(:th, column.header_attrs, [column]) %>
+                      <%= if direction = column.sortable do %>
                         <%= sort_link(@socket, @page, @table_params, column, direction) %>
                       <% else %>
                         <%= column.header %>
@@ -194,8 +194,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
                 <%= for row <- @rows do %>
                   <%= tag_with_attrs(:tr, @row_attrs, [row]) %>
                     <%= for column <- @columns do %>
-                      <%= tag_with_attrs(:td, column[:cell_attrs], [row]) %>
-                        <%= column[:format].(row) %>
+                      <%= tag_with_attrs(:td, column.cell_attrs, [row]) %>
+                        <%= column.format.(row[column.field]) %>
                       </td>
                     <% end %>
                   </tr>

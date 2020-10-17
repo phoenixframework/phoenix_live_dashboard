@@ -47,12 +47,12 @@ defmodule Phoenix.LiveDashboard.EtsPage do
       %{
         field: :memory,
         cell_attrs: [class: "tabular-column-bytes"],
-        format: &format_words(&1[:memory]),
+        format: &format_words/1,
         sortable: :desc
       },
       %{
         field: :owner,
-        format: &encode_pid(&1[:owner])
+        format: &encode_pid/1
       }
     ]
   end

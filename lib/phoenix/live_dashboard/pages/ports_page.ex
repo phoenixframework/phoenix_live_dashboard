@@ -30,31 +30,31 @@ defmodule Phoenix.LiveDashboard.PortsPage do
         field: :port,
         header_attrs: [class: "pl-4"],
         cell_attrs: [class: "tabular-column-id pl-4"],
-        format: &(&1[:port] |> encode_port() |> String.replace_prefix("Port", ""))
+        format: &(&1 |> encode_port() |> String.replace_prefix("Port", ""))
       },
       %{
         field: :name,
         header: "Name or path",
         cell_attrs: [class: "w-50"],
-        format: &format_path(&1[:name])
+        format: &format_path/1
       },
       %{
         field: :os_pid,
         header: "OS pid",
-        format: &if(&1[:os_pid] != :undefined, do: &1[:os_pid])
+        format: &if(&1 != :undefined, do: &1)
       },
       %{
         field: :input,
         header_attrs: [class: "text-right"],
         cell_attrs: [class: "tabular-column-bytes"],
-        format: &format_bytes(&1[:input]),
+        format: &format_bytes/1,
         sortable: :desc
       },
       %{
         field: :output,
         header_attrs: [class: "text-right pr-4"],
         cell_attrs: [class: "tabular-column-bytes pr-4"],
-        format: &format_bytes(&1[:output]),
+        format: &format_bytes/1,
         sortable: :desc
       },
       %{
@@ -64,7 +64,7 @@ defmodule Phoenix.LiveDashboard.PortsPage do
       },
       %{
         field: :owner,
-        format: &inspect(&1[:connected])
+        format: &inspect/1
       }
     ]
   end

@@ -63,12 +63,12 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             },
             %{
               field: :memory,
-              format: &format_words(&1[:memory]),
+              format: &format_words/1,
               sortable: :desc
             },
             %{
               field: :owner,
-              format: &encode_pid(&1[:owner])
+              format: &encode_pid/1
             }
           ]
         end
@@ -226,13 +226,10 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     * `:columns` - Required. A `Keyword` list with the following keys:
       * `:field` - Required. An identifier for the column.
       * `:header` - Label to show in the current column. Default value is calculated from `:field`.
-      * `:header_attrs` - A list with HTML attributes for the column header.
-        More info: `Phoenix.HTML.Tag.tag/1`. Default `[]`.
-      * `:format` - Function which receives the row data and returns the cell information.
-        Default is calculated from `:field`: `row[:field]`.
-      * `:cell_attrs` - A list with HTML attributes for the table cell.
-        It also can be a function which receives the row data and returns an attribute list.
-        More info: `Phoenix.HTML.Tag.tag/1`. Default: `[]`.
+      * `:header_attrs` - A list with HTML attributes for the column header. Default: `[]`.
+      * `:format` - Function which receives the value and returns the cell information.
+        Default is the field value itself.
+      * `:cell_attrs` - A list with HTML attributes for the table cell. Default: `[]`.
       * `:sortable` - Either `:asc` or `:desc` with the default sorting. When set, the column
         header is clickable and it fetches again rows with the new order. At least one column
         should be sortable. Default: `nil`
@@ -243,6 +240,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
     * `:rows_name` - A string to name the representation of the rows.
       Default is calculated from the current page.
+
+    * `:default_sort_by` - The default columnt to sort by to.
+      Defaults to the first sortable column.
 
     * `:title` - The title of the table.
       Default is calculated with the current page.

@@ -67,14 +67,18 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     info = table_module.info()
 
     columns =
-      for %{name: name, type: type} <- info.columns, do: %{field: name, sortable: sortable(type)}
+      for %{name: name, type: type} <- info.columns do
+        %{field: name, sortable: sortable(type), format: &format(type, &1)}
+      end
 
     searchable = for %{type: :string, name: name} <- info.columns, do: name
+    default_sort_by = with [{column, _} | _] <- info[:order_by], do: column
 
     table(
       id: :table_id,
       hint: info.title,
       limit: false,
+      default_sort_by: default_sort_by,
       search: searchable != [],
       columns: columns,
       rows_name: "entries",
@@ -93,7 +97,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       for row <- rows do
         columns
         |> Enum.zip(row)
-        |> Map.new(fn {key, value} -> {String.to_atom(key), convert_value(value)} end)
+        |> Map.new(fn {key, value} -> {String.to_atom(key), value} end)
       end
 
     %{search: search, sort_by: sort_by, sort_dir: sort_dir} = params
@@ -110,16 +114,43 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
         mapped
       end
 
-    sorter = if sort_dir == :asc, do: &<=/2, else: &>=/2
-    mapped = Enum.sort_by(mapped, &Map.fetch!(&1, sort_by), sorter)
-    {mapped, length(rows)}
+    sorted =
+      Enum.sort_by(mapped, &Map.fetch!(&1, sort_by), fn
+        # Handle structs
+        %struct{} = left, %struct{} = right ->
+          case struct.compare(left, right) do
+            :gt when sort_dir == :asc -> false
+            :lt when sort_dir == :desc -> false
+            _ -> true
+          end
+
+        # Nils are always last regardless of ordering
+        nil, _ ->
+          false
+
+        _, nil ->
+          true
+
+        # Handle all other types
+        left, right when sort_dir == :asc ->
+          left <= right
+
+        left, right when sort_dir == :desc ->
+          left >= right
+      end)
+
+    {sorted, length(rows)}
   end
 
-  # Phoenix.HMTL.Safe may be not be implemented for Decimal
-  # if PhoenixEcto is not available, so we handle it here.
-  defp convert_value(%struct{} = decimal) when struct == Decimal,
-    do: Decimal.to_string(decimal)
+  defp format(_, %struct{} = value) when struct in [Decimal, Postgrex.Interval],
+    do: struct.to_string(value)
 
-  defp convert_value(value),
+  defp format(:bytes, value) when is_integer(value),
+    do: format_bytes(value)
+
+  defp format(:percent, value) when is_number(value),
+    do: value |> Kernel.*(100.0) |> Float.round(1) |> Float.to_string()
+
+  defp format(_type, value),
     do: value
 end

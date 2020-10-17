@@ -31,7 +31,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
         header: "PID",
         header_attrs: [class: "pl-4"],
         cell_attrs: [class: "tabular-column-id pl-4"],
-        format: &(&1[:pid] |> encode_pid() |> String.replace_prefix("PID", ""))
+        format: &(&1 |> encode_pid() |> String.replace_prefix("PID", ""))
       },
       %{
         field: :name_or_initial_call,
@@ -44,7 +44,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
         header_attrs: [class: "text-right"],
         cell_attrs: [class: "text-right"],
         sortable: :desc,
-        format: &format_bytes(&1[:memory])
+        format: &format_bytes/1
       },
       %{
         field: :reductions,
@@ -64,7 +64,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
         field: :current_function,
         header: "Current function",
         cell_attrs: [class: "tabular-column-current"],
-        format: &format_call(&1[:current_function])
+        format: &format_call/1
       }
     ]
   end

@@ -46,7 +46,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
         field: :tree?,
         header: "Sup tree?",
         cell_attrs: [class: "text-center"],
-        format: &if(&1[:tree?], do: "✓")
+        format: &if(&1, do: "✓")
       },
       %{
         field: :version,

@@ -46,14 +46,13 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:phoenix_live_view, "~> 0.14.3", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.4.0 or ~> 0.5.0 or ~> 0.6.0"},
       {:phoenix_html, "~> 2.14.1 or ~> 2.15"},
-      {:ecto_psql_extras, "~> 0.2", optional: true},
+      {:ecto_psql_extras, "~> 0.3", optional: true},
 
       # Dev and test
       {:circular_buffer, "~> 0.2", only: :dev},
       {:telemetry_poller, "~> 0.4", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:plug_cowboy, "~> 2.0", only: :dev},
-      {:postgrex, ">= 0.0.0", only: [:dev, :test]},
       {:jason, "~> 1.0", only: [:dev, :test, :docs]},
       {:floki, "~> 0.27.0", only: :test},
       {:stream_data, "~> 0.1", only: :test},

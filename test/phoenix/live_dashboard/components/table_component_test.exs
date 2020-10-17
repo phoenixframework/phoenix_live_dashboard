@@ -67,11 +67,11 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
           field: :foo,
           header: "Foo header",
           header_attrs: [class: "header-foo-class"],
-          format: &"foo-format-#{&1[:foo]}",
+          format: &"foo-format-#{&1}",
           cell_attrs: [class: "cell-foo-class"],
           sortable: :desc
         },
-        %{field: :bar, cell_attrs: &[class: "cell-bar-class-#{&1[:bar]}"]},
+        %{field: :bar, cell_attrs: [class: "cell-bar-class"]},
         %{field: :baz}
       ]
 
@@ -87,8 +87,8 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       assert result =~ ~r|<td class=\"cell-foo-class\">[\r\n\s]*foo-format-1[\r\n\s]*</td>|
       assert result =~ ~r|<td class=\"cell-foo-class\">[\r\n\s]*foo-format-4[\r\n\s]*</td>|
 
-      assert result =~ ~r|<td class=\"cell-bar-class-2\">[\r\n\s]*2[\r\n\s]*</td>|
-      assert result =~ ~r|<td class=\"cell-bar-class-5\">[\r\n\s]*5[\r\n\s]*</td>|
+      assert result =~ ~r|<td class=\"cell-bar-class\">[\r\n\s]*2[\r\n\s]*</td>|
+      assert result =~ ~r|<td class=\"cell-bar-class\">[\r\n\s]*5[\r\n\s]*</td>|
 
       assert result =~ ~r|<td>[\r\n\s]*3[\r\n\s]*</td>|
       assert result =~ ~r|<td>[\r\n\s]*6[\r\n\s]*</td>|
@@ -236,7 +236,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
                }
              ] = params.columns
 
-      assert "id" = format_fun.(%{"id" => "id"})
+      assert "id" = format_fun.("id")
     end
 
     test "adds default values" do
