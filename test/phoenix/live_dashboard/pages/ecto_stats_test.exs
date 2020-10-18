@@ -26,16 +26,22 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Granted"
   end
 
+  @forbidden_navs [:calls, :outliers, :kill_all, :mandelbrot]
+
   test "navs" do
+    for {nav, _} <- EctoPSQLExtras.queries, nav not in @forbidden_navs do
+      {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
+    end
+  end
+
+  test "search" do
     {:ok, live, _} = live(build_conn(), ecto_stats_path(:extensions))
     rendered = render(live)
     assert rendered =~ "Default version"
     assert rendered =~ "Installed version"
     assert rendered =~ "fuzzystrmatch"
     assert rendered =~ "hstore"
-  end
 
-  test "search" do
     {:ok, live, _} = live(build_conn(), ecto_stats_path(:extensions, "hstore"))
     rendered = render(live)
     assert rendered =~ "Default version"
