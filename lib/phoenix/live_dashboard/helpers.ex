@@ -103,6 +103,7 @@ defmodule Phoenix.LiveDashboard.Helpers do
   @doc """
   Formats MFAs.
   """
+  def format_call(:undefined), do: "undefined"
   def format_call({m, f, a}), do: Exception.format_mfa(m, f, a)
 
   @doc """
