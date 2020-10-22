@@ -97,7 +97,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
 
       <!-- Param column -->
       <%= if @param_key do %>
-        <div class="col-md d-flex flex-column" phx-hook="PhxRequestLoggerQueryParameter">
+        <div class="col-md d-flex flex-column" id="logger-query-params" phx-hook="PhxRequestLoggerQueryParameter">
           <h5 class="card-title flex-grow-0">Query Parameter</h5>
 
           <div class="card mb-4 flex-grow-1">
@@ -136,7 +136,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
 
                 <div class="col">
                   <!-- Button and hook for switching cookie on and off -->
-                  <div phx-hook="PhxRequestLoggerCookie" id="request-logger-cookie-buttons"
+                  <div phx-hook="PhxRequestLoggerCookie" id="logger-cookie-buttons"
                     data-cookie-key=<%=@cookie_key %>
                     data-cookie-value=<%=sign(@socket, @cookie_key, @stream) %>
                     <%= if @cookie_domain do %>data-cookie-domain="<%=@cookie_domain %>"<% end %>
