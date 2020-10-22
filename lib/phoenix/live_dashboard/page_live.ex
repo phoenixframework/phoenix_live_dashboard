@@ -170,7 +170,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
             <% end %>
           </form>
 
-          <form id="node-selection" phx-change="select_node">
+          <form id="node-selection" phx-change="select_node" phx-auto-recover="ignore">
             <label for="node-select">Selected node</label>
             <select name="node" class="custom-select custom-select-sm" id="node-select">
               <%= options_for_select(@menu.nodes, @page.node) %>
