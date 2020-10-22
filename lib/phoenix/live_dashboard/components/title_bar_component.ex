@@ -10,7 +10,10 @@ defmodule Phoenix.LiveDashboard.TitleBarComponent do
     <div class="<%= @class %>">
       <section>
         <div class="d-flex justify-content-between">
-          <%= @inner_content.([]) %>
+          <%= case assigns do
+            %{inner_block: _inner_block} -> render_block @inner_block, []
+            %{inner_content: _inner_content} -> @inner_content.([])
+          end %>
         </div>
         <div class="progress flex-grow-1 mt-2">
           <div
