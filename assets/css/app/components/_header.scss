@@ -100,6 +100,18 @@ header {
     margin: 0
   }
 
+  .refresher-select {
+    label.no-select {
+      display: none;
+    }
+  }
+
+  .refresher-no-select {
+    select#refresh-interval-select, label[for=refresh-interval-select] {
+      display: none;
+    }
+  }
+
   .custom-select {
     background-color: change-color($color-gray, $alpha: 0.75);
     border-radius: $border-radius;

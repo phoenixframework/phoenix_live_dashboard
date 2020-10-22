@@ -159,15 +159,12 @@ defmodule Phoenix.LiveDashboard.PageLive do
         <h1>Phoenix LiveDashboard</h1>
 
         <div id="nav-dropdowns">
-          <form id="refresher" phx-change="select_refresh">
-            <%= if @menu.refresher? do %>
+          <form id="refresher" phx-change="select_refresh" class="<%= if(@menu.refresher?, do: "refresher-select", else: "refresher-no-select")%>">
               <label for="refresh-interval-select">Update every</label>
               <select name="refresh" class="custom-select custom-select-sm" id="refresh-interval-select">
                 <%= options_for_select(@menu.refresh_options, @menu.refresh) %>
               </select>
-            <% else %>
               <label class="no-select">Updates automatically</label>
-            <% end %>
           </form>
 
           <form id="node-selection" phx-change="select_node">
