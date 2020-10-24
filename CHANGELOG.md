@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.3.3 (2020-10-24)
+
+* Only show Calls/Outliers in Ecto Stats if extension is enabled
+* Fix warnings shown in LiveView console
+* Handle `:undefined` when formatting `:current_function`
+
 ## v0.3.2 (2020-10-18)
 
 * Improve sorting and formatting in Ecto Stats tables
