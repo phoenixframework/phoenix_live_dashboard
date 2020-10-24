@@ -153,4 +153,4 @@ The following reporter options are available to the dashboard:
 
 ### Metrics history
 
-[Metrics history can also be enabled via a custom configuration](/metrics_history.html).
+[Metrics history can also be enabled via a custom configuration](metrics_history.html).
