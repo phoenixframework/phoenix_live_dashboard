@@ -32,4 +32,4 @@ If you want to disable the "Ecto Stats" option altogether, set `ecto_repos: []`.
 
 ### Install custom extensions
 
-Once the repository page is enabled, some of the queries (Calls and Outliers) require the [pg_stat_statements](https://www.postgresql.org/docs/current/pgstatstatements.html) extension installed. If you wish to access said functionality, you must install the extension first, otherwise an error will be shown.
+Once the repository page is enabled, some of the queries (Calls and Outliers) require the [pg_stat_statements](https://www.postgresql.org/docs/current/pgstatstatements.html) extension installed. If you wish to access said functionality, you must install the extension first, otherwise said functionality won't be shown.

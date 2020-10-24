@@ -26,10 +26,10 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Granted"
   end
 
-  @forbidden_navs [:calls, :outliers, :kill_all, :mandelbrot]
+  @forbidden_navs [:kill_all, :mandelbrot]
 
   test "navs" do
-    for {nav, _} <- EctoPSQLExtras.queries(), nav not in @forbidden_navs do
+    for {nav, _} <- EctoPSQLExtras.queries(Repo), nav not in @forbidden_navs do
       {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
     end
   end

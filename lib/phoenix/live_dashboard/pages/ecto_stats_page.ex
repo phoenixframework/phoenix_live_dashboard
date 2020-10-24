@@ -55,7 +55,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   @forbidden_tables [:kill_all, :mandelbrot]
 
   defp items(%{repo: repo, info_module: info_module}) do
-    for {table_name, table_module} <- info_module.queries(),
+    for {table_name, table_module} <- info_module.queries(repo),
         table_name not in @forbidden_tables do
       {table_name,
        name: Phoenix.Naming.humanize(table_name),
