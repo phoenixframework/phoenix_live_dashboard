@@ -135,7 +135,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     assert_received {:DOWN, ^ref, _, _, :killed}
 
     return_path = processes_path(10, "", :message_queue_len, :desc)
-    assert_patch(live, return_path)
+    assert_patch(live, return_path, 1000)
   end
 
   defp processes_href(limit, search, sort_by, sort_dir) do
