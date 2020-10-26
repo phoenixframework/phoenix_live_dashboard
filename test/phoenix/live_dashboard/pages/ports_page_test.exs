@@ -59,16 +59,14 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
     assert rendered =~ ports_href(50, "", :output, :desc)
     refute rendered =~ ports_href(50, "", :output, :asc)
 
-    rendered =
-      render_patch(live, "/dashboard/ports?limit=50&sort_dir=desc&sort_by=output")
+    rendered = render_patch(live, "/dashboard/ports?limit=50&sort_dir=desc&sort_by=output")
 
     assert rendered =~ ~r/sleep.*forker/s
     refute rendered =~ ~r/forker.*sleep/s
     assert rendered =~ ports_href(50, "", :output, :asc)
     refute rendered =~ ports_href(50, "", :output, :desc)
 
-    rendered =
-      render_patch(live, "/dashboard/ports?limit=50&sort_dir=asc&sort_by=output")
+    rendered = render_patch(live, "/dashboard/ports?limit=50&sort_dir=asc&sort_by=output")
 
     assert rendered =~ ~r/forker.*sleep/s
     refute rendered =~ ~r/sleep.*forker/s
