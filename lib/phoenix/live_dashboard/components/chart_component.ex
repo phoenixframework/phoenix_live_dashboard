@@ -1,6 +1,8 @@
 defmodule Phoenix.LiveDashboard.ChartComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
+  require Logger
+
   @default_prune_threshold 1_000
 
   @impl true
@@ -31,6 +33,10 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   end
 
   @impl true
+  def render(%{kind: :unsupported} = assigns) do
+    ~L""
+  end
+
   def render(assigns) do
     ~L"""
     <div class="col-xl-6 col-xxl-4 col-xxxl-3 charts-col">
@@ -74,8 +80,10 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp chart_kind(Telemetry.Metrics.Sum), do: :sum
   defp chart_kind(Telemetry.Metrics.Summary), do: :summary
 
-  defp chart_kind(Telemetry.Metrics.Distribution),
-    do: raise(ArgumentError, "LiveDashboard does not yet support distribution metrics")
+  defp chart_kind(Telemetry.Metrics.Distribution) do
+    Logger.warn("LiveDashboard does not yet support distribution metrics")
+    :unsupported
+  end
 
   defp chart_label(%{} = metric) do
     metric.name
