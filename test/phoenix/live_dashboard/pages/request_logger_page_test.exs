@@ -28,13 +28,18 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPageTest do
   end
 
   test "redirects to stream" do
+    {:error, {:live_redirect, %{to: "/dashboard/request_logger?stream=" <> _}}} =
+      live(build_conn(), "/dashboard/request_logger")
+  end
+
+  test "redirects to stream keeping host" do
     {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/request_logger?stream=" <> _}}} =
       live(build_conn(), "/dashboard/nonode@nohost/request_logger")
   end
 
   @tag :capture_log
   test "receives log messages on stream" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/request_logger?stream=sample")
+    {:ok, live, _} = live(build_conn(), "/dashboard/request_logger?stream=sample")
     assert render(live) =~ "request_logger_param_key="
     assert render(live) =~ "Enable cookie"
 
@@ -49,7 +54,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPageTest do
   end
 
   test "does not include cookie domain by default" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/request_logger?stream=sample")
+    {:ok, live, _} = live(build_conn(), "/dashboard/request_logger?stream=sample")
     refute render(live) =~ "data-cookie-domain"
   end
 

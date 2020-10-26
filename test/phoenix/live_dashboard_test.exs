@@ -7,7 +7,7 @@ defmodule Phoenix.LiveDashboardTest do
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   test "embeds phx-socket information" do
-    assert build_conn() |> get("/dashboard/nonode@nohost/home") |> html_response(200) =~
+    assert build_conn() |> get("/dashboard/home") |> html_response(200) =~
              ~s|phx-socket="/live"|
 
     assert build_conn() |> get("/config/nonode@nohost/home") |> html_response(200) =~
@@ -17,7 +17,7 @@ defmodule Phoenix.LiveDashboardTest do
   test "embeds csp nonces" do
     refute build_conn()
            |> assign(:csp_nonce, "abcdef")
-           |> get("/dashboard/nonode@nohost/home")
+           |> get("/dashboard/home")
            |> html_response(200) =~ "abcdef"
 
     assert build_conn()

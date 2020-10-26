@@ -9,13 +9,23 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
     assert {:ok, "Home"} = Phoenix.LiveDashboard.HomePage.menu_link(nil, nil)
   end
 
-  test "redirects when host is missing" do
+  test "redirects when page is missing" do
     conn = get(build_conn(), "/dashboard")
-    assert redirected_to(conn) == "/dashboard/nonode%40nohost/home"
+    assert redirected_to(conn) == "/dashboard/home"
+  end
+
+  test "redirects when node is wrong" do
+    conn = get(build_conn(), "/dashboard/wrong@node/home")
+    assert redirected_to(conn) == "/dashboard/home"
+  end
+
+  test "supports requests with node" do
+    conn = get(build_conn(), "/dashboard/nonode@nohost/home")
+    assert html_response(conn, 200) =~ "/dashboard/nonode%40nohost/applications"
   end
 
   test "shows system information" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/home")
+    {:ok, live, _} = live(build_conn(), "/dashboard/home")
     rendered = render(live)
     assert rendered =~ "Update every"
     assert rendered =~ to_string(:erlang.system_info(:system_version))
@@ -29,7 +39,7 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
   end
 
   test "shows memory usage information" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/home")
+    {:ok, live, _} = live(build_conn(), "/dashboard/home")
     rendered = render(live)
 
     assert rendered =~ ~r|<span>Atoms </span>|
@@ -42,7 +52,7 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
   end
 
   test "is the current page in menu component" do
-    {:ok, _live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/home")
+    {:ok, _live, rendered} = live(build_conn(), "/dashboard/home")
     assert rendered =~ ~s|<div class="menu-item active">Home</div>|
   end
 

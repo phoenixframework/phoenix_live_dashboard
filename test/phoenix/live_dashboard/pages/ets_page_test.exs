@@ -34,13 +34,13 @@ defmodule Phoenix.LiveDashboard.EtsPageTest do
       :ets.insert(table_big_ref, {"item_#{i}"})
     end
 
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/ets?limit=1000")
+    {:ok, live, _} = live(build_conn(), "/dashboard/ets?limit=1000")
     rendered = render(live)
     assert rendered =~ ~r/:table_big.*:table_small/s
     assert rendered =~ ets_href(1000, "", :size, :asc)
     refute rendered =~ ets_href(1000, "", :size, :desc)
 
-    rendered = render_patch(live, "/dashboard/nonode@nohost/ets?limit=1000&sort_dir=asc")
+    rendered = render_patch(live, "/dashboard/ets?limit=1000&sort_dir=asc")
     assert rendered =~ ~r/:table_small.*:table_big/s
     assert rendered =~ ets_href(1000, "", :size, :desc)
     refute rendered =~ ets_href(1000, "", :size, :asc)
@@ -92,7 +92,7 @@ defmodule Phoenix.LiveDashboard.EtsPageTest do
   end
 
   defp ets_path(limit, search, sort_by, sort_dir) do
-    "/dashboard/nonode%40nohost/ets?" <>
+    "/dashboard/ets?" <>
       "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end

@@ -126,8 +126,8 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   end
 
   defp render_item_link(socket, page, item, current, id) do
-    params = maybe_put([nav: id], :info, page.params[:info])
-    path = live_dashboard_path(socket, page.route, page.node, params)
+    # The nav ignores all params, except the current node if any
+    path = live_dashboard_path(socket, page.route, page.node, page.params, nav: id)
     class = "nav-link#{if current == id, do: " active"}"
 
     case item[:method] do
@@ -135,9 +135,6 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
       :redirect -> live_redirect(item[:name], to: path, class: class)
     end
   end
-
-  defp maybe_put(keyword, _key, nil), do: keyword
-  defp maybe_put(keyword, key, value), do: [{key, value} | keyword]
 
   defp render_content(socket, page, component_or_fun) do
     case component_or_fun do

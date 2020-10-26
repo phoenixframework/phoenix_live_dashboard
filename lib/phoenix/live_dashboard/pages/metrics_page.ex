@@ -19,7 +19,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
 
     cond do
       nav && is_nil(metrics) ->
-        {:ok, push_redirect(socket, to: live_dashboard_path(socket, :metrics, node(), []))}
+        {:ok, push_redirect(socket, to: live_dashboard_path(socket, socket.assigns.page, nav: first_nav))}
 
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.page.node, metrics)
@@ -27,7 +27,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
         {:ok, assign(socket, metrics: Enum.with_index(metrics))}
 
       first_nav && is_nil(nav) ->
-        to = live_dashboard_path(socket, :metrics, socket.assigns.page.node, nav: first_nav)
+        to = live_dashboard_path(socket, socket.assigns.page, nav: first_nav)
         {:ok, push_redirect(socket, to: to)}
 
       true ->

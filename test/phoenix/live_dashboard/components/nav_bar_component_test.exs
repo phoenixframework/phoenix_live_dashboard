@@ -48,10 +48,10 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
       result = render_items([])
 
       assert result =~
-               ~s|<a class="nav-link active" data-phx-link="patch" data-phx-link-state="push" href="/dashboard/nonode%40nohost/foobaz?nav=foo">Foo</a>|
+               ~s|<a class="nav-link active" data-phx-link="patch" data-phx-link-state="push" href="/dashboard/foobaz?nav=foo">Foo</a>|
 
       assert result =~
-               ~s|<a class="nav-link" data-phx-link="redirect" data-phx-link-state="push" href="/dashboard/nonode%40nohost/foobaz?nav=bar">Bar</a>|
+               ~s|<a class="nav-link" data-phx-link="redirect" data-phx-link-state="push" href="/dashboard/foobaz?nav=bar">Bar</a>|
 
       assert result =~ ~s|<div>foo_text</div>|
     end

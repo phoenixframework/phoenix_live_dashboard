@@ -51,7 +51,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   end
 
   defp ecto_stats_path() do
-    "/dashboard/nonode%40nohost/phoenix_live_dashboard_test_repo_info"
+    "/dashboard/phoenix_live_dashboard_test_repo_info"
   end
 
   defp ecto_stats_path(nav) do

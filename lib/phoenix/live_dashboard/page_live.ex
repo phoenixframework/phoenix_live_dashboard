@@ -21,7 +21,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
             timer: nil
 
   @impl true
-  def mount(%{"node" => _, "page" => page} = params, %{"pages" => pages} = session, socket) do
+  def mount(%{"page" => page} = params, %{"pages" => pages} = session, socket) do
     case Enum.find(pages, :error, fn {key, _} -> Atom.to_string(key) == page end) do
       {_id, {module, page_session}} ->
         assign_mount(socket, module, pages, page_session, params, session)
@@ -57,18 +57,20 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp assign_params(socket, params) do
-    update_page(socket, params: params, info: info(params), route: route(params))
+    update_page(socket, params: params, info: params["info"], route: route(params))
   end
 
   defp route(%{"page" => page}), do: String.to_existing_atom(page)
 
-  defp info(%{"info" => info} = params), do: {info, Map.delete(params, "info")}
-  defp info(%{}), do: nil
-
   defp assign_node(socket, params) do
-    param_node = Map.fetch!(params, "node")
+    found_node =
+      if param_node = params["node"] do
+        Enum.find(nodes(), &(Atom.to_string(&1) == param_node))
+      else
+        node()
+      end
 
-    if found_node = Enum.find(nodes(), &(Atom.to_string(&1) == param_node)) do
+    if found_node do
       if connected?(socket) do
         :net_kernel.monitor_nodes(true, node_type: :all)
       end
@@ -210,9 +212,10 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   defp live_info(_socket, %{info: nil}), do: nil
 
-  defp live_info(socket, %{info: {title, params}, node: node} = page) do
+  defp live_info(socket, %{info: title, node: node, params: params} = page) do
     if component = extract_info_component(title) do
-      path = &live_dashboard_path(socket, page.route, &1, Enum.into(&2, params))
+      params = Map.delete(params, "info")
+      path = &live_dashboard_path(socket, page.route, &1, params, Enum.into(&2, params))
 
       live_modal(socket, component,
         id: title,
@@ -266,7 +269,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
     page = socket.assigns.page
 
     if node && node != page.node do
-      to = live_dashboard_path(socket, page.route, node, page.params)
+      to = live_dashboard_path(socket, page.route, node, page.params, page.params)
       {:noreply, push_redirect(socket, to: to)}
     else
       {:noreply, redirect_to_current_node(socket)}
@@ -297,7 +300,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   defp maybe_link(socket, page, {:enabled, text, route}) do
     live_redirect(text,
-      to: live_dashboard_path(socket, route, page.node, []),
+      to: live_dashboard_path(socket, route, page.node, page.params, []),
       class: "menu-item"
     )
   end
@@ -335,7 +338,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp redirect_to_current_node(socket) do
-    push_redirect(socket, to: live_dashboard_path(socket, :home, node(), []))
+    push_redirect(socket, to: live_dashboard_path(socket, :home, node(), %{}, %{}))
   end
 
   defp update_page(socket, assigns) do

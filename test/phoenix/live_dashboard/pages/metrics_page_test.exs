@@ -24,12 +24,17 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
   end
 
   test "redirects to the first metrics group if no metric group is provided" do
+    {:error, {:live_redirect, %{to: "/dashboard/metrics?nav=ecto"}}} =
+      live(build_conn(), "/dashboard/metrics")
+  end
+
+  test "redirects to the first metrics group if no metric group is provided keeping node" do
     {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics?nav=ecto"}}} =
       live(build_conn(), "/dashboard/nonode@nohost/metrics")
   end
 
   test "shows given group metrics" do
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?nav=phx")
+    {:ok, live, _} = live(build_conn(), "/dashboard/metrics?nav=phx")
     rendered = render(live)
     assert rendered =~ "Updates automatically"
     assert rendered =~ "Phx"
@@ -48,14 +53,19 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
   end
 
   test "redirects on unknown group" do
-    {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics"}}} =
+    {:error, {:live_redirect, %{to: "/dashboard/metrics?nav=ecto"}}} =
+      live(build_conn(), "/dashboard/metrics?nav=unknown")
+  end
+
+  test "redirects on unknown group keeping node" do
+    {:error, {:live_redirect, %{to: "/dashboard/nonode%40nohost/metrics?nav=ecto"}}} =
       live(build_conn(), "/dashboard/nonode@nohost/metrics?nav=unknown")
   end
 
   test "renders history for metrics" do
     data = ~s|<span data-x="#{TestHistory.label()}" data-y="#{TestHistory.measurement()}"|
 
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/metrics?nav=phx")
+    {:ok, live, _} = live(build_conn(), "/dashboard/metrics?nav=phx")
     refute render(live) =~ data
 
     {:ok, live, _} = live(build_conn(), "/config/nonode@nohost/metrics?nav=phx")

@@ -10,10 +10,10 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
   end
 
   test "shows ports with limit" do
-    {:ok, live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/ports")
+    {:ok, live, rendered} = live(build_conn(), "/dashboard/ports")
     assert rendered |> :binary.matches("</tr>") |> length() <= 100
 
-    rendered = render_patch(live, "/dashboard/nonode@nohost/ports?limit=2")
+    rendered = render_patch(live, "/dashboard/ports?limit=2")
     assert rendered |> :binary.matches("</tr>") |> length() > 1
   end
 
@@ -60,7 +60,7 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
     refute rendered =~ ports_href(50, "", :output, :asc)
 
     rendered =
-      render_patch(live, "/dashboard/nonode@nohost/ports?limit=50&sort_dir=desc&sort_by=output")
+      render_patch(live, "/dashboard/ports?limit=50&sort_dir=desc&sort_by=output")
 
     assert rendered =~ ~r/sleep.*forker/s
     refute rendered =~ ~r/forker.*sleep/s
@@ -68,7 +68,7 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
     refute rendered =~ ports_href(50, "", :output, :desc)
 
     rendered =
-      render_patch(live, "/dashboard/nonode@nohost/ports?limit=50&sort_dir=asc&sort_by=output")
+      render_patch(live, "/dashboard/ports?limit=50&sort_dir=asc&sort_by=output")
 
     assert rendered =~ ~r/forker.*sleep/s
     refute rendered =~ ~r/sleep.*forker/s
@@ -99,7 +99,7 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
   end
 
   defp ports_path(limit, search, sort_by, sort_dir) do
-    "/dashboard/nonode%40nohost/ports?" <>
+    "/dashboard/ports?" <>
       "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end

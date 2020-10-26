@@ -7,11 +7,15 @@ defmodule Phoenix.LiveDashboard.Helpers do
   @doc """
   Computes a route path to the given route, node, and params.
   """
-  def live_dashboard_path(socket, route, node, params) do
+  def live_dashboard_path(socket, route, node, old_params, new_params) when is_atom(node) do
     apply(
       socket.router.__helpers__(),
       :live_dashboard_path,
-      [socket, :page, node, route, params]
+      if node == node() and is_nil(old_params["node"]) do
+        [socket, :page, route, new_params]
+      else
+        [socket, :page, node, route, new_params]
+      end
     )
   end
 
@@ -19,15 +23,15 @@ defmodule Phoenix.LiveDashboard.Helpers do
   Computes a router path to the current page.
   """
   def live_dashboard_path(socket, %{route: route, node: node, params: params}) do
-    live_dashboard_path(socket, route, node, params)
+    live_dashboard_path(socket, route, node, params, params)
   end
 
   @doc """
   Computes a router path to the current page with merged params.
   """
-  def live_dashboard_path(socket, %{route: route, node: node, params: params}, extra) do
-    params = Enum.into(extra, params, fn {k, v} -> {Atom.to_string(k), v} end)
-    live_dashboard_path(socket, route, node, params)
+  def live_dashboard_path(socket, %{route: route, node: node, params: old_params}, extra) do
+    new_params = Enum.into(extra, old_params, fn {k, v} -> {Atom.to_string(k), v} end)
+    live_dashboard_path(socket, route, node, old_params, new_params)
   end
 
   @doc """

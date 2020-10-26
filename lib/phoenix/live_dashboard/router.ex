@@ -75,9 +75,8 @@ defmodule Phoenix.LiveDashboard.Router do
         import Phoenix.LiveView.Router, only: [live: 4]
 
         opts = Phoenix.LiveDashboard.Router.__options__(opts)
-        live "/", Phoenix.LiveDashboard.PageLive, :home, opts ++ [page: "home", node: node()]
-
-        # Catch-all for URL generation
+        live "/", Phoenix.LiveDashboard.PageLive, :page, opts
+        live "/:page", Phoenix.LiveDashboard.PageLive, :page, opts
         live "/:node/:page", Phoenix.LiveDashboard.PageLive, :page, opts
       end
     end

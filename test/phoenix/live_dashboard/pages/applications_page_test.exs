@@ -10,7 +10,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
   end
 
   test "shows applications with limit" do
-    {:ok, _live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/applications")
+    {:ok, _live, rendered} = live(build_conn(), "/dashboard/applications")
     assert rendered |> :binary.matches("</tr>") |> length() <= 100
   end
 
@@ -71,7 +71,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
   end
 
   defp applications_path(limit, search, sort_by, sort_dir) do
-    "/dashboard/nonode%40nohost/applications?" <>
+    "/dashboard/applications?" <>
       "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end

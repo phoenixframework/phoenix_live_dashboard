@@ -10,10 +10,10 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
   end
 
   test "shows processes with limit" do
-    {:ok, live, rendered} = live(build_conn(), "/dashboard/nonode@nohost/processes")
+    {:ok, live, rendered} = live(build_conn(), "/dashboard/processes")
     assert rendered |> :binary.matches("</tr>") |> length() <= 100
 
-    rendered = render_patch(live, "/dashboard/nonode@nohost/processes?limit=1000")
+    rendered = render_patch(live, "/dashboard/processes?limit=1000")
     assert rendered |> :binary.matches("</tr>") |> length() > 100
   end
 
@@ -47,13 +47,13 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     Agent.start_link(fn -> List.duplicate("a", 1) end, name: :process_live_test_low_memory)
     Agent.start_link(fn -> List.duplicate("a", 1000) end, name: :process_live_test_high_memory)
 
-    {:ok, live, _} = live(build_conn(), "/dashboard/nonode@nohost/processes?limit=1000")
+    {:ok, live, _} = live(build_conn(), "/dashboard/processes?limit=1000")
     rendered = render(live)
     assert rendered =~ ~r/:process_live_test_high_memory.*:process_live_test_low_memory/s
     assert rendered =~ processes_href(1000, "", :memory, :asc)
     refute rendered =~ processes_href(1000, "", :memory, :desc)
 
-    rendered = render_patch(live, "/dashboard/nonode@nohost/processes?limit=1000&sort_dir=asc")
+    rendered = render_patch(live, "/dashboard/processes?limit=1000&sort_dir=asc")
     assert rendered =~ ~r/:process_live_test_low_memory.*:process_live_test_high_memory/s
     assert rendered =~ processes_href(1000, "", :memory, :desc)
     refute rendered =~ processes_href(1000, "", :memory, :asc)
@@ -148,7 +148,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
   end
 
   defp processes_path(prefix \\ "dashboard", limit, search, sort_by, sort_dir) do
-    "/#{prefix}/nonode%40nohost/processes?" <>
+    "/#{prefix}/processes?" <>
       "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end

@@ -52,7 +52,7 @@ defmodule Phoenix.LiveDashboard.SocketsPageTest do
     rendered =
       render_patch(
         live,
-        "/dashboard/nonode@nohost/sockets?limit=50&sort_dir=desc&sort_by=local_address"
+        "/dashboard/sockets?limit=50&sort_dir=desc&sort_by=local_address"
       )
 
     assert rendered =~ ~r/#{second_address}.*#{first_address}/s
@@ -63,7 +63,7 @@ defmodule Phoenix.LiveDashboard.SocketsPageTest do
     rendered =
       render_patch(
         live,
-        "/dashboard/nonode@nohost/sockets?limit=50&sort_dir=asc&sort_by=local_address"
+        "/dashboard/sockets?limit=50&sort_dir=asc&sort_by=local_address"
       )
 
     assert rendered =~ ~r/#{first_address}.*#{second_address}/s
@@ -97,7 +97,7 @@ defmodule Phoenix.LiveDashboard.SocketsPageTest do
   end
 
   defp sockets_path(limit, search, sort_by, sort_dir) do
-    "/dashboard/nonode%40nohost/sockets?" <>
+    "/dashboard/sockets?" <>
       "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 
