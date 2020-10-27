@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.4 (2020-10-27)
+
+* Only add node to the URL if explicitly required to improve reliability in non-clustered environments
+
 ## v0.3.3 (2020-10-24)
 
 * Only show Calls/Outliers in Ecto Stats if extension is enabled
