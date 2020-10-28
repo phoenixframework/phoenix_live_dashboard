@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.5 (2020-10-27)
+
+* Fix regression were home path helper was removed
+
 ## v0.3.4 (2020-10-27)
 
 * Only add node to the URL if explicitly required to improve reliability in non-clustered environments
