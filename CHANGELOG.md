@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.6 (2020-10-28)
+
+* Ensure socket info component displays correctly
+
 ## v0.3.5 (2020-10-27)
 
 * Fix regression were home path helper was removed
