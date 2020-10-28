@@ -235,6 +235,7 @@ defmodule Phoenix.LiveDashboard.Router do
         ets: {Phoenix.LiveDashboard.EtsPage, %{}}
       ]
       |> Enum.concat(ecto_stats(ecto_repos))
+      |> Enum.concat(ecto_migrations(ecto_repos))
       |> Enum.concat(additional_pages)
       |> Enum.map(fn {key, {module, opts}} ->
         {session, requirements} = initialize_page(module, opts)
@@ -261,6 +262,22 @@ defmodule Phoenix.LiveDashboard.Router do
         |> String.to_atom()
 
       {page, {Phoenix.LiveDashboard.EctoStatsPage, %{repo: repo}}}
+    end
+  end
+
+  defp ecto_migrations(nil),
+    do: [{:ecto_migrations, {Phoenix.LiveDashboard.EctoMigrations, %{repo: nil}}}]
+
+  defp ecto_migrations(repos) do
+    for repo <- List.wrap(repos) do
+      page =
+        repo
+        |> Macro.underscore()
+        |> String.replace("/", "_")
+        |> Kernel.<>("_migrations")
+        |> String.to_atom()
+
+      {page, {Phoenix.LiveDashboard.EctoMigrationsPage, %{repo: repo}}}
     end
   end
 
