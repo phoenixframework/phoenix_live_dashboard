@@ -47,8 +47,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :sockets_callback, [search, sort_by, sort_dir, limit])
   end
 
-  def fetch_socket_info(port, keys) do
-    :rpc.call(node(port), __MODULE__, :socket_info_callback, [port, keys])
+  def fetch_socket_info(port) do
+    :rpc.call(node(port), __MODULE__, :socket_info_callback, [port])
   end
 
   def fetch_process_info(pid) do

@@ -78,11 +78,11 @@ defmodule Phoenix.LiveDashboard.SocketsPageTest do
     {:ok, live, _} = live(build_conn(), socket_info_path(socket, 50, :send_oct, :asc))
     rendered = render(live)
     assert rendered =~ sockets_href(50, "", :send_oct, :asc)
-
     assert rendered =~ "modal-content"
     assert rendered =~ ~r/Local Address.*#{address}/s
 
-    refute live |> element("#modal .close") |> render_click() =~ "modal"
+    rendered = live |> element("#modal .close") |> render_click()
+    refute rendered =~ "modal"
     return_path = sockets_path(50, "", :send_oct, :asc)
     assert_patch(live, return_path)
   end
@@ -93,7 +93,7 @@ defmodule Phoenix.LiveDashboard.SocketsPageTest do
 
   defp socket_info_path(port, limit, sort_by, sort_dir) do
     sockets_path(limit, "", sort_by, sort_dir) <>
-      "&info=#{Phoenix.LiveDashboard.Helpers.encode_port(port)}"
+      "&info=#{Phoenix.LiveDashboard.Helpers.encode_socket(port)}"
   end
 
   defp sockets_path(limit, search, sort_by, sort_dir) do
