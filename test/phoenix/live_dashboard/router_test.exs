@@ -4,6 +4,11 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   alias Phoenix.LiveDashboard.Router
   import Phoenix.ConnTest
 
+  test "generates helper for home" do
+    assert Phoenix.LiveDashboardTest.Router.Helpers.live_dashboard_path(build_conn(), :home) ==
+             "/dashboard"
+  end
+
   test "default options" do
     assert Router.__options__([]) == [
              session:

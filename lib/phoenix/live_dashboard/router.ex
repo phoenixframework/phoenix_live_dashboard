@@ -73,9 +73,10 @@ defmodule Phoenix.LiveDashboard.Router do
     quote bind_quoted: binding() do
       scope path, alias: false, as: false do
         import Phoenix.LiveView.Router, only: [live: 4]
-
         opts = Phoenix.LiveDashboard.Router.__options__(opts)
-        live "/", Phoenix.LiveDashboard.PageLive, :page, opts
+
+        # All helpers are public contracts and cannot be changed
+        live "/", Phoenix.LiveDashboard.PageLive, :home, opts
         live "/:page", Phoenix.LiveDashboard.PageLive, :page, opts
         live "/:node/:page", Phoenix.LiveDashboard.PageLive, :page, opts
       end
