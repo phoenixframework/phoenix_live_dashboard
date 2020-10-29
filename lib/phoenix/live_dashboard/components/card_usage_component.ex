@@ -6,7 +6,7 @@ defmodule Phoenix.LiveDashboard.CardUsageComponent do
     <div class="card progress-section mb-4">
       <%= live_component @socket, Phoenix.LiveDashboard.TitleBarComponent, class: "card-body", percent: percentage(@usage, @limit) do %>
         <div>
-          <%= @inner_content.([]) %>
+          <%= render_block @inner_block, [] %>
         </div>
         <div>
           <small class="text-muted pr-2">

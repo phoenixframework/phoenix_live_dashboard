@@ -11,7 +11,7 @@ defmodule Phoenix.LiveDashboard.TitleBarComponentTest do
         render_component(TitleBarComponent,
           percent: 0.1,
           class: "test-class",
-          inner_content: fn _ -> "123" end
+          inner_block: fn nil, [] -> "123" end
         )
 
       assert result =~ "123"
