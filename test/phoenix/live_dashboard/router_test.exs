@@ -24,7 +24,34 @@ defmodule Phoenix.LiveDashboard.RouterTest do
              live_socket_path: "/custom/live",
              csp_nonce_assign_key: :csp_nonce
            )[:private] ==
-             %{live_socket_path: "/custom/live", csp_nonce_assign_key: :csp_nonce}
+             %{
+               live_socket_path: "/custom/live",
+               csp_nonce_assign_key: %{
+                 img: :csp_nonce,
+                 style: :csp_nonce,
+                 script: :csp_nonce
+               }
+             }
+  end
+
+  test "configures csp in detail" do
+    assert Router.__options__(
+             live_socket_path: "/custom/live",
+             csp_nonce_assign_key: %{
+               img: :img_csp_none,
+               style: :style_csp_none,
+               script: :script_csp_none,
+               other: :unused
+             }
+           )[:private] ==
+             %{
+               live_socket_path: "/custom/live",
+               csp_nonce_assign_key: %{
+                 img: :img_csp_none,
+                 style: :style_csp_none,
+                 script: :script_csp_none
+               }
+             }
   end
 
   test "configures metrics" do

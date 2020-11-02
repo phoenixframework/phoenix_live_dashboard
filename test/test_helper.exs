@@ -59,7 +59,11 @@ defmodule Phoenix.LiveDashboardTest.Router do
 
     live_dashboard "/config",
       live_socket_path: "/custom/live",
-      csp_nonce_assign_key: :csp_nonce,
+      csp_nonce_assign_key: %{
+        img: :img_csp_nonce,
+        style: :style_csp_nonce,
+        script: :script_csp_nonce
+      },
       env_keys: ["PHX_DASHBOARD_TEST"],
       allow_destructive_actions: true,
       metrics: Phoenix.LiveDashboardTest.Telemetry,
