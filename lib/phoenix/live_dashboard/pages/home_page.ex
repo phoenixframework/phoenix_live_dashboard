@@ -173,7 +173,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
       <div class="col-sm-6">
         <h5 class="card-title">System limits</h5>
 
-        <%= live_component @socket, CardUsageComponent, usage: @system_usage.atoms, limit: @system_limits.atoms do %>
+        <%= live_component @socket, CardUsageComponent, dom_id: "usage-atoms", usage: @system_usage.atoms, limit: @system_limits.atoms, csp_nonces: @csp_nonces do %>
           Atoms
           <%= hint do %>
             If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
@@ -181,7 +181,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
           <% end %>
         <% end %>
 
-        <%= live_component @socket, CardUsageComponent, usage: @system_usage.ports, limit: @system_limits.ports do %>
+        <%= live_component @socket, CardUsageComponent, dom_id: "usage-ports", usage: @system_usage.ports, limit: @system_limits.ports, csp_nonces: @csp_nonces do %>
           Ports
           <%= hint do %>
             If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
@@ -189,7 +189,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
           <% end %>
         <% end %>
 
-        <%= live_component @socket, CardUsageComponent, usage: @system_usage.processes, limit: @system_limits.processes do %>
+        <%= live_component @socket, CardUsageComponent, dom_id: "usage-processes", usage: @system_usage.processes, limit: @system_limits.processes, csp_nonces: @csp_nonces do %>
           Processes
           <%= hint do %>
             If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
@@ -203,7 +203,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
         <div class="card resource-usage mb-4">
           <div class="card-body" phx-hook="PhxColorBarHighlight" id="memory-color-bars">
-            <%= live_component @socket, ColorBarComponent, data: memory_usage_sections_percent(@system_usage.memory, @system_usage.memory.total) %>
+            <%= live_component @socket, ColorBarComponent, data: memory_usage_sections_percent(@system_usage.memory, @system_usage.memory.total), csp_nonces: @csp_nonces, dom_id: "system_usage_memory_total" %>
             <%= live_component @socket, ColorBarLegendComponent, data: memory_usage_sections(@system_usage.memory), formatter: &format_bytes(&1) %>
             <div class="row">
               <div class="col">

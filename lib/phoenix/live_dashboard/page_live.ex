@@ -38,11 +38,12 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp assign_mount(socket, module, pages, page_session, params, session) do
     %{
       "requirements" => requirements,
-      "allow_destructive_actions" => allow_destructive_actions
+      "allow_destructive_actions" => allow_destructive_actions,
+      "csp_nonces" => csp_nonces
     } = session
 
     page = %PageBuilder{module: module, allow_destructive_actions: allow_destructive_actions}
-    socket = assign(socket, page: page, menu: %PageLive{})
+    socket = assign(socket, page: page, menu: %PageLive{}, csp_nonces: csp_nonces)
 
     with %Socket{redirected: nil} = socket <- assign_params(socket, params),
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
