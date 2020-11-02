@@ -15,16 +15,29 @@ defmodule Phoenix.LiveDashboardTest do
   end
 
   test "embeds csp nonces" do
-    refute build_conn()
-           |> assign(:csp_nonce, "abcdef")
-           |> get("/dashboard/home")
-           |> html_response(200) =~ "abcdef"
+    html =
+      build_conn()
+      |> assign(:img_csp_nonce, "img_nonce")
+      |> assign(:script_csp_nonce, "script_nonce")
+      |> assign(:style_csp_nonce, "style_nonce")
+      |> get("/dashboard/home")
+      |> html_response(200)
 
-    assert build_conn()
-           |> assign(:csp_nonce, "abcdef")
-           |> get("/config/nonode@nohost/home")
-           |> html_response(200) =~
-             ~s|<script nonce="abcdef">|
+    refute html =~ "img_nonce"
+    refute html =~ "script_nonce"
+    refute html =~ "style_nonce"
+
+    html =
+      build_conn()
+      |> assign(:img_csp_nonce, "img_nonce")
+      |> assign(:script_csp_nonce, "script_nonce")
+      |> assign(:style_csp_nonce, "style_nonce")
+      |> get("/config/nonode@nohost/home")
+      |> html_response(200)
+
+    assert html =~ ~s|<script nonce="script_nonce"|
+    assert html =~ ~s|<style nonce="style_nonce"|
+    assert html =~ ~s|<img nonce="img_nonce"|
   end
 
   @tag :integration
