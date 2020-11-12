@@ -36,7 +36,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
     <div class="col-xl-6 col-xxl-4 col-xxxl-3 charts-col">
       <div id="chart-<%= @id %>" class="card">
         <div class="card-body">
-          <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" style="display:none;">
+          <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" hidden>
           <%= for {x, y, z} <- @data do %>
             <span data-x="<%= x || @label %>" data-y="<%= y %>" data-z="<%= z %>"></span>
           <% end %>

@@ -12,6 +12,7 @@ defmodule Phoenix.LiveDashboard.TitleBarComponent do
         <div class="d-flex justify-content-between">
           <%= @inner_content.([]) %>
         </div>
+        <style nonce="<%= @csp_nonces.style %>">#<%= "#{@dom_id}-progress" %>{width:<%= @percent %>%}</style>
         <div class="progress flex-grow-1 mt-2">
           <div
           class="progress-bar bg-<%= @color %>"
@@ -19,7 +20,7 @@ defmodule Phoenix.LiveDashboard.TitleBarComponent do
           aria-valuenow="<%= @percent %>"
           aria-valuemin="0"
           aria-valuemax="100"
-          style="width: <%= @percent %>%"
+          id="<%= "#{@dom_id}-progress" %>"
           >
           </div>
         </div>

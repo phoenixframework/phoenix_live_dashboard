@@ -9,7 +9,8 @@ defmodule Phoenix.LiveDashboard.ColorBarComponent do
     ~L"""
     <div class="progress flex-grow-1 mb-3">
       <span class="progress-title"><%= @title %></span>
-      <%= for {name, value, color, _desc} <- @data do %>
+      <%= for {{name, value, color, _desc}, index} <- Enum.with_index(@data) do %>
+        <style nonce="<%= @csp_nonces.style %>">#<%= "#{@dom_id}-progress-#{index}" %>{width:<%= value %>%}</style>
         <div
         title="<%= name %> - <%= format_percent(value) %>"
         class="progress-bar bg-gradient-<%= color %>"
@@ -19,7 +20,7 @@ defmodule Phoenix.LiveDashboard.ColorBarComponent do
         aria-valuemax="100"
         data-name="<%= name %>"
         data-empty="<%= empty?(value) %>"
-        style="width: <%= value %>%">
+        id="<%= "#{@dom_id}-progress-#{index}" %>">
         </div>
       <% end %>
     </div>

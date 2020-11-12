@@ -188,11 +188,11 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
                 <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
                   <%= for {num_cpu, usage} <- @os_mon.cpu_per_core do %>
                     <div class="progress flex-grow-1 mb-3">
-                      <%= live_component @socket, ColorBarComponent, id: {:cpu, num_cpu}, data: cpu_usage_sections(usage), title: "CPU #{num_cpu+1}" %>
+                      <%= live_component @socket, ColorBarComponent, dom_id: "cpu-#{num_cpu}", data: cpu_usage_sections(usage), title: "CPU #{num_cpu+1}", csp_nonces: @csp_nonces %>
                     </div>
                   <% end %>
                   <div class="progress flex-grow-1 mb-3">
-                    <%= live_component @socket, ColorBarComponent, data: cpu_usage_sections(@cpu_total), title: "TOTAL" %>
+                    <%= live_component @socket, ColorBarComponent, dom_id: "cpu-total", data: cpu_usage_sections(@cpu_total), title: "TOTAL", csp_nonces: @csp_nonces %>
                   </div>
                   <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total) %>
                   <div class="resource-usage-total text-center py-1 mt-3">
@@ -208,9 +208,9 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
       <%= if @memory_usage != [] do %>
         <div class="<%= if @os_mon.cpu_nprocs > 0, do: "col-sm-6", else: "col-12" %>">
           <h5 class="card-title">Memory</h5>
-          <%= for {title, value, total, percent, hint} <- @memory_usage do %>
+          <%= for {{title, value, total, percent, hint}, index} <- Enum.with_index(@memory_usage) do %>
             <div class="card progress-section mb-4">
-              <%= live_component @socket, TitleBarComponent, id: {:memory, title}, percent: percent, class: "card-body" do %>
+              <%= live_component @socket, TitleBarComponent, dom_id: "memory-#{index}", percent: percent, class: "card-body", csp_nonces: @csp_nonces do %>
                 <div>
                   <%= title %>&nbsp;<%= hint(do: hint) %>
                 </div>
@@ -232,7 +232,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
           <div class="card progress-section mb-4">
             <div class="card-body">
               <%= for {{mountpoint, kbytes, percent}, index} <- Enum.with_index(@os_mon.disk) do %>
-                <%= live_component @socket, TitleBarComponent, id: {:disk, mountpoint, index}, percent: percent, class: "py-2" do %>
+                <%= live_component @socket, TitleBarComponent, dom_id: "disk-#{index}", percent: percent, class: "py-2", csp_nonces: @csp_nonces do %>
                   <div>
                     <%= mountpoint %>
                   </div>

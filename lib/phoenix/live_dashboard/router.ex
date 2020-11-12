@@ -181,7 +181,8 @@ defmodule Phoenix.LiveDashboard.Router do
       metrics_history,
       additional_pages,
       request_logger_cookie_domain,
-      ecto_repos
+      ecto_repos,
+      csp_nonce_assign_key
     ]
 
     [
@@ -219,7 +220,8 @@ defmodule Phoenix.LiveDashboard.Router do
         metrics_history,
         additional_pages,
         request_logger_cookie_domain,
-        ecto_repos
+        ecto_repos,
+        csp_nonce_assign_key
       ) do
     metrics_session = %{
       "metrics" => metrics,
@@ -254,7 +256,12 @@ defmodule Phoenix.LiveDashboard.Router do
     %{
       "pages" => pages,
       "allow_destructive_actions" => allow_destructive_actions,
-      "requirements" => requirements |> Enum.concat() |> Enum.uniq()
+      "requirements" => requirements |> Enum.concat() |> Enum.uniq(),
+      "csp_nonces" => %{
+        img: conn.assigns[csp_nonce_assign_key[:img]],
+        style: conn.assigns[csp_nonce_assign_key[:style]],
+        script: conn.assigns[csp_nonce_assign_key[:script]]
+      }
     }
   end
 
