@@ -173,8 +173,7 @@ defmodule DemoWeb.Router do
 
   pipeline :browser do
     plug :fetch_session
-
-    plug :put_csp
+    # plug :put_csp
   end
 
   scope "/" do
@@ -207,9 +206,8 @@ defmodule DemoWeb.Router do
     |> assign(:script_csp_nonce, script_nonce)
     |> put_resp_header(
       "content-security-policy",
-      "default-src; script-src 'nonce-#{script_nonce}'; style-src 'nonce-#{style_nonce}'; img-src 'nonce-#{
-        img_nonce
-      }' data: ; font-src data: ; connect-src 'self'; frame-src 'self' ;"
+      "default-src; script-src 'nonce-#{script_nonce}'; style-src 'nonce-#{style_nonce}'; " <>
+        "img-src 'nonce-#{img_nonce}' data: ; font-src data: ; connect-src 'self'; frame-src 'self' ;"
     )
   end
 end
