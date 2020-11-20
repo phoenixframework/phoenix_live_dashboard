@@ -64,9 +64,12 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPageTest do
   end
 
   test "includes cookie domain from parent" do
-    {:ok, live, _} =
-      live(build_conn(), "/parent_cookie_domain/nonode@nohost/request_logger?stream=sample")
+    url = "/parent_cookie_domain/nonode@nohost/request_logger?stream=sample"
 
+    {:ok, live, _} = live(%{build_conn() | host: "localhost"}, url)
     assert render(live) =~ "data-cookie-domain=\"localhost\""
+
+    {:ok, live, _} = live(%{build_conn() | host: "foo.example.com"}, url)
+    assert render(live) =~ "data-cookie-domain=\"example.com\""
   end
 end

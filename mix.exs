@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.3.6"
+  @version "0.4.0"
 
   def project do
     [
@@ -43,7 +43,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
   defp deps do
     [
       # Actual deps
-      {:phoenix_live_view, "~> 0.14.3", phoenix_live_view_opts()},
+      {:phoenix_live_view, "~> 0.15.0", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.4.0 or ~> 0.5.0 or ~> 0.6.0"},
       {:phoenix_html, "~> 2.14.1 or ~> 2.15"},
       {:ecto_psql_extras, "~> 0.4.1 or ~> 0.5", optional: true},

@@ -11,9 +11,9 @@ defmodule Phoenix.LiveDashboard.TitleBarComponentTest do
         render_component(TitleBarComponent,
           percent: 0.1,
           class: "test-class",
-          inner_content: fn _ -> "123" end,
           csp_nonces: %{img: "img_nonce", style: "style_nonce", script: "script_nonce"},
-          dom_id: "title-bar"
+          dom_id: "title-bar",
+          inner_block: fn _, _ -> "123" end
         )
 
       assert result =~ "123"

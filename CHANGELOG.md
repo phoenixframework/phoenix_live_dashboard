@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.4.0 (2020-11-20)
+
+* Require LiveView v0.15.0
+
 ## v0.3.6 (2020-10-28)
 
 * Ensure socket info component displays correctly
