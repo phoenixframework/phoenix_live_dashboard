@@ -2,8 +2,12 @@
 @import "./app/fonts";
 @import "~bootstrap/scss/bootstrap";
 
+// Extends
+@import "./app/extends/progress_bar";
+
 @import "./app/layout";
 
+// Components
 @import "./app/components/app_info";
 @import "./app/components/backgrounds";
 @import "./app/components/banner_card";
@@ -20,11 +24,14 @@
 @import "./app/components/logs_card";
 @import "./app/components/tabular_info";
 @import "./app/components/tabular_page";
-@import "./app/components/progress_section";
-@import "./app/components/resource_usage";
 @import "./app/components/modals";
 @import "./app/components/tables";
+@import "./app/components/color_bar";
+@import "./app/components/color_bar_legend";
+
+// Utils
+@import "./app/utils/resource_usage";
+
 
 @import "./app/liveview";
-
 @import "../node_modules/nprogress/nprogress.css";

@@ -1,4 +1,4 @@
-const interactiveItemSelector = '.progress-bar, .resource-usage-legend-entry'
+const interactiveItemSelector = '.progress-bar, .color-bar-legend-entry'
 let highlightedElementName
 
 const highlightElements = (containerElement) => {
