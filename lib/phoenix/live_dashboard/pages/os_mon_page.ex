@@ -187,11 +187,11 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
               <div class="card-body resource-usage">
                 <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
                   <%= for {num_cpu, usage} <- @os_mon.cpu_per_core do %>
-                    <div class="progress flex-grow-1 mb-3">
+                    <div class="flex-grow-1 mb-3">
                       <%= live_component @socket, ColorBarComponent, dom_id: "cpu-#{num_cpu}", data: cpu_usage_sections(usage), title: "CPU #{num_cpu+1}", csp_nonces: @csp_nonces %>
                     </div>
                   <% end %>
-                  <div class="progress flex-grow-1 mb-3">
+                  <div class="flex-grow-1 mb-3">
                     <%= live_component @socket, ColorBarComponent, dom_id: "cpu-total", data: cpu_usage_sections(@cpu_total), title: "TOTAL", csp_nonces: @csp_nonces %>
                   </div>
                   <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total) %>

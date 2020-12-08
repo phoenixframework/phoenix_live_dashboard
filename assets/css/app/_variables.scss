@@ -68,6 +68,8 @@ $color-shadow-dark: darken($color-gray, 75%);
 $box-shadow: 0 2px 5px change-color($color-shadow, $alpha: 0.5), 0 7px 20px change-color($color-shadow, $alpha: 0.75);
 $box-shadow-lighter: 0 2px 5px change-color($color-shadow, $alpha: 0.15), 0 7px 20px change-color($color-shadow, $alpha: 0.3);
 $box-shadow-darker: 0 2px 5px change-color($color-shadow-dark, $alpha: 0.15), 0 7px 20px change-color($color-shadow, $alpha: 0.3);
+$bar-shadow: inset 0 0 0 1px $color-gray-600, inset 0 0 0 3px change-color($color-gray-100, $alpha: 0.15);
+$bar-dark-shadow: inset 0 0 0 1px change-color($color-gray-900, $alpha: 0.25), inset 0 0 0 3px change-color($color-gray-100, $alpha: 0.15);
 
 // Custom colors
 $color-header: #4a4473;
