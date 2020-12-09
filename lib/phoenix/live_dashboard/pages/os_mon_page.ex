@@ -184,7 +184,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
           <%= if @cpu_total do %>
             <div class="card mb-4">
-              <div class="card-body resource-usage">
+              <div class="card-body">
                 <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
                   <%= for {num_cpu, usage} <- @os_mon.cpu_per_core do %>
                     <div class="flex-grow-1 mb-3">

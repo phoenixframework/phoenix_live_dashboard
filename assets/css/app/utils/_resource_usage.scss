@@ -1,0 +1,11 @@
+// Memory usage visualization
+.resource-usage {
+  &-total {
+    background-color: $color-gray-100;
+    color: $color-gray-800;
+
+    &-value {
+      color: $text-color;
+    }
+  }
+}
