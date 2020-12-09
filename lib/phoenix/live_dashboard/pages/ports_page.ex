@@ -29,7 +29,7 @@ defmodule Phoenix.LiveDashboard.PortsPage do
       %{
         field: :port,
         header_attrs: [class: "pl-4"],
-        cell_attrs: [class: "tabular-column-id pl-4"],
+        cell_attrs: [class: "phx-table-column-id pl-4"],
         format: &(&1 |> encode_port() |> String.replace_prefix("Port", ""))
       },
       %{
@@ -46,14 +46,14 @@ defmodule Phoenix.LiveDashboard.PortsPage do
       %{
         field: :input,
         header_attrs: [class: "text-right"],
-        cell_attrs: [class: "tabular-column-bytes"],
+        cell_attrs: [class: "phx-table-column-bytes"],
         format: &format_bytes/1,
         sortable: :desc
       },
       %{
         field: :output,
         header_attrs: [class: "text-right pr-4"],
-        cell_attrs: [class: "tabular-column-bytes pr-4"],
+        cell_attrs: [class: "phx-table-column-bytes pr-4"],
         format: &format_bytes/1,
         sortable: :desc
       },
