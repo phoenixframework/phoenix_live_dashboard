@@ -264,7 +264,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {:safe,
      """
      <div class="dash-table-icon">
-       <span class="icon-sort icon-asc"></span>
+       <span class="icon-sort icon-desc"></span>
      </div>
      """}
   end
@@ -273,7 +273,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {:safe,
      """
      <div class="dash-table-icon">
-       <span class="icon-sort icon-desc"></span>
+       <span class="icon-sort icon-asc"></span>
      </div>
      """}
   end
