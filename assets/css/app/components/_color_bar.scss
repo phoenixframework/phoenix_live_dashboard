@@ -1,0 +1,86 @@
+// ColorBarComponent
+.color-bar {
+  &-progress {
+    border-radius: 2px;
+    height: 1.5rem;
+    background-color: transparent;
+    position: relative;
+
+
+    &-title {
+      color: $color-gray-700;
+      position: absolute;
+      right: 6px;
+      top: 2px;
+      font-weight: bold;      
+    }
+
+    &-bar {
+      border-color: white;
+      border-style: solid;
+      border-width: 0 1px;
+      min-width: 4px;
+      flex-grow: 0;
+      user-select: none;
+      cursor: pointer;
+      
+      &[data-empty="true"] {
+        display: none;
+        
+      }
+
+      &[data-muted="true"] {
+        opacity: 0.15;
+        
+
+      }
+
+      &.bg-gradient-light-gray {
+        &[data-muted="false"] {
+          box-shadow: $bar-shadow;
+          background: linear-gradient(
+            90deg,
+            adjust-color($color-light-gray, $lightness: -3%),
+            adjust-color($color-light-gray, $lightness: -1%)
+          );
+        }
+
+        &[data-muted="true"] {
+          opacity: 1;
+          background: linear-gradient(
+            90deg,
+            adjust-color($color-light-gray, $lightness: +3%),
+            adjust-color($color-light-gray, $lightness: +2%)
+          );
+          
+        }
+      }
+
+      &:last-of-type {
+        border-right-width: 0;
+      }
+
+      &:first-of-type {
+        border-left-width: 0;
+        min-width: 3px;
+      }
+
+      &:hover {
+        box-shadow: $bar-dark-shadow;
+        filter: contrast(120%) brightness(90%);
+        
+
+        &[data-muted="true"] {
+          opacity: 0.6;
+        }
+      }
+
+      &.bg-gradient-light-gray:hover,
+      &:hover .bg-light-gray {
+        box-shadow: $bar-shadow;
+        filter: none;
+        
+      }
+    }
+  }
+}

@@ -136,7 +136,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="tabular-page">
+    <div class="tabular">
       <h5 class="card-title"><%= @title %> <%= @hint && hint(do: @hint) %></h5>
 
       <%= if @search do %>

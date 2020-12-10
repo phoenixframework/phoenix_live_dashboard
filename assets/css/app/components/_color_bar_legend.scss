@@ -1,0 +1,37 @@
+// ColorBarLegendComponent
+.color-bar-legend {
+  &-color {
+    border-radius: 3px;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+  }
+
+  &-entry {
+    user-select: none;
+    cursor: pointer;
+
+    &[data-muted="true"] {
+      opacity: 0.15;
+    }
+
+    &[data-muted="false"] .bg-light-gray {
+      box-shadow: $bar-shadow;
+    }
+
+    &:hover {
+      box-shadow: none;
+      filter: contrast(120%) brightness(90%);
+
+      &[data-muted="true"] {
+        opacity: 0.6;
+      }
+    }
+
+    &.bg-gradient-light-gray:hover,
+    &:hover .bg-light-gray {
+      box-shadow: $bar-shadow;
+      filter: none;
+    }
+  }
+}

@@ -24,7 +24,7 @@ defmodule Phoenix.LiveDashboard.ColorBarComponentTest do
       assert result =~ "aria-valuenow=\"4.0\""
       assert result =~ ~R|<style nonce="style_nonce">#.*\{width:4.0%\}|
       assert result =~ "title=\"In use - 4.0%\""
-      assert result =~ "<span class=\"progress-title\">Hello</span>"
+      assert result =~ "<span class=\"color-bar-progress-title\">Hello</span>"
       refute result =~ "unused"
     end
   end

@@ -3,7 +3,7 @@ defmodule Phoenix.LiveDashboard.CardUsageComponent do
 
   def render(assigns) do
     ~L"""
-    <div class="card progress-section mb-4">
+    <div class="card mb-4">
       <%= live_component @socket, Phoenix.LiveDashboard.TitleBarComponent, dom_id: "#{@dom_id}-title-bar", class: "card-body", percent: percentage(@usage, @limit), csp_nonces: @csp_nonces do %>
         <div>
           <%= render_block @inner_block, [] %>

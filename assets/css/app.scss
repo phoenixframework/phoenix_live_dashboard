@@ -1,9 +1,13 @@
 @import "./app/variables";
 @import "./app/fonts";
 @import "~bootstrap/scss/bootstrap";
-
 @import "./app/layout";
 
+// Extends
+@import "./app/extends/progress_bar";
+@import "./app/extends/tables";
+
+// Components
 @import "./app/components/app_info";
 @import "./app/components/backgrounds";
 @import "./app/components/banner_card";
@@ -18,13 +22,15 @@
 @import "./app/components/footer";
 @import "./app/components/hint";
 @import "./app/components/logs_card";
-@import "./app/components/tabular_info";
-@import "./app/components/tabular_page";
-@import "./app/components/progress_section";
-@import "./app/components/resource_usage";
+@import "./app/components/tabular";
 @import "./app/components/modals";
-@import "./app/components/tables";
+@import "./app/components/color_bar";
+@import "./app/components/color_bar_legend";
+
+
+// Utils
+@import "./app/utils/resource_usage";
+@import "./app/utils/tabular_info";
 
 @import "./app/liveview";
-
 @import "../node_modules/nprogress/nprogress.css";
