@@ -30,13 +30,13 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
         field: :pid,
         header: "PID",
         header_attrs: [class: "pl-4"],
-        cell_attrs: [class: "phx-table-column-id pl-4"],
+        cell_attrs: [class: "tabular-column-id pl-4"],
         format: &(&1 |> encode_pid() |> String.replace_prefix("PID", ""))
       },
       %{
         field: :name_or_initial_call,
         header: "Name or initial call",
-        cell_attrs: [class: "phx-table-column-name"]
+        cell_attrs: [class: "tabular-column-name"]
       },
       %{
         field: :memory,

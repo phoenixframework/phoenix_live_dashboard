@@ -136,11 +136,11 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   @impl true
   def render(assigns) do
     ~L"""
-    <div class="phx-table">
+    <div class="tabular">
       <h5 class="card-title"><%= @title %> <%= @hint && hint(do: @hint) %></h5>
 
       <%= if @search do %>
-        <div class="phx-table-search">
+        <div class="tabular-search">
           <form phx-change="search" phx-submit="search" phx-target="<%= @myself %>" class="form-inline">
             <div class="form-row align-items-center">
               <div class="col-auto">
@@ -173,7 +173,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         </div>
       </form>
 
-      <div class="card phx-table-card mb-4 mt-4">
+      <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
             <table class="table table-hover mt-0 dash-table">

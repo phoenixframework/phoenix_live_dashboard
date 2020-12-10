@@ -31,7 +31,7 @@ defmodule Phoenix.LiveDashboard.EtsPage do
         field: :name,
         header: "Name or module",
         header_attrs: [class: "pl-4"],
-        cell_attrs: [class: "phx-table-column-name pl-4"]
+        cell_attrs: [class: "tabular-column-name pl-4"]
       },
       %{
         field: :protection
@@ -46,7 +46,7 @@ defmodule Phoenix.LiveDashboard.EtsPage do
       },
       %{
         field: :memory,
-        cell_attrs: [class: "phx-table-column-bytes"],
+        cell_attrs: [class: "tabular-column-bytes"],
         format: &format_words/1,
         sortable: :desc
       },
