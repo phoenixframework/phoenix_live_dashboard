@@ -204,8 +204,8 @@ defmodule Phoenix.LiveDashboard.Router do
       other ->
         msg =
           "invalid value in :additional_pages, " <>
-            "must be a tuple {path, {module, args}}, where path is a binary and " <>
-            "the module implements Phoenix.LiveDashboard.PageBuilder, got: "
+            "must be a tuple {path, {module, args}} or {path, module}, where path " <>
+            "is an atom and the module implements Phoenix.LiveDashboard.PageBuilder, got: "
 
         raise ArgumentError, msg <> inspect(other)
     end)
