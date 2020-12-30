@@ -197,11 +197,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   # Those pages are handled especially outside of the component tree.
   defp render_page(_socket, module, assigns)
-       when module in [
-              Phoenix.LiveDashboard.HomePage,
-              Phoenix.LiveDashboard.OSMonPage,
-              Phoenix.LiveDashboard.RequestLoggerPage
-            ] do
+       when module in [Phoenix.LiveDashboard.RequestLoggerPage] do
     module.render(assigns)
   end
 

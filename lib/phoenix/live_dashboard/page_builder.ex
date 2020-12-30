@@ -128,7 +128,15 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           system_info: nil | binary()
         }
 
-  alias Phoenix.LiveDashboard.{TableComponent, NavBarComponent}
+  alias Phoenix.LiveDashboard.{
+    TableComponent,
+    NavBarComponent,
+    CardComponent,
+    UsageCardComponent,
+    SharedUsageCardComponent,
+    PageColumnsComponent,
+    RowComponent
+  }
 
   @doc """
   Callback invoked when a page is declared in the router.
@@ -296,6 +304,51 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       |> NavBarComponent.normalize_params()
 
     {NavBarComponent, assigns}
+  end
+
+  def card(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> CardComponent.normalize_params()
+
+    {CardComponent, assigns}
+  end
+
+  def page_columns(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> PageColumnsComponent.normalize_params()
+
+    {PageColumnsComponent, assigns}
+  end
+
+  def row(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> RowComponent.normalize_params()
+
+    {RowComponent, assigns}
+  end
+
+  def usage_card(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> UsageCardComponent.normalize_params()
+
+    {UsageCardComponent, assigns}
+  end
+
+  def shared_usage_card(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> SharedUsageCardComponent.normalize_params()
+
+    {SharedUsageCardComponent, assigns}
   end
 
   defmacro __using__(opts) do

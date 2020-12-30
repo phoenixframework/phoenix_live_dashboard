@@ -2,14 +2,9 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
 
-  alias Phoenix.LiveDashboard.{
-    SystemInfo,
-    ColorBarComponent,
-    ColorBarLegendComponent,
-    TitleBarComponent
-  }
+  import Phoenix.HTML
 
-  @temporary_assigns [os_mon: nil, memory_usage: nil, cpu_total: nil, cpu_count: 0]
+  alias Phoenix.LiveDashboard.SystemInfo
 
   @cpu_usage_sections [
     {:kernel, "Kernel", "purple", "Executing code in kernel mode"},
@@ -41,29 +36,177 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   end
 
   @impl true
-  def mount(_params, _session, socket) do
-    socket = assign_os_mon(socket)
-    {:ok, socket, temporary_assigns: @temporary_assigns}
+  def render_page(assigns) do
+    os_mon = SystemInfo.fetch_os_mon_info(assigns.page.node)
+    cpu_count = length(os_mon.cpu_per_core)
+    row_params = %{os_mon: os_mon, cpu_count: cpu_count}
+
+    row(
+      components: [
+        page_columns(
+          columns: [
+            [
+              cpu_load_row(row_params),
+              cpu_avg_row(row_params),
+              cpu_usage_row(row_params)
+            ],
+            [
+              memory_usage_row(row_params),
+              disk_usage_row(row_params)
+            ]
+          ]
+        )
+      ]
+    )
   end
 
-  defp assign_os_mon(socket) do
-    os_mon = SystemInfo.fetch_os_mon_info(socket.assigns.page.node)
-    cpu_count = length(os_mon.cpu_per_core)
-
-    assign(socket,
-      os_mon: os_mon,
-      cpu_count: cpu_count,
-      cpu_total: calculate_cpu_total(os_mon.cpu_per_core, cpu_count),
-      memory_usage: calculate_memory_usage(os_mon.system_mem)
+  defp cpu_load_row(%{os_mon: os_mon} = assigns) do
+    row(
+      title: "CPU",
+      hint: cpu_hint(assigns),
+      components: [
+        page_columns(
+          columns: [
+            card(title: "Load 1 min", value: rup(os_mon.cpu_avg1)),
+            card(title: "Load 5 min", value: rup(os_mon.cpu_avg5)),
+            card(title: "Load 15 min", value: rup(os_mon.cpu_avg15))
+          ]
+        )
+      ]
     )
+  end
+
+  defp cpu_avg_row(%{os_mon: os_mon, cpu_count: cpu_count}) do
+    row(
+      components: [
+        page_columns(
+          columns: [
+            card(title: "Avg 1 min", value: rup_avg(os_mon.cpu_avg1, cpu_count)),
+            card(title: "Avg 5 min", value: rup_avg(os_mon.cpu_avg5, cpu_count)),
+            card(title: "Avg 15 min", value: rup_avg(os_mon.cpu_avg15, cpu_count))
+          ]
+        )
+      ]
+    )
+  end
+
+  defp cpu_usage_row(%{os_mon: os_mon, cpu_count: cpu_count}) do
+    params = cpu_usage_params(os_mon, cpu_count)
+
+    row(
+      components: [
+        page_columns(
+          columns: [
+            shared_usage_card(params)
+          ]
+        )
+      ]
+    )
+  end
+
+  defp memory_usage_row(%{os_mon: os_mon}) do
+    params = memory_usage_params(os_mon)
+
+    row(
+      title: "Memory",
+      components: [
+        page_columns(
+          columns: [
+            usage_card(params)
+          ]
+        )
+      ]
+    )
+  end
+
+  defp disk_usage_row(%{os_mon: os_mon}) do
+    params = disk_usage_params(os_mon)
+
+    row(
+      title: "Disk",
+      components: [
+        page_columns(
+          columns: [
+            usage_card(params)
+          ]
+        )
+      ]
+    )
+  end
+
+  defp memory_usage_params(os_mon) do
+    usages = calculate_memory_usage(os_mon.system_mem)
+
+    [usages: usages, dom_id: "memory"]
+  end
+
+  defp disk_usage_params(os_mon) do
+    usages = calculate_disk_usage(os_mon.disk)
+
+    [usages: usages, dom_id: "disk"]
+  end
+
+  defp cpu_usage_params(os_mon, cpu_count) do
+    cpu_total = calculate_cpu_total(os_mon.cpu_per_core, cpu_count)
+    usages = calculate_cpu_usage(os_mon, cpu_total)
+
+    [
+      usages: usages,
+      total_data: cpu_usage_sections(cpu_total),
+      total_legend: "Number of OS processes:",
+      total_usage: os_mon.cpu_nprocs,
+      csp_nonces: %{img: nil, script: nil, style: nil},
+      dom_id: "cpu"
+    ]
   end
 
   defp calculate_memory_usage(system_memory) do
     for {key, value_key, total_key, hint} <- @memory_usage_sections,
-        total = system_memory[total_key],
-        value = memory_value(system_memory, value_key, total) do
-      {key, value, total, percentage(value, total), hint}
+        limit = system_memory[total_key],
+        current = memory_value(system_memory, value_key, limit) do
+      %{
+        current: format_bytes(current),
+        limit: format_bytes(limit),
+        percent: percentage(current, limit),
+        sub_dom_id: value_key,
+        hint: hint,
+        title: key
+      }
     end
+  end
+
+  defp calculate_disk_usage(system_disk) do
+    system_disk
+    |> Stream.with_index()
+    |> Enum.map(fn {{mountpoint, kbytes, percent}, index} ->
+      %{
+        current: format_percent(percent),
+        limit: format_bytes(kbytes * 1024),
+        percent: percent,
+        sub_dom_id: index,
+        title: mountpoint
+      }
+    end)
+  end
+
+  defp calculate_cpu_usage(os_mon, cpu_total) do
+    usages =
+      os_mon.cpu_per_core
+      |> Enum.map(fn {num_cpu, usage} ->
+        %{
+          data: cpu_usage_sections(usage),
+          dom_sub_id: num_cpu,
+          title: "CPU #{num_cpu + 1}"
+        }
+      end)
+
+    total_usage = %{
+      data: cpu_usage_sections(cpu_total),
+      dom_sub_id: "total",
+      title: "TOTAL"
+    }
+
+    usages ++ [total_usage]
   end
 
   defp memory_value(system_memory, :used_memory, total) do
@@ -100,158 +243,8 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     |> Float.ceil(1)
   end
 
-  @impl true
-  def menu_link(_, capabilities) do
-    if :os_mon in capabilities.applications do
-      {:ok, @menu_text}
-    else
-      {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/os_mon.html"}
-    end
-  end
-
-  @impl true
-  def render_page(_assigns), do: raise("this page is special cased to use render/2 instead")
-
-  def render(assigns) do
-    ~L"""
-    <div class="row">
-      <%= if @os_mon.cpu_nprocs > 0 do %>
-        <div class="col-sm-6">
-          <h5 class="card-title">
-            CPU
-            <%= hint do %>
-              <p>The load panes show the CPU demand in the last 1, 5 and 15 minutes over all cores.</p>
-
-              <%= if @cpu_count > 0 do %>
-                <p>The avg panes show the same values averaged across all cores.</p>
-              <% end %>
-             <% end %>
-          </h5>
-
-          <div class="row">
-            <div class="col-md-4 mb-4">
-              <div class="banner-card">
-                <h6 class="banner-card-title">
-                  Load 1 min
-                </h6>
-                <div class="banner-card-value"><%= rup(@os_mon.cpu_avg1) %></div>
-              </div>
-            </div>
-            <div class="col-md-4 mb-4">
-              <div class="banner-card">
-                <h6 class="banner-card-title">
-                  Load 5 min
-                </h6>
-                <div class="banner-card-value"><%= rup(@os_mon.cpu_avg5) %></div>
-              </div>
-            </div>
-            <div class="col-md-4 mb-4">
-              <div class="banner-card">
-                <h6 class="banner-card-title">
-                  Load 15 min
-                </h6>
-                <div class="banner-card-value"><%= rup(@os_mon.cpu_avg15) %></div>
-              </div>
-            </div>
-
-            <%= if @cpu_count > 0 do %>
-              <div class="col-md-4 mb-4">
-                <div class="banner-card">
-                  <h6 class="banner-card-title">
-                    Avg 1 min
-                  </h6>
-                  <div class="banner-card-value"><%= rup_avg(@os_mon.cpu_avg1, @cpu_count) %></div>
-                </div>
-              </div>
-              <div class="col-md-4 mb-4">
-                <div class="banner-card">
-                  <h6 class="banner-card-title">
-                    Avg 5 min
-                  </h6>
-                  <div class="banner-card-value"><%= rup_avg(@os_mon.cpu_avg5, @cpu_count) %></div>
-                </div>
-              </div>
-              <div class="col-md-4 mb-4">
-                <div class="banner-card">
-                  <h6 class="banner-card-title">
-                    Avg 15 min
-                  </h6>
-                  <div class="banner-card-value"><%= rup_avg(@os_mon.cpu_avg15, @cpu_count) %></div>
-                </div>
-              </div>
-            </div>
-          <% end %>
-
-          <%= if @cpu_total do %>
-            <div class="card mb-4">
-              <div class="card-body">
-                <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
-                  <%= for {num_cpu, usage} <- @os_mon.cpu_per_core do %>
-                    <div class="flex-grow-1 mb-3">
-                      <%= live_component @socket, ColorBarComponent, dom_id: "cpu-#{num_cpu}", data: cpu_usage_sections(usage), title: "CPU #{num_cpu+1}", csp_nonces: @csp_nonces %>
-                    </div>
-                  <% end %>
-                  <div class="flex-grow-1 mb-3">
-                    <%= live_component @socket, ColorBarComponent, dom_id: "cpu-total", data: cpu_usage_sections(@cpu_total), title: "TOTAL", csp_nonces: @csp_nonces %>
-                  </div>
-                  <%= live_component @socket, ColorBarLegendComponent, data: cpu_usage_sections(@cpu_total) %>
-                  <div class="resource-usage-total text-center py-1 mt-3">
-                    Number of OS processes: <%= @os_mon.cpu_nprocs %>
-                  </div>
-                </div>
-              </div>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
-
-      <%= if @memory_usage != [] do %>
-        <div class="<%= if @os_mon.cpu_nprocs > 0, do: "col-sm-6", else: "col-12" %>">
-          <h5 class="card-title">Memory</h5>
-          <%= for {{title, value, total, percent, hint}, index} <- Enum.with_index(@memory_usage) do %>
-            <div class="card mb-4">
-              <%= live_component @socket, TitleBarComponent, dom_id: "memory-#{index}", percent: percent, class: "card-body", csp_nonces: @csp_nonces do %>
-                <div>
-                  <%= title %>&nbsp;<%= hint(do: hint) %>
-                </div>
-                <div>
-                  <small class="text-muted mr-2">
-                    <%= format_bytes(value) %> of <%= format_bytes(total) %>
-                  </small>
-                  <strong><%= percent %>%</strong>
-                </div>
-              <% end %>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
-
-      <%= if @os_mon.disk != [] do %>
-        <div class="col-12">
-          <h5 class="card-title">Disk</h5>
-          <div class="card mb-4">
-            <div class="card-body">
-              <%= for {{mountpoint, kbytes, percent}, index} <- Enum.with_index(@os_mon.disk) do %>
-                <%= live_component @socket, TitleBarComponent, dom_id: "disk-#{index}", percent: percent, class: "py-2", csp_nonces: @csp_nonces do %>
-                  <div>
-                    <%= mountpoint %>
-                  </div>
-                  <div>
-                    <span class="text-muted mt-2">
-                      <%= format_percent(percent) %> of <%= format_bytes(kbytes * 1024) %>
-                    </span>
-                  </div>
-                <% end %>
-              <% end %>
-            </div>
-          </div>
-        </div>
-      <% end %>
-    </div>
-    """
-  end
-
   defp rup(value), do: Float.ceil(value / 256, 2)
+
   defp rup_avg(value, count), do: Float.ceil(value / 256 / count, 2)
 
   defp cpu_usage_sections(cpu_usage) do
@@ -260,8 +253,22 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     end
   end
 
+  defp cpu_hint(assigns) do
+    ~E"""
+    <p>The load panes show the CPU demand in the last 1, 5 and 15 minutes over all cores.</p>
+
+    <%= if @cpu_count > 0 do %>
+        <p>The avg panes show the same values averaged across all cores.</p>
+    <% end %>
+    """
+  end
+
   @impl true
-  def handle_refresh(socket) do
-    {:noreply, assign_os_mon(socket)}
+  def menu_link(_, capabilities) do
+    if :os_mon in capabilities.applications do
+      {:ok, @menu_text}
+    else
+      {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/os_mon.html"}
+    end
   end
 end
