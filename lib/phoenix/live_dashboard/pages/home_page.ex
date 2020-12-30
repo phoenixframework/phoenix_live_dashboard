@@ -6,8 +6,6 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @temporary_assigns [system_usage: nil]
-
   @memory_usage_sections [
     {:atom, "Atoms", "green", nil},
     {:binary, "Binary", "blue", nil},
@@ -49,7 +47,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
         environment: environment
       )
 
-    {:ok, socket, temporary_assigns: @temporary_assigns}
+    {:ok, socket}
   end
 
   @impl true
