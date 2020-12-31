@@ -265,7 +265,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
   end
 
   defp usage_params(type, %{system_usage: system_usage, system_limits: system_limits}) do
-    usages = [
+    [
       %{
         current: system_usage[type],
         limit: system_limits[type],
