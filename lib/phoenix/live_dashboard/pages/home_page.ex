@@ -24,6 +24,18 @@ defmodule Phoenix.LiveDashboard.HomePage do
       Each core in your machine gets a scheduler to process all instructions within the Erlang VM.
       Each scheduler has its own queue, which is measured by this number. If this number keeps on
       growing, it means the machine is overloaded. The queue sizes can also be broken into CPU and IO.
+    """,
+    atoms: ~E"""
+      If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
+      You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
+    """,
+    ports: """
+      If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
+      This means ports are being opened by a parent process that never exits or never closes them.
+    """,
+    processes: """
+      If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
+      This means processes are being spawned and they never exit.
     """
   ]
 
@@ -188,7 +200,14 @@ defmodule Phoenix.LiveDashboard.HomePage do
   end
 
   defp atoms_usage_row(assings) do
-    params = atoms_usage_params(assings)
+    usages = usage_params(:atoms, assings)
+
+    params = [
+      usages: usages,
+      dom_id: "atoms",
+      title: "System limits",
+      csp_nonces: assings.csp_nonces
+    ]
 
     row(
       components: [
@@ -202,7 +221,8 @@ defmodule Phoenix.LiveDashboard.HomePage do
   end
 
   defp ports_usage_row(assings) do
-    params = ports_usage_params(assings)
+    usages = usage_params(:ports, assings)
+    params = [usages: usages, dom_id: "ports", csp_nonces: assings.csp_nonces]
 
     row(
       components: [
@@ -216,7 +236,8 @@ defmodule Phoenix.LiveDashboard.HomePage do
   end
 
   defp processes_usage_row(assings) do
-    params = processes_usage_params(assings)
+    usages = usage_params(:processes, assings)
+    params = [usages: usages, dom_id: "processes", csp_nonces: assings.csp_nonces]
 
     row(
       components: [
@@ -243,67 +264,20 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp atoms_usage_params(%{system_usage: system_usage, system_limits: system_limits}) do
-    hint = ~E"""
-      If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
-      You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
-    """
-
+  defp usage_params(type, %{system_usage: system_usage, system_limits: system_limits}) do
     usages = [
       %{
-        current: system_usage.atoms,
-        limit: system_limits.atoms,
-        percent: percentage(system_usage.atoms, system_limits.atoms),
+        current: system_usage[type],
+        limit: system_limits[type],
+        percent: percentage(system_usage[type], system_limits[type]),
         sub_dom_id: "total",
-        hint: hint,
-        title: "Atoms"
+        hint: @hints[type],
+        title: Phoenix.Naming.humanize(type)
       }
     ]
-
-    [usages: usages, dom_id: "atoms", title: "System limits"]
   end
 
-  defp ports_usage_params(%{system_usage: system_usage, system_limits: system_limits}) do
-    hint = """
-      If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
-      This means ports are being opened by a parent process that never exits or never closes them.
-    """
-
-    usages = [
-      %{
-        current: system_usage.ports,
-        limit: system_limits.ports,
-        percent: percentage(system_usage.ports, system_limits.ports),
-        sub_dom_id: "total",
-        hint: hint,
-        title: "Ports"
-      }
-    ]
-
-    [usages: usages, dom_id: "ports"]
-  end
-
-  defp processes_usage_params(%{system_usage: system_usage, system_limits: system_limits}) do
-    hint = """
-      If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
-      This means processes are being spawned and they never exit.
-    """
-
-    usages = [
-      %{
-        current: system_usage.processes,
-        limit: system_limits.processes,
-        percent: percentage(system_usage.processes, system_limits.processes),
-        sub_dom_id: "total",
-        hint: hint,
-        title: "Processes"
-      }
-    ]
-
-    [usages: usages, dom_id: "processes"]
-  end
-
-  defp memory_usage_params(%{system_usage: system_usage}) do
+  defp memory_usage_params(%{system_usage: system_usage} = assings) do
     total = system_usage.memory.total
     memory_usage = calculate_memory_usage(system_usage.memory)
     usages = [calculate_memory_usage_percent(memory_usage, total)]
@@ -315,7 +289,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
       total_legend: "Total usage:",
       total_usage: format_bytes(system_usage.memory[:total]),
       total_formatter: &format_bytes(&1),
-      csp_nonces: %{img: nil, script: nil, style: nil},
+      csp_nonces: assings.csp_nonces,
       dom_id: "memory"
     ]
   end

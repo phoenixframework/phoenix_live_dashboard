@@ -25,10 +25,12 @@ defmodule Phoenix.LiveDashboard.RowComponent do
     components_length = length(components)
 
     if components_length > 0 and components_length < 4 do
-      Map.put_new(params, :components_class, div(12, components_length))
+      params
     else
       raise ArgumentError,
-            "expected :components to have at min 1 compoment and max 3 components, received: {inspect(components_lenght)}"
+            "expected :components to have at min 1 compoment and max 3 components, received: #{
+              inspect(components_length)
+            }"
     end
   end
 
