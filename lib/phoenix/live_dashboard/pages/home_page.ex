@@ -60,7 +60,8 @@ defmodule Phoenix.LiveDashboard.HomePage do
               erlang_info_row(assigns.system_info),
               elixir_info_row(assigns.system_info),
               io_info_row(assigns.system_usage),
-              run_queues_row(assigns.system_usage)
+              run_queues_row(assigns.system_usage),
+              environments_row(assigns.environment)
             ],
             [
               atoms_usage_row(assigns),
@@ -81,11 +82,11 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp erlang_info_row(system_info) do
     row(
-      title: "System information",
       components: [
         page_columns(
           columns: [
             card(
+              title: "System information",
               value: "#{system_info.banner} [#{system_info.system_architecture}]",
               class: ["no-title"]
             )
@@ -101,17 +102,17 @@ defmodule Phoenix.LiveDashboard.HomePage do
         page_columns(
           columns: [
             card(
-              title: "Elixir",
+              inner_title: "Elixir",
               value: system_info[:elixir_version],
               class: ["bg-elixir", "text-white"]
             ),
             card(
-              title: "Phoenix",
+              inner_title: "Phoenix",
               value: system_info[:phoenix_version],
               class: ["bg-phoenix", "text-white"]
             ),
             card(
-              title: "Dashboard",
+              inner_title: "Dashboard",
               value: system_info[:dashboard_version],
               class: ["bg-dashboard", "text-white"]
             )
@@ -126,15 +127,18 @@ defmodule Phoenix.LiveDashboard.HomePage do
       components: [
         page_columns(
           columns: [
-            card(title: "Uptime", value: format_uptime(system_usage.uptime)),
             card(
-              title: "Total input",
-              hint: @hints[:total_input],
+              inner_title: "Uptime",
+              value: format_uptime(system_usage.uptime)
+            ),
+            card(
+              inner_title: "Total input",
+              inner_hint: @hints[:total_input],
               value: format_bytes(system_usage.io |> elem(0))
             ),
             card(
-              title: "Total output",
-              hint: @hints[:total_output],
+              inner_title: "Total output",
+              inner_hint: @hints[:total_output],
               value: format_bytes(system_usage.io |> elem(1))
             )
           ]
@@ -145,17 +149,38 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp run_queues_row(system_usage) do
     row(
-      title: "Run queues",
       components: [
         page_columns(
           columns: [
             card(
-              title: "Total",
-              hint: @hints[:total_queues],
+              title: "Run queues",
+              inner_title: "Total",
+              inner_hint: @hints[:total_queues],
               value: system_usage.total_run_queue
             ),
-            card(title: "CPU", value: system_usage.cpu_run_queue),
-            card(title: "IO", value: system_usage.total_run_queue - system_usage.cpu_run_queue)
+            card(
+              inner_title: "CPU",
+              value: system_usage.cpu_run_queue
+            ),
+            card(
+              inner_title: "IO",
+              value: system_usage.total_run_queue - system_usage.cpu_run_queue
+            )
+          ]
+        )
+      ]
+    )
+  end
+
+  defp environments_row(environments) do
+    row(
+      components: [
+        page_columns(
+          columns: [
+            fields_card(
+              title: "Environment",
+              fields: environments
+            )
           ]
         )
       ]
@@ -166,7 +191,6 @@ defmodule Phoenix.LiveDashboard.HomePage do
     params = atoms_usage_params(assings)
 
     row(
-      title: "System limits",
       components: [
         page_columns(
           columns: [
@@ -209,7 +233,6 @@ defmodule Phoenix.LiveDashboard.HomePage do
     params = memory_usage_params(assings)
 
     row(
-      title: "Memory",
       components: [
         page_columns(
           columns: [
@@ -237,7 +260,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
       }
     ]
 
-    [usages: usages, dom_id: "atoms"]
+    [usages: usages, dom_id: "atoms", title: "System limits"]
   end
 
   defp ports_usage_params(%{system_usage: system_usage, system_limits: system_limits}) do
@@ -286,6 +309,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     usages = [calculate_memory_usage_percent(memory_usage, total)]
 
     [
+      title: "Memory",
       usages: usages,
       total_data: memory_usage,
       total_legend: "Total usage:",

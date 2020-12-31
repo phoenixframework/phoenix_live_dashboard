@@ -35,14 +35,33 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
 
   defp put_defaults(params) do
     params
+    |> Map.put_new(:title, nil)
     |> Map.put_new(:hint, nil)
+    |> Map.put_new(:inner_title, nil)
+    |> Map.put_new(:inner_hint, nil)
     |> Map.put_new(:total_formatter, &"#{&1} %")
   end
 
   @impl true
   def render(assigns) do
     ~L"""
+    <%= if @title do %>
+      <h5 class="card-title">
+        <%= @title %>
+        <%= if @hint do %>
+          <%= hint(do: @hint) %>
+        <% end %>
+      </h5>
+    <% end %>
     <div class="card">
+      <%= if @inner_title do %>
+        <h5 class="card-title">
+          <%= @inner_title %>
+          <%= if @inner_hint do %>
+            <%= hint(do: @inner_hint) %>
+          <% end %>
+        </h5>
+      <% end %>
       <div class="card-body">
         <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
           <%= for usage <- @usages do %>

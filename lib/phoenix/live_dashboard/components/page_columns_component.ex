@@ -40,7 +40,7 @@ defmodule Phoenix.LiveDashboard.PageColumnsComponent do
   def render(assigns) do
     ~L"""
       <%= for column_components <- @columns do %>
-        <div class="col-sm-<%= @columns_class %> mb-4">
+        <div class="col-sm-<%= @columns_class %> mb-4 flex-column d-flex">
           <%= render_component(column_components, assigns) %>
         </div>
       <% end %>

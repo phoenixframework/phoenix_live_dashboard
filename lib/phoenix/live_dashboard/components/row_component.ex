@@ -9,7 +9,6 @@ defmodule Phoenix.LiveDashboard.RowComponent do
   def normalize_params(params) do
     params
     |> validate_required([:components])
-    |> put_defaults()
     |> normalize_components()
   end
 
@@ -37,23 +36,9 @@ defmodule Phoenix.LiveDashboard.RowComponent do
     raise ArgumentError, "expected :components to be a list, received: #{inspect(components)}"
   end
 
-  defp put_defaults(params) do
-    params
-    |> Map.put_new(:title, nil)
-    |> Map.put_new(:hint, nil)
-  end
-
   @impl true
   def render(assigns) do
     ~L"""
-    <%= if @title do %>
-      <h5 class="card-title">
-        <%= @title %>
-        <%= if @hint do %>
-          <%= hint(do: @hint) %>
-        <% end %>
-      </h5>
-    <% end %>
     <div class="row">
       <%= for {component_module, component_params} <- @components do %>
         <%= live_component @socket, component_module, component_params %>

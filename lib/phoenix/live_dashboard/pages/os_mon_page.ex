@@ -62,14 +62,17 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
   defp cpu_load_row(%{os_mon: os_mon} = assigns) do
     row(
-      title: "CPU",
-      hint: cpu_hint(assigns),
       components: [
         page_columns(
           columns: [
-            card(title: "Load 1 min", value: rup(os_mon.cpu_avg1)),
-            card(title: "Load 5 min", value: rup(os_mon.cpu_avg5)),
-            card(title: "Load 15 min", value: rup(os_mon.cpu_avg15))
+            card(
+              title: "CPU",
+              hint: cpu_hint(assigns),
+              inner_title: "Load 1 min",
+              value: rup(os_mon.cpu_avg1)
+            ),
+            card(inner_title: "Load 5 min", value: rup(os_mon.cpu_avg5)),
+            card(inner_title: "Load 15 min", value: rup(os_mon.cpu_avg15))
           ]
         )
       ]
@@ -81,9 +84,9 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
       components: [
         page_columns(
           columns: [
-            card(title: "Avg 1 min", value: rup_avg(os_mon.cpu_avg1, cpu_count)),
-            card(title: "Avg 5 min", value: rup_avg(os_mon.cpu_avg5, cpu_count)),
-            card(title: "Avg 15 min", value: rup_avg(os_mon.cpu_avg15, cpu_count))
+            card(inner_title: "Avg 1 min", value: rup_avg(os_mon.cpu_avg1, cpu_count)),
+            card(inner_title: "Avg 5 min", value: rup_avg(os_mon.cpu_avg5, cpu_count)),
+            card(inner_title: "Avg 15 min", value: rup_avg(os_mon.cpu_avg15, cpu_count))
           ]
         )
       ]
@@ -108,7 +111,6 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     params = memory_usage_params(os_mon)
 
     row(
-      title: "Memory",
       components: [
         page_columns(
           columns: [
@@ -137,13 +139,13 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   defp memory_usage_params(os_mon) do
     usages = calculate_memory_usage(os_mon.system_mem)
 
-    [usages: usages, dom_id: "memory"]
+    [title: "Memory", usages: usages, dom_id: "memory"]
   end
 
   defp disk_usage_params(os_mon) do
     usages = calculate_disk_usage(os_mon.disk)
 
-    [usages: usages, dom_id: "disk"]
+    [title: "Disk", usages: usages, dom_id: "disk"]
   end
 
   defp cpu_usage_params(os_mon, cpu_count) do

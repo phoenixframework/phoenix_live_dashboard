@@ -132,6 +132,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     TableComponent,
     NavBarComponent,
     CardComponent,
+    FieldsCardComponent,
     UsageCardComponent,
     SharedUsageCardComponent,
     PageColumnsComponent,
@@ -313,6 +314,15 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       |> CardComponent.normalize_params()
 
     {CardComponent, assigns}
+  end
+
+  def fields_card(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> FieldsCardComponent.normalize_params()
+
+    {FieldsCardComponent, assigns}
   end
 
   def page_columns(assigns) do

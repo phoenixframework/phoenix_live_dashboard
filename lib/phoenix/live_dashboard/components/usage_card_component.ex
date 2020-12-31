@@ -36,6 +36,8 @@ defmodule Phoenix.LiveDashboard.UsageCardComponent do
 
   defp put_defaults(params) do
     params
+    |> Map.put_new(:title, nil)
+    |> Map.put_new(:hint, nil)
     |> Map.put_new(:csp_nonces, @csp_nonces)
   end
 
@@ -47,6 +49,14 @@ defmodule Phoenix.LiveDashboard.UsageCardComponent do
   @impl true
   def render(assigns) do
     ~L"""
+    <%= if @title do %>
+      <h5 class="card-title">
+        <%= @title %>
+        <%= if @hint do %>
+          <%= hint(do: @hint) %>
+        <% end %>
+      </h5>
+    <% end %>
     <div class="card">
       <div class="card-body card-usage">
         <%= for usage <- @usages do %>

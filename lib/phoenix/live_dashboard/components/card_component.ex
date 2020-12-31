@@ -25,18 +25,28 @@ defmodule Phoenix.LiveDashboard.CardComponent do
     params
     |> Map.put_new(:class, [])
     |> Map.put_new(:title, nil)
+    |> Map.put_new(:inner_title, nil)
     |> Map.put_new(:hint, nil)
+    |> Map.put_new(:inner_hint, nil)
   end
 
   @impl true
   def render(assigns) do
     ~L"""
-    <div class='banner-card <%= Enum.join(@class, " ") %>'>
-      <%= if @title do %>
+    <%= if @title do %>
+      <h5 class="card-title">
+        <%= @title %>
+        <%= if @hint do %>
+          <%= hint(do: @hint) %>
+        <% end %>
+      </h5>
+    <% end %>
+    <div class='banner-card mt-auto <%= Enum.join(@class, " ") %>'>
+      <%= if @inner_title do %>
         <h6 class="banner-card-title">
-          <%= @title %>
-          <%= if @hint do %>
-            <%= hint(do: @hint) %>
+          <%= @inner_title %>
+          <%= if @inner_hint do %>
+            <%= hint(do: @inner_hint) %>
           <% end %>
         </h6>
       <% end %>
