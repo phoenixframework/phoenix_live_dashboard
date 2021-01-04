@@ -556,10 +556,11 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
     * `:usages` - Required. A list of `Map` with the following keys:
       * `:data` - A list of tuples with 4 elements with the following data:
-        `{title, usage_percent, color, hint}`
+        `{usage_name, usage_percent, color, hint}`
       * `:sub_dom_id` - Required. Usage identifier.
+      * `:title`- Bar title.
     * `:total_data` -  Required. A list of tuples with 4 elements with following data:
-        `{title, usage_value, color, hint}`
+        `{usage_name, usage_value, color, hint}`
     * `:total_legend` - Required. The legent of the total usage.
     * `:total_usage` - Required. The value of the total usage.
     * `:dom_id` - Required. A unique identifier for all usages in this card.
