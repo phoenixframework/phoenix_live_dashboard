@@ -39,7 +39,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   def render_page(assigns) do
     os_mon = SystemInfo.fetch_os_mon_info(assigns.page.node)
     cpu_count = length(os_mon.cpu_per_core)
-    row_params = %{os_mon: os_mon, cpu_count: cpu_count}
+    row_params = %{os_mon: os_mon, cpu_count: cpu_count, csp_nonces: assigns.csp_nonces}
 
     row(
       components: [
@@ -93,8 +93,8 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     )
   end
 
-  defp cpu_usage_row(%{os_mon: os_mon, cpu_count: cpu_count}) do
-    params = cpu_usage_params(os_mon, cpu_count)
+  defp cpu_usage_row(assings) do
+    params = cpu_usage_params(assings)
 
     row(
       components: [
@@ -148,7 +148,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     [title: "Disk", usages: usages, dom_id: "disk"]
   end
 
-  defp cpu_usage_params(os_mon, cpu_count) do
+  defp cpu_usage_params(%{os_mon: os_mon, cpu_count: cpu_count, csp_nonces: csp_nonces}) do
     cpu_total = calculate_cpu_total(os_mon.cpu_per_core, cpu_count)
     usages = calculate_cpu_usage(os_mon, cpu_total)
 
@@ -157,7 +157,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
       total_data: cpu_usage_sections(cpu_total),
       total_legend: "Number of OS processes:",
       total_usage: os_mon.cpu_nprocs,
-      csp_nonces: %{img: nil, script: nil, style: nil},
+      csp_nonces: csp_nonces,
       dom_id: "cpu"
     ]
   end

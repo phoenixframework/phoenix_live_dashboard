@@ -6,6 +6,8 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
     ColorBarLegendComponent
   }
 
+  @csp_nonces %{img: nil, script: nil, style: nil}
+
   @impl true
   def mount(socket) do
     {:ok, socket}
@@ -14,15 +16,19 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
   def normalize_params(params) do
     params
     |> validate_required([:usages, :total_data, :total_legend, :total_usage, :csp_nonces, :dom_id])
-    # |> validate_usages()
+    |> validate_usages()
     |> put_defaults()
   end
 
-  # defp validate_usages(params = %{usages: usages}) do
-  #   Enum.each(usages, &validate_required(&1, [:usage, :limit, :percent, :title]))
+  defp validate_usages(params = %{usages: usages}) do
+    normalized_usages =
+      Enum.map(usages, fn usage ->
+        validate_required(usage, [:data, :dom_sub_id])
+        put_usage_defaults(usage)
+      end)
 
-  #   params
-  # end
+    %{params | usages: normalized_usages}
+  end
 
   defp validate_required(params, list) do
     case Enum.find(list, &(not Map.has_key?(params, &1))) do
@@ -33,12 +39,18 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
     params
   end
 
+  defp put_usage_defaults(params) do
+    params
+    |> Map.put_new(:title, nil)
+  end
+
   defp put_defaults(params) do
     params
     |> Map.put_new(:title, nil)
     |> Map.put_new(:hint, nil)
     |> Map.put_new(:inner_title, nil)
     |> Map.put_new(:inner_hint, nil)
+    |> Map.put_new(:csp_nonces, @csp_nonces)
     |> Map.put_new(:total_formatter, &"#{&1} %")
   end
 

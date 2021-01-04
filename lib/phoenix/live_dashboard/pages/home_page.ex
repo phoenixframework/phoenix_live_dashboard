@@ -308,8 +308,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
     %{
       data: data,
-      dom_sub_id: "total",
-      title: "Memory"
+      dom_sub_id: "total"
     }
   end
 
