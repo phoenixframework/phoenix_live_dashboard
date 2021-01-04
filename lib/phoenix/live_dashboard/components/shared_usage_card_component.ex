@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
 
   def normalize_params(params) do
     params
-    |> validate_required([:usages, :total_data, :total_legend, :total_usage, :csp_nonces, :dom_id])
+    |> validate_required([:usages, :total_data, :total_legend, :total_usage, :dom_id])
     |> validate_usages()
     |> put_defaults()
   end

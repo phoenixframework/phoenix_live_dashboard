@@ -307,6 +307,44 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {NavBarComponent, assigns}
   end
 
+  @doc """
+  Renders a card component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        card(
+          title: "Run queues",
+          inner_title: "Total",
+          class: "additional-class",
+          value: 1.5
+        )
+      end
+
+  You can see it in use the Home and OS Data pages.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:value` - Required. The value that the card will show.
+
+    * `:title` - The title above the card.
+      Default: `nil`.
+
+    * `:inner_title` - The title inside the card.
+      Default: `nil`.
+
+    * `:hint` - A textual hint to show close to the title.
+      Default: `nil`.
+
+    * `:inner_hint` - A textual hint to show close to the inner title.
+      Default: `nil`.
+
+    * `:class` - A list of additional css classes that will be added along banner-card class.
+      Default: `[]`.
+  """
+  @spec card(keyword()) :: component()
   def card(assigns) do
     assigns =
       assigns
@@ -316,6 +354,41 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {CardComponent, assigns}
   end
 
+  @doc """
+  Renders a fields card component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        fields_card(
+          title: "Run queues",
+          inner_title: "Total",
+          class: "additional-class",
+          fields: ["USER": "...", "ROOTDIR: "..."]
+        )
+      end
+
+  You can see it in use the Home page in the Environment section.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:fields` - Required. A list of key-value elements that will be shown inside the card.
+
+    * `:title` - The title above the card.
+      Default: `nil`.
+
+    * `:inner_title` - The title inside the card.
+      Default: `nil`.
+
+    * `:hint` - A textual hint to show close to the title.
+      Default: `nil`.
+
+    * `:inner_hint` - A textual hint to show close to the inner title.
+      Default: `nil`.
+  """
+  @spec fields_card(keyword()) :: component()
   def fields_card(assigns) do
     assigns =
       assigns
@@ -325,6 +398,31 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {FieldsCardComponent, assigns}
   end
 
+  @doc """
+  Renders a column component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        page_columns(
+          columns: [
+            card(...),
+            card_usage(...)
+          ]
+        )
+      end
+
+  You can see it in use the Home page and OS Data pages.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:columns` - Required. A list of components.
+      It can receive up to 3 components.
+      Each element will be one column.
+  """
+  @spec page_columns(keyword()) :: component()
   def page_columns(assigns) do
     assigns =
       assigns
@@ -334,6 +432,31 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {PageColumnsComponent, assigns}
   end
 
+  @doc """
+  Renders a row component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        row(
+          components: [
+            card(...),
+            page_columns(...)
+          ]
+        )
+      end
+
+  You can see it in use the Home page and OS Data pages.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:components` - Required. A list of components.
+      It can receive up to 3 components.
+      Each element will be one column.
+  """
+  @spec row(keyword()) :: component()
   def row(assigns) do
     assigns =
       assigns
@@ -343,6 +466,45 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {RowComponent, assigns}
   end
 
+  @doc """
+  Renders a usage card component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        usage_card(
+          usages: [
+            %{
+              current: 10,
+              limit: 150,
+              sub_dom_id: "1",
+              title: "Memory",
+              percent: "13"
+            }
+          ],
+          dom_id: "memory"
+        )
+      end
+
+  You can see it in use the Home page and OS Data pages.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:usages` - Required. A list of `Map` with the following keys:
+      * `:current` - Required. The current value of the usage.
+      * `:limit` - Required. The max value of usage.
+      * `:sub_dom_id` - Required. An unique identifier for the usage that will be concatenated to `dom_id`.
+      * `:percent` - The used percent if the usage. Default: `nil`.
+      * `:title` - Required. The title of the usage.
+      * `:hint` - A textual hint to show close to the usage title. Default: `nil`.
+
+    * `:dom_id` - Required. A unique identifier for all usages in this card.
+    * `:title` - The title of the card. Default: `nil`.
+    * `:hint` - A textual hint to show close to the card title. Default: `nil`.
+  """
+  @spec usage_card(keyword()) :: component()
   def usage_card(assigns) do
     assigns =
       assigns
@@ -352,6 +514,62 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {UsageCardComponent, assigns}
   end
 
+  @doc """
+  Renders a shared usage card component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        shared_usage_card(
+          usages: [
+            %{
+              data: [
+                {"Atoms", 1.4, "green", nil},
+                {"Binary", 9.1, "blue", nil},
+                {"Code", 31.5, "purple", nil},
+                {"ETS", 3.6, "yellow", nil},
+                {"Processes", 25.8, "orange", nil},
+                {"Other", 28.5, "dark-gray", nil}
+              ],
+              dom_sub_id: "total"
+            }
+          ],
+          dom_id: "memory",
+          total_data: [
+            {"Atoms", 737513, "green", nil},
+            {"Binary", 4646392, "blue", nil},
+            {"Code", 16060819, "purple", nil},
+            {"ETS", 1845584, "yellow", nil},
+            {"Processes", 13146728, "orange", nil},
+            {"Other", 14559276, "dark-gray", nil}
+          ],
+          total_legend: "Total usage:"
+          total_usage: "47.4 MB"
+        )
+      end
+
+  You can see it in use the Home page and OS Data pages.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:usages` - Required. A list of `Map` with the following keys:
+      * `:data` - A list of tuples with 4 elements with the following data:
+        `{title, usage_percent, color, hint}`
+      * `:sub_dom_id` - Required. Usage identifier.
+    * `:total_data` -  Required. A list of tuples with 4 elements with following data:
+        `{title, usage_value, color, hint}`
+    * `:total_legend` - Required. The legent of the total usage.
+    * `:total_usage` - Required. The value of the total usage.
+    * `:dom_id` - Required. A unique identifier for all usages in this card.
+    * `:title` - The title above the card. Default: `nil`.
+    * `:inner_title` - The title inside the card. Default: `nil`.
+    * `:hint` - A textual hint to show close to the title. Default: `nil`.
+    * `:inner_hint` - A textual hint to show close to the inner title. Default: `nil`.
+    * `:total_formatter` - A function that format the `total_usage`. Default: `&("\#{&1} %")`.
+  """
+  @spec shared_usage_card(keyword()) :: component()
   def shared_usage_card(assigns) do
     assigns =
       assigns

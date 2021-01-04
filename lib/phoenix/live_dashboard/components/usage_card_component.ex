@@ -11,7 +11,7 @@ defmodule Phoenix.LiveDashboard.UsageCardComponent do
   def normalize_params(params) do
     params
     |> validate_required([:usages, :dom_id])
-    |> validate_usages([:current, :limit, :sub_dom_id, :title, :percent])
+    |> validate_usages([:current, :limit, :sub_dom_id, :title])
     |> put_defaults()
   end
 
@@ -44,6 +44,7 @@ defmodule Phoenix.LiveDashboard.UsageCardComponent do
   defp put_usage_defaults(usage) do
     usage
     |> Map.put_new(:hint, nil)
+    |> Map.put_new(:percent, nil)
   end
 
   @impl true
