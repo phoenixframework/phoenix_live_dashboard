@@ -1,11 +1,6 @@
 defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
-  alias Phoenix.LiveDashboard.{
-    ColorBarComponent,
-    ColorBarLegendComponent
-  }
-
   @csp_nonces %{img: nil, script: nil, style: nil}
 
   @impl true
