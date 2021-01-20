@@ -23,7 +23,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         @impl true
         def render_page(_assigns) do
           table(
-            columns: columns(),
+            columns: table_columns(),
             id: :ets_table,
             row_attrs: &row_attrs/1,
             row_fetcher: &fetch_ets/2,
@@ -44,7 +44,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           # ...
         end
 
-        defp columns() do
+        defp table_columns() do
           [
             %{
               field: :name,
@@ -135,7 +135,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     FieldsCardComponent,
     UsageCardComponent,
     SharedUsageCardComponent,
-    PageColumnsComponent,
+    ColumnsComponent,
     RowComponent
   }
 
@@ -215,7 +215,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
       def render_page(assigns) do
         table(
-          columns: columns(),
+          columns: table_columns(),
           id: @table_id,
           row_attrs: &row_attrs/1,
           row_fetcher: &fetch_applications/2,
@@ -404,7 +404,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   It can be rendered in any dashboard page via the `render_page/1` function:
 
       def render_page(assigns) do
-        page_columns(
+        columns(
           columns: [
             card(...),
             card_usage(...)
@@ -422,14 +422,14 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       It can receive up to 3 components.
       Each element will be one column.
   """
-  @spec page_columns(keyword()) :: component()
-  def page_columns(assigns) do
+  @spec columns(keyword()) :: component()
+  def columns(assigns) do
     assigns =
       assigns
       |> Map.new()
-      |> PageColumnsComponent.normalize_params()
+      |> ColumnsComponent.normalize_params()
 
-    {PageColumnsComponent, assigns}
+    {ColumnsComponent, assigns}
   end
 
   @doc """
@@ -441,7 +441,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         row(
           components: [
             card(...),
-            page_columns(...)
+            columns(...)
           ]
         )
       end
@@ -477,7 +477,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             %{
               current: 10,
               limit: 150,
-              sub_dom_id: "1",
+              dom_sub_id: "1",
               title: "Memory",
               percent: "13"
             }
@@ -495,7 +495,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     * `:usages` - Required. A list of `Map` with the following keys:
       * `:current` - Required. The current value of the usage.
       * `:limit` - Required. The max value of usage.
-      * `:sub_dom_id` - Required. An unique identifier for the usage that will be concatenated to `dom_id`.
+      * `:dom_sub_id` - Required. An unique identifier for the usage that will be concatenated to `dom_id`.
       * `:percent` - The used percent if the usage. Default: `nil`.
       * `:title` - Required. The title of the usage.
       * `:hint` - A textual hint to show close to the usage title. Default: `nil`.
@@ -557,7 +557,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     * `:usages` - Required. A list of `Map` with the following keys:
       * `:data` - A list of tuples with 4 elements with the following data:
         `{usage_name, usage_percent, color, hint}`
-      * `:sub_dom_id` - Required. Usage identifier.
+      * `:dom_sub_id` - Required. Usage identifier.
       * `:title`- Bar title.
     * `:total_data` -  Required. A list of tuples with 4 elements with following data:
         `{usage_name, usage_value, color, hint}`

@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.PageColumnsComponent do
+defmodule Phoenix.LiveDashboard.ColumnsComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
   @impl true

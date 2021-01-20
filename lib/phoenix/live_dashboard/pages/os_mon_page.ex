@@ -43,7 +43,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
     row(
       components: [
-        page_columns(
+        columns(
           columns: [
             [
               cpu_load_row(row_params),
@@ -63,7 +63,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   defp cpu_load_row(%{os_mon: os_mon} = assigns) do
     row(
       components: [
-        page_columns(
+        columns(
           columns: [
             card(
               title: "CPU",
@@ -82,7 +82,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   defp cpu_avg_row(%{os_mon: os_mon, cpu_count: cpu_count}) do
     row(
       components: [
-        page_columns(
+        columns(
           columns: [
             card(inner_title: "Avg 1 min", value: rup_avg(os_mon.cpu_avg1, cpu_count)),
             card(inner_title: "Avg 5 min", value: rup_avg(os_mon.cpu_avg5, cpu_count)),
@@ -98,7 +98,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
     row(
       components: [
-        page_columns(
+        columns(
           columns: [
             shared_usage_card(params)
           ]
@@ -112,7 +112,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
     row(
       components: [
-        page_columns(
+        columns(
           columns: [
             usage_card(params)
           ]
@@ -127,7 +127,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     row(
       title: "Disk",
       components: [
-        page_columns(
+        columns(
           columns: [
             usage_card(params)
           ]
@@ -170,7 +170,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
         current: format_bytes(current),
         limit: format_bytes(limit),
         percent: percentage(current, limit),
-        sub_dom_id: value_key,
+        dom_sub_id: value_key,
         hint: hint,
         title: key
       }
@@ -185,7 +185,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
         current: format_percent(percent),
         limit: format_bytes(kbytes * 1024),
         percent: percent,
-        sub_dom_id: index,
+        dom_sub_id: index,
         title: mountpoint
       }
     end)

@@ -11,7 +11,7 @@ defmodule Phoenix.LiveDashboard.UsageCardComponent do
   def normalize_params(params) do
     params
     |> validate_required([:usages, :dom_id])
-    |> validate_usages([:current, :limit, :sub_dom_id, :title])
+    |> validate_usages([:current, :limit, :dom_sub_id, :title])
     |> put_defaults()
   end
 
@@ -61,7 +61,7 @@ defmodule Phoenix.LiveDashboard.UsageCardComponent do
     <div class="card">
       <div class="card-body card-usage">
         <%= for usage <- @usages do %>
-          <%= live_component @socket, Phoenix.LiveDashboard.TitleBarComponent, dom_id: "#{@dom_id}-#{usage.sub_dom_id}", class: "py-2", percent: usage.percent, csp_nonces: @csp_nonces do %>
+          <%= live_component @socket, Phoenix.LiveDashboard.TitleBarComponent, dom_id: "#{@dom_id}-#{usage.dom_sub_id}", class: "py-2", percent: usage.percent, csp_nonces: @csp_nonces do %>
             <div>
               <%= usage.title %>
               <%= if(usage.hint) do %>
