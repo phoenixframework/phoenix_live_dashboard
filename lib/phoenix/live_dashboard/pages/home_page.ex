@@ -2,31 +2,42 @@ defmodule Phoenix.LiveDashboard.HomePage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
 
-  alias Phoenix.LiveDashboard.{
-    SystemInfo,
-    CardUsageComponent,
-    ColorBarComponent,
-    ColorBarLegendComponent
-  }
+  import Phoenix.HTML
 
-  @temporary_assigns [system_info: nil, system_usage: nil]
-
-  @versions_sections [
-    {:elixir, "Elixir"},
-    {:phoenix, "Phoenix"},
-    {:dashboard, "Dashboard"}
-  ]
+  alias Phoenix.LiveDashboard.SystemInfo
 
   @memory_usage_sections [
-    {:atom, "Atoms", "green"},
-    {:binary, "Binary", "blue"},
-    {:code, "Code", "purple"},
-    {:ets, "ETS", "yellow"},
-    {:process, "Processes", "orange"},
-    {:other, "Other", "dark-gray"}
+    {:atom, "Atoms", "green", nil},
+    {:binary, "Binary", "blue", nil},
+    {:code, "Code", "purple", nil},
+    {:ets, "ETS", "yellow", nil},
+    {:process, "Processes", "orange", nil},
+    {:other, "Other", "dark-gray", nil}
   ]
 
   @menu_text "Home"
+
+  @hints [
+    total_input: "The total number of bytes received through ports/sockets.",
+    total_output: "The total number of bytes output to ports/sockets.",
+    total_queues: """
+      Each core in your machine gets a scheduler to process all instructions within the Erlang VM.
+      Each scheduler has its own queue, which is measured by this number. If this number keeps on
+      growing, it means the machine is overloaded. The queue sizes can also be broken into CPU and IO.
+    """,
+    atoms: ~E"""
+      If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
+      You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
+    """,
+    ports: """
+      If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
+      This means ports are being opened by a parent process that never exits or never closes them.
+    """,
+    processes: """
+      If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
+      This means processes are being spawned and they never exit.
+    """
+  ]
 
   @impl true
   def mount(_params, session, socket) do
@@ -48,7 +59,32 @@ defmodule Phoenix.LiveDashboard.HomePage do
         environment: environment
       )
 
-    {:ok, socket, temporary_assigns: @temporary_assigns}
+    {:ok, socket}
+  end
+
+  @impl true
+  def render_page(assigns) do
+    row(
+      components: [
+        columns(
+          components: [
+            [
+              erlang_info_row(assigns.system_info),
+              elixir_info_row(assigns.system_info),
+              io_info_row(assigns.system_usage),
+              run_queues_row(assigns.system_usage),
+              environments_row(assigns.environment)
+            ],
+            [
+              atoms_usage_row(assigns),
+              ports_usage_row(assigns),
+              processes_usage_row(assigns),
+              memory_shared_usage_row(assigns)
+            ]
+          ]
+        )
+      ]
+    )
   end
 
   @impl true
@@ -56,183 +92,224 @@ defmodule Phoenix.LiveDashboard.HomePage do
     {:ok, @menu_text}
   end
 
-  @impl true
-  def render_page(_assigns), do: raise("this page is special cased to use render/2 instead")
-
-  def render(assigns) do
-    ~L"""
-    <div class="row">
-      <!-- Left column with system/version information -->
-      <div class="col-sm-6">
-        <h5 class="card-title">System information</h5>
-
-        <div class="card mb-4">
-          <div class="card-body rounded">
-            <%= @system_info.banner %> [<%= @system_info.system_architecture %>]
-          </div>
-        </div>
-
-        <!-- Row with colorful version banners -->
-        <div class="row">
-          <%= for {section, title} <- versions_sections() do %>
-            <div class="col mb-4">
-              <div class="banner-card bg-<%= section %> text-white">
-                <h6 class="banner-card-title"><%= title %></h6>
-                <div class="banner-card-value"><%= @system_info[:"#{section}_version"] %></div>
-              </div>
-            </div>
-          <% end %>
-        </div>
-
-        <div class="row">
-          <div class="col-lg-4 mb-4">
-            <div class="banner-card">
-              <h6 class="banner-card-title">Uptime</h6>
-              <div class="banner-card-value"><%= format_uptime(@system_usage.uptime) %></div>
-            </div>
-          </div>
-
-          <div class="col-lg-4 mb-4">
-            <div class="banner-card">
-              <h6 class="banner-card-title">
-                Total input
-                <%= hint do %>
-                  The total number of bytes received through ports/sockets.
-                <% end %>
-              </h6>
-              <div class="banner-card-value"><%= format_bytes(@system_usage.io |> elem(0)) %></div>
-            </div>
-          </div>
-
-          <div class="col-lg-4 mb-4">
-            <div class="banner-card">
-              <h6 class="banner-card-title">
-                Total output
-                <%= hint do %>
-                  The total number of bytes output to ports/sockets.
-                <% end %>
-              </h6>
-              <div class="banner-card-value"><%= format_bytes(@system_usage.io |> elem(1)) %></div>
-            </div>
-          </div>
-        </div>
-
-        <h5 class="card-title">Run queues</h5>
-
-        <div class="row">
-          <div class="col-md-4 mb-4">
-            <div class="banner-card">
-              <h6 class="banner-card-title">
-                Total
-                <%= hint do %>
-                  Each core in your machine gets a scheduler to process all instructions within the Erlang VM.
-                  Each scheduler has its own queue, which is measured by this number. If this number keeps on
-                  growing, it means the machine is overloaded. The queue sizes can also be broken into CPU and IO.
-                <% end %>
-              </h6>
-              <div class="banner-card-value"><%= @system_usage.total_run_queue %></div>
-            </div>
-          </div>
-
-          <div class="col-md-4 mb-4">
-            <div class="banner-card">
-              <h6 class="banner-card-title">CPU</h6>
-              <div class="banner-card-value"><%= @system_usage.cpu_run_queue %></div>
-            </div>
-          </div>
-
-          <div class="col-md-4 mb-4">
-            <div class="banner-card">
-              <h6 class="banner-card-title">IO</h6>
-              <div class="banner-card-value"><%= @system_usage.total_run_queue - @system_usage.cpu_run_queue %></div>
-            </div>
-          </div>
-        </div>
-
-        <%= if @environment do %>
-          <div class="environment-card">
-            <h5 class="card-title">Environment</h5>
-
-            <div class="card mb-4">
-              <div class="card-body rounded pt-3">
-                <dl>
-                <%= for {k, v} <- @environment do %>
-                  <dt class="pb-1"><%= k %></dt>
-                  <dd>
-                    <textarea class="code-field text-monospace" readonly="readonly" rows="1"><%= v %></textarea>
-                  </dd>
-                <% end %>
-                </dl>
-              </div>
-            </div>
-          </div>
-        <% end %>
-      </div>
-
-      <!-- Right column containing system usage information -->
-      <div class="col-sm-6">
-        <h5 class="card-title">System limits</h5>
-
-        <%= live_component @socket, CardUsageComponent, dom_id: "usage-atoms", usage: @system_usage.atoms, limit: @system_limits.atoms, csp_nonces: @csp_nonces do %>
-          Atoms
-          <%= hint do %>
-            If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
-            You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
-          <% end %>
-        <% end %>
-
-        <%= live_component @socket, CardUsageComponent, dom_id: "usage-ports", usage: @system_usage.ports, limit: @system_limits.ports, csp_nonces: @csp_nonces do %>
-          Ports
-          <%= hint do %>
-            If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
-            This means ports are being opened by a parent process that never exits or never closes them.
-          <% end %>
-        <% end %>
-
-        <%= live_component @socket, CardUsageComponent, dom_id: "usage-processes", usage: @system_usage.processes, limit: @system_limits.processes, csp_nonces: @csp_nonces do %>
-          Processes
-          <%= hint do %>
-            If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
-            This means processes are being spawned and they never exit.
-          <% end %>
-        <% end %>
-
-        <h5 class="card-title">
-          Memory
-        </h5>
-
-        <div class="card mb-4">
-          <div class="card-body" phx-hook="PhxColorBarHighlight" id="memory-color-bars">
-            <%= live_component @socket, ColorBarComponent, data: memory_usage_sections_percent(@system_usage.memory, @system_usage.memory.total), csp_nonces: @csp_nonces, dom_id: "system_usage_memory_total" %>
-            <%= live_component @socket, ColorBarLegendComponent, data: memory_usage_sections(@system_usage.memory), formatter: &format_bytes(&1) %>
-            <div class="row">
-              <div class="col">
-                <div class="resource-usage-total text-center py-1 mt-3">
-                  Total usage: <%= format_bytes(@system_usage.memory[:total]) %>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-    """
+  defp erlang_info_row(system_info) do
+    row(
+      components: [
+        columns(
+          components: [
+            card(
+              title: "System information",
+              value: "#{system_info.banner} [#{system_info.system_architecture}]",
+              class: ["no-title"]
+            )
+          ]
+        )
+      ]
+    )
   end
 
-  defp memory_usage_sections_percent(memory_usage, total) do
-    memory_usage
-    |> memory_usage_sections()
-    |> Enum.map(fn {n, value, c, desc} ->
-      {n, percentage(value, total), c, desc}
-    end)
+  defp elixir_info_row(system_info) do
+    row(
+      components: [
+        columns(
+          components: [
+            card(
+              inner_title: "Elixir",
+              value: system_info[:elixir_version],
+              class: ["bg-elixir", "text-white"]
+            ),
+            card(
+              inner_title: "Phoenix",
+              value: system_info[:phoenix_version],
+              class: ["bg-phoenix", "text-white"]
+            ),
+            card(
+              inner_title: "Dashboard",
+              value: system_info[:dashboard_version],
+              class: ["bg-dashboard", "text-white"]
+            )
+          ]
+        )
+      ]
+    )
   end
 
-  defp memory_usage_sections(memory_usage) do
-    Enum.map(@memory_usage_sections, fn {section_key, section_name, color} ->
-      value = Map.fetch!(memory_usage, section_key)
-      {section_name, value, color, nil}
-    end)
+  defp io_info_row(system_usage) do
+    row(
+      components: [
+        columns(
+          components: [
+            card(
+              inner_title: "Uptime",
+              value: format_uptime(system_usage.uptime)
+            ),
+            card(
+              inner_title: "Total input",
+              inner_hint: @hints[:total_input],
+              value: format_bytes(system_usage.io |> elem(0))
+            ),
+            card(
+              inner_title: "Total output",
+              inner_hint: @hints[:total_output],
+              value: format_bytes(system_usage.io |> elem(1))
+            )
+          ]
+        )
+      ]
+    )
+  end
+
+  defp run_queues_row(system_usage) do
+    row(
+      components: [
+        columns(
+          components: [
+            card(
+              title: "Run queues",
+              inner_title: "Total",
+              inner_hint: @hints[:total_queues],
+              value: system_usage.total_run_queue
+            ),
+            card(
+              inner_title: "CPU",
+              value: system_usage.cpu_run_queue
+            ),
+            card(
+              inner_title: "IO",
+              value: system_usage.total_run_queue - system_usage.cpu_run_queue
+            )
+          ]
+        )
+      ]
+    )
+  end
+
+  defp environments_row(environments) do
+    row(
+      components: [
+        columns(
+          components: [
+            fields_card(
+              title: "Environment",
+              fields: environments
+            )
+          ]
+        )
+      ]
+    )
+  end
+
+  defp atoms_usage_row(assings) do
+    usages = usage_params(:atoms, assings)
+
+    params = [
+      usages: usages,
+      dom_id: "atoms",
+      title: "System limits",
+      csp_nonces: assings.csp_nonces
+    ]
+
+    row(
+      components: [
+        columns(
+          components: [
+            usage_card(params)
+          ]
+        )
+      ]
+    )
+  end
+
+  defp ports_usage_row(assings) do
+    usages = usage_params(:ports, assings)
+    params = [usages: usages, dom_id: "ports", csp_nonces: assings.csp_nonces]
+
+    row(
+      components: [
+        columns(
+          components: [
+            usage_card(params)
+          ]
+        )
+      ]
+    )
+  end
+
+  defp processes_usage_row(assings) do
+    usages = usage_params(:processes, assings)
+    params = [usages: usages, dom_id: "processes", csp_nonces: assings.csp_nonces]
+
+    row(
+      components: [
+        columns(
+          components: [
+            usage_card(params)
+          ]
+        )
+      ]
+    )
+  end
+
+  defp memory_shared_usage_row(assings) do
+    params = memory_usage_params(assings)
+
+    row(
+      components: [
+        columns(
+          components: [
+            shared_usage_card(params)
+          ]
+        )
+      ]
+    )
+  end
+
+  defp usage_params(type, %{system_usage: system_usage, system_limits: system_limits}) do
+    [
+      %{
+        current: system_usage[type],
+        limit: system_limits[type],
+        percent: percentage(system_usage[type], system_limits[type]),
+        dom_sub_id: "total",
+        hint: @hints[type],
+        title: Phoenix.Naming.humanize(type)
+      }
+    ]
+  end
+
+  defp memory_usage_params(%{system_usage: system_usage} = assings) do
+    total = system_usage.memory.total
+    memory_usage = calculate_memory_usage(system_usage.memory)
+    usages = [calculate_memory_usage_percent(memory_usage, total)]
+
+    [
+      title: "Memory",
+      usages: usages,
+      total_data: memory_usage,
+      total_legend: "Total usage:",
+      total_usage: format_bytes(system_usage.memory[:total]),
+      total_formatter: &format_bytes(&1),
+      csp_nonces: assings.csp_nonces,
+      dom_id: "memory"
+    ]
+  end
+
+  defp calculate_memory_usage(memory_usage) do
+    for {key, name, color, desc} <- @memory_usage_sections, value = memory_usage[key] do
+      {name, value, color, desc}
+    end
+  end
+
+  defp calculate_memory_usage_percent(memory_usage, total) do
+    data =
+      Enum.map(memory_usage, fn {name, value, color, desc} ->
+        {name, percentage(value, total), color, desc}
+      end)
+
+    %{
+      data: data,
+      dom_sub_id: "total"
+    }
   end
 
   @impl true
@@ -240,6 +317,4 @@ defmodule Phoenix.LiveDashboard.HomePage do
     {:noreply,
      assign(socket, system_usage: SystemInfo.fetch_system_usage(socket.assigns.page.node))}
   end
-
-  defp versions_sections(), do: @versions_sections
 end

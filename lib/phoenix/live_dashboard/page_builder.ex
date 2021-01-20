@@ -23,7 +23,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         @impl true
         def render_page(_assigns) do
           table(
-            columns: columns(),
+            columns: table_columns(),
             id: :ets_table,
             row_attrs: &row_attrs/1,
             row_fetcher: &fetch_ets/2,
@@ -44,7 +44,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           # ...
         end
 
-        defp columns() do
+        defp table_columns() do
           [
             %{
               field: :name,
@@ -128,7 +128,16 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           system_info: nil | binary()
         }
 
-  alias Phoenix.LiveDashboard.{TableComponent, NavBarComponent}
+  alias Phoenix.LiveDashboard.{
+    TableComponent,
+    NavBarComponent,
+    CardComponent,
+    FieldsCardComponent,
+    UsageCardComponent,
+    SharedUsageCardComponent,
+    ColumnsComponent,
+    RowComponent
+  }
 
   @doc """
   Callback invoked when a page is declared in the router.
@@ -206,7 +215,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
       def render_page(assigns) do
         table(
-          columns: columns(),
+          columns: table_columns(),
           id: @table_id,
           row_attrs: &row_attrs/1,
           row_fetcher: &fetch_applications/2,
@@ -296,6 +305,279 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       |> NavBarComponent.normalize_params()
 
     {NavBarComponent, assigns}
+  end
+
+  @doc """
+  Renders a card component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        card(
+          title: "Run queues",
+          inner_title: "Total",
+          class: "additional-class",
+          value: 1.5
+        )
+      end
+
+  You can see it in use the Home and OS Data pages.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:value` - Required. The value that the card will show.
+
+    * `:title` - The title above the card.
+      Default: `nil`.
+
+    * `:inner_title` - The title inside the card.
+      Default: `nil`.
+
+    * `:hint` - A textual hint to show close to the title.
+      Default: `nil`.
+
+    * `:inner_hint` - A textual hint to show close to the inner title.
+      Default: `nil`.
+
+    * `:class` - A list of additional css classes that will be added along banner-card class.
+      Default: `[]`.
+  """
+  @spec card(keyword()) :: component()
+  def card(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> CardComponent.normalize_params()
+
+    {CardComponent, assigns}
+  end
+
+  @doc """
+  Renders a fields card component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        fields_card(
+          title: "Run queues",
+          inner_title: "Total",
+          class: "additional-class",
+          fields: ["USER": "...", "ROOTDIR: "..."]
+        )
+      end
+
+  You can see it in use the Home page in the Environment section.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:fields` - Required. A list of key-value elements that will be shown inside the card.
+
+    * `:title` - The title above the card.
+      Default: `nil`.
+
+    * `:inner_title` - The title inside the card.
+      Default: `nil`.
+
+    * `:hint` - A textual hint to show close to the title.
+      Default: `nil`.
+
+    * `:inner_hint` - A textual hint to show close to the inner title.
+      Default: `nil`.
+  """
+  @spec fields_card(keyword()) :: component()
+  def fields_card(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> FieldsCardComponent.normalize_params()
+
+    {FieldsCardComponent, assigns}
+  end
+
+  @doc """
+  Renders a column component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        columns(
+          columns: [
+            card(...),
+            card_usage(...)
+          ]
+        )
+      end
+
+  You can see it in use the Home page and OS Data pages.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:columns` - Required. A list of components.
+      It can receive up to 3 components.
+      Each element will be one column.
+  """
+  @spec columns(keyword()) :: component()
+  def columns(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> ColumnsComponent.normalize_params()
+
+    {ColumnsComponent, assigns}
+  end
+
+  @doc """
+  Renders a row component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        row(
+          components: [
+            card(...),
+            columns(...)
+          ]
+        )
+      end
+
+  You can see it in use the Home page and OS Data pages.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:components` - Required. A list of components.
+      It can receive up to 3 components.
+      Each element will be one column.
+  """
+  @spec row(keyword()) :: component()
+  def row(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> RowComponent.normalize_params()
+
+    {RowComponent, assigns}
+  end
+
+  @doc """
+  Renders a usage card component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        usage_card(
+          usages: [
+            %{
+              current: 10,
+              limit: 150,
+              dom_sub_id: "1",
+              title: "Memory",
+              percent: "13"
+            }
+          ],
+          dom_id: "memory"
+        )
+      end
+
+  You can see it in use the Home page and OS Data pages.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:usages` - Required. A list of `Map` with the following keys:
+      * `:current` - Required. The current value of the usage.
+      * `:limit` - Required. The max value of usage.
+      * `:dom_sub_id` - Required. An unique identifier for the usage that will be concatenated to `dom_id`.
+      * `:percent` - The used percent if the usage. Default: `nil`.
+      * `:title` - Required. The title of the usage.
+      * `:hint` - A textual hint to show close to the usage title. Default: `nil`.
+
+    * `:dom_id` - Required. A unique identifier for all usages in this card.
+    * `:title` - The title of the card. Default: `nil`.
+    * `:hint` - A textual hint to show close to the card title. Default: `nil`.
+  """
+  @spec usage_card(keyword()) :: component()
+  def usage_card(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> UsageCardComponent.normalize_params()
+
+    {UsageCardComponent, assigns}
+  end
+
+  @doc """
+  Renders a shared usage card component.
+
+  It can be rendered in any dashboard page via the `render_page/1` function:
+
+      def render_page(assigns) do
+        shared_usage_card(
+          usages: [
+            %{
+              data: [
+                {"Atoms", 1.4, "green", nil},
+                {"Binary", 9.1, "blue", nil},
+                {"Code", 31.5, "purple", nil},
+                {"ETS", 3.6, "yellow", nil},
+                {"Processes", 25.8, "orange", nil},
+                {"Other", 28.5, "dark-gray", nil}
+              ],
+              dom_sub_id: "total"
+            }
+          ],
+          dom_id: "memory",
+          total_data: [
+            {"Atoms", 737513, "green", nil},
+            {"Binary", 4646392, "blue", nil},
+            {"Code", 16060819, "purple", nil},
+            {"ETS", 1845584, "yellow", nil},
+            {"Processes", 13146728, "orange", nil},
+            {"Other", 14559276, "dark-gray", nil}
+          ],
+          total_legend: "Total usage:"
+          total_usage: "47.4 MB"
+        )
+      end
+
+  You can see it in use the Home page and OS Data pages.
+
+  # Options
+
+  These are the options supported by the component:
+
+    * `:usages` - Required. A list of `Map` with the following keys:
+      * `:data` - A list of tuples with 4 elements with the following data:
+        `{usage_name, usage_percent, color, hint}`
+      * `:dom_sub_id` - Required. Usage identifier.
+      * `:title`- Bar title.
+    * `:total_data` -  Required. A list of tuples with 4 elements with following data:
+        `{usage_name, usage_value, color, hint}`
+    * `:total_legend` - Required. The legent of the total usage.
+    * `:total_usage` - Required. The value of the total usage.
+    * `:dom_id` - Required. A unique identifier for all usages in this card.
+    * `:title` - The title above the card. Default: `nil`.
+    * `:inner_title` - The title inside the card. Default: `nil`.
+    * `:hint` - A textual hint to show close to the title. Default: `nil`.
+    * `:inner_hint` - A textual hint to show close to the inner title. Default: `nil`.
+    * `:total_formatter` - A function that format the `total_usage`. Default: `&("\#{&1} %")`.
+  """
+  @spec shared_usage_card(keyword()) :: component()
+  def shared_usage_card(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> SharedUsageCardComponent.normalize_params()
+
+    {SharedUsageCardComponent, assigns}
   end
 
   defmacro __using__(opts) do

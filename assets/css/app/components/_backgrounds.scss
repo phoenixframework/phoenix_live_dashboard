@@ -39,6 +39,10 @@
   background-color: $color-light-gray;
 }
 
+.bg-card-default {
+  background-color: $color-white;
+}
+
 .bg-gradient-green {
   background: linear-gradient(40deg, $color-green, adjust-color($color-green, $lightness: +10%));
 }

@@ -10,7 +10,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
   @impl true
   def render_page(_assigns) do
     table(
-      columns: columns(),
+      columns: table_columns(),
       id: @table_id,
       row_attrs: &row_attrs/1,
       row_fetcher: &fetch_applications/2,
@@ -24,7 +24,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
     SystemInfo.fetch_applications(node, search, sort_by, sort_dir, limit)
   end
 
-  defp columns() do
+  defp table_columns() do
     [
       %{
         field: :name,

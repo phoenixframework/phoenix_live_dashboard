@@ -31,11 +31,11 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
     assert rendered =~ to_string(:erlang.system_info(:system_version))
 
     assert rendered =~
-             ~s|<h6 class="banner-card-title">Dashboard</h6><div class="banner-card-value">| <>
+             ~s|<h6 class="banner-card-title">\n      Dashboard\n      \n    </h6><div class="banner-card-value">| <>
                ~s|#{Application.spec(:phoenix_live_dashboard, :vsn)}</div>|
 
     assert rendered =~
-             ~s|<h6 class=\"banner-card-title\">Uptime</h6><div class=\"banner-card-value\">0m</div>|
+             ~s|<h6 class=\"banner-card-title\">\n      Uptime\n      \n    </h6><div class=\"banner-card-value\">0m</div>|
   end
 
   test "shows memory usage information" do
