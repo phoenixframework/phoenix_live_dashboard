@@ -67,7 +67,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             [
               erlang_info_row(assigns.system_info),
               elixir_info_row(assigns.system_info),
@@ -96,7 +96,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             card(
               title: "System information",
               value: "#{system_info.banner} [#{system_info.system_architecture}]",
@@ -112,7 +112,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             card(
               inner_title: "Elixir",
               value: system_info[:elixir_version],
@@ -138,7 +138,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             card(
               inner_title: "Uptime",
               value: format_uptime(system_usage.uptime)
@@ -163,7 +163,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             card(
               title: "Run queues",
               inner_title: "Total",
@@ -188,7 +188,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             fields_card(
               title: "Environment",
               fields: environments
@@ -212,7 +212,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             usage_card(params)
           ]
         )
@@ -227,7 +227,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             usage_card(params)
           ]
         )
@@ -242,7 +242,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             usage_card(params)
           ]
         )
@@ -256,7 +256,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             shared_usage_card(params)
           ]
         )

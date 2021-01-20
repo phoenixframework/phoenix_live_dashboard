@@ -8,7 +8,7 @@ defmodule Phoenix.LiveDashboard.ColumnsComponent do
 
   def normalize_params(params) do
     params
-    |> validate_required([:columns])
+    |> validate_required([:components])
     |> normalize_columns()
   end
 
@@ -21,25 +21,25 @@ defmodule Phoenix.LiveDashboard.ColumnsComponent do
     params
   end
 
-  defp normalize_columns(%{columns: columns} = params) when is_list(columns) do
-    columns_length = length(columns)
+  defp normalize_columns(%{components: components} = params) when is_list(components) do
+    columns_length = length(components)
 
     if columns_length > 0 and columns_length < 4 do
       Map.put_new(params, :columns_class, div(12, columns_length))
     else
       raise ArgumentError,
-            "expected :columns to have at min 1 compoment and max 3 columns, received: {inspect(columns_lenght)}"
+            "expected :components to have at min 1 compoment and max 3 components, received: {inspect(columns_lenght)}"
     end
   end
 
-  defp normalize_columns(%{columns: columns}) do
-    raise ArgumentError, "expected :columns to be a list, received: #{inspect(columns)}"
+  defp normalize_columns(%{components: components}) do
+    raise ArgumentError, "expected :components to be a list, received: #{inspect(components)}"
   end
 
   @impl true
   def render(assigns) do
     ~L"""
-      <%= for column_components <- @columns do %>
+      <%= for column_components <- @components do %>
         <div class="col-sm-<%= @columns_class %> mb-4 flex-column d-flex">
           <%= render_component(column_components, assigns) %>
         </div>

@@ -44,7 +44,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             [
               cpu_load_row(row_params),
               cpu_avg_row(row_params),
@@ -64,7 +64,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             card(
               title: "CPU",
               hint: cpu_hint(assigns),
@@ -83,7 +83,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             card(inner_title: "Avg 1 min", value: rup_avg(os_mon.cpu_avg1, cpu_count)),
             card(inner_title: "Avg 5 min", value: rup_avg(os_mon.cpu_avg5, cpu_count)),
             card(inner_title: "Avg 15 min", value: rup_avg(os_mon.cpu_avg15, cpu_count))
@@ -99,7 +99,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             shared_usage_card(params)
           ]
         )
@@ -113,7 +113,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     row(
       components: [
         columns(
-          columns: [
+          components: [
             usage_card(params)
           ]
         )
@@ -128,7 +128,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
       title: "Disk",
       components: [
         columns(
-          columns: [
+          components: [
             usage_card(params)
           ]
         )
