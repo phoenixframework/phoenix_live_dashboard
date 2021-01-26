@@ -91,7 +91,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   defp sortable(_), do: :desc
 
   defp row_fetcher(repo, info_module, table_name, searchable, params, _node) do
-    %{columns: columns, rows: rows} = info_module.query(table_name, repo, :raw)
+    %{columns: columns, rows: rows} = info_module.query(table_name, repo, format: :raw)
 
     mapped =
       for row <- rows do
