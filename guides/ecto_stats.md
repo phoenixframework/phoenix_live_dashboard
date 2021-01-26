@@ -15,7 +15,7 @@ To enable the "Ecto Stats" functionality in your dashboard, you will need to do 
 In your `mix.exs`, add the following to your `deps`:
 
 ```elixir
-  {:ecto_psql_extras, "~> 0.4"},
+  {:ecto_psql_extras, "~> 0.6"},
 ```
 
 ### Configure the dashboard
