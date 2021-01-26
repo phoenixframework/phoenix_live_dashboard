@@ -32,7 +32,7 @@ defmodule Phoenix.LiveDashboard.FieldsCardComponent do
           <% end %>
         </h5>
       <% end %>
-      <div class="environment-card">
+      <div class="fields-card">
         <div class="card mb-4">
           <div class="card-body rounded pt-3">
             <%= if @inner_title do %>
