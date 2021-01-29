@@ -54,6 +54,8 @@ defmodule Phoenix.LiveDashboard.Router do
 
     * `:additional_pages` - A keyword list of addictional pages
 
+    * `:excluded_pages` - A keyword list of pages to exclude from the menu
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -146,6 +148,23 @@ defmodule Phoenix.LiveDashboard.Router do
           raise ArgumentError, ":additional_pages must be a keyword, got: " <> inspect(other)
       end
 
+    excluded_pages =
+      case options[:excluded_pages] do
+        nil ->
+          []
+
+        pages when is_list(pages) ->
+          if Enum.all?(pages, &is_atom/1) do
+            pages
+          else
+            raise ArgumentError,
+                  ":excluded_pages must only contain atoms, got: " <> inspect(pages)
+          end
+
+        other ->
+          raise ArgumentError, ":excluded_pages must be a keyword, got: " <> inspect(other)
+      end
+
     request_logger_cookie_domain =
       case options[:request_logger_cookie_domain] do
         nil ->
@@ -180,6 +199,7 @@ defmodule Phoenix.LiveDashboard.Router do
       metrics,
       metrics_history,
       additional_pages,
+      excluded_pages,
       request_logger_cookie_domain,
       ecto_repos,
       csp_nonce_assign_key
@@ -219,6 +239,7 @@ defmodule Phoenix.LiveDashboard.Router do
         metrics,
         metrics_history,
         additional_pages,
+        excluded_pages,
         request_logger_cookie_domain,
         ecto_repos,
         csp_nonce_assign_key
@@ -246,6 +267,7 @@ defmodule Phoenix.LiveDashboard.Router do
         ets: {Phoenix.LiveDashboard.EtsPage, %{}}
       ]
       |> Enum.concat(ecto_stats(ecto_repos))
+      |> Enum.reject(fn {key, _} -> key in excluded_pages end)
       |> Enum.concat(additional_pages)
       |> Enum.map(fn {key, {module, opts}} ->
         {session, requirements} = initialize_page(module, opts)
