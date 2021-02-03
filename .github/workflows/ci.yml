@@ -43,7 +43,7 @@ jobs:
       MIX_ENV: test
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-elixir@v1
+    - uses: erlef/setup-elixir@v1.6.0
       with:
         otp-version: ${{matrix.otp}}
         elixir-version: ${{matrix.elixir}}
