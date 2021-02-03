@@ -72,4 +72,12 @@ defmodule Phoenix.LiveDashboard.TelemetryListenerTest do
     ref = Process.monitor(pid)
     assert_receive {:DOWN, ^ref, _, _, _}
   end
+
+  test "datapoint extraction returns nil when measurement not matched" do
+    metric = counter("a.b.c")
+    assert nil == TelemetryListener.extract_datapoint_for_metric(metric, %{d: 10}, %{})
+
+    assert %{measurement: 10} =
+             TelemetryListener.extract_datapoint_for_metric(metric, %{c: 10}, %{})
+  end
 end
