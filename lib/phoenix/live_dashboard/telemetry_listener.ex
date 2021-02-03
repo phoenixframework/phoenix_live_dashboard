@@ -29,11 +29,16 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
   end
 
   def extract_datapoint_for_metric(metric, measurements, metadata, time \\ nil) do
-    if keep?(metric, metadata) do
-      time = time || System.system_time(:microsecond)
-      measurement = extract_measurement(metric, measurements, metadata)
+    with {:keep?, true} <- {:keep?, keep?(metric, metadata)},
+         time = time || System.system_time(:microsecond),
+         {:measurement, measurement}
+         when measurement != nil <-
+           {:measurement, extract_measurement(metric, measurements, metadata)} do
       label = tags_to_label(metric, metadata)
       %{label: label, measurement: measurement, time: time}
+    else
+      {:keep?, false} -> nil
+      {:measurement, nil} -> nil
     end
   end
 
