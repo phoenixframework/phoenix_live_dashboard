@@ -52,9 +52,11 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
             ],
             [
               memory_usage_row(row_params),
-              disk_usage_row(row_params)
             ]
           ]
+        ),
+        columns(
+          components: [disk_usage_row(row_params)]
         )
       ]
     )
