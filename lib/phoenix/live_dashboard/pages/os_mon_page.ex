@@ -6,17 +6,6 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @cpu_usage_sections [
-    {:kernel, "Kernel", "purple", "Executing code in kernel mode"},
-    {:user, "User", "blue", "Executing code in user mode"},
-    {:nice_user, "User nice", "green", "Executing code in low-priority (nice)"},
-    {:soft_irq, "Soft IRQ", "orange", "Executing soft interrupts"},
-    {:hard_irq, "Hard IRQ", "yellow", "Executing hard interrupts"},
-    {:steal, "Steal", "purple", "Stolen time spent in virtualized OSes"},
-    {:wait, "Waiting", "orange", nil},
-    {:idle, "Idle", "light-gray", nil}
-  ]
-
   @memory_usage_sections [
     {"Used", :used_memory, :system_total_memory,
      "The amount of memory used from the available memory"},
@@ -48,7 +37,6 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
             [
               cpu_load_row(row_params),
               cpu_avg_row(row_params),
-              cpu_usage_row(row_params)
             ],
             [
               memory_usage_row(row_params),
@@ -89,20 +77,6 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
             card(inner_title: "Avg 1 min", value: rup_avg(os_mon.cpu_avg1, cpu_count)),
             card(inner_title: "Avg 5 min", value: rup_avg(os_mon.cpu_avg5, cpu_count)),
             card(inner_title: "Avg 15 min", value: rup_avg(os_mon.cpu_avg15, cpu_count))
-          ]
-        )
-      ]
-    )
-  end
-
-  defp cpu_usage_row(assings) do
-    params = cpu_usage_params(assings)
-
-    row(
-      components: [
-        columns(
-          components: [
-            shared_usage_card(params)
           ]
         )
       ]
@@ -150,20 +124,6 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     [title: "Disk", usages: usages, dom_id: "disk"]
   end
 
-  defp cpu_usage_params(%{os_mon: os_mon, cpu_count: cpu_count, csp_nonces: csp_nonces}) do
-    cpu_total = calculate_cpu_total(os_mon.cpu_per_core, cpu_count)
-    usages = calculate_cpu_usage(os_mon, cpu_total)
-
-    [
-      usages: usages,
-      total_data: cpu_usage_sections(cpu_total),
-      total_legend: "Number of OS processes:",
-      total_usage: os_mon.cpu_nprocs,
-      csp_nonces: csp_nonces,
-      dom_id: "cpu"
-    ]
-  end
-
   defp calculate_memory_usage(system_memory) do
     for {key, value_key, total_key, hint} <- @memory_usage_sections,
         limit = system_memory[total_key],
@@ -193,26 +153,6 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     end)
   end
 
-  defp calculate_cpu_usage(os_mon, cpu_total) do
-    usages =
-      os_mon.cpu_per_core
-      |> Enum.map(fn {num_cpu, usage} ->
-        %{
-          data: cpu_usage_sections(usage),
-          dom_sub_id: num_cpu,
-          title: "CPU #{num_cpu + 1}"
-        }
-      end)
-
-    total_usage = %{
-      data: cpu_usage_sections(cpu_total),
-      dom_sub_id: "total",
-      title: "TOTAL"
-    }
-
-    usages ++ [total_usage]
-  end
-
   defp memory_value(system_memory, :used_memory, total) do
     if free = Keyword.get(system_memory, :free_memory, 0) do
       total -
@@ -229,33 +169,9 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
   defp memory_value(system_memory, key, _total), do: system_memory[key]
 
-  defp calculate_cpu_total([], _cpu_count), do: nil
-
-  defp calculate_cpu_total([{_, core}], _cpu_count), do: core
-
-  defp calculate_cpu_total([{_, keys} | _] = per_core, cpu_count) do
-    keys
-    |> Map.keys()
-    |> Enum.map(fn key -> {key, avg_cpu_usage(per_core, key, cpu_count)} end)
-  end
-
-  defp avg_cpu_usage(map, key, count) do
-    map
-    |> Enum.map(fn {_n, values} -> values[key] end)
-    |> Enum.sum()
-    |> Kernel./(count)
-    |> Float.ceil(1)
-  end
-
   defp rup(value), do: Float.ceil(value / 256, 2)
 
   defp rup_avg(value, count), do: Float.ceil(value / 256 / count, 2)
-
-  defp cpu_usage_sections(cpu_usage) do
-    for {key, name, color, desc} <- @cpu_usage_sections, value = cpu_usage[key] do
-      {name, value, color, desc}
-    end
-  end
 
   defp cpu_hint(assigns) do
     ~E"""
