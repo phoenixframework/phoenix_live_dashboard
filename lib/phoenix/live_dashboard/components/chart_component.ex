@@ -73,9 +73,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp chart_kind(Telemetry.Metrics.LastValue), do: :last_value
   defp chart_kind(Telemetry.Metrics.Sum), do: :sum
   defp chart_kind(Telemetry.Metrics.Summary), do: :summary
-
-  defp chart_kind(Telemetry.Metrics.Distribution),
-    do: raise(ArgumentError, "LiveDashboard does not yet support distribution metrics")
+  defp chart_kind(Telemetry.Metrics.Distribution), do: :distribution
 
   defp chart_label(%{} = metric) do
     metric.name

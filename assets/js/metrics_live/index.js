@@ -1,6 +1,7 @@
 import { ColorWheel, LineColor } from './color_wheel'
 import _css from 'uplot/dist/uPlot.min.css'
 import uPlot from 'uplot'
+import Distribution from './charts/distribution'
 
 const SeriesValue = (options) => {
   if (!options.unit) return {}
@@ -374,7 +375,8 @@ const __METRICS__ = {
   counter: CommonMetric,
   last_value: CommonMetric,
   sum: CommonMetric,
-  summary: Summary
+  summary: Summary,
+  distribution: Distribution
 }
 
 export class TelemetryChart {
@@ -388,6 +390,9 @@ export class TelemetryChart {
     const metric = __METRICS__[options.metric]
     if (metric === Summary) {
       this.metric = new Summary(options, chartEl)
+      this.uplotChart = this.metric.chart
+    } else if (metric === Distribution){
+      this.metric = new Distribution(options, chartEl)
       this.uplotChart = this.metric.chart
     } else {
       this.uplotChart = new uPlot(metric.getConfig(options), metric.initialData(options), chartEl)

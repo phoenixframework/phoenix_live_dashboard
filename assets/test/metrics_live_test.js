@@ -250,6 +250,44 @@ describe('Metrics no tags', () => {
       [5, 7, 9]
     ])
   })
+
+  test('Distribution', () => {
+    const chart = new TelemetryChart(document.body, {
+      metric: 'distribution',
+      tagged: false
+    })
+
+    chart.pushData([{
+      x: 'a',
+      y: 1,
+      z: 0
+    }])
+
+    // median, q1 and q3 with just one datapoint, set to 0 by default
+    expect(mockSetData).toHaveBeenCalledWith([
+      ["a"],
+      [0],
+      [0],
+      [0],
+      ["1.00"],
+      ["1.00"]
+    ])
+
+    chart.pushData([{
+      x: 'a',
+      y: 2,
+      z: 0
+    }])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      ["a"],
+      ["1.50"],
+      ["1.25"],
+      ["1.75"],
+      ["1.00"],
+      ["2.00"]
+    ])
+  })
 })
 
 describe('Metrics with tags', () => {
@@ -527,6 +565,100 @@ describe('Metrics with tags', () => {
         [null, 2, null, 6],
         [0, null, 4, null]
       ])
+    })
+  })
+
+  describe('Distribution', () => {
+
+    function generateDatapoints(chart, tag, count) {
+      for (let i = 0; i < count; i++) {
+        chart.pushData([{
+          x: tag,
+          y: i + 1,
+          z: 0
+        }])
+      }
+    }
+
+    test('stats calculated independently for each tag', () => {
+      const chart = new TelemetryChart(document.body, {
+        metric: 'distribution',
+        tagged: true
+      })
+
+      generateDatapoints(chart, 'a', 3)
+      generateDatapoints(chart, 'b', 5)
+
+      expect(chart.metric.datasets).toMatchObject({
+        a: {
+          values: [1, 2, 3],
+          stats: {
+            min: 1,
+            max: 3,
+            q1: 1.5,
+            q3: 2.5,
+            median: 2
+          }
+        },
+        b: {
+          values: [1, 2, 3, 4, 5],
+          stats: {
+            min: 1,
+            max: 5,
+            q1: 2,
+            q3: 4,
+            median: 3
+          }
+        }
+      })
+
+      expect(mockSetData).toHaveBeenCalledTimes(8);
+
+      // 8th invokation
+      expect(mockSetData).toHaveBeenCalledWith([
+        ['a', 'b'],
+        // median
+        ['2.00', '3.00'],
+        // q1
+        ['1.50', '2.00'],
+        // q3
+        ['2.50', '4.00'],
+        // mix
+        ['1.00', '1.00'],
+        // max
+        ['3.00', '5.00']
+      ])
+    })
+
+    test('pruneThreshold prunes data by half for tags over threshold only', () => {
+      const chart = new TelemetryChart(document.body, {
+        metric: 'distribution',
+        tagged: true,
+        pruneThreshold: 6
+      })
+
+      generateDatapoints(chart, 'a', 6);
+      generateDatapoints(chart, 'b', 6)
+
+      expect(chart.metric.datasets).toMatchObject({
+        a: {
+          values: [1, 2, 3, 4, 5, 6]
+        },
+        b: {
+          values: [1, 2, 3, 4, 5, 6]
+        }
+      })
+
+      generateDatapoints(chart, 'a', 1)
+
+      expect(chart.metric.datasets).toMatchObject({
+        a: {
+          values: [4, 5, 6, 1]
+        },
+        b: {
+          values: [1, 2, 3, 4, 5, 6]
+        }
+      })
     })
   })
 })

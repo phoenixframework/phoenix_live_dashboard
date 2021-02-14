@@ -25,7 +25,8 @@ export const LineColor = {
     const [r, g, b] = ColorWheel.rgb(i)
     return {
       stroke: `rgb(${r}, ${g}, ${b})`,
-      fill: `rgb(${r}, ${g}, ${b}, 0.1)`
+      fill: `rgb(${r}, ${g}, ${b}, 0.1)`,
+      overlay: `rgb(${r}, ${g}, ${b}, 0.9)`
     }
   }
 }
