@@ -36,16 +36,14 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
           components: [
             [
               cpu_load_row(row_params),
-              cpu_avg_row(row_params),
+              cpu_avg_row(row_params)
             ],
             [
-              memory_usage_row(row_params),
+              memory_usage_row(row_params)
             ]
           ]
         ),
-        columns(
-          components: [disk_usage_row(row_params)]
-        )
+        columns(components: [disk_usage_row(row_params)])
       ]
     )
   end
