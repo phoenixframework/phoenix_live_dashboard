@@ -1,6 +1,6 @@
 import css from "../css/app.scss"
 import "phoenix_html"
-import { Socket } from "phoenix"
+import { Socket, LongPoll } from "phoenix"
 import NProgress from "nprogress"
 import { LiveSocket } from "phoenix_live_view"
 import PhxChartComponent from "./metrics_live"
@@ -23,6 +23,30 @@ let liveSocket = new LiveSocket(socketPath, Socket, {
   hooks: Hooks,
   params: { _csrf_token: csrfToken }
 })
+
+
+const socket = liveSocket.socket
+const originalOnConnError = socket.onConnError
+let fallbackToLongPoll = true
+
+socket.onOpen(() => {
+  fallbackToLongPoll = false
+})
+
+socket.onConnError = (...args) => {
+  if (fallbackToLongPoll) {
+    // No longer fallback to longpoll
+    fallbackToLongPoll = false
+    // close the socket with an error code
+    socket.disconnect(null, 3000)
+    // fall back to long poll
+    socket.transport = LongPoll
+    // reopen
+    socket.connect()
+  } else {
+    originalOnConnError.apply(socket, args)
+  }
+}
 
 // Show progress bar on live navigation and form submits
 window.addEventListener("phx:page-loading-start", info => NProgress.start())
