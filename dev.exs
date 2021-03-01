@@ -196,7 +196,7 @@ defmodule DemoWeb.Router do
     )
   end
 
-  defp put_csp(conn, _params) do
+  def put_csp(conn, _opts) do
     [img_nonce, style_nonce, script_nonce] =
       for _i <- 1..3, do: 16 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
 
