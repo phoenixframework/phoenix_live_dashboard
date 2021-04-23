@@ -87,9 +87,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp assign_refresh(socket) do
     module = socket.assigns.page.module
 
-    socket
-    |> update_menu(refresher?: module.__page_live__(:refresher?))
-    |> init_schedule_refresh()
+    update_menu(socket, refresher?: module.__page_live__(:refresher?))
   end
 
   defp init_schedule_refresh(socket) do
