@@ -5,7 +5,6 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
   @info_keys [
     :initial_call,
-    :dictionary,
     :registered_name,
     :current_function,
     :status,
