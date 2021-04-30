@@ -17,7 +17,8 @@ defmodule Phoenix.LiveDashboard.MixProject do
       homepage_url: "http://www.phoenixframework.org",
       description: "Real-time performance dashboard for Phoenix",
       aliases: aliases(),
-      xref: [exclude: [:cpu_sup, :disksup, :memsup]]
+      xref: [exclude: [:cpu_sup, :disksup, :memsup]],
+      preferred_cli_env: [docs: :docs]
     ]
   end
 
