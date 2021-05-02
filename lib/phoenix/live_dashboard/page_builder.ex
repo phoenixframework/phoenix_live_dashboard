@@ -104,7 +104,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   ## Components
 
   A page can only have the components listed with this page.
-  At the moment, only `nav_bar/1` and `table/1` are supported.
+  We currently support `card/1`, `columns/1`, `fields_card/1`, `nav_bar/1`,
+  `row/1`, `shared_usage_card/1`, `table/1`, and `usage_card/1`.
   """
 
   defstruct info: nil,
