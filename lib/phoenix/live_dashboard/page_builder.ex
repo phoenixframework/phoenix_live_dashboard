@@ -235,14 +235,14 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
     * `:columns` - Required. A `Keyword` list with the following keys:
       * `:field` - Required. An identifier for the column.
+      * `:sortable` - Required for at least one column. Either `:asc` or
+        `:desc` with the default sorting. When set, the column header is
+        clickable and it fetches again rows with the new order. Default: `nil`.
       * `:header` - Label to show in the current column. Default value is calculated from `:field`.
       * `:header_attrs` - A list with HTML attributes for the column header. Default: `[]`.
       * `:format` - Function which receives the value and returns the cell information.
         Default is the field value itself.
       * `:cell_attrs` - A list with HTML attributes for the table cell. Default: `[]`.
-      * `:sortable` - Either `:asc` or `:desc` with the default sorting. When set, the column
-        header is clickable and it fetches again rows with the new order. At least one column
-        should be sortable. Default: `nil`
 
     * `:row_fetcher` - Required. A function which receives the params and the node and
       returns a tuple with the rows and the total number:
