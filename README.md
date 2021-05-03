@@ -134,7 +134,7 @@ For those planning to contribute to this project, you can run a dev version of t
 
 Alternatively, run `iex -S mix dev` if you also want a shell.
 
-Assets are minimized by default. If you'd like to skip assets optimization and run webpack in development mode you can do it using the `NODE_ENV` enviroment variable:
+Assets are minimized by default. If you'd like to skip assets optimization and run webpack in development mode you can do it using the `NODE_ENV` environment variable:
 
     $ NODE_ENV=development mix dev
 
