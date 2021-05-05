@@ -1,5 +1,7 @@
 # Phoenix LiveDashboard
 
+[![CI](https://github.com/phoenixframework/phoenix_live_dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/phoenixframework/phoenix_live_dashboard/actions/workflows/ci.yml)
+
 [Online Documentation](https://hexdocs.pm/phoenix_live_dashboard).
 
 <!-- MDOC !-->
