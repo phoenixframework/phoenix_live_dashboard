@@ -50,7 +50,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   defp normalize_column(column) do
     case Access.fetch(column, :field) do
       {:ok, nil} ->
-        msg = "expected :field parameter to not be nil, column received: #{inspect(column)}"
+        msg = "expected :field parameter not to be nil, column received: #{inspect(column)}"
         raise ArgumentError, msg
 
       {:ok, field} when is_atom(field) or is_binary(field) ->

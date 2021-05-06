@@ -195,7 +195,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         })
       end
 
-      msg = "expected :field parameter to not be nil, column received: [field: nil]"
+      msg = "expected :field parameter not to be nil, column received: [field: nil]"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{
