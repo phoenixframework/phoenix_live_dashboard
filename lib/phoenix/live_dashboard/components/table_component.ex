@@ -20,6 +20,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     params
     |> validate_required([:columns, :id, :row_fetcher, :title])
     |> normalize_columns()
+    |> validate_required_one_sortable_column()
     |> Map.put_new(:search, true)
     |> Map.put_new(:limit, @limit)
     |> Map.put_new(:row_attrs, [])
@@ -69,6 +70,16 @@ defmodule Phoenix.LiveDashboard.TableComponent do
       :error ->
         msg = "expected :field parameter to be received, column received: #{inspect(column)}"
         raise ArgumentError, msg
+    end
+  end
+
+  defp validate_required_one_sortable_column(%{columns: columns} = params) do
+    sortable_columns = sortable_columns(columns)
+
+    if sortable_columns == [] do
+      raise ArgumentError, "expect at least one column has :sortable parameter"
+    else
+      params
     end
   end
 
