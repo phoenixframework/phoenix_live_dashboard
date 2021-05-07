@@ -217,12 +217,23 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         })
       end
 
+      msg = "expect at least one column has :sortable parameter"
+
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{
+          title: "title",
+          row_fetcher: &row_fetcher/2,
+          id: "id",
+          columns: [[field: "id"]]
+        })
+      end
+
       assert params =
                TableComponent.normalize_params(%{
                  title: "title",
                  row_fetcher: &row_fetcher/2,
                  id: "id",
-                 columns: [[field: "id"]]
+                 columns: [[field: "id", sortable: "asc"], [field: "id2"]]
                })
 
       assert [
@@ -232,11 +243,20 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
                  format: format_fun,
                  header: "Id",
                  header_attrs: [],
+                 sortable: "asc"
+               },
+               %{
+                 cell_attrs: [],
+                 field: "id2",
+                 format: format_fun,
+                 header: "Id2",
+                 header_attrs: [],
                  sortable: nil
                }
              ] = params.columns
 
       assert "id" = format_fun.("id")
+      assert "id2" = format_fun.("id2")
     end
 
     test "adds default values" do
@@ -255,7 +275,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
                  title: "title",
                  row_fetcher: &row_fetcher/2,
                  id: "id",
-                 columns: [[field: :id]]
+                 columns: [[field: :id, sortable: "asc"]]
                })
 
       assert is_function(fun, 2)
