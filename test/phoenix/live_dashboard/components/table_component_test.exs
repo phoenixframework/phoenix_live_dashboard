@@ -154,25 +154,25 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
 
   describe "normalize_params/1" do
     test "validates required params" do
-      msg = "expected :columns parameter to be received"
+      msg = "the :columns parameter is expected in table component"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{})
       end
 
-      msg = "expected :id parameter to be received"
+      msg = "the :id parameter is expected in table component"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{columns: []})
       end
 
-      msg = "expected :row_fetcher parameter to be received"
+      msg = "the :row_fetcher parameter is expected in table component"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{id: "id", columns: []})
       end
 
-      msg = "expected :title parameter to be received"
+      msg = "the :title parameter is expected in table component"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{
@@ -184,7 +184,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     end
 
     test "normalizes columns" do
-      msg = "expected :field parameter to be received, column received: []"
+      msg = "the :field parameter is expected, got: []"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{
@@ -195,7 +195,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         })
       end
 
-      msg = "expected :field parameter not to be nil, column received: [field: nil]"
+      msg = ":field parameter must not be nil, got: [field: nil]"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{
@@ -206,7 +206,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         })
       end
 
-      msg = "expected :field parameter to be an atom or a string, column received: [field: 7]"
+      msg = ":field parameter must be an atom or a string, got: [field: 7]"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{
@@ -217,7 +217,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         })
       end
 
-      msg = "expect at least one column has :sortable parameter"
+      msg = "must have at least one column with :sortable parameter"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{

@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.RowComponent do
   defp validate_required(params, list) do
     case Enum.find(list, &(not Map.has_key?(params, &1))) do
       nil -> :ok
-      key -> raise ArgumentError, "expected #{inspect(key)} parameter to be received"
+      key -> raise ArgumentError, "the #{inspect(key)} parameter is expected in row component"
     end
 
     params
@@ -28,14 +28,14 @@ defmodule Phoenix.LiveDashboard.RowComponent do
       params
     else
       raise ArgumentError,
-            "expected :components to have at min 1 compoment and max 3 components, received: #{
+            ":components must have at least 1 compoment and at most 3 components, got: #{
               inspect(components_length)
             }"
     end
   end
 
   defp normalize_components(%{components: components}) do
-    raise ArgumentError, "expected :components to be a list, received: #{inspect(components)}"
+    raise ArgumentError, ":components must be a list, got: #{inspect(components)}"
   end
 
   @impl true

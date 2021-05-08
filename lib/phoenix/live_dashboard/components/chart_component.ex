@@ -106,7 +106,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp validate_prune_threshold(value) do
     unless is_integer(value) and value > 0 do
       raise ArgumentError,
-            "expected :prune_threshold to be a positive integer, got: #{inspect(value)}"
+            ":prune_threshold must be a positive integer, got: #{inspect(value)}"
     end
 
     value

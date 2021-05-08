@@ -69,31 +69,29 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
     test "validates :items" do
       page = %Phoenix.LiveDashboard.PageBuilder{}
 
-      assert_raise ArgumentError, "expected :items parameter to be received", fn ->
+      assert_raise ArgumentError, "the :items parameter is expected in nav bar component", fn ->
         NavBarComponent.normalize_params(%{page: page})
       end
 
-      msg = "expected :items parameter to be a list, received: :invalid"
+      msg = ":items parameter must be a list, got: :invalid"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{page: page, items: :invalid})
       end
 
-      msg =
-        "expected :items to be [{atom(), [name: string(), render: component()], received: :invalid"
+      msg = ":items must be [{atom(), [name: string(), render: component()], got: :invalid"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{page: page, items: [:invalid]})
       end
 
-      msg = "expected :render parameter to be received in item: []"
+      msg = ":render parameter must be in item: []"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{page: page, items: [id: []]})
       end
 
-      assert msg =
-               "expected :render parameter in item to be a component, received: [render: :invalid]"
+      assert msg = ":render parameter in item must be a component, got: [render: :invalid]"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{
@@ -102,7 +100,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         })
       end
 
-      msg = "expected :name parameter to be received in item: [render: {Component, %{}}]"
+      msg = ":name parameter must be in item: [render: {Component, %{}}]"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{
@@ -111,7 +109,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         })
       end
 
-      msg = "expected :method parameter in item to be :patch or :redirect, received: :invalid"
+      msg = ":method parameter in item must contain value of :patch or :redirect, got: :invalid"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{

@@ -34,7 +34,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   defp validate_required(params, list) do
     case Enum.find(list, &(not Map.has_key?(params, &1))) do
       nil -> :ok
-      key -> raise ArgumentError, "expected #{inspect(key)} parameter to be received"
+      key -> raise ArgumentError, "the #{inspect(key)} parameter is expected in table component"
     end
 
     params
@@ -45,13 +45,13 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp normalize_columns(%{columns: columns}) do
-    raise ArgumentError, "expected :columns to be a list, received: #{inspect(columns)}"
+    raise ArgumentError, ":columns must be a list, got: #{inspect(columns)}"
   end
 
   defp normalize_column(column) do
     case Access.fetch(column, :field) do
       {:ok, nil} ->
-        msg = "expected :field parameter not to be nil, column received: #{inspect(column)}"
+        msg = ":field parameter must not be nil, got: #{inspect(column)}"
         raise ArgumentError, msg
 
       {:ok, field} when is_atom(field) or is_binary(field) ->
@@ -64,11 +64,11 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         |> Map.put_new(:sortable, nil)
 
       {:ok, _} ->
-        msg = "expected :field parameter to be an atom or a string, column received: "
+        msg = ":field parameter must be an atom or a string, got: "
         raise ArgumentError, msg <> inspect(column)
 
       :error ->
-        msg = "expected :field parameter to be received, column received: #{inspect(column)}"
+        msg = "the :field parameter is expected, got: #{inspect(column)}"
         raise ArgumentError, msg
     end
   end
@@ -77,7 +77,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     sortable_columns = sortable_columns(columns)
 
     if sortable_columns == [] do
-      raise ArgumentError, "expect at least one column has :sortable parameter"
+      raise ArgumentError, "must have at least one column with :sortable parameter"
     else
       params
     end
