@@ -27,8 +27,12 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
 
   defp validate_required(params, list) do
     case Enum.find(list, &(not Map.has_key?(params, &1))) do
-      nil -> :ok
-      key -> raise ArgumentError, "expected #{inspect(key)} parameter to be received"
+      nil ->
+        :ok
+
+      key ->
+        raise ArgumentError,
+              "the #{inspect(key)} parameter is expected in shared usage card component"
     end
 
     params

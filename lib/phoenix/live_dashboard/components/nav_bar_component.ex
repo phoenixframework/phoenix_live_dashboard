@@ -29,10 +29,10 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   def normalize_params(params) do
     case Map.fetch(params, :items) do
       :error ->
-        raise ArgumentError, "expected :items parameter to be received"
+        raise ArgumentError, "the :items parameter is expected in nav bar component"
 
       {:ok, no_list} when not is_list(no_list) ->
-        msg = "expected :items parameter to be a list, received: "
+        msg = ":items parameter must be a list, got: "
         raise ArgumentError, msg <> inspect(no_list)
 
       {:ok, items} ->
@@ -53,7 +53,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   end
 
   defp normalize_item(invalid_item) do
-    msg = "expected :items to be [{atom(), [name: string(), render: component()], received: "
+    msg = ":items must be [{atom(), [name: string(), render: component()], got: "
 
     raise ArgumentError, msg <> inspect(invalid_item)
   end
@@ -61,7 +61,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   defp validate_item_render(item) do
     case Keyword.fetch(item, :render) do
       :error ->
-        msg = "expected :render parameter to be received in item: #{inspect(item)}"
+        msg = ":render parameter must be in item: #{inspect(item)}"
         raise ArgumentError, msg
 
       {:ok, render} when is_function(render, 0) ->
@@ -71,7 +71,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         item
 
       {:ok, _invalid} ->
-        msg = "expected :render parameter in item to be a component, received: #{inspect(item)}"
+        msg = ":render parameter in item must be a component, got: #{inspect(item)}"
         raise ArgumentError, msg
     end
   end
@@ -79,14 +79,14 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   defp validate_item_name(item) do
     case Keyword.fetch(item, :name) do
       :error ->
-        msg = "expected :name parameter to be received in item: #{inspect(item)}"
+        msg = ":name parameter must be in item: #{inspect(item)}"
         raise ArgumentError, msg
 
       {:ok, string} when is_binary(string) ->
         item
 
       {:ok, _invalid} ->
-        msg = "expected :name parameter in item to be a string, received: #{inspect(item)}"
+        msg = ":name parameter must be a string, got: #{inspect(item)}"
         raise ArgumentError, msg
     end
   end
@@ -100,7 +100,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         item
 
       {:ok, method} ->
-        msg = "expected :method parameter in item to be :patch or :redirect, received: "
+        msg = ":method parameter in item must contain value of :patch or :redirect, got: "
         raise ArgumentError, msg <> inspect(method)
     end
   end
