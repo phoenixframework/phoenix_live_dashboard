@@ -41,7 +41,7 @@ defmodule Phoenix.LiveDashboard.CardComponent do
         <% end %>
       </h5>
     <% end %>
-    <div class='banner-card mt-auto <%= Enum.join(@class, " ") %>'>
+    <div class="banner-card mt-auto <%= Enum.join(@class, " ") %>">
       <%= if @inner_title do %>
         <h6 class="banner-card-title">
           <%= @inner_title %>
