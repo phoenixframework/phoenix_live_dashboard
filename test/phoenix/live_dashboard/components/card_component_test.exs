@@ -34,5 +34,19 @@ defmodule Phoenix.LiveDashboard.CardComponentTest do
         CardComponent.normalize_params(%{})
       end
     end
+
+    test "adds default values" do
+      assert %{
+               class: [],
+               hint: nil,
+               inner_hint: nil,
+               inner_title: nil,
+               title: nil,
+               value: "test-value"
+             } =
+               CardComponent.normalize_params(%{
+                 value: "test-value"
+               })
+    end
   end
 end
