@@ -51,7 +51,8 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponentTest do
     end
 
     test "validates required params in :usages field" do
-      msg = "the :data parameter is expected in shared usage card component"
+      msg =
+        "the :data parameter is expected in parent :usages parameter of shared usage card component"
 
       assert_raise ArgumentError, msg, fn ->
         SharedUsageCardComponent.normalize_params(%{
@@ -63,7 +64,8 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponentTest do
         })
       end
 
-      msg = "the :dom_sub_id parameter is expected in shared usage card component"
+      msg =
+        "the :dom_sub_id parameter is expected in parent :usages parameter of shared usage card component"
 
       assert_raise ArgumentError, msg, fn ->
         SharedUsageCardComponent.normalize_params(%{
