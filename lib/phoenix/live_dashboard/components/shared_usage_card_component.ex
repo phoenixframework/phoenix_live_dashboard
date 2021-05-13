@@ -18,21 +18,25 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
   defp validate_usages(params = %{usages: usages}) do
     normalized_usages =
       Enum.map(usages, fn usage ->
-        validate_required(usage, [:data, :dom_sub_id])
+        validate_required(usage, [:data, :dom_sub_id], :usages)
         put_usage_defaults(usage)
       end)
 
     %{params | usages: normalized_usages}
   end
 
-  defp validate_required(params, list) do
+  defp validate_required(params, list, parent_key \\ false) do
     case Enum.find(list, &(not Map.has_key?(params, &1))) do
       nil ->
         :ok
 
       key ->
-        raise ArgumentError,
-              "the #{inspect(key)} parameter is expected in shared usage card component"
+        msg =
+          if parent_key,
+            do: "parent #{inspect(parent_key)} parameter of shared usage card component",
+            else: "shared usage card component"
+
+        raise ArgumentError, "the #{inspect(key)} parameter is expected in #{msg}"
     end
 
     params
