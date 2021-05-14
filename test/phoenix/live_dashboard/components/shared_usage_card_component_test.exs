@@ -77,5 +77,30 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponentTest do
         })
       end
     end
+
+    test "adds default values" do
+      assert %{
+               hint: nil,
+               inner_hint: nil,
+               inner_title: nil,
+               csp_nonces: %{img: nil, script: nil, style: nil},
+               dom_id: "dom-id",
+               total_data: [],
+               title: nil,
+               total_formatter: fun,
+               total_legend: "total-legend",
+               total_usage: "total-usage",
+               usages: [%{data: [], dom_sub_id: "dom-sub-id", title: nil}]
+             } =
+               SharedUsageCardComponent.normalize_params(%{
+                 usages: [%{data: [], dom_sub_id: "dom-sub-id"}],
+                 total_data: [],
+                 total_legend: "total-legend",
+                 total_usage: "total-usage",
+                 dom_id: "dom-id"
+               })
+
+      assert is_function(fun, 1)
+    end
   end
 end
