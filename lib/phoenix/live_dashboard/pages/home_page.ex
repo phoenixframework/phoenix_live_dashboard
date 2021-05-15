@@ -199,14 +199,14 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp atoms_usage_row(assings) do
-    usages = usage_params(:atoms, assings)
+  defp atoms_usage_row(assigns) do
+    usages = usage_params(:atoms, assigns)
 
     params = [
       usages: usages,
       dom_id: "atoms",
       title: "System limits",
-      csp_nonces: assings.csp_nonces
+      csp_nonces: assigns.csp_nonces
     ]
 
     row(
@@ -220,9 +220,9 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp ports_usage_row(assings) do
-    usages = usage_params(:ports, assings)
-    params = [usages: usages, dom_id: "ports", csp_nonces: assings.csp_nonces]
+  defp ports_usage_row(assigns) do
+    usages = usage_params(:ports, assigns)
+    params = [usages: usages, dom_id: "ports", csp_nonces: assigns.csp_nonces]
 
     row(
       components: [
@@ -235,9 +235,9 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp processes_usage_row(assings) do
-    usages = usage_params(:processes, assings)
-    params = [usages: usages, dom_id: "processes", csp_nonces: assings.csp_nonces]
+  defp processes_usage_row(assigns) do
+    usages = usage_params(:processes, assigns)
+    params = [usages: usages, dom_id: "processes", csp_nonces: assigns.csp_nonces]
 
     row(
       components: [
@@ -250,8 +250,8 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp memory_shared_usage_row(assings) do
-    params = memory_usage_params(assings)
+  defp memory_shared_usage_row(assigns) do
+    params = memory_usage_params(assigns)
 
     row(
       components: [
@@ -277,7 +277,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     ]
   end
 
-  defp memory_usage_params(%{system_usage: system_usage} = assings) do
+  defp memory_usage_params(%{system_usage: system_usage} = assigns) do
     total = system_usage.memory.total
     memory_usage = calculate_memory_usage(system_usage.memory)
     usages = [calculate_memory_usage_percent(memory_usage, total)]
@@ -289,7 +289,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
       total_legend: "Total usage:",
       total_usage: format_bytes(system_usage.memory[:total]),
       total_formatter: &format_bytes(&1),
-      csp_nonces: assings.csp_nonces,
+      csp_nonces: assigns.csp_nonces,
       dom_id: "memory"
     ]
   end
