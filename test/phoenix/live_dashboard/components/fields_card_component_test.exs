@@ -11,5 +11,18 @@ defmodule Phoenix.LiveDashboard.FieldsCardComponentTest do
         FieldsCardComponent.normalize_params(%{})
       end
     end
+
+    test "adds default values" do
+      assert %{
+               fields: [foo: 123, bar: 456],
+               hint: nil,
+               inner_hint: nil,
+               inner_title: nil,
+               title: nil
+             } =
+               FieldsCardComponent.normalize_params(%{
+                 fields: [foo: 123, bar: 456]
+               })
+    end
   end
 end
