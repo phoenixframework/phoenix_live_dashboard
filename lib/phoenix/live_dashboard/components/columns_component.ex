@@ -28,7 +28,9 @@ defmodule Phoenix.LiveDashboard.ColumnsComponent do
       Map.put_new(params, :columns_class, div(12, columns_length))
     else
       raise ArgumentError,
-            ":components must have at least 1 compoment and at most 3 components, got: {inspect(columns_lenght)}"
+            ":components must have at least 1 compoment and at most 3 components, got: #{
+              inspect(columns_length)
+            }"
     end
   end
 
