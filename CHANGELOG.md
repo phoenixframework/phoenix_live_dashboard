@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.5.0-dev
+
+* Fallback to longpoll when websockets are not available
+* Remove CPU cards as the result was often innacurate
+* Ignore nil measurements in telemetry panes
+* Add many more components
+
 ## v0.4.0 (2020-11-20)
 
 * Require LiveView v0.15.0
