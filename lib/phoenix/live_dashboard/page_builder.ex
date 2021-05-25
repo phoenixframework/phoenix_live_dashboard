@@ -137,7 +137,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     UsageCardComponent,
     SharedUsageCardComponent,
     ColumnsComponent,
-    RowComponent
+    RowComponent,
+    LayeredGraphComponent
   }
 
   @doc """
@@ -578,6 +579,84 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       |> SharedUsageCardComponent.normalize_params()
 
     {SharedUsageCardComponent, assigns}
+  end
+
+  @doc """
+  A component for drawing layered graphs.
+
+  This is useful to represent pipelines like we have on
+  [BroadwayDashboard](https://hexdocs.pm/broadway_dashboard) where
+  each layer points to nodes of the layer below.
+  It draws the layers from top to bottom.
+
+  The calculation of layers and positions is done automatically
+  based on options.
+
+  ## Options
+
+    * `:title` - The title of the component. Default: `nil`.
+
+    * `:hint` - A textual hint to show close to the title. Default: `nil`.
+
+    * `:layers` - A graph of layers with nodes. They represent
+      our graph structure (see example). Each layer is a list
+      of nodes, where each node has the following fields:
+
+      - `:id` - The ID of the given node.
+      - `:children` - The IDs of children nodes.
+      - `:data` - A string or a map. If it's a map, the required fields
+        are `detail` and `label`.
+
+    * `:show_grid?` - Enable or disable the display of a grid. This
+      is useful for development. Default: `false`.
+
+    * `:y_label_offset` - The "y" offset of label position relative to the
+      center of its circle. Default: `5`.
+
+    * `:y_detail_offset` - The "y" offset of detail position relative to the
+      center of its circle. Default: `18`.
+
+    * `:background` - A function that calculates the background for a
+      node based on it's data. Default: `fn _node_data -> "gray" end`.
+
+    * `:format_label` - A function that formats the label. Defaults
+      to a function that returns the label or data if data is binary.
+
+    * `:format_detail` - A function that formats the detail field.
+      This is only going to be called if data is a map.
+      Default: `fn node_data -> node_data.detail end`.
+
+  ## Examples
+
+      iex> layers = [
+      ...>   [
+      ...>     %{
+      ...>       id: "a1",
+      ...>       data: "a1",
+      ...>       children: ["b1"]
+      ...>     }
+      ...>   ],
+      ...>   [
+      ...>     %{
+      ...>       id: "b1"
+      ...>       data: %{
+      ...>         detail: 0,
+      ...>         label: "b1"
+      ...>       },
+      ...>       children: []
+      ...>      }
+      ...>    ]
+      ...> ]
+      iex> layered_graph(layers: layers, title: "My Graph", hint: "A simple graph")
+  """
+  @spec layered_graph(keyword()) :: component()
+  def layered_graph(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> LayeredGraphComponent.normalize_params()
+
+    {LayeredGraphComponent, assigns}
   end
 
   defmacro __using__(opts) do
