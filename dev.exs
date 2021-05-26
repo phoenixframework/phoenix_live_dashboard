@@ -167,6 +167,202 @@ defmodule DemoWeb.PageController do
   end
 end
 
+defmodule DemoWeb.GraphShowcasePage do
+  use Phoenix.LiveDashboard.PageBuilder, refresher?: false
+
+  @impl true
+  def menu_link(_, _) do
+    {:ok, "Graph component"}
+  end
+
+  @impl true
+  def mount(_params, _, socket) do
+    {:ok, socket}
+  end
+
+  @impl true
+  def render_page(_assigns) do
+    items = [
+      simple_graph: [name: "Simple", render: simple()],
+      groups_graph: [name: "Groups", render: two_groups()],
+      groups_with_intercalation_graph: [
+        name: "Groups with intercalation",
+        render: two_groups_intercalation()
+      ],
+      broadway_graph: [name: "Broadway graph", render: broadway_graph()],
+      wider_graph: [name: "Wider graph", render: wider_graph()]
+    ]
+
+    nav_bar(items: items)
+  end
+
+  defp simple do
+    layered_graph(
+      title: "Simple graph",
+      layers: [
+        [%{id: "a1", data: "a1", children: ["b1", "b2"]}],
+        [%{id: "b1", data: "b1", children: ["c1"]}, %{id: "b2", data: "b2", children: ["c1"]}],
+        [%{id: "c1", data: "c1", children: []}]
+      ]
+    )
+  end
+
+  defp two_groups do
+    background = fn data -> if String.starts_with?(data, "a"), do: "#5d89c7", else: "#555" end
+
+    layered_graph(
+      title: "Two groups",
+      background: background,
+      hint: "This chart shows that we can have groups based on parent nodes.",
+      layers: [
+        [
+          %{id: "a1", data: "a1", children: ["b1", "b2"]},
+          %{id: "a2", data: "a2", children: ["b3", "b4"]},
+          %{id: "a3", data: "a3", children: ["b3", "b4"]},
+          %{id: "a4", data: "a4", children: ["b3", "b4"]},
+          %{id: "a5", data: "a5", children: ["b3", "b4"]}
+        ],
+        [
+          %{id: "b1", data: "b1", children: []},
+          %{id: "b2", data: "b2", children: []},
+          %{id: "b3", data: "b3", children: []},
+          %{id: "b4", data: "b4", children: []}
+        ]
+      ]
+    )
+  end
+
+  defp two_groups_intercalation do
+    format_label = &String.upcase/1
+
+    layered_graph(
+      title: "Two groups with intercalation",
+      hint: "This chart shows that intercalation of children is correctly displayed.",
+      format_label: format_label,
+      layers: [
+        [
+          %{id: "a1", data: "a1", children: ["b1", "b3", "b5"]},
+          %{id: "a2", data: "a2", children: ["b2", "b4", "b6"]}
+        ],
+        [
+          %{id: "b1", data: "b1", children: []},
+          %{id: "b2", data: "b2", children: []},
+          %{id: "b3", data: "b3", children: []},
+          %{id: "b4", data: "b4", children: []},
+          %{id: "b5", data: "b5", children: []},
+          %{id: "b6", data: "b6", children: []}
+        ]
+      ]
+    )
+  end
+
+  defp broadway_graph do
+    background = fn data ->
+      case data do
+        %{detail: perc} ->
+          hue = 100 - perc
+
+          "hsl(#{hue}, 80%, 35%)"
+
+        _ ->
+          "lightgray"
+      end
+    end
+
+    format_detail = fn data -> "#{data.detail}%" end
+
+    layers = [
+      [
+        %{
+          children: [
+            Demo.Pipeline.Broadway.Processor_default_0,
+            Demo.Pipeline.Broadway.Processor_default_1,
+            Demo.Pipeline.Broadway.Processor_default_2,
+            Demo.Pipeline.Broadway.Processor_default_3,
+            Demo.Pipeline.Broadway.Processor_default_4
+          ],
+          data: "prod_0",
+          id: Demo.Pipeline.Broadway.Producer_0
+        }
+      ],
+      [
+        %{
+          children: [Demo.Pipeline.Broadway.Batcher_default],
+          data: %{detail: 84, label: "proc_0"},
+          id: Demo.Pipeline.Broadway.Processor_default_0
+        },
+        %{
+          children: [Demo.Pipeline.Broadway.Batcher_default],
+          data: %{detail: 13, label: "proc_1"},
+          id: Demo.Pipeline.Broadway.Processor_default_1
+        },
+        %{
+          children: [Demo.Pipeline.Broadway.Batcher_default],
+          data: %{detail: 80, label: "proc_2"},
+          id: Demo.Pipeline.Broadway.Processor_default_2
+        },
+        %{
+          children: [Demo.Pipeline.Broadway.Batcher_default],
+          data: %{detail: 82, label: "proc_3"},
+          id: Demo.Pipeline.Broadway.Processor_default_3
+        },
+        %{
+          children: [Demo.Pipeline.Broadway.Batcher_default],
+          data: %{detail: 40, label: "proc_4"},
+          id: Demo.Pipeline.Broadway.Processor_default_4
+        }
+      ],
+      [
+        %{
+          children: [
+            Demo.Pipeline.Broadway.BatchProcessor_default_0,
+            Demo.Pipeline.Broadway.BatchProcessor_default_1,
+            Demo.Pipeline.Broadway.BatchProcessor_default_2
+          ],
+          data: %{detail: 33, label: "default"},
+          id: Demo.Pipeline.Broadway.Batcher_default
+        }
+      ],
+      [
+        %{
+          children: [],
+          data: %{detail: 61, label: "proc_0"},
+          id: Demo.Pipeline.Broadway.BatchProcessor_default_0
+        },
+        %{
+          children: [],
+          data: %{detail: 61, label: "proc_1"},
+          id: Demo.Pipeline.Broadway.BatchProcessor_default_1
+        },
+        %{
+          children: [],
+          data: %{detail: 53, label: "proc_2"},
+          id: Demo.Pipeline.Broadway.BatchProcessor_default_2
+        }
+      ]
+    ]
+
+    layered_graph(
+      layers: layers,
+      background: background,
+      format_detail: format_detail,
+      title: "Broadway graph"
+    )
+  end
+
+  defp wider_graph do
+    bottom_layer = for i <- 1..20, do: %{id: "b#{i}", data: "b#{i}", children: []}
+
+    layered_graph(
+      title: "Simple graph",
+      layers: [
+        [%{id: "a1", data: "a1", children: Enum.map(1..20, &"b#{&1}")}],
+        bottom_layer
+      ]
+    )
+  end
+end
+
 defmodule DemoWeb.Router do
   use Phoenix.Router
   import Phoenix.LiveDashboard.Router
@@ -188,6 +384,9 @@ defmodule DemoWeb.Router do
       metrics_history: {DemoWeb.History, :data, []},
       allow_destructive_actions: true,
       ecto_repos: [Demo.Repo],
+      additional_pages: [
+        components: DemoWeb.GraphShowcasePage
+      ],
       csp_nonce_assign_key: %{
         img: :img_csp_nonce,
         style: :style_csp_nonce,
