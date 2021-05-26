@@ -18,20 +18,25 @@ defmodule Phoenix.LiveDashboard.UsageCardComponent do
   defp validate_usages(params = %{usages: usages}, mandatory_fields) do
     usages =
       Enum.map(usages, fn usage ->
-        validate_required(usage, mandatory_fields)
+        validate_required(usage, mandatory_fields, :usages)
         put_usage_defaults(usage)
       end)
 
     %{params | usages: usages}
   end
 
-  defp validate_required(params, list) do
+  defp validate_required(params, list, parent_key \\ false) do
     case Enum.find(list, &(not Map.has_key?(params, &1))) do
       nil ->
         :ok
 
       key ->
-        raise ArgumentError, "the #{inspect(key)} parameter is expected in usage card component"
+        msg =
+          if parent_key,
+            do: "parent #{inspect(parent_key)} parameter of usage card component",
+            else: "usage card component"
+
+        raise ArgumentError, "the #{inspect(key)} parameter is expected in #{msg}"
     end
 
     params

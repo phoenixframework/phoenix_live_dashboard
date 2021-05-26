@@ -17,5 +17,45 @@ defmodule Phoenix.LiveDashboard.UsageCardComponentTest do
         UsageCardComponent.normalize_params(%{usages: []})
       end
     end
+
+    test "validates required params in :usages field" do
+      msg =
+        "the :current parameter is expected in parent :usages parameter of usage card component"
+
+      assert_raise ArgumentError, msg, fn ->
+        UsageCardComponent.normalize_params(%{
+          usages: [%{}],
+          dom_id: "test-dom-id"
+        })
+      end
+
+      msg = "the :limit parameter is expected in parent :usages parameter of usage card component"
+
+      assert_raise ArgumentError, msg, fn ->
+        UsageCardComponent.normalize_params(%{
+          usages: [%{current: 10}],
+          dom_id: "test-dom-id"
+        })
+      end
+
+      msg =
+        "the :dom_sub_id parameter is expected in parent :usages parameter of usage card component"
+
+      assert_raise ArgumentError, msg, fn ->
+        UsageCardComponent.normalize_params(%{
+          usages: [%{current: 10, limit: 150}],
+          dom_id: "test-dom-id"
+        })
+      end
+
+      msg = "the :title parameter is expected in parent :usages parameter of usage card component"
+
+      assert_raise ArgumentError, msg, fn ->
+        UsageCardComponent.normalize_params(%{
+          usages: [%{current: 10, limit: 150, dom_sub_id: "test-dom-sub-id"}],
+          dom_id: "test-dom-id"
+        })
+      end
+    end
   end
 end
