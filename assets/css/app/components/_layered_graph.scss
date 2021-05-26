@@ -1,0 +1,17 @@
+.layered-graph {
+  .connection-line {
+    stroke: $color-gray;
+    fill: $color-gray;
+    stroke-width: 1;
+  }
+
+  .node-label, .node-detail {
+    fill: $color-white;
+    font-family: $font-family-sans-serif;
+    text-anchor: middle;
+  }
+
+  .card-body {
+    overflow-x: auto;
+  }
+}
