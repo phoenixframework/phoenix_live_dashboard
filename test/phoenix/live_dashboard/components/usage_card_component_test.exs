@@ -57,5 +57,35 @@ defmodule Phoenix.LiveDashboard.UsageCardComponentTest do
         })
       end
     end
+
+    test "adds default values" do
+      assert %{
+               csp_nonces: %{img: nil, script: nil, style: nil},
+               dom_id: "test-dom-id",
+               hint: nil,
+               title: nil,
+               usages: [
+                 %{
+                   current: 10,
+                   dom_sub_id: "test-dom-sub-id",
+                   hint: nil,
+                   limit: 150,
+                   percent: nil,
+                   title: "test-title"
+                 }
+               ]
+             } =
+               UsageCardComponent.normalize_params(%{
+                 usages: [
+                   %{
+                     current: 10,
+                     limit: 150,
+                     dom_sub_id: "test-dom-sub-id",
+                     title: "test-title"
+                   }
+                 ],
+                 dom_id: "test-dom-id"
+               })
+    end
   end
 end
