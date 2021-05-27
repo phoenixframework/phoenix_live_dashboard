@@ -69,7 +69,7 @@ defmodule Phoenix.LiveDashboard.UsageCardComponent do
     <div class="card">
       <div class="card-body card-usage">
         <%= for usage <- @usages do %>
-          <%= live_component @socket, Phoenix.LiveDashboard.TitleBarComponent, dom_id: "#{@dom_id}-#{usage.dom_sub_id}", class: "py-2", percent: usage.percent, csp_nonces: @csp_nonces do %>
+          <%= live_component Phoenix.LiveDashboard.TitleBarComponent, dom_id: "#{@dom_id}-#{usage.dom_sub_id}", class: "py-2", percent: usage.percent, csp_nonces: @csp_nonces do %>
             <div>
               <%= usage.title %>
               <%= if(usage.hint) do %>

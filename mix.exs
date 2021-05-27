@@ -43,7 +43,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
   defp deps do
     [
       # Actual deps
-      {:phoenix_live_view, "~> 0.15.0", phoenix_live_view_opts()},
+      {:phoenix_live_view, "~> 0.15.7", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.4.0 or ~> 0.5.0 or ~> 0.6.0"},
       {:phoenix_html, "~> 2.14.1 or ~> 2.15"},
       {:ecto_psql_extras, "~> 0.6", optional: true},

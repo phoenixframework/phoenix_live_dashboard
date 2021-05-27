@@ -188,31 +188,31 @@ defmodule Phoenix.LiveDashboard.PageLive do
     </header>
     <%= live_info(@socket, @page) %>
     <section id="main" role="main" class="container">
-      <%= render_page(@socket, @page.module, assigns) %>
+      <%= render_page(@page.module, assigns) %>
     </section>
     """
   end
 
   # Those pages are handled especially outside of the component tree.
-  defp render_page(_socket, module, assigns)
+  defp render_page(module, assigns)
        when module in [Phoenix.LiveDashboard.RequestLoggerPage] do
     module.render(assigns)
   end
 
-  defp render_page(socket, module, assigns) do
+  defp render_page(module, assigns) do
     {component, component_assigns} = module.render_page(assigns)
     component_assigns = Map.put(component_assigns, :page, assigns.page)
-    live_component(socket, component, component_assigns)
+    live_component(component, component_assigns)
   end
 
-  defp live_info(_socket, %{info: nil}), do: nil
+  defp live_info(_, %{info: nil}), do: nil
 
   defp live_info(socket, %{info: title, node: node, params: params} = page) do
     if component = extract_info_component(title) do
       params = Map.delete(params, "info")
       path = &live_dashboard_path(socket, page.route, &1, params, Enum.into(&2, params))
 
-      live_modal(socket, component,
+      live_modal(component,
         id: title,
         return_to: path.(node, []),
         title: title,
@@ -223,11 +223,11 @@ defmodule Phoenix.LiveDashboard.PageLive do
     end
   end
 
-  defp live_modal(socket, component, opts) do
+  defp live_modal(component, opts) do
     path = Keyword.fetch!(opts, :return_to)
     title = Keyword.fetch!(opts, :title)
     modal_opts = [id: :modal, return_to: path, component: component, opts: opts, title: title]
-    live_component(socket, Phoenix.LiveDashboard.ModalComponent, modal_opts)
+    live_component(Phoenix.LiveDashboard.ModalComponent, modal_opts)
   end
 
   defp extract_info_component("PID<" <> _), do: Phoenix.LiveDashboard.ProcessInfoComponent
