@@ -18,7 +18,7 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
             <%= live_patch raw("&times;"), to: @return_to, class: "close" %>
           </div>
           <div class="modal-body">
-            <%= live_component @socket, @component, @opts %>
+            <%= live_component @component, @opts %>
           </div>
         </div>
       </div>
