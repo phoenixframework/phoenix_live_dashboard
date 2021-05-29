@@ -51,14 +51,14 @@ defmodule Phoenix.LiveDashboard.ColumnsComponent do
   defp render_component(components, assigns) when is_list(components) do
     ~L"""
     <%= for {component_module, component_params} <- components do %>
-      <%= live_component @socket, component_module, component_params %>
+      <%= live_component component_module, component_params %>
     <% end %>
     """
   end
 
   defp render_component({component_module, component_params}, assigns) do
     ~L"""
-      <%= live_component @socket, component_module, component_params %>
+      <%= live_component component_module, component_params %>
     """
   end
 end
