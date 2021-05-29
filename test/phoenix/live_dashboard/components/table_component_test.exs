@@ -228,6 +228,17 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         })
       end
 
+      msg = ":columns must be a list, got: nil"
+
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{
+          title: "title",
+          row_fetcher: &row_fetcher/2,
+          id: "id",
+          columns: nil
+        })
+      end
+
       assert params =
                TableComponent.normalize_params(%{
                  title: "title",
