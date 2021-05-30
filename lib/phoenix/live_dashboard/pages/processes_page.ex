@@ -13,15 +13,21 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       columns: table_columns(),
       id: @table_id,
       row_attrs: &row_attrs/1,
-      row_fetcher: &fetch_processes/2,
+      row_fetcher: &fetch_processes/3,
       title: "Processes"
     )
   end
 
-  defp fetch_processes(params, node) do
+  defp fetch_processes(params, node, socket) do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
 
-    SystemInfo.fetch_processes(node, search, sort_by, sort_dir, limit)
+    prev_run = socket.assigns[:prev_run]
+
+    {processes, count, prev_run} =
+      SystemInfo.fetch_processes(node, search, sort_by, sort_dir, limit, prev_run)
+
+    socket = assign(socket, prev_run: prev_run)
+    {processes, count, socket}
   end
 
   defp table_columns() do
@@ -49,6 +55,13 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       %{
         field: :reductions,
         header: "Reductions",
+        header_attrs: [class: "text-right"],
+        cell_attrs: [class: "text-right"],
+        sortable: :desc
+      },
+      %{
+        field: :reductions_diff,
+        header: "Reductions Diff.",
         header_attrs: [class: "text-right"],
         cell_attrs: [class: "text-right"],
         sortable: :desc

@@ -32,9 +32,16 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Fetchers
 
-  def fetch_processes(node, search, sort_by, sort_dir, limit) do
+  def fetch_processes(node, search, sort_by, sort_dir, limit, prev_reductions \\ nil) do
     search = search && String.downcase(search)
-    :rpc.call(node, __MODULE__, :processes_callback, [search, sort_by, sort_dir, limit])
+
+    :rpc.call(node, __MODULE__, :processes_callback, [
+      search,
+      sort_by,
+      sort_dir,
+      limit,
+      prev_reductions
+    ])
   end
 
   def fetch_ets(node, search, sort_by, sort_dir, limit) do
@@ -188,21 +195,26 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ]
 
   @doc false
-  def processes_callback(search, sort_by, sort_dir, limit) do
+  def processes_callback(search, sort_by, sort_dir, limit, prev_reductions) do
     multiplier = sort_dir_multipler(sort_dir)
 
     processes =
-      for pid <- Process.list(), info = process_info(pid), show_process?(info, search) do
+      for pid <- Process.list(),
+          info = process_info(pid, prev_reductions[pid]),
+          show_process?(info, search) do
         sorter = info[sort_by] * multiplier
         {sorter, info}
       end
 
+    next_state = for {_sorter, info} <- processes, into: %{}, do: {info[:pid], info[:reductions]}
+
     count = if search, do: length(processes), else: :erlang.system_info(:process_count)
     processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
-    {processes, count}
+
+    {processes, count, next_state}
   end
 
-  defp process_info(pid) do
+  defp process_info(pid, prev_reductions) do
     if info = Process.info(pid, @processes_keys) do
       [{:registered_name, name}, {:initial_call, initial_call} | rest] = info
 
@@ -213,7 +225,9 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
           format_initial_call(get_initial_call(pid, initial_call))
         end
 
-      [pid: pid, name_or_initial_call: name_or_initial_call] ++ rest
+      diff = info[:reductions] - (prev_reductions || 0)
+
+      [pid: pid, name_or_initial_call: name_or_initial_call, reductions_diff: diff] ++ rest
     end
   end
 

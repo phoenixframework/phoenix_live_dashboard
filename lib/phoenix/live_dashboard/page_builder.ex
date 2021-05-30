@@ -247,7 +247,10 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
     * `:row_fetcher` - Required. A function which receives the params and the node and
       returns a tuple with the rows and the total number:
-      `(params(), node()) -> {list(), integer() | binary()}`
+      ```
+      (params(), node()) -> {list(), integer() | binary()} |
+        (params(), node(), socket()) -> {list(), integer() | binary(), socket()}
+      ```
 
     * `:rows_name` - A string to name the representation of the rows.
       Default is calculated from the current page.
