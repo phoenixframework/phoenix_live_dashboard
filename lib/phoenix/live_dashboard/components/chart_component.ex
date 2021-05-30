@@ -75,7 +75,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp chart_kind(Telemetry.Metrics.Summary), do: :summary
 
   defp chart_kind(Telemetry.Metrics.Distribution),
-    do: raise(ArgumentError, "LiveDashboard does not yet support distribution metrics")
+    do: raise(ArgumentError, "distribution metrics is not yet supported in chart component")
 
   defp chart_label(%{} = metric) do
     metric.name

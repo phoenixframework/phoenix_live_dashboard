@@ -33,6 +33,14 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
       assert result =~ ~s|data-title="a.b.c.count"|
     end
 
+    test "distribution metric" do
+      msg = "distribution metrics is not yet supported in chart component"
+
+      assert_raise ArgumentError, msg, fn ->
+        render_chart(metric: distribution([:a, :b, :c, :count]))
+      end
+    end
+
     test "adds units" do
       result = render_chart(metric: last_value([:a, :b, :c, :size], unit: :megabyte))
       assert result =~ ~s|data-unit="MB"|
