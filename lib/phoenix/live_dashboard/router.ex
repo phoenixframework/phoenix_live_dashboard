@@ -60,7 +60,7 @@ defmodule Phoenix.LiveDashboard.Router do
       Note that custom pages given to "Additional pages" may support their own
       destructive actions.
 
-    * `:additional_pages` - A keyword list of addictional pages
+    * `:additional_pages` - A keyword list of additional pages
 
   ## Examples
 
