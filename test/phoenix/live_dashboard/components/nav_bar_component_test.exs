@@ -109,6 +109,15 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         })
       end
 
+      msg = ":name parameter must be a string, got: [name: nil, render: {Component, %{}}]"
+
+      assert_raise ArgumentError, msg, fn ->
+        NavBarComponent.normalize_params(%{
+          page: page,
+          items: [id: [name: nil, render: {Component, %{}}]]
+        })
+      end
+
       msg = ":method parameter in item must contain value of :patch or :redirect, got: :invalid"
 
       assert_raise ArgumentError, msg, fn ->
