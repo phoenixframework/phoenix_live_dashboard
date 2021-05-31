@@ -104,9 +104,11 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {rows, total, socket}
   end
 
-  defp fetch_rows(row_fetcher, table_params, page_node, socket)
+  defp fetch_rows({row_fetcher, initial_state}, table_params, page_node, socket)
        when is_function(row_fetcher, 3) do
-    row_fetcher.(table_params, page_node, socket)
+    state = Map.get(socket.assigns, :row_fetcher_state, initial_state)
+    {rows, total, state} = row_fetcher.(table_params, page_node, state)
+    {rows, total, assign(socket, :row_fetcher_state, state)}
   end
 
   defp normalize_table_params(assigns) do
