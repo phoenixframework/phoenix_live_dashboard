@@ -249,7 +249,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       returns a tuple with the rows and the total number:
       `(params(), node()) -> {list(), integer() | binary()}`
       Optionally, if the function needs to keep a state, it can be defined as a tuple
-      with the first element a function and the second the initial state. In this case,
+      where the first element a function and the second the initial state. In this case,
       the function will also receive a third argument which is the state, and it will return
       a tuple with the rows, the total number and the new state for the following call:
       `{(params(), node(), term()) -> {list(), integer() | binary(), term()}, term()}`
