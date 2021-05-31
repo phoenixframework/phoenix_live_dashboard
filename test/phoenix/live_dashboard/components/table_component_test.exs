@@ -20,6 +20,11 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     {[[foo: 1, bar: 2, baz: 3], [foo: 4, bar: 5, baz: 6]], 2}
   end
 
+  defp row_fetcher(params, node, state) do
+    send(self(), {:row_fetcher, params, node, state})
+    {[[foo: 1, bar: 2, baz: 3], [foo: 4, bar: 5, baz: 6]], 2, state + 1}
+  end
+
   defp render_table(opts) do
     columns = [%{field: :foo, sortable: :desc}, %{field: :bar, sortable: :desc}, %{field: :baz}]
 
@@ -59,6 +64,21 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
 
       render_table(params: params)
       assert_received {:row_fetcher, %{sort_dir: :asc, limit: 5000, sort_by: :bar}, ^node}
+    end
+
+    test "calls to row_fetcher/3 with params, node and state" do
+      render_table(row_fetcher: {&row_fetcher/3, 0}, params: %{})
+      assert_received {:row_fetcher, %{sort_dir: :desc, limit: 50, sort_by: :foo}, node, 0}
+      assert node == node()
+
+      params = %{
+        "sort_by" => "bar",
+        "sort_dir" => "asc",
+        "limit" => "5000"
+      }
+
+      render_table(row_fetcher: {&row_fetcher/3, 1}, params: params)
+      assert_received {:row_fetcher, %{sort_dir: :asc, limit: 5000, sort_by: :bar}, ^node, 1}
     end
 
     test "renders columns" do
