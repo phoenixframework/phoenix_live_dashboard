@@ -392,7 +392,7 @@ defmodule DemoWeb.Router do
         style: :style_csp_nonce,
         script: :script_csp_nonce
       },
-      ecto_psql_extras_args: [
+      ecto_psql_extras_options: [
         long_running_queries: [threshold: "200 milliseconds"]
       ]
     )

@@ -142,30 +142,30 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   end
 
   test "configures ecto_psql_extras" do
-    assert Router.__options__(ecto_psql_extras_args: nil)[:session] ==
+    assert Router.__options__(ecto_psql_extras_options: nil)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
               [nil, false, nil, nil, [], nil, nil, [], nil]}
 
-    assert Router.__options__(ecto_psql_extras_args: [])[:session] ==
+    assert Router.__options__(ecto_psql_extras_options: [])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
               [nil, false, nil, nil, [], nil, nil, [], nil]}
 
     ecto_args = [long_running_queries: [threshold: "200 milliseconds"]]
 
-    assert Router.__options__(ecto_psql_extras_args: ecto_args)[:session] ==
+    assert Router.__options__(ecto_psql_extras_options: ecto_args)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
               [nil, false, nil, nil, [], nil, nil, ecto_args, nil]}
 
     assert_raise ArgumentError, fn ->
-      Router.__options__(ecto_psql_extras_args: :not_a_list)
+      Router.__options__(ecto_psql_extras_options: :not_a_list)
     end
 
     assert_raise ArgumentError, fn ->
-      Router.__options__(ecto_psql_extras_args: [long_running_queries: :not_a_list])
+      Router.__options__(ecto_psql_extras_options: [long_running_queries: :not_a_list])
     end
 
     assert_raise ArgumentError, fn ->
-      Router.__options__(ecto_psql_extras_args: [long_running_queries: [:not_a_keyword]])
+      Router.__options__(ecto_psql_extras_options: [long_running_queries: [:not_a_keyword]])
     end
   end
 

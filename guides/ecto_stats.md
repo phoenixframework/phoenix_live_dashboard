@@ -30,7 +30,7 @@ You want to list all repositories that connect to distinct databases. For exampl
 
 If you want to disable the "Ecto Stats" option altogether, set `ecto_repos: []`.
 
-Some queries such as `long_running_queries` can be configured by passing an extra `ecto_psql_extras_args`,
+Some queries such as `long_running_queries` can be configured by passing an extra `ecto_psql_extras_options`,
 which is a keyword where:
 - each key is the name of the query
 - each value is itself a keyword to be passed as `args` to `EctoPSQLExtras`
@@ -40,10 +40,10 @@ For example, if you want to configure the threshold for `long_running_queries`:
 ```elixir
 live_dashboard "/dashboard",
   ecto_repos: [MyApp.Repo],
-  ecto_psql_extras_args: [long_running_queries: [threshold: "200 milliseconds"]]
+  ecto_psql_extras_options: [long_running_queries: [threshold: "200 milliseconds"]]
 ```
 
-See the [`ecto_psql_extras` documentation](https://hexdocs.pm/ecto_psql_extras/readme.html#usage) for more details.
+See the [`ecto_psql_extras` documentation](https://hexdocs.pm/ecto_psql_extras/readme.html#usage) for available options.
 
 ### Install custom extensions
 

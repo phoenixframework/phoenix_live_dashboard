@@ -173,8 +173,8 @@ defmodule Phoenix.LiveDashboard.Router do
 
     ecto_repos = options[:ecto_repos]
 
-    ecto_psql_extras_args =
-      case options[:ecto_psql_extras_args] do
+    ecto_psql_extras_options =
+      case options[:ecto_psql_extras_options] do
         nil ->
           []
 
@@ -182,7 +182,7 @@ defmodule Phoenix.LiveDashboard.Router do
           unless Keyword.keyword?(args) and
                    args |> Keyword.values() |> Enum.all?(&Keyword.keyword?/1) do
             raise ArgumentError,
-                  ":ecto_psql_extras_args must be a keyword where each value is a keyword, got: " <>
+                  ":ecto_psql_extras_options must be a keyword where each value is a keyword, got: " <>
                     inspect(args)
           end
 
@@ -206,7 +206,7 @@ defmodule Phoenix.LiveDashboard.Router do
       additional_pages,
       request_logger_cookie_domain,
       ecto_repos,
-      ecto_psql_extras_args,
+      ecto_psql_extras_options,
       csp_nonce_assign_key
     ]
 
@@ -246,7 +246,7 @@ defmodule Phoenix.LiveDashboard.Router do
         additional_pages,
         request_logger_cookie_domain,
         ecto_repos,
-        ecto_psql_extras_args,
+        ecto_psql_extras_options,
         csp_nonce_assign_key
       ) do
     metrics_session = %{
@@ -271,7 +271,7 @@ defmodule Phoenix.LiveDashboard.Router do
         sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
         ets: {Phoenix.LiveDashboard.EtsPage, %{}}
       ]
-      |> Enum.concat(ecto_stats(ecto_repos, ecto_psql_extras_args))
+      |> Enum.concat(ecto_stats(ecto_repos, ecto_psql_extras_options))
       |> Enum.concat(additional_pages)
       |> Enum.map(fn {key, {module, opts}} ->
         {session, requirements} = initialize_page(module, opts)
@@ -294,7 +294,7 @@ defmodule Phoenix.LiveDashboard.Router do
   defp ecto_stats(nil, _),
     do: [{:ecto_stats, {Phoenix.LiveDashboard.EctoStatsPage, %{repo: nil}}}]
 
-  defp ecto_stats(repos, ecto_psql_extras_args) do
+  defp ecto_stats(repos, ecto_psql_extras_options) do
     for repo <- List.wrap(repos) do
       page =
         repo
@@ -305,7 +305,7 @@ defmodule Phoenix.LiveDashboard.Router do
 
       {page,
        {Phoenix.LiveDashboard.EctoStatsPage,
-        %{repo: repo, ecto_psql_extras_args: ecto_psql_extras_args}}}
+        %{repo: repo, ecto_psql_extras_options: ecto_psql_extras_options}}}
     end
   end
 
