@@ -211,8 +211,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   `Phoenix.LiveDashboard.PageBuilder`,
   but the `info` parameter (`phx-value-info`) needs to be encoded with
   one of the `encode_*` helper functions.
-  The events `select_node` and `select_refresh` are also handled
-  automatically by `Phoenix.LiveDashboard.PageBuilder`.
 
   For more details, see [`Phoenix.LiveView bindings`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#module-bindings)
   """
