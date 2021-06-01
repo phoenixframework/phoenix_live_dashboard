@@ -65,9 +65,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
   end
 
   defp applications_href(limit, search, sort_by, sort_dir) do
-    ~s|href="#{
-      Plug.HTML.html_escape_to_iodata(applications_path(limit, search, sort_by, sort_dir))
-    }"|
+    ~s|href="#{Plug.HTML.html_escape_to_iodata(applications_path(limit, search, sort_by, sort_dir))}"|
   end
 
   defp applications_path(limit, search, sort_by, sort_dir) do

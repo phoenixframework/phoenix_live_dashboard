@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.Helpers do
   @moduledoc false
 
+  alias Phoenix.LiveDashboard.PageBuilder
   import Phoenix.LiveView.Helpers
   @format_limit 100
 
@@ -20,69 +21,18 @@ defmodule Phoenix.LiveDashboard.Helpers do
   end
 
   @doc """
-  Computes a router path to the current page.
-  """
-  def live_dashboard_path(socket, %{route: route, node: node, params: params}) do
-    live_dashboard_path(socket, route, node, params, params)
-  end
-
-  @doc """
-  Computes a router path to the current page with merged params.
-  """
-  def live_dashboard_path(socket, %{route: route, node: node, params: old_params}, extra) do
-    new_params = Enum.into(extra, old_params, fn {k, v} -> {Atom.to_string(k), v} end)
-    live_dashboard_path(socket, route, node, old_params, new_params)
-  end
-
-  @doc """
-  Encodes Sockets for URLs.
-  """
-  def encode_socket(ref) do
-    '#Port' ++ rest = :erlang.port_to_list(ref)
-    "Socket#{rest}"
-  end
-
-  @doc """
-  Encodes ETSs for URLs.
-  """
-  def encode_ets(ref) do
-    '#Ref' ++ rest = :erlang.ref_to_list(ref)
-    "ETS#{rest}"
-  end
-
-  @doc """
-  Encodes PIDs for URLs.
-  """
-  def encode_pid(pid) do
-    "PID#{:erlang.pid_to_list(pid)}"
-  end
-
-  @doc """
-  Encodes Port for URLs.
-  """
-  def encode_port(port) when is_port(port) do
-    port
-    |> :erlang.port_to_list()
-    |> tl()
-    |> List.to_string()
-  end
-
-  @doc """
-  Encodes an application for URLs.
-  """
-  def encode_app(app) when is_atom(app) do
-    "App<#{app}>"
-  end
-
-  @doc """
   Formats any value.
   """
   def format_value(port, live_dashboard_path) when is_port(port) do
-    live_patch(inspect(port), to: live_dashboard_path.(node(port), info: encode_port(port)))
+    live_patch(inspect(port),
+      to: live_dashboard_path.(node(port), info: PageBuilder.encode_port(port))
+    )
   end
 
   def format_value(pid, live_dashboard_path) when is_pid(pid) do
-    live_patch(inspect(pid), to: live_dashboard_path.(node(pid), info: encode_pid(pid)))
+    live_patch(inspect(pid),
+      to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid))
+    )
   end
 
   def format_value([_ | _] = list, live_dashboard_path) do

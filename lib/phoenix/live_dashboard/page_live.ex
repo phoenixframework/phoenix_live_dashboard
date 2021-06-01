@@ -279,7 +279,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   def handle_event("show_info", %{"info" => info}, socket) do
-    to = live_dashboard_path(socket, socket.assigns.page, info: info)
+    to = PageBuilder.live_dashboard_path(socket, socket.assigns.page, info: info)
     {:noreply, push_patch(socket, to: to)}
   end
 

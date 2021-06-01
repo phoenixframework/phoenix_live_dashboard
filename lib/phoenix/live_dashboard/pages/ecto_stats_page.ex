@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.EctoStatsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  import Phoenix.LiveDashboard.Helpers
 
   @compile {:no_warn_undefined, [Decimal, EctoPSQLExtras]}
   @disabled_link "https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html"

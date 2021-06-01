@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.ProcessesPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  import Phoenix.LiveDashboard.Helpers
 
   alias Phoenix.LiveDashboard.SystemInfo
 

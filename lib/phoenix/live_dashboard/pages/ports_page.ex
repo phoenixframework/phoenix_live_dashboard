@@ -3,6 +3,7 @@ defmodule Phoenix.LiveDashboard.PortsPage do
   use Phoenix.LiveDashboard.PageBuilder
 
   alias Phoenix.LiveDashboard.SystemInfo
+  import Phoenix.LiveDashboard.Helpers
 
   @table_id :table
   @menu_text "Ports"

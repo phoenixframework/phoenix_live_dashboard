@@ -3,6 +3,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
   use Phoenix.LiveDashboard.PageBuilder
 
   import Phoenix.HTML
+  import Phoenix.LiveDashboard.Helpers
 
   alias Phoenix.LiveDashboard.SystemInfo
 

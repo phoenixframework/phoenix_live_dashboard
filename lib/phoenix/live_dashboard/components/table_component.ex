@@ -1,6 +1,8 @@
 defmodule Phoenix.LiveDashboard.TableComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
+  alias Phoenix.LiveDashboard.PageBuilder
+
   @limit [50, 100, 500, 1000, 5000]
 
   @type params() :: %{
@@ -246,13 +248,13 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   @impl true
   def handle_event("search", %{"search" => search}, socket) do
     table_params = %{socket.assigns.table_params | search: search}
-    to = live_dashboard_path(socket, socket.assigns.page, table_params)
+    to = PageBuilder.live_dashboard_path(socket, socket.assigns.page, table_params)
     {:noreply, push_patch(socket, to: to)}
   end
 
   def handle_event("select_limit", %{"limit" => limit}, socket) do
     table_params = %{socket.assigns.table_params | limit: limit}
-    to = live_dashboard_path(socket, socket.assigns.page, table_params)
+    to = PageBuilder.live_dashboard_path(socket, socket.assigns.page, table_params)
     {:noreply, push_patch(socket, to: to)}
   end
 
@@ -266,7 +268,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         column
         |> column_header()
         |> sort_link_body(sort_dir)
-        |> live_patch(to: live_dashboard_path(socket, page, table_params))
+        |> live_patch(to: PageBuilder.live_dashboard_path(socket, page, table_params))
 
       %{} ->
         table_params = %{table_params | sort_dir: direction, sort_by: field}
@@ -274,7 +276,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         column
         |> column_header()
         |> sort_link_body()
-        |> live_patch(to: live_dashboard_path(socket, page, table_params))
+        |> live_patch(to: PageBuilder.live_dashboard_path(socket, page, table_params))
     end
   end
 
