@@ -13,7 +13,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     assert Router.__options__([]) == [
              session:
                {Phoenix.LiveDashboard.Router, :__session__,
-                [nil, false, nil, nil, [], nil, nil, nil]},
+                [nil, false, nil, nil, [], nil, nil, [], nil]},
              private: %{live_socket_path: "/live", csp_nonce_assign_key: nil},
              layout: {Phoenix.LiveDashboard.LayoutView, :dash},
              as: :live_dashboard
@@ -58,11 +58,11 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures metrics" do
     assert Router.__options__(metrics: Foo)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, {Foo, :metrics}, nil, [], nil, nil, nil]}
+              [nil, false, {Foo, :metrics}, nil, [], nil, nil, [], nil]}
 
     assert Router.__options__(metrics: {Foo, :bar})[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, {Foo, :bar}, nil, [], nil, nil, nil]}
+              [nil, false, {Foo, :bar}, nil, [], nil, nil, [], nil]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(metrics: [])
@@ -72,7 +72,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures env_keys" do
     assert Router.__options__(env_keys: ["USER", "ROOTDIR"])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [["USER", "ROOTDIR"], false, nil, nil, [], nil, nil, nil]}
+              [["USER", "ROOTDIR"], false, nil, nil, [], nil, nil, [], nil]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(env_keys: "FOO")
@@ -82,7 +82,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "accepts metrics_history option" do
     assert Router.__options__(metrics_history: {MyStorage, :metrics_history, []})[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, nil, {MyStorage, :metrics_history, []}, [], nil, nil, nil]}
+              [nil, false, nil, {MyStorage, :metrics_history, []}, [], nil, nil, [], nil]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(metrics_history: %{namespace: {MyStorage, :metrics_history, []}})
@@ -96,15 +96,15 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures additional_pages" do
     assert Router.__options__(additional_pages: [])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, nil, nil, [], nil, nil, nil]}
+              [nil, false, nil, nil, [], nil, nil, [], nil]}
 
     assert Router.__options__(additional_pages: [custom: CustomPage])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, nil, nil, [custom: {CustomPage, []}], nil, nil, nil]}
+              [nil, false, nil, nil, [custom: {CustomPage, []}], nil, nil, [], nil]}
 
     assert Router.__options__(additional_pages: [custom: {CustomPage, [1]}])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, nil, nil, [custom: {CustomPage, [1]}], nil, nil, nil]}
+              [nil, false, nil, nil, [custom: {CustomPage, [1]}], nil, nil, [], nil]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(additional_pages: [{CustomPage, 1}])
@@ -122,15 +122,15 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures cookie_domain" do
     assert Router.__options__(request_logger_cookie_domain: nil)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, nil, nil, [], nil, nil, nil]}
+              [nil, false, nil, nil, [], nil, nil, [], nil]}
 
     assert Router.__options__(request_logger_cookie_domain: ".acme.com")[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, nil, nil, [], ".acme.com", nil, nil]}
+              [nil, false, nil, nil, [], ".acme.com", nil, [], nil]}
 
     assert Router.__options__(request_logger_cookie_domain: :parent)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, false, nil, nil, [], :parent, nil, nil]}
+              [nil, false, nil, nil, [], :parent, nil, [], nil]}
 
     assert_raise ArgumentError, fn ->
       Router.__options__(request_logger_cookie_domain: :unknown_atom)
@@ -138,6 +138,34 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
     assert_raise ArgumentError, fn ->
       Router.__options__(request_logger_cookie_domain: [])
+    end
+  end
+
+  test "configures ecto_psql_extras" do
+    assert Router.__options__(ecto_psql_extras_args: nil)[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, false, nil, nil, [], nil, nil, [], nil]}
+
+    assert Router.__options__(ecto_psql_extras_args: [])[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, false, nil, nil, [], nil, nil, [], nil]}
+
+    ecto_args = [long_running_queries: [threshold: "200 milliseconds"]]
+
+    assert Router.__options__(ecto_psql_extras_args: ecto_args)[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, false, nil, nil, [], nil, nil, ecto_args, nil]}
+
+    assert_raise ArgumentError, fn ->
+      Router.__options__(ecto_psql_extras_args: :not_a_list)
+    end
+
+    assert_raise ArgumentError, fn ->
+      Router.__options__(ecto_psql_extras_args: [long_running_queries: :not_a_list])
+    end
+
+    assert_raise ArgumentError, fn ->
+      Router.__options__(ecto_psql_extras_args: [long_running_queries: [:not_a_keyword]])
     end
   end
 
@@ -164,7 +192,17 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                "requirements" => [{:application, :os_mon}]
              } =
                build_conn()
-               |> Phoenix.LiveDashboard.Router.__session__([], false, [], [], [], nil, nil, nil)
+               |> Phoenix.LiveDashboard.Router.__session__(
+                 [],
+                 false,
+                 [],
+                 [],
+                 [],
+                 nil,
+                 nil,
+                 [],
+                 nil
+               )
     end
 
     test "loads nonces when key present" do
@@ -175,7 +213,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                |> Plug.Conn.assign(:img_nonce, "img_nonce")
                |> Plug.Conn.assign(:style_nonce, "style_nonce")
                |> Plug.Conn.assign(:script_nonce, "script_nonce")
-               |> Phoenix.LiveDashboard.Router.__session__([], false, [], [], [], nil, nil, %{
+               |> Phoenix.LiveDashboard.Router.__session__([], false, [], [], [], nil, nil, [], %{
                  img: :img_nonce,
                  style: :style_nonce,
                  script: :script_nonce
@@ -187,7 +225,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                "csp_nonces" => %{img: nil, script: nil, style: nil}
              } =
                build_conn()
-               |> Phoenix.LiveDashboard.Router.__session__([], false, [], [], [], nil, nil, %{
+               |> Phoenix.LiveDashboard.Router.__session__([], false, [], [], [], nil, nil, [], %{
                  img: :img_nonce,
                  style: :style_nonce,
                  script: :script_nonce
@@ -202,13 +240,33 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                |> Plug.Conn.assign(:img_nonce, "img_nonce")
                |> Plug.Conn.assign(:style_nonce, "style_nonce")
                |> Plug.Conn.assign(:script_nonce, "script_nonce")
-               |> Phoenix.LiveDashboard.Router.__session__([], false, [], [], [], nil, nil, nil)
+               |> Phoenix.LiveDashboard.Router.__session__(
+                 [],
+                 false,
+                 [],
+                 [],
+                 [],
+                 nil,
+                 nil,
+                 [],
+                 nil
+               )
     end
 
     test "generates additional pages per ecto repo" do
       assert %{"pages" => pages} =
                build_conn()
-               |> Phoenix.LiveDashboard.Router.__session__([], false, [], [], [], nil, [], nil)
+               |> Phoenix.LiveDashboard.Router.__session__(
+                 [],
+                 false,
+                 [],
+                 [],
+                 [],
+                 nil,
+                 [],
+                 [],
+                 nil
+               )
 
       assert [ets: _] = Enum.take(pages, -1)
 
@@ -216,7 +274,17 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
       assert %{"pages" => pages} =
                build_conn()
-               |> Phoenix.LiveDashboard.Router.__session__([], false, [], [], [], nil, repos, nil)
+               |> Phoenix.LiveDashboard.Router.__session__(
+                 [],
+                 false,
+                 [],
+                 [],
+                 [],
+                 nil,
+                 repos,
+                 [],
+                 nil
+               )
 
       assert [
                ets: _,

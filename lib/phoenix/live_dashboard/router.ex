@@ -173,6 +173,22 @@ defmodule Phoenix.LiveDashboard.Router do
 
     ecto_repos = options[:ecto_repos]
 
+    ecto_psql_extras_args =
+      case options[:ecto_psql_extras_args] do
+        nil ->
+          []
+
+        args ->
+          unless Keyword.keyword?(args) and
+                   args |> Keyword.values() |> Enum.all?(&Keyword.keyword?/1) do
+            raise ArgumentError,
+                  ":ecto_psql_extras_args must be a keyword where each value is a keyword, got: " <>
+                    inspect(args)
+          end
+
+          args
+      end
+
     csp_nonce_assign_key =
       case options[:csp_nonce_assign_key] do
         nil -> nil
@@ -190,6 +206,7 @@ defmodule Phoenix.LiveDashboard.Router do
       additional_pages,
       request_logger_cookie_domain,
       ecto_repos,
+      ecto_psql_extras_args,
       csp_nonce_assign_key
     ]
 
@@ -229,6 +246,7 @@ defmodule Phoenix.LiveDashboard.Router do
         additional_pages,
         request_logger_cookie_domain,
         ecto_repos,
+        ecto_psql_extras_args,
         csp_nonce_assign_key
       ) do
     metrics_session = %{
@@ -253,7 +271,7 @@ defmodule Phoenix.LiveDashboard.Router do
         sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
         ets: {Phoenix.LiveDashboard.EtsPage, %{}}
       ]
-      |> Enum.concat(ecto_stats(ecto_repos))
+      |> Enum.concat(ecto_stats(ecto_repos, ecto_psql_extras_args))
       |> Enum.concat(additional_pages)
       |> Enum.map(fn {key, {module, opts}} ->
         {session, requirements} = initialize_page(module, opts)
@@ -273,9 +291,10 @@ defmodule Phoenix.LiveDashboard.Router do
     }
   end
 
-  defp ecto_stats(nil), do: [{:ecto_stats, {Phoenix.LiveDashboard.EctoStatsPage, %{repo: nil}}}]
+  defp ecto_stats(nil, _),
+    do: [{:ecto_stats, {Phoenix.LiveDashboard.EctoStatsPage, %{repo: nil}}}]
 
-  defp ecto_stats(repos) do
+  defp ecto_stats(repos, ecto_psql_extras_args) do
     for repo <- List.wrap(repos) do
       page =
         repo
@@ -284,7 +303,9 @@ defmodule Phoenix.LiveDashboard.Router do
         |> Kernel.<>("_info")
         |> String.to_atom()
 
-      {page, {Phoenix.LiveDashboard.EctoStatsPage, %{repo: repo}}}
+      {page,
+       {Phoenix.LiveDashboard.EctoStatsPage,
+        %{repo: repo, ecto_psql_extras_args: ecto_psql_extras_args}}}
     end
   end
 
