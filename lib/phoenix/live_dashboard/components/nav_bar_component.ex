@@ -128,7 +128,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   defp render_item_link(socket, page, item, current, id) do
     # The nav ignores all params, except the current node if any
     path =
-      Phoenix.LiveDashboard.Helpers.live_dashboard_path(
+      Phoenix.LiveDashboard.PageBuilder.live_dashboard_path(
         socket,
         page.route,
         page.node,

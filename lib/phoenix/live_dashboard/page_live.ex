@@ -210,7 +210,9 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp live_info(socket, %{info: title, node: node, params: params} = page) do
     if component = extract_info_component(title) do
       params = Map.delete(params, "info")
-      path = &live_dashboard_path(socket, page.route, &1, params, Enum.into(&2, params))
+
+      path =
+        &PageBuilder.live_dashboard_path(socket, page.route, &1, params, Enum.into(&2, params))
 
       live_modal(component,
         id: title,
@@ -264,7 +266,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
     page = socket.assigns.page
 
     if node && node != page.node do
-      to = live_dashboard_path(socket, page.route, node, page.params, page.params)
+      to = PageBuilder.live_dashboard_path(socket, page.route, node, page.params, page.params)
       {:noreply, push_redirect(socket, to: to)}
     else
       {:noreply, redirect_to_current_node(socket)}
@@ -295,7 +297,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   defp maybe_link(socket, page, {:enabled, text, route}) do
     live_redirect(text,
-      to: live_dashboard_path(socket, route, page.node, page.params, []),
+      to: PageBuilder.live_dashboard_path(socket, route, page.node, page.params, []),
       class: "menu-item"
     )
   end
@@ -333,7 +335,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp redirect_to_current_node(socket) do
-    push_redirect(socket, to: live_dashboard_path(socket, :home, node(), %{}, %{}))
+    push_redirect(socket, to: PageBuilder.live_dashboard_path(socket, :home, node(), %{}, %{}))
   end
 
   defp update_page(socket, assigns) do

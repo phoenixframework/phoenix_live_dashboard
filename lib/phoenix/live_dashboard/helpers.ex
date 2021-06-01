@@ -6,21 +6,6 @@ defmodule Phoenix.LiveDashboard.Helpers do
   @format_limit 100
 
   @doc """
-  Computes a route path to the given route, node, and params.
-  """
-  def live_dashboard_path(socket, route, node, old_params, new_params) when is_atom(node) do
-    apply(
-      socket.router.__helpers__(),
-      :live_dashboard_path,
-      if node == node() and is_nil(old_params["node"]) do
-        [socket, :page, route, new_params]
-      else
-        [socket, :page, node, route, new_params]
-      end
-    )
-  end
-
-  @doc """
   Formats any value.
   """
   def format_value(port, live_dashboard_path) when is_port(port) do
