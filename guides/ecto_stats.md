@@ -6,7 +6,7 @@ This guide covers how to configure the LiveDashboard to show stats from your und
 
 To enable the "Ecto Stats" functionality in your dashboard, you will need to do the three steps below:
 
-  1. Add the ecto_psql_extras dependency
+  1. Add the [`ecto_psql_extras`](https://hexdocs.pm/ecto_psql_extras) dependency
   2. Configure the dashboard
   3. (optional) Install custom extensions
 
@@ -29,6 +29,21 @@ live_dashboard "/dashboard", ecto_repos: [MyApp.Repo]
 You want to list all repositories that connect to distinct databases. For example, if you have both `MyApp.Repo` and `MyApp.RepoAnother` but they connect to the same database, there is no benefit in listing both. Remember only Ecto repositories running on `Ecto.Adapters.Postgres` are currently supported.
 
 If you want to disable the "Ecto Stats" option altogether, set `ecto_repos: []`.
+
+Some queries such as `long_running_queries` can be configured by passing an extra `ecto_psql_extras_options`,
+which is a keyword where:
+- each key is the name of the query
+- each value is itself a keyword to be passed as `args` to `EctoPSQLExtras`
+
+For example, if you want to configure the threshold for `long_running_queries`:
+
+```elixir
+live_dashboard "/dashboard",
+  ecto_repos: [MyApp.Repo],
+  ecto_psql_extras_options: [long_running_queries: [threshold: "200 milliseconds"]]
+```
+
+See the [`ecto_psql_extras` documentation](https://hexdocs.pm/ecto_psql_extras/readme.html#usage) for available options.
 
 ### Install custom extensions
 

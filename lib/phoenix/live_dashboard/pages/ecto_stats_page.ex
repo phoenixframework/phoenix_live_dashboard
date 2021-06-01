@@ -6,12 +6,19 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   @disabled_link "https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html"
 
   @impl true
-  def init(%{repo: nil}), do: {:ok, %{repo: nil}}
-  def init(%{repo: repo}), do: {:ok, %{repo: repo}, process: repo}
+  def init(%{repo: nil}), do: {:ok, %{repo: nil, ecto_options: []}}
+
+  def init(%{repo: repo, ecto_psql_extras_options: ecto_options}),
+    do: {:ok, %{repo: repo, ecto_options: ecto_options}, process: repo}
 
   @impl true
-  def mount(_params, %{repo: repo}, socket) do
-    {:ok, assign(socket, repo: repo, info_module: info_module_for(repo))}
+  def mount(_params, %{repo: repo, ecto_options: ecto_options}, socket) do
+    {:ok,
+     assign(socket,
+       repo: repo,
+       ecto_options: ecto_options,
+       info_module: info_module_for(repo)
+     )}
   end
 
   @impl true
@@ -54,16 +61,18 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   @forbidden_tables [:kill_all, :mandelbrot]
 
-  defp items(%{repo: repo, info_module: info_module}) do
+  defp items(%{repo: repo, info_module: info_module, ecto_options: ecto_options}) do
     for {table_name, table_module} <- info_module.queries(repo),
         table_name not in @forbidden_tables do
       {table_name,
        name: Phoenix.Naming.humanize(table_name),
-       render: fn -> render_table(repo, info_module, table_name, table_module) end}
+       render: fn ->
+         render_table(repo, info_module, table_name, table_module, ecto_options)
+       end}
     end
   end
 
-  defp render_table(repo, info_module, table_name, table_module) do
+  defp render_table(repo, info_module, table_name, table_module, ecto_options) do
     info = table_module.info()
 
     columns =
@@ -82,7 +91,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       search: searchable != [],
       columns: columns,
       rows_name: "entries",
-      row_fetcher: &row_fetcher(repo, info_module, table_name, searchable, &1, &2),
+      row_fetcher: &row_fetcher(repo, info_module, table_name, searchable, ecto_options, &1, &2),
       title: Phoenix.Naming.humanize(table_name)
     )
   end
@@ -90,8 +99,15 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   defp sortable(:string), do: :asc
   defp sortable(_), do: :desc
 
-  defp row_fetcher(repo, info_module, table_name, searchable, params, _node) do
-    %{columns: columns, rows: rows} = info_module.query(table_name, repo, format: :raw)
+  defp row_fetcher(repo, info_module, table_name, searchable, ecto_options, params, _node) do
+    opts =
+      case Keyword.fetch(ecto_options, table_name) do
+        {:ok, args} -> [args: args]
+        :error -> []
+      end
+      |> Keyword.merge(format: :raw)
+
+    %{columns: columns, rows: rows} = info_module.query(table_name, repo, opts)
 
     mapped =
       for row <- rows do
