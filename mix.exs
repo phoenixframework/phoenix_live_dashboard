@@ -49,7 +49,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:ecto_psql_extras, "~> 0.6", optional: true},
 
       # Dev and test
-      {:circular_buffer, "~> 0.2", only: :dev},
+      {:circular_buffer, "~> 0.3", only: :dev},
       {:telemetry_poller, "~> 0.4", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:plug_cowboy, "~> 2.0", only: :dev},
