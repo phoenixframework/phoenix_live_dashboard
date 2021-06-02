@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.AppInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
-  alias Phoenix.LiveDashboard.{SystemInfo, ReingoldTilford}
+  alias Phoenix.LiveDashboard.{PageBuilder, SystemInfo, ReingoldTilford}
 
   @impl true
   def render(assigns) do
@@ -52,7 +52,7 @@ defmodule Phoenix.LiveDashboard.AppInfoComponent do
     end
   end
 
-  defp node_encoded_pid({_, pid, _}), do: encode_pid(pid)
+  defp node_encoded_pid({_, pid, _}), do: PageBuilder.encode_pid(pid)
 
   defp node_label({_, pid, []}), do: pid |> :erlang.pid_to_list() |> List.to_string()
   defp node_label({_, _, name}), do: inspect(name)

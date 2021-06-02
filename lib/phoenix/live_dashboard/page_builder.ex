@@ -108,6 +108,13 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   We currently support `card/1`, `columns/1`, `fields_card/1`,
   `layered_graph/1`, `nav_bar/1`, `row/1`, `shared_usage_card/1`, `table/1`,
   and `usage_card/1`.
+
+  ## Helpers
+
+  Some helpers are available for page building. The supported
+  helpers are: `live_dashboard_path/2`, `live_dashboard_path/3`,
+  `encode_app/1`, `encode_ets/1`, `encode_pid/1`, `encode_port/1`,
+  and `encode_socket/1`.
   """
 
   defstruct info: nil,
@@ -197,6 +204,16 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @callback handle_params(unsigned_params(), uri :: String.t(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
 
+  @doc """
+  Callback invoked when an event is called.
+
+  Note that `show_info` event is handled automatically by
+  `Phoenix.LiveDashboard.PageBuilder`,
+  but the `info` parameter (`phx-value-info`) needs to be encoded with
+  one of the `encode_*` helper functions.
+
+  For more details, see [`Phoenix.LiveView bindings`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#module-bindings)
+  """
   @callback handle_event(event :: binary, unsigned_params(), socket :: Socket.t()) ::
               {:noreply, Socket.t()} | {:reply, map, Socket.t()}
 
@@ -666,11 +683,117 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {LayeredGraphComponent, assigns}
   end
 
+  ## Helpers
+
+  @doc """
+  Encodes Sockets for URLs.
+
+  ## Example
+
+  This function can be used to encode `@socket` for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_socket(@socket) %>/>
+  """
+  @spec encode_socket(port()) :: binary()
+  def encode_socket(ref) when is_port(ref) do
+    '#Port' ++ rest = :erlang.port_to_list(ref)
+    "Socket#{rest}"
+  end
+
+  @doc """
+  Encodes ETSs references for URLs.
+
+  ## Example
+
+  This function can be used to encode an ETS reference for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_ets(@reference) %>/>
+  """
+  @spec encode_ets(reference()) :: binary()
+  def encode_ets(ref) when is_reference(ref) do
+    '#Ref' ++ rest = :erlang.ref_to_list(ref)
+    "ETS#{rest}"
+  end
+
+  @doc """
+  Encodes PIDs for URLs.
+
+  ## Example
+
+  This function can be used to encode a PID for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_pid(@pid) %>/>
+  """
+  @spec encode_pid(pid()) :: binary()
+  def encode_pid(pid) when is_pid(pid) do
+    "PID#{:erlang.pid_to_list(pid)}"
+  end
+
+  @doc """
+  Encodes Port for URLs.
+
+  ## Example
+
+  This function can be used to encode a Port for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_port(@port) %>/>
+  """
+  @spec encode_port(port()) :: binary()
+  def encode_port(port) when is_port(port) do
+    port
+    |> :erlang.port_to_list()
+    |> tl()
+    |> List.to_string()
+  end
+
+  @doc """
+  Encodes an application for URLs.
+
+  ## Example
+
+  This function can be used to encode an application for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_app(@my_app) %>/>
+  """
+  @spec encode_app(atom()) :: binary()
+  def encode_app(app) when is_atom(app) do
+    "App<#{app}>"
+  end
+
+  @doc """
+  Computes a router path to the current page.
+  """
+  @spec live_dashboard_path(Socket.t(), page :: %__MODULE__{}) :: binary()
+  def live_dashboard_path(socket, %{route: route, node: node, params: params}) do
+    live_dashboard_path(socket, route, node, params, params)
+  end
+
+  @doc """
+  Computes a router path to the current page with merged params.
+  """
+  @spec live_dashboard_path(Socket.t(), page :: %__MODULE__{}, map()) :: binary()
+  def live_dashboard_path(socket, %{route: route, node: node, params: old_params}, extra) do
+    new_params = Enum.into(extra, old_params, fn {k, v} -> {Atom.to_string(k), v} end)
+    live_dashboard_path(socket, route, node, old_params, new_params)
+  end
+
+  @doc false
+  def live_dashboard_path(socket, route, node, old_params, new_params) when is_atom(node) do
+    apply(
+      socket.router.__helpers__(),
+      :live_dashboard_path,
+      if node == node() and is_nil(old_params["node"]) do
+        [socket, :page, route, new_params]
+      else
+        [socket, :page, node, route, new_params]
+      end
+    )
+  end
+
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
       import Phoenix.LiveView
       import Phoenix.LiveView.Helpers
-      import Phoenix.LiveDashboard.Helpers
       import Phoenix.LiveDashboard.PageBuilder
 
       @behaviour Phoenix.LiveDashboard.PageBuilder
