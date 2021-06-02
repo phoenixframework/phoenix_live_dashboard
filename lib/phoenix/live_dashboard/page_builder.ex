@@ -687,6 +687,12 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   @doc """
   Encodes Sockets for URLs.
+
+  ## Example
+
+  This function can be used to encode `@socket` for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_socket(@socket) %>/>
   """
   @spec encode_socket(port()) :: binary()
   def encode_socket(ref) when is_port(ref) do
@@ -696,6 +702,12 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   @doc """
   Encodes ETSs references for URLs.
+
+  ## Example
+
+  This function can be used to encode an ETS reference for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_ets(@reference) %>/>
   """
   @spec encode_ets(reference()) :: binary()
   def encode_ets(ref) when is_reference(ref) do
@@ -705,6 +717,12 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   @doc """
   Encodes PIDs for URLs.
+
+  ## Example
+
+  This function can be used to encode a PID for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_pid(@pid) %>/>
   """
   @spec encode_pid(pid()) :: binary()
   def encode_pid(pid) when is_pid(pid) do
@@ -713,6 +731,12 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   @doc """
   Encodes Port for URLs.
+
+  ## Example
+
+  This function can be used to encode a Port for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_port(@port) %>/>
   """
   @spec encode_port(port()) :: binary()
   def encode_port(port) when is_port(port) do
@@ -724,6 +748,12 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   @doc """
   Encodes an application for URLs.
+
+  ## Example
+
+  This function can be used to encode an application for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_app(@my_app) %>/>
   """
   @spec encode_app(atom()) :: binary()
   def encode_app(app) when is_atom(app) do
