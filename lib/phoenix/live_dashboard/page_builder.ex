@@ -310,7 +310,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           items: [
             phoenix_metrics: [
               name: "Phoenix Metrics",
-              render: table(...)
+              render: fn -> table(...) end
             ],
 
             vm_metrics: [

@@ -79,7 +79,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         NavBarComponent.normalize_params(%{page: page, items: :invalid})
       end
 
-      msg = ":items must be [{atom(), [name: string(), render: component()], got: :invalid"
+      msg = ":items must be [{atom(), [name: string(), render: fun()], got: :invalid"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{page: page, items: [:invalid]})
@@ -91,7 +91,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         NavBarComponent.normalize_params(%{page: page, items: [id: []]})
       end
 
-      assert msg = ":render parameter in item must be a component, got: [render: :invalid]"
+      assert msg = ":render parameter in item must be a function that returns a component, got: [render: :invalid]"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{
@@ -100,12 +100,12 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         })
       end
 
-      msg = ":name parameter must be in item: [render: {Component, %{}}]"
+      msg = ~r":name parameter must be in item: "
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{
           page: page,
-          items: [id: [render: {Component, %{}}]]
+          items: [id: [render: fn -> {Component, %{}} end]]
         })
       end
 
@@ -123,29 +123,19 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{
           page: page,
-          items: [id: [name: "name", render: {Component, %{}}, method: :invalid]]
+          items: [id: [name: "name", render: fn -> {Component, %{}} end, method: :invalid]]
         })
       end
 
       assert %{items: [id: item]} =
                NavBarComponent.normalize_params(%{
                  page: page,
-                 items: [id: [name: "name", render: {Component, %{}}]]
-               })
-
-      assert item[:name] == "name"
-      assert item[:render] == {Component, %{}}
-      assert item[:method] == :patch
-
-      assert %{items: [id: item]} =
-               NavBarComponent.normalize_params(%{
-                 page: page,
-                 items: [id: [name: "name", method: :redirect, render: fn -> nil end]]
+                 items: [id: [name: "name", render: fn -> {Component, %{}} end]]
                })
 
       assert item[:name] == "name"
       assert item[:render]
-      assert item[:method] == :redirect
+      assert item[:method] == :patch
     end
   end
 end

@@ -53,7 +53,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   end
 
   defp normalize_item(invalid_item) do
-    msg = ":items must be [{atom(), [name: string(), render: component()], got: "
+    msg = ":items must be [{atom(), [name: string(), render: fun()], got: "
 
     raise ArgumentError, msg <> inspect(invalid_item)
   end
@@ -67,11 +67,8 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
       {:ok, render} when is_function(render, 0) ->
         item
 
-      {:ok, {component, args}} when is_atom(component) and is_map(args) ->
-        item
-
       {:ok, _invalid} ->
-        msg = ":render parameter in item must be a component, got: #{inspect(item)}"
+        msg = ":render parameter in item must be a function that returns a component, got: #{inspect(item)}"
         raise ArgumentError, msg
     end
   end
