@@ -68,7 +68,9 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         item
 
       {:ok, _invalid} ->
-        msg = ":render parameter in item must be a function that returns a component, got: #{inspect(item)}"
+        msg =
+          ":render parameter in item must be a function that returns a component, got: #{inspect(item)}"
+
         raise ArgumentError, msg
     end
   end

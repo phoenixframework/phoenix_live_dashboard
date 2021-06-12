@@ -91,7 +91,8 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         NavBarComponent.normalize_params(%{page: page, items: [id: []]})
       end
 
-      assert msg = ":render parameter in item must be a function that returns a component, got: [render: :invalid]"
+      assert msg =
+               ":render parameter in item must be a function that returns a component, got: [render: :invalid]"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{
