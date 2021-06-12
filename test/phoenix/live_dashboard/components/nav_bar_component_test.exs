@@ -109,12 +109,12 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         })
       end
 
-      msg = ":name parameter must be a string, got: [name: nil, render: {Component, %{}}]"
+      msg = ~r":name parameter must be a string, got: "
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{
           page: page,
-          items: [id: [name: nil, render: {Component, %{}}]]
+          items: [id: [name: nil, render: fn -> {Component, %{}} end]]
         })
       end
 
