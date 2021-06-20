@@ -8,20 +8,29 @@ import PhxRequestLoggerCookie from "./request_logger_cookie"
 import PhxRequestLoggerQueryParameter from "./request_logger_query_parameter"
 import PhxRequestLoggerMessages from "./request_logger_messages"
 import PhxColorBarHighlight from "./color_bar_highlight"
+import PhxRememberRefresh from "./remember_refresh"
+import { loadRefreshData } from "./refresh";
 
 let Hooks = {
   PhxChartComponent: PhxChartComponent,
   PhxRequestLoggerCookie: PhxRequestLoggerCookie,
   PhxRequestLoggerQueryParameter: PhxRequestLoggerQueryParameter,
   PhxRequestLoggerMessages: PhxRequestLoggerMessages,
-  PhxColorBarHighlight: PhxColorBarHighlight
+  PhxColorBarHighlight: PhxColorBarHighlight,
+  PhxRememberRefresh: PhxRememberRefresh
 }
 
 let socketPath = document.querySelector("html").getAttribute("phx-socket") || "/live"
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket(socketPath, Socket, {
   hooks: Hooks,
-  params: { _csrf_token: csrfToken }
+  params: (liveViewName) => {
+    return {
+      _csrf_token: csrfToken,
+      // Pass the most recent refresh data to the LiveView in `connect_params`
+      refresh_data: loadRefreshData(),
+    };
+  },
 })
 
 
