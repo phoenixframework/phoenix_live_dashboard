@@ -6,7 +6,7 @@ const PhxRememberRefresh = {
   updated() {
     let config = loadRefreshData() || {};
     config[this.el.dataset.page] = this.el.value
-    storeRefreshData(config);
+    storeRefreshData(config, this.el.dataset.dashboardMountPath);
   }
 }
 

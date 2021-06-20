@@ -17,6 +17,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   @refresh_options [1, 2, 5, 15, 30]
   defstruct links: [],
             nodes: [],
+            dashboard_mount_path: nil,
             refresher?: true,
             refresh: @default_refresh,
             refresh_options: for(i <- @refresh_options, do: {"#{i}s", i}),
@@ -164,8 +165,22 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   @impl true
   def handle_params(params, url, socket) do
-    socket = assign_params(socket, params)
+    socket =
+      socket
+      |> assign_params(params)
+      |> dashboard_mount_path(url, params)
+
     maybe_apply_module(socket, :handle_params, [params, url], &{:noreply, &1})
+  end
+
+  defp dashboard_mount_path(socket, url, params) do
+    %{path: path} = URI.parse(url)
+    range = if params["node"], do: 0..-3, else: 0..-2
+
+    mount_path = path |> String.split("/", trim: true) |> Enum.slice(range) |> Enum.join("/")
+    mount_path = "/" <> mount_path
+
+    update_menu(socket, dashboard_mount_path: mount_path)
   end
 
   @impl true
@@ -181,6 +196,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
               <label for="refresh-interval-select">Update every</label>
               <select name="refresh" class="custom-select custom-select-sm"
                       id="refresh-interval-select" data-page="<%= @page.route %>"
+                      data-dashboard-mount-path="<%= @menu.dashboard_mount_path %>"
                       phx-hook="PhxRememberRefresh">
                 <%= options_for_select(@menu.refresh_options, @menu.refresh) %>
               </select>

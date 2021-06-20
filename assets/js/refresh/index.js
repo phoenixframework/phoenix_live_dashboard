@@ -3,10 +3,10 @@ const REFRESH_DATA_COOKIE = "_refresh_data";
 /**
  * Stores refresh data in the `"refresh_data"` cookie.
  */
-export function storeRefreshData(refreshData) {
+export function storeRefreshData(refreshData, path) {
   const json = JSON.stringify(refreshData);
   const encoded = encodeBase64(json);
-  setCookie(REFRESH_DATA_COOKIE, encoded, 157680000); // 5 years
+  setCookie(REFRESH_DATA_COOKIE, encoded, path, 157680000); // 5 years
 }
 
 /**
@@ -35,8 +35,8 @@ function getCookieValue(key) {
   }
 }
 
-function setCookie(key, value, maxAge) {
-  const cookie = `${key}=${value};max-age=${maxAge};path=/`;
+function setCookie(key, value, path, maxAge) {
+  const cookie = `${key}=${value};max-age=${maxAge};path=${path}`;
   document.cookie = cookie;
 }
 
