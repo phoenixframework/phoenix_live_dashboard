@@ -68,10 +68,12 @@ defmodule Phoenix.LiveDashboardTest.Router do
       allow_destructive_actions: true,
       metrics: Phoenix.LiveDashboardTest.Telemetry,
       metrics_history: {TestHistory, :test_data, []},
-      request_logger_cookie_domain: "my.domain"
+      request_logger_cookie_domain: "my.domain",
+      live_session_name: :config_dashboard
 
     live_dashboard "/parent_cookie_domain",
-      request_logger_cookie_domain: :parent
+      request_logger_cookie_domain: :parent,
+      live_session_name: :cookie_dashboard
   end
 end
 

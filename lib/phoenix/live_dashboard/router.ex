@@ -82,13 +82,15 @@ defmodule Phoenix.LiveDashboard.Router do
   defmacro live_dashboard(path, opts \\ []) do
     quote bind_quoted: binding() do
       scope path, alias: false, as: false do
-        import Phoenix.LiveView.Router, only: [live: 4]
-        opts = Phoenix.LiveDashboard.Router.__options__(opts)
+        {session_name, session_opts, route_opts} = Phoenix.LiveDashboard.Router.__options__(opts)
+        import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
 
-        # All helpers are public contracts and cannot be changed
-        live "/", Phoenix.LiveDashboard.PageLive, :home, opts
-        live "/:page", Phoenix.LiveDashboard.PageLive, :page, opts
-        live "/:node/:page", Phoenix.LiveDashboard.PageLive, :page, opts
+        live_session session_name, session_opts do
+          # All helpers are public contracts and cannot be changed
+          live "/", Phoenix.LiveDashboard.PageLive, :home, route_opts
+          live "/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
+          live "/:node/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
+        end
       end
     end
   end
@@ -210,12 +212,17 @@ defmodule Phoenix.LiveDashboard.Router do
       csp_nonce_assign_key
     ]
 
-    [
-      session: {__MODULE__, :__session__, session_args},
-      private: %{live_socket_path: live_socket_path, csp_nonce_assign_key: csp_nonce_assign_key},
-      layout: {Phoenix.LiveDashboard.LayoutView, :dash},
-      as: :live_dashboard
-    ]
+    {
+      options[:live_session_name] || :live_dashboard,
+      [
+        session: {__MODULE__, :__session__, session_args},
+        root_layout: {Phoenix.LiveDashboard.LayoutView, :dash}
+      ],
+      [
+        private: %{live_socket_path: live_socket_path, csp_nonce_assign_key: csp_nonce_assign_key},
+        as: :live_dashboard
+      ]
+    }
   end
 
   defp normalize_additional_pages(pages) do
