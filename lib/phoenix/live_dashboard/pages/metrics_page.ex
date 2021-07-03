@@ -24,8 +24,8 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
 
       metrics && connected?(socket) ->
         Phoenix.LiveDashboard.TelemetryListener.listen(socket.assigns.page.node, metrics)
-        send_history_for_metrics(metrics, history)
-        {:ok, assign(socket, metrics: Enum.with_index(metrics))}
+        send_history_for_metrics(metrics, history, nav)
+        {:ok, assign(socket, metrics: Enum.with_index(metrics), nav: nav)}
 
       first_nav && is_nil(nav) ->
         to = live_dashboard_path(socket, socket.assigns.page, nav: first_nav)
@@ -73,7 +73,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
       <%= if @metrics do %>
         <div class="phx-dashboard-metrics-grid row">
         <%= for {metric, id} <- @metrics do %>
-          <%= live_component ChartComponent, id: id, metric: metric %>
+          <%= live_component ChartComponent, id: id(id, @nav), metric: metric %>
         <% end %>
         </div>
       <% end %>
@@ -81,26 +81,28 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     end
   end
 
-  defp send_updates_for_entries(entries) do
+  defp send_updates_for_entries(entries, nav) do
     for {id, label, measurement, time} <- entries do
       data = [{label, measurement, time}]
-      send_update(ChartComponent, id: id, data: data)
+      send_update(ChartComponent, id: id(id, nav), data: data)
     end
   end
 
+  defp id(id, nav), do: "#{nav}-#{id}"
+
   @impl true
   def handle_info({:telemetry, entries}, socket) do
-    send_updates_for_entries(entries)
+    send_updates_for_entries(entries, socket.assigns.nav)
     {:noreply, socket}
   end
 
-  defp send_history_for_metrics(_, nil), do: :noop
+  defp send_history_for_metrics(_, nil, _), do: :noop
 
-  defp send_history_for_metrics(metrics, history) do
+  defp send_history_for_metrics(metrics, history, nav) do
     for {metric, id} <- Enum.with_index(metrics) do
       metric
       |> history_for(id, history)
-      |> send_updates_for_entries()
+      |> send_updates_for_entries(nav)
     end
   end
 

@@ -183,14 +183,14 @@ defmodule DemoWeb.GraphShowcasePage do
   @impl true
   def render_page(_assigns) do
     items = [
-      simple_graph: [name: "Simple", render: simple()],
-      groups_graph: [name: "Groups", render: two_groups()],
+      simple_graph: [name: "Simple", render: &simple/0],
+      groups_graph: [name: "Groups", render: &two_groups/0],
       groups_with_intercalation_graph: [
         name: "Groups with intercalation",
-        render: two_groups_intercalation()
+        render: &two_groups_intercalation/0
       ],
-      broadway_graph: [name: "Broadway graph", render: broadway_graph()],
-      wider_graph: [name: "Wider graph", render: wider_graph()]
+      broadway_graph: [name: "Broadway graph", render: &broadway_graph/0],
+      wider_graph: [name: "Wider graph", render: &wider_graph/0]
     ]
 
     nav_bar(items: items)
