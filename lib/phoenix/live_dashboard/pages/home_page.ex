@@ -42,6 +42,8 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   @impl true
   def mount(_params, session, socket) do
+    {app_title, app_name} = session["home_app"]
+
     %{
       # Read once
       system_info: system_info,
@@ -50,14 +52,15 @@ defmodule Phoenix.LiveDashboard.HomePage do
       system_limits: system_limits,
       # Updated periodically
       system_usage: system_usage
-    } = SystemInfo.fetch_system_info(socket.assigns.page.node, session["env_keys"])
+    } = SystemInfo.fetch_system_info(socket.assigns.page.node, session["env_keys"], app_name)
 
     socket =
       assign(socket,
         system_info: system_info,
         system_limits: system_limits,
         system_usage: system_usage,
-        environment: environment
+        environment: environment,
+        app_title: app_title
       )
 
     {:ok, socket}
@@ -71,7 +74,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
           components: [
             [
               erlang_info_row(assigns.system_info),
-              elixir_info_row(assigns.system_info),
+              elixir_info_row(assigns.system_info, assigns.app_title),
               io_info_row(assigns.system_usage),
               run_queues_row(assigns.system_usage),
               environments_row(assigns.environment)
@@ -109,7 +112,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp elixir_info_row(system_info) do
+  defp elixir_info_row(system_info, app_title) do
     row(
       components: [
         columns(
@@ -125,8 +128,8 @@ defmodule Phoenix.LiveDashboard.HomePage do
               class: ["bg-phoenix", "text-white"]
             ),
             card(
-              inner_title: "Dashboard",
-              value: system_info[:dashboard_version],
+              inner_title: app_title,
+              value: system_info[:app_version],
               class: ["bg-dashboard", "text-white"]
             )
           ]

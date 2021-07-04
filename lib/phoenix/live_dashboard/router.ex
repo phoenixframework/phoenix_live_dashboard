@@ -32,7 +32,10 @@ defmodule Phoenix.LiveDashboard.Router do
 
     * `:env_keys` - Configures environment variables to display.
       It is defined as a list of string keys. If not set, the environment
-      information will not be displayed.
+      information will not be displayed
+
+    * `:home_app` - A tuple with the app name and version to show on
+      the home page. Defaults to `{"Dashboard", :phoenix_live_dashboard}`
 
     * `:metrics` - Configures the module to retrieve metrics from.
       It can be a `module` or a `{module, function}`. If nothing is
@@ -129,6 +132,20 @@ defmodule Phoenix.LiveDashboard.Router do
                 ":env_keys must be a list of strings, got: " <> inspect(other)
       end
 
+    home_app =
+      case options[:home_app] do
+        nil ->
+          {"Dashboard", :phoenix_live_dashboard}
+
+        {app_title, app_name} when is_binary(app_title) and is_atom(app_name) ->
+          {app_title, app_name}
+
+        other ->
+          raise ArgumentError,
+                ":home_app must be a tuple with a binary title and atom app, got: " <>
+                  inspect(other)
+      end
+
     metrics_history =
       case options[:metrics_history] do
         nil ->
@@ -202,6 +219,7 @@ defmodule Phoenix.LiveDashboard.Router do
 
     session_args = [
       env_keys,
+      home_app,
       allow_destructive_actions,
       metrics,
       metrics_history,
@@ -247,6 +265,7 @@ defmodule Phoenix.LiveDashboard.Router do
   def __session__(
         conn,
         env_keys,
+        home_app,
         allow_destructive_actions,
         metrics,
         metrics_history,
@@ -268,7 +287,7 @@ defmodule Phoenix.LiveDashboard.Router do
 
     {pages, requirements} =
       [
-        home: {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys}},
+        home: {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys, "home_app" => home_app}},
         os_mon: {Phoenix.LiveDashboard.OSMonPage, %{}},
         metrics: {Phoenix.LiveDashboard.MetricsPage, metrics_session},
         request_logger: {Phoenix.LiveDashboard.RequestLoggerPage, request_logger_session},

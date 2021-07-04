@@ -384,6 +384,7 @@ defmodule DemoWeb.Router do
       metrics_history: {DemoWeb.History, :data, []},
       allow_destructive_actions: true,
       ecto_repos: [Demo.Repo],
+      home_app: {"Erlang's stdlib", :stdlib},
       additional_pages: [
         components: DemoWeb.GraphShowcasePage
       ],

@@ -79,8 +79,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ets_info_callback, [ref])
   end
 
-  def fetch_system_info(node, keys) do
-    :rpc.call(node, __MODULE__, :info_callback, [keys])
+  def fetch_system_info(node, keys, app) do
+    :rpc.call(node, __MODULE__, :info_callback, [keys, app])
   end
 
   def fetch_system_usage(node) do
@@ -102,13 +102,13 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ## System callbacks
 
   @doc false
-  def info_callback(keys) do
+  def info_callback(keys, app) do
     %{
       system_info: %{
         banner: :erlang.system_info(:system_version),
         elixir_version: System.version(),
         phoenix_version: Application.spec(:phoenix, :vsn) || "None",
-        dashboard_version: Application.spec(:phoenix_live_dashboard, :vsn) || "None",
+        app_version: Application.spec(app, :vsn) || "None",
         system_architecture: :erlang.system_info(:system_architecture)
       },
       system_limits: %{

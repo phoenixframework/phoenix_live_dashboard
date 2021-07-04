@@ -65,6 +65,7 @@ defmodule Phoenix.LiveDashboardTest.Router do
         script: :script_csp_nonce
       },
       env_keys: ["PHX_DASHBOARD_TEST"],
+      home_app: {"Erlang's stdlib", :stdlib},
       allow_destructive_actions: true,
       metrics: Phoenix.LiveDashboardTest.Telemetry,
       metrics_history: {TestHistory, :test_data, []},

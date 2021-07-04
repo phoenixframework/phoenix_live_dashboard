@@ -7,6 +7,7 @@
 * Ignore nil measurements in telemetry panes
 * Remember refresh selection using cookie
 * Show reductions diff in Processes table
+* Allow `home_app` (besides Elixir and Phoenix) to be configured
 * Add many more components
 
 ## v0.4.0 (2020-11-20)
