@@ -92,7 +92,18 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "accepts metrics_history option" do
     assert session_opts(metrics_history: {MyStorage, :metrics_history, []})[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, {MyStorage, :metrics_history, []}, [], nil, nil, [], nil]}
+              [
+                nil,
+                @home_app,
+                false,
+                nil,
+                {MyStorage, :metrics_history, []},
+                [],
+                nil,
+                nil,
+                [],
+                nil
+              ]}
 
     assert_raise ArgumentError, fn ->
       session_opts(metrics_history: %{namespace: {MyStorage, :metrics_history, []}})
@@ -181,25 +192,27 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
   describe "__session__" do
     defp csp_session(conn, csp_session \\ nil) do
-      Phoenix.LiveDashboard.Router.__session__(conn,
-                 [],
-                 @home_app,
-                 false,
-                 [],
-                 [],
-                 [],
-                 nil,
-                 nil,
-                 [],
-                 csp_session
-               )
+      Phoenix.LiveDashboard.Router.__session__(
+        conn,
+        [],
+        @home_app,
+        false,
+        [],
+        [],
+        [],
+        nil,
+        nil,
+        [],
+        csp_session
+      )
     end
 
     test "generates pages & requirements" do
       assert %{
                "allow_destructive_actions" => false,
                "pages" => [
-                 home: {Phoenix.LiveDashboard.HomePage, %{"env_keys" => [], "home_app" => @home_app}},
+                 home:
+                   {Phoenix.LiveDashboard.HomePage, %{"env_keys" => [], "home_app" => @home_app}},
                  os_mon: {Phoenix.LiveDashboard.OSMonPage, %{}},
                  metrics:
                    {Phoenix.LiveDashboard.MetricsPage,
@@ -215,8 +228,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                  ecto_stats: {Phoenix.LiveDashboard.EctoStatsPage, %{repo: nil}}
                ],
                "requirements" => [{:application, :os_mon}]
-             } =
-               csp_session(build_conn())
+             } = csp_session(build_conn())
     end
 
     test "loads nonces when key present" do
