@@ -92,7 +92,7 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <%= if @title do %>
       <h5 class="card-title">
         <%= @title %>
@@ -105,8 +105,8 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
       <div class="card-body">
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 <%= @view_box_width%> <%= @view_box_height %>"
-        style="width: <%= if @scale_up, do: @scale_up, else: 100 %>%;">
+        viewBox={"0 0 #{@view_box_width} #{@view_box_height}"}
+        style={"width: #{if @scale_up, do: @scale_up, else: 100}%;"}>
           <defs>
             <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
               <path d="M0,0 L0,6 L9,3 z" class="connection-line" />
@@ -126,16 +126,16 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
           <% end %>
 
           <%= for arrow <- @arrows do %>
-            <line x1="<%= arrow.x1 %>" y1="<%= arrow.y1 %>" x2="<%= arrow.x2 %>" y2="<%= arrow.y2 %>" class="connection-line" marker-end="url(#arrow)"/>
+            <line x1={arrow.x1} y1={arrow.y1} x2={arrow.x2} y2={arrow.y2} class="connection-line" marker-end="url(#arrow)"/>
           <% end %>
           <%= for circle <- @circles do %>
            <g>
-            <circle fill="<%= circle.bg %>" cx="<%= circle.x %>" cy="<%= circle.y %>" r="<%= @radius %>" class="node" />
+            <circle fill={circle.bg} cx={circle.x} cy={circle.y} r={@radius} class="node" />
             <%= if circle.show_detail? do %>
-              <text x="<%= circle.x %>" y="<%= circle.y %>" class="node-label"><%= circle.label %></text>
-              <text x="<%= circle.x %>" y="<%= circle.y + @y_detail_offset %>" class="node-detail"><%= circle.detail %></text>
+              <text x={circle.x} y={circle.y} class="node-label"><%= circle.label %></text>
+              <text x={circle.x} y={circle.y + @y_detail_offset} class="node-detail"><%= circle.detail %></text>
             <% else %>
-              <text x="<%= circle.x %>" y="<%= circle.y + @y_label_offset %>" class="node-label"><%= circle.label %></text>
+              <text x={circle.x} y={circle.y + @y_label_offset} class="node-label"><%= circle.label %></text>
             <% end %>
            </g>
           <% end %>
