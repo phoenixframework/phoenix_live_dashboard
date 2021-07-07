@@ -34,7 +34,7 @@ defmodule Phoenix.LiveDashboard.FieldsCardComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <%= if @fields && not Enum.empty?(@fields) do %>
       <%= if @title do %>
         <h5 class="card-title">
