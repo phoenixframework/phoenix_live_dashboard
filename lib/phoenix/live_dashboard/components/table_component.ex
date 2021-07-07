@@ -161,23 +161,23 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <div class="tabular">
       <h5 class="card-title"><%= @title %> <%= @hint && hint(do: @hint) %></h5>
 
       <%= if @search do %>
         <div class="tabular-search">
-          <form phx-change="search" phx-submit="search" phx-target="<%= @myself %>" class="form-inline">
+          <form phx-change="search" phx-submit="search" phx-target={@myself} class="form-inline">
             <div class="form-row align-items-center">
               <div class="col-auto">
-                <input type="search" name="search" class="form-control form-control-sm" value="<%= @table_params.search %>" placeholder="Search" phx-debounce="300">
+                <input type="search" name="search" class="form-control form-control-sm" value={@table_params.search} placeholder="Search" phx-debounce="300">
               </div>
             </div>
           </form>
         </div>
       <% end %>
 
-      <form phx-change="select_limit" phx-target="<%= @myself %>" class="form-inline">
+      <form phx-change="select_limit" phx-target={@myself} class="form-inline">
         <div class="form-row align-items-center">
           <%= if @limit do %>
             <div class="col-auto">Showing at most</div>
@@ -206,7 +206,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
               <thead>
                 <tr>
                   <%= for column <- @columns do %>
-                    <%= tag_with_attrs(:th, column.header_attrs, [column]) %>
+                    <th {calc_attrs(column.header_attrs, [column])}>
                       <%= if direction = column.sortable do %>
                         <%= sort_link(@socket, @page, @table_params, column, direction) %>
                       <% else %>
@@ -218,9 +218,9 @@ defmodule Phoenix.LiveDashboard.TableComponent do
               </thead>
               <tbody>
                 <%= for row <- @rows do %>
-                  <%= tag_with_attrs(:tr, @row_attrs, [row]) %>
+                  <tr {calc_attrs(@row_attrs, [row])}>
                     <%= for column <- @columns do %>
-                      <%= tag_with_attrs(:td, column.cell_attrs, [row]) %>
+                      <td {calc_attrs(column.cell_attrs, [row])}>
                         <%= column.format.(row[column.field]) %>
                       </td>
                     <% end %>
@@ -234,8 +234,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     </div>
     """
   end
-
-  defp tag_with_attrs(name, fun, args), do: tag(name, calc_attrs(fun, args))
 
   defp calc_attrs(falsy, _) when falsy in [nil, false], do: []
   defp calc_attrs(list, _) when is_list(list), do: list
@@ -287,21 +285,19 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp sort_link_icon(:desc) do
-    {:safe,
-     """
-     <div class="dash-table-icon">
-       <span class="icon-sort icon-desc"></span>
-     </div>
-     """}
+    raw("""
+    <div class="dash-table-icon">
+      <span class="icon-sort icon-desc"></span>
+    </div>
+    """)
   end
 
   defp sort_link_icon(:asc) do
-    {:safe,
-     """
-     <div class="dash-table-icon">
-       <span class="icon-sort icon-asc"></span>
-     </div>
-     """}
+    raw("""
+    <div class="dash-table-icon">
+      <span class="icon-sort icon-asc"></span>
+    </div>
+    """)
   end
 
   defp opposite_sort_dir(%{sort_dir: :desc}), do: :asc
