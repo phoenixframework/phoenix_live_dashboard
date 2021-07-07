@@ -2,13 +2,13 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
   def render(assigns) do
-    ~L"""
-    <div id="<%= @id %>" class="dash-modal modal"
+    ~H"""
+    <div id={@id} class="dash-modal modal"
       tabindex="-1"
       phx-capture-click="close"
       phx-window-keydown="close"
       phx-key="escape"
-      phx-target="#<%= @id %>"
+      phx-target={"##{@id}"}
       phx-page-loading>
 
       <div class="modal-dialog modal-lg">
