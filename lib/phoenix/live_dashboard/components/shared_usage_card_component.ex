@@ -59,7 +59,7 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <%= if @title do %>
       <h5 class="card-title">
         <%= @title %>
@@ -84,17 +84,17 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
               <div class="progress color-bar-progress flex-grow-1 mb-3">
                 <span class="color-bar-progress-title"><%= usage.title %></span>
                 <%= for {{name, value, color, _desc}, index} <- Enum.with_index(usage.data) do %>
-                  <style nonce="<%= @csp_nonces.style %>">#<%= "cpu-#{usage.dom_sub_id}-progress-#{index}" %>{width:<%= value %>%}</style>
+                  <style nonce={@csp_nonces.style}>#<%= "cpu-#{usage.dom_sub_id}-progress-#{index}" %>{width:<%= value %>%}</style>
                   <div
-                  title="<%= name %> - <%= format_percent(value) %>"
-                  class="progress-bar color-bar-progress-bar bg-gradient-<%= color %>"
+                  title={"#{name} - #{format_percent(value)}"}
+                  class={"progress-bar color-bar-progress-bar bg-gradient-#{color}"}
                   role="progressbar"
-                  aria-valuenow="<%= maybe_round(value) %>"
+                  aria-valuenow={maybe_round(value)}
                   aria-valuemin="0"
                   aria-valuemax="100"
-                  data-name="<%= name %>"
-                  data-empty="<%= empty?(value) %>"
-                  id="<%= "cpu-#{usage.dom_sub_id}-progress-#{index}" %>">
+                  data-name={name}
+                  data-empty={empty?(value)}
+                  id={"cpu-#{usage.dom_sub_id}-progress-#{index}"}>
                   </div>
                 <% end %>
               </div>
@@ -103,8 +103,8 @@ defmodule Phoenix.LiveDashboard.SharedUsageCardComponent do
           <div class="color-bar-legend">
             <div class="row">
             <%= for {name, value, color, hint} <- @total_data do %>
-              <div class="col-lg-6 d-flex align-items-center py-1 flex-grow-0 color-bar-legend-entry" data-name="<%= name %>">
-                <div class="color-bar-legend-color bg-<%= color %> mr-2"></div>
+              <div class="col-lg-6 d-flex align-items-center py-1 flex-grow-0 color-bar-legend-entry" data-name={name}>
+                <div class={"color-bar-legend-color bg-#{color} mr-2"}></div>
                 <span><%= name %> <%= hint && hint(do: hint) %></span>
                 <span class="flex-grow-1 text-right text-muted"><%= @total_formatter.(value) %></span>
               </div>
