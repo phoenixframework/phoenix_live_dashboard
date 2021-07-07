@@ -57,7 +57,7 @@ defmodule Phoenix.LiveDashboard.UsageCardComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <%= if @title do %>
       <h5 class="card-title">
         <%= @title %>

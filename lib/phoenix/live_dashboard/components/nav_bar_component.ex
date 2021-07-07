@@ -106,7 +106,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <div>
       <div class="row">
         <div class="container">

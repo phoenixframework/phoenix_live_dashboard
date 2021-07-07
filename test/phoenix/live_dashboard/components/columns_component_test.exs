@@ -9,7 +9,7 @@ defmodule Phoenix.LiveDashboard.ColumnsComponentTest do
     use Phoenix.LiveComponent
 
     def render(assigns) do
-      ~L"""
+      ~H"""
       <div><%= @text %></div>
       """
     end

@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <div class="tabular-info">
       <%= if @alive do %>
         <table class="table table-hover tabular-info-table">

@@ -69,7 +69,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
 
   def render_metrics(assigns) do
     fn ->
-      ~L"""
+      ~H"""
       <%= if @metrics do %>
         <div class="phx-dashboard-metrics-grid row">
         <%= for {metric, id} <- @metrics do %>
