@@ -6,7 +6,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   customizing the menu appearance. One notable difference, however,
   is that a page implements a `render_page/1` callback, which must
   return one or more page builder components, instead of a `render/1`
-  callback that returns `~L`.
+  callback that returns `~H` or `~L` (deprecated).
 
   A simple and straight-forward example of a custom page is the
   `Phoenix.LiveDashboard.ETSPage` that ships with the dashboard:

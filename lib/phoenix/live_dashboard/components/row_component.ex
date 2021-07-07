@@ -39,7 +39,7 @@ defmodule Phoenix.LiveDashboard.RowComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <div class="row">
       <%= for {component_module, component_params} <- @components do %>
         <%= live_component component_module, component_params %>

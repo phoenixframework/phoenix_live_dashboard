@@ -140,7 +140,7 @@ defmodule Phoenix.LiveDashboard.Helpers do
   def hint(do: block) do
     assigns = %{block: block}
 
-    ~L"""
+    ~H"""
     <div class="hint">
       <svg class="hint-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="44" height="44" fill="none"/>

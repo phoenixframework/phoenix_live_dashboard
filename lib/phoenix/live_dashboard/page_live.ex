@@ -339,7 +339,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp maybe_link(_socket, _page, {:disabled, text}) do
     assigns = %{text: text}
 
-    ~L"""
+    ~H"""
     <div class="menu-item menu-item-disabled">
       <%= @text %>
     </div>
@@ -349,7 +349,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp maybe_link(_socket, _page, {:disabled, text, more_info_url}) do
     assigns = %{more_info_url: more_info_url, text: text}
 
-    ~L"""
+    ~H"""
     <div class="menu-item menu-item-disabled">
       <%= @text %> <%= link "Enable", to: @more_info_url, class: "menu-item-enable-button" %>
     </div>
