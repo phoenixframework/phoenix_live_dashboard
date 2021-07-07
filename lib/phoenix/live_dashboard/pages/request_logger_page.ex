@@ -73,20 +73,23 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
   def render_page(_assigns), do: raise("this page is special cased to use render/2 instead")
 
   def render(assigns) do
-    ~L"""
+    ~H"""
     <!-- Card containing log messages -->
-    <div class="logs-card" data-messages-present="<%= @messages_present %>">
+    <div class="logs-card" data-messages-present={if @messages_present, do: "true", else: "false"}>
       <h5 class="card-title">Logs</h5>
 
       <div class="card mb-4" id="logger-messages-card" phx-hook="PhxRequestLoggerMessages">
         <div class="card-body">
           <div id="logger-messages" phx-update="append">
             <%= for {message, level} <- @messages do %>
-              <pre id="log-<%= System.unique_integer() %>" class="log-level-<%= level %>"><%= message %></pre>
+              <pre id={"log-#{System.unique_integer()}"} class={"log-level#{level}"}><%= message %></pre>
             <% end %>
           </div>
 
-          <%= autoscroll_checkbox(@autoscroll_enabled) %>
+          <!-- Autoscroll ON/OFF checkbox -->
+            <div id="logger-autoscroll" class="text-right mt-3">
+            <label>Autoscroll <input phx-click="toggle_autoscroll" checked={@autoscroll_enabled} class="logger-autoscroll-checkbox" type="checkbox"></label>
+          </div>
         </div>
       </div>
     </div>
@@ -130,16 +133,16 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
 
               <div class="row flex-grow-0">
                 <div class="col">
-                  <span class="cookie-status" data-enabled="<%= @cookie_enabled %>">Cookie enabled</span>
+                  <span class="cookie-status" data-enabled={@cookie_enabled}>Cookie enabled</span>
                 </div>
 
                 <div class="col">
                   <!-- Button and hook for switching cookie on and off -->
                   <div phx-hook="PhxRequestLoggerCookie" id="logger-cookie-buttons"
-                    data-cookie-key=<%=@cookie_key %>
-                    data-cookie-value=<%=sign(@socket, @cookie_key, @stream) %>
-                    <%= if @cookie_domain do %>data-cookie-domain="<%=@cookie_domain %>"<% end %>
-                    data-cookie-enabled="<%= @cookie_enabled %>">
+                    data-cookie-key={@cookie_key}
+                    data-cookie-value={sign(@socket, @cookie_key, @stream)}
+                    data-cookie-enabled={@cookie_enabled}
+                    data-cookie-domain={@cookie_domain}>
 
                     <%= if @cookie_enabled do %>
                       <button phx-click="toggle_cookie" phx-value-enable="false" class="btn btn-secondary float-right">Disable cookie</button>
@@ -169,18 +172,6 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
 
   defp sign(socket, key, value) do
     Phoenix.LiveDashboard.RequestLogger.sign(socket.endpoint, key, value)
-  end
-
-  defp autoscroll_checkbox(autoscroll_enabled) do
-    checked_param = if autoscroll_enabled, do: "checked='checked'", else: ""
-    assigns = %{checked_param: checked_param}
-
-    ~L"""
-    <!-- Autoscroll ON/OFF checkbox -->
-    <div id="logger-autoscroll" class="text-right mt-3">
-      <label>Autoscroll <input phx-click="toggle_autoscroll" <%= @checked_param %> class="logger-autoscroll-checkbox" type="checkbox"></label>
-    </div>
-    """
   end
 
   defp read_cookie_domain(socket, :parent) do
