@@ -32,24 +32,24 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <div class="col-xl-6 col-xxl-4 col-xxxl-3 charts-col">
-      <div id="chart-<%= @id %>" class="card">
+      <div id={"chart-#{@id}"} class="card">
         <div class="card-body">
-          <div phx-hook="PhxChartComponent" id="chart-<%= @id %>--datasets" hidden>
+          <div phx-hook="PhxChartComponent" id={"chart-#{@id}-datasets"} hidden>
           <%= for {x, y, z} <- @data do %>
-            <span data-x="<%= x || @label %>" data-y="<%= y %>" data-z="<%= z %>"></span>
+            <span data-x={x || @label} data-y={y} data-z={z}></span>
           <% end %>
           </div>
           <div class="chart"
-              id="chart-ignore-<%= @id %>"
+              id={"chart-ignore-#{@id}"}
               phx-update="ignore"
-              data-label="<%= @label %>"
-              data-metric="<%= @kind %>"
-              data-title="<%= @title %>"
-              data-tags="<%= @tags %>"
-              data-unit="<%= @unit %>"
-              data-prune-threshold="<%= @prune_threshold %>">
+              data-label={@label}
+              data-metric={@kind}
+              data-title={@title}
+              data-tags={@tags}
+              data-unit={@unit}
+              data-prune-threshold={@prune_threshold}>
           </div>
         </div>
         <%= if @description do %>
