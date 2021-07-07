@@ -32,7 +32,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <div class="tabular-info">
       <%= if @alive do %>
         <table class="table table-hover tabular-info-table">
@@ -61,7 +61,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
         <%= if @page.allow_destructive_actions do %>
           <div class="modal-footer">
-            <button class="btn btn-danger" phx-target="<%= @myself %>" phx-click="kill">Kill process</button>
+            <button class="btn btn-danger" phx-target={@myself} phx-click="kill">Kill process</button>
           </div>
         <% end %>
       <% else %>
