@@ -39,26 +39,14 @@ defmodule Phoenix.LiveDashboard.ColumnsComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
       <%= for column_components <- @components do %>
-        <div class="col-sm-<%= @columns_class %> mb-4 flex-column d-flex">
-          <%= render_component(column_components, assigns) %>
+        <div class={"col-sm-#{@columns_class} mb-4 flex-column d-flex"}>
+          <%= for {component_module, component_params} <- List.wrap(column_components) do %>
+            <%= live_component component_module, component_params %>
+          <% end %>
         </div>
       <% end %>
-    """
-  end
-
-  defp render_component(components, assigns) when is_list(components) do
-    ~L"""
-    <%= for {component_module, component_params} <- components do %>
-      <%= live_component component_module, component_params %>
-    <% end %>
-    """
-  end
-
-  defp render_component({component_module, component_params}, assigns) do
-    ~L"""
-      <%= live_component component_module, component_params %>
     """
   end
 end
