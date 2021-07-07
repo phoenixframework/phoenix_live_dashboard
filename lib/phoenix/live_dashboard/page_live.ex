@@ -185,7 +185,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <header class="d-flex">
       <div id="menu" class="container d-flex flex-column">
         <h1>Phoenix LiveDashboard</h1>
@@ -195,8 +195,8 @@ defmodule Phoenix.LiveDashboard.PageLive do
             <%= if @menu.refresher? do %>
               <label for="refresh-interval-select">Update every</label>
               <select name="refresh" class="custom-select custom-select-sm"
-                      id="refresh-interval-select" data-page="<%= @page.route %>"
-                      data-dashboard-mount-path="<%= @menu.dashboard_mount_path %>"
+                      id="refresh-interval-select" data-page={@page.route}
+                      data-dashboard-mount-path={@menu.dashboard_mount_path}
                       phx-hook="PhxRememberRefresh">
                 <%= options_for_select(@menu.refresh_options, @menu.refresh) %>
               </select>
