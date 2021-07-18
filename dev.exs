@@ -441,7 +441,7 @@ end
 Application.ensure_all_started(:os_mon)
 Application.put_env(:phoenix, :serve_endpoints, true)
 
-Task.start(fn ->
+Task.async(fn ->
   children = [
     Demo.Repo,
     {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
@@ -452,3 +452,4 @@ Task.start(fn ->
   {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
   Process.sleep(:infinity)
 end)
+|> Task.await(:infinity)
