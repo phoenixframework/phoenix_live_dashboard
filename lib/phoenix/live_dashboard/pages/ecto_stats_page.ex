@@ -3,49 +3,130 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   use Phoenix.LiveDashboard.PageBuilder
   import Phoenix.LiveDashboard.Helpers
 
-  @compile {:no_warn_undefined, [Decimal, EctoPSQLExtras]}
+  @compile {:no_warn_undefined, [Decimal, EctoPSQLExtras, {Ecto.Repo, :all_running, 0}]}
   @disabled_link "https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html"
+  @page_title "Ecto Stats"
 
   @impl true
-  def init(%{repo: nil}), do: {:ok, %{repo: nil, ecto_options: []}}
+  def init(%{repos: repos, ecto_psql_extras_options: ecto_options}) do
+    capabilities = for repo <- List.wrap(repos), do: {:process, repo}
+    repos = repos || :auto_discover
 
-  def init(%{repo: repo, ecto_psql_extras_options: ecto_options}),
-    do: {:ok, %{repo: repo, ecto_options: ecto_options}, process: repo}
-
-  @impl true
-  def mount(_params, %{repo: repo, ecto_options: ecto_options}, socket) do
-    {:ok,
-     assign(socket,
-       repo: repo,
-       ecto_options: ecto_options,
-       info_module: info_module_for(repo)
-     )}
+    {:ok, %{repos: repos, ecto_options: ecto_options}, capabilities}
   end
 
   @impl true
-  def menu_link(%{repo: nil}, _capabilities) do
+  def mount(params, %{repos: repos, ecto_options: ecto_options}, socket) do
+    socket = assign(socket, ecto_options: ecto_options)
+
+    fun =
+      case repos do
+        :auto_discover ->
+          fn _ -> auto_discover() end
+
+        repos when is_list(repos) ->
+          &filter_repos_with_extra/1
+      end
+
+    case fun.(repos) do
+      {:ok, repos} ->
+        socket =
+          socket
+          |> assign(:repos, repos)
+          |> maybe_assign_nav_repo(params)
+
+        {:ok, socket}
+
+      {:error, error} ->
+        {:ok, assign(socket, :error, error)}
+    end
+  end
+
+  defp auto_discover do
+    with true <- function_exported?(Ecto.Repo, :all_running, 0),
+         [_ | _] = repos <- Ecto.Repo.all_running(),
+         [_ | _] = repos_with_extra <- Enum.filter(repos, &extra_available?/1) do
+      {:ok, repos_with_extra}
+    else
+      false ->
+        {:error, :repos_auto_discovery_not_available}
+
+      [] ->
+        {:error, :no_ecto_repos_available}
+    end
+  end
+
+  defp filter_repos_with_extra(repos) do
+    repos_with_extra = Enum.filter(repos, &extra_available?/1)
+
+    if repos_with_extra == [] do
+      {:error, :no_ecto_repos_available}
+    else
+      {:ok, repos_with_extra}
+    end
+  end
+
+  def maybe_assign_nav_repo(socket, params) do
+    nav_repo = params["repo"]
+
+    if nav_repo && socket.assigns[:nav_repo] != nav_repo do
+      nav_repos = for repo <- socket.assigns.repos, do: Atom.to_string(repo)
+
+      if nav_repo in nav_repos do
+        assign(socket, :nav_repo, nav_repo)
+      else
+        socket
+      end
+    else
+      socket
+    end
+  end
+
+  @impl true
+  def menu_link(%{repos: []}, _capabilities) do
     if Code.ensure_loaded?(Ecto.Adapters.SQL) do
-      {:disabled, "Ecto Stats", @disabled_link}
+      {:disabled, @page_title, @disabled_link}
     else
       :skip
     end
   end
 
   @impl true
-  def menu_link(%{repo: repo}, capabilities) do
-    title = "#{repo |> inspect() |> String.replace(".", " ")} Stats"
-    extra = info_module_for(repo)
+  def menu_link(%{repos: :auto_discover}, _caps) do
+    case auto_discover() do
+      {:ok, _repos} ->
+        {:ok, @page_title}
 
+      {:error, :repos_auto_discovery_not_available} ->
+        # Page will display the error.
+        {:ok, @page_title}
+
+      {:error, _} ->
+        {:disabled, @page_title, @disabled_link}
+    end
+  end
+
+  @impl true
+  def menu_link(%{repos: repos}, capabilities) do
     cond do
-      repo not in capabilities.processes ->
+      not Enum.any?(repos, fn repo -> repo in capabilities.processes end) ->
         :skip
 
-      extra && Code.ensure_loaded?(extra) ->
-        {:ok, title}
+      extra_available_for_any?(repos) ->
+        {:ok, @page_title}
 
       true ->
-        {:disabled, title, @disabled_link}
+        {:disabled, @page_title, @disabled_link}
     end
+  end
+
+  defp extra_available_for_any?(repos) do
+    Enum.any?(repos, &extra_available?/1)
+  end
+
+  defp extra_available?(repo) do
+    extra = info_module_for(repo)
+    extra && Code.ensure_loaded?(extra)
   end
 
   defp info_module_for(repo) do
@@ -56,8 +137,58 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   end
 
   @impl true
+  def handle_params(params, _url, socket) do
+    # Here we fix the navigation value for "repo" when only "nav" is changing.
+    # This is because we have two nav bars in this page and only one change at once.
+    socket =
+      if params["nav"] && !params["repo"] && socket.assigns[:nav_repo] do
+        to =
+          live_dashboard_path(socket, socket.assigns.page,
+            nav: params["nav"],
+            repo: socket.assigns[:nav_repo]
+          )
+
+        push_patch(socket, to: to)
+      else
+        socket
+      end
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def render_page(assigns) do
+    if assigns[:error] do
+      render_error(assigns)
+    else
+      items =
+        for repo <- assigns.repos do
+          info_module = info_module_for(repo)
+
+          # It's important that this nav is a "redirect", so we set
+          # the "nav_repo" on `mount/3`.
+          {repo,
+           name: format_nav_name(repo),
+           render: fn ->
+             render_repo_tab(%{
+               repo: repo,
+               info_module: info_module,
+               ecto_options: assigns.ecto_options
+             })
+           end,
+           method: :redirect}
+        end
+
+      nav_bar(items: items, nav_name: :repo)
+    end
+  end
+
+  defp render_repo_tab(assigns) do
     nav_bar(items: items(assigns))
+  end
+
+  defp format_nav_name(repo) do
+    "#{repo |> inspect() |> String.replace(".", " ")} Stats"
   end
 
   @forbidden_tables [:kill_all, :mandelbrot]
@@ -170,4 +301,25 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   defp format(_type, value),
     do: value
+
+  defp render_error(assigns) do
+    error_message =
+      case assigns.error do
+        :repos_auto_discovery_not_available ->
+          "The version of Ecto installed does not support the auto discovery of repos. Please update your Ecto to >= 3.6.2"
+
+        :no_ecto_repos_available ->
+          "No Ecto repository with available extra info was found. Currently only PSQL databases are supported."
+      end
+
+    row(
+      components: [
+        columns(
+          components: [
+            card(value: error_message)
+          ]
+        )
+      ]
+    )
+  end
 end

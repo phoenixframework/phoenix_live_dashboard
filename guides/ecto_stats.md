@@ -7,7 +7,7 @@ This guide covers how to configure the LiveDashboard to show stats from your und
 To enable the "Ecto Stats" functionality in your dashboard, you will need to do the three steps below:
 
   1. Add the [`ecto_psql_extras`](https://hexdocs.pm/ecto_psql_extras) dependency
-  2. Configure the dashboard
+  2. (optional) Configure the dashboard
   3. (optional) Install custom extensions
 
 ### Add the `ecto_psql_extras` dependency
@@ -20,7 +20,10 @@ In your `mix.exs`, add the following to your `deps`:
 
 ### Configure the dashboard
 
-The next step is to configure the dashboard. Go to the `live_dashboard` call in your router and list all of your repositories:
+This step is **only needed if you want to restrict the repositories** listed in your dashboard, because
+by default all _repos_ are gonna be listed.
+
+Go to the `live_dashboard` call in your router and list your repositories:
 
 ```elixir
 live_dashboard "/dashboard", ecto_repos: [MyApp.Repo]

@@ -9,12 +9,16 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   @impl true
   def update(assigns, socket) do
     %{page: page, items: items} = assigns
-    current = current_item(page.params, items)
-    {:ok, assign(socket, items: items, current: current, page: page)}
+    # TODO: document the usage of `nav_name`.
+    nav_name = assigns[:nav_name] || :nav
+    current = current_item(page.params, items, nav_name)
+    {:ok, assign(socket, items: items, current: current, page: page, nav_name: nav_name)}
   end
 
-  defp current_item(params, items) do
-    with %{"nav" => item} <- params,
+  defp current_item(params, items, nav_name) do
+    nav_name = Atom.to_string(nav_name)
+
+    with %{^nav_name => item} <- params,
          true <- Enum.any?(items, fn {id, _} -> Atom.to_string(id) == item end) do
       String.to_existing_atom(item)
     else
@@ -36,7 +40,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         raise ArgumentError, msg <> inspect(no_list)
 
       {:ok, items} ->
-        %{items: normalize_items(items)}
+        %{items: normalize_items(items), nav_name: params[:nav_name]}
     end
   end
 
@@ -113,7 +117,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
           <ul class="nav nav-pills mt-n2 mb-4">
             <%= for {id, item} <- @items do %>
               <li class="nav-item">
-                <%= render_item_link(@socket, @page, item, @current, id) %>
+                <%= render_item_link(@socket, @page, item, @current, @nav_name, id) %>
               </li>
             <% end %>
           </ul>
@@ -124,7 +128,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
     """
   end
 
-  defp render_item_link(socket, page, item, current, id) do
+  defp render_item_link(socket, page, item, current, nav_name, id) do
     # The nav ignores all params, except the current node if any
     path =
       Phoenix.LiveDashboard.PageBuilder.live_dashboard_path(
@@ -132,7 +136,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         page.route,
         page.node,
         page.params,
-        nav: id
+        [{nav_name, id}]
       )
 
     class = "nav-link#{if current == id, do: " active"}"

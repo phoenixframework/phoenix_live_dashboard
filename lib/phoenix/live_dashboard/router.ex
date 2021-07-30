@@ -28,7 +28,10 @@ defmodule Phoenix.LiveDashboard.Router do
       type `%{optional(:img) => atom(), optional(:script) => atom(), optional(:style) => atom()}`
 
     * `:ecto_repos` - the repositories to show database information.
-      Currently only PSQL databases are supported
+      Currently only PSQL databases are supported. If you don't specify
+      but your app is running Ecto, we will try to auto-discover the
+      available repositories. You can disable this behavior by setting
+      `[]` to this option.
 
     * `:env_keys` - Configures environment variables to display.
       It is defined as a list of string keys. If not set, the environment
@@ -285,6 +288,11 @@ defmodule Phoenix.LiveDashboard.Router do
       "cookie_domain" => request_logger_cookie_domain
     }
 
+    ecto_session = %{
+      repos: ecto_repos(ecto_repos),
+      ecto_psql_extras_options: ecto_psql_extras_options
+    }
+
     {pages, requirements} =
       [
         home: {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys, "home_app" => home_app}},
@@ -295,9 +303,9 @@ defmodule Phoenix.LiveDashboard.Router do
         processes: {Phoenix.LiveDashboard.ProcessesPage, %{}},
         ports: {Phoenix.LiveDashboard.PortsPage, %{}},
         sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
+        ecto_stats: {Phoenix.LiveDashboard.EctoStatsPage, ecto_session},
         ets: {Phoenix.LiveDashboard.EtsPage, %{}}
       ]
-      |> Enum.concat(ecto_stats(ecto_repos, ecto_psql_extras_options))
       |> Enum.concat(additional_pages)
       |> Enum.map(fn {key, {module, opts}} ->
         {session, requirements} = initialize_page(module, opts)
@@ -317,23 +325,9 @@ defmodule Phoenix.LiveDashboard.Router do
     }
   end
 
-  defp ecto_stats(nil, _),
-    do: [{:ecto_stats, {Phoenix.LiveDashboard.EctoStatsPage, %{repo: nil}}}]
-
-  defp ecto_stats(repos, ecto_psql_extras_options) do
-    for repo <- List.wrap(repos) do
-      page =
-        repo
-        |> Macro.underscore()
-        |> String.replace("/", "_")
-        |> Kernel.<>("_info")
-        |> String.to_atom()
-
-      {page,
-       {Phoenix.LiveDashboard.EctoStatsPage,
-        %{repo: repo, ecto_psql_extras_options: ecto_psql_extras_options}}}
-    end
-  end
+  defp ecto_repos(nil), do: nil
+  defp ecto_repos(false), do: []
+  defp ecto_repos(repos), do: List.wrap(repos)
 
   defp initialize_page(module, opts) do
     case module.init(opts) do
