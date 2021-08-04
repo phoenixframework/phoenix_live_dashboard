@@ -322,6 +322,12 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       end
 
   You can see it in use the Metrics and Ecto info pages.
+
+  ## Options
+
+    * `nav_param` - An atom that configures the navigation parameter.
+      It is useful when two nav bars are present in the same page.
+
   """
   @spec nav_bar(keyword()) :: component()
   def nav_bar(assigns) do

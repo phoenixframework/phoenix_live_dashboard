@@ -32,6 +32,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
           foo: [name: "Foo", method: :patch, render: {SimpleComponent, %{text: "foo_text"}}],
           bar: [name: "Bar", method: :redirect, render: {SimpleComponent, %{text: "bar_text"}}]
         ],
+        nav_param: :nav,
         page: %Phoenix.LiveDashboard.PageBuilder{
           node: Keyword.get(opts, :node, node()),
           route: Keyword.get(opts, :route, :foobaz),
@@ -62,6 +63,16 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
       assert result =~ ~r|<a[^>]*class=\"nav-link\"[^>]*>Foo</a>|
       assert result =~ ~r|<a[^>]*class=\"nav-link active\"[^>]*>Bar</a>|
       assert result =~ ~s|<div>bar_text</div>|
+    end
+
+    test "renders a custom nav parameter" do
+      result = render_items(nav_param: :tab, params: %{"tab" => "bar"})
+
+      assert result =~
+               ~s|<a class="nav-link" data-phx-link="patch" data-phx-link-state="push" href="/dashboard/foobaz?tab=foo">Foo</a>|
+
+      assert result =~
+               ~s|<a class="nav-link active" data-phx-link="redirect" data-phx-link-state="push" href="/dashboard/foobaz?tab=bar">Bar</a>|
     end
   end
 
@@ -128,7 +139,17 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         })
       end
 
-      assert %{items: [id: item]} =
+      msg = ":nav_param parameter must be an atom, got: \"tab\""
+
+      assert_raise ArgumentError, msg, fn ->
+        NavBarComponent.normalize_params(%{
+          nav_param: "tab",
+          page: page,
+          items: [id: [name: "name", render: fn -> {Component, %{}} end]]
+        })
+      end
+
+      assert %{items: [id: item], nav_param: nav_param} =
                NavBarComponent.normalize_params(%{
                  page: page,
                  items: [id: [name: "name", render: fn -> {Component, %{}} end]]
@@ -137,6 +158,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
       assert item[:name] == "name"
       assert item[:render]
       assert item[:method] == :patch
+      assert nav_param == :nav
     end
   end
 end

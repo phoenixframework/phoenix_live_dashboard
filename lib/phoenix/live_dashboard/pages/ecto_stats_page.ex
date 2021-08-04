@@ -179,7 +179,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
            method: :redirect}
         end
 
-      nav_bar(items: items, nav_name: :repo)
+      nav_bar(items: items, nav_param: :repo)
     end
   end
 
