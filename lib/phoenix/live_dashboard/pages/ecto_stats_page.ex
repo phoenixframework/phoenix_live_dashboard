@@ -16,7 +16,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   end
 
   @impl true
-  def mount(params, %{repos: repos, ecto_options: ecto_options}, socket) do
+  def mount(_params, %{repos: repos, ecto_options: ecto_options}, socket) do
     socket = assign(socket, ecto_options: ecto_options)
 
     fun =
@@ -30,12 +30,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
     case fun.(repos) do
       {:ok, repos} ->
-        socket =
-          socket
-          |> assign(:repos, repos)
-          |> maybe_assign_nav_repo(params)
-
-        {:ok, socket}
+        {:ok, assign(socket, :repos, repos)}
 
       {:error, error} ->
         {:ok, assign(socket, :error, error)}
@@ -63,22 +58,6 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       {:error, :no_ecto_repos_available}
     else
       {:ok, repos_with_extra}
-    end
-  end
-
-  def maybe_assign_nav_repo(socket, params) do
-    nav_repo = params["repo"]
-
-    if nav_repo && socket.assigns[:nav_repo] != nav_repo do
-      nav_repos = for repo <- socket.assigns.repos, do: Atom.to_string(repo)
-
-      if nav_repo in nav_repos do
-        assign(socket, :nav_repo, nav_repo)
-      else
-        socket
-      end
-    else
-      socket
     end
   end
 
@@ -137,26 +116,6 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   end
 
   @impl true
-  def handle_params(params, _url, socket) do
-    # Here we fix the navigation value for "repo" when only "nav" is changing.
-    # This is because we have two nav bars in this page and only one change at once.
-    socket =
-      if params["nav"] && !params["repo"] && socket.assigns[:nav_repo] do
-        to =
-          live_dashboard_path(socket, socket.assigns.page,
-            nav: params["nav"],
-            repo: socket.assigns[:nav_repo]
-          )
-
-        push_patch(socket, to: to)
-      else
-        socket
-      end
-
-    {:noreply, socket}
-  end
-
-  @impl true
   def render_page(assigns) do
     if assigns[:error] do
       render_error(assigns)
@@ -165,8 +124,6 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
         for repo <- assigns.repos do
           info_module = info_module_for(repo)
 
-          # It's important that this nav is a "redirect", so we set
-          # the "nav_repo" on `mount/3`.
           {repo,
            name: format_nav_name(repo),
            render: fn ->
@@ -175,16 +132,15 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
                info_module: info_module,
                ecto_options: assigns.ecto_options
              })
-           end,
-           method: :redirect}
+           end}
         end
 
-      nav_bar(items: items, nav_param: :repo)
+      nav_bar(items: items, nav_param: :repo, extra_params: ["nav"])
     end
   end
 
   defp render_repo_tab(assigns) do
-    nav_bar(items: items(assigns))
+    nav_bar(items: items(assigns), extra_params: ["repo"])
   end
 
   defp format_nav_name(repo) do

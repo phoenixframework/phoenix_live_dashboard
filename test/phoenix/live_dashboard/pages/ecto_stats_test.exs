@@ -60,6 +60,17 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert live
            |> element("a.active", "Phoenix LiveDashboardTest SecondaryRepo Stats")
            |> has_element?()
+
+    another_nav = Enum.random(available_navs -- [nav])
+
+    live
+    |> element(~s|a.nav-link[href*='nav=#{another_nav}']|)
+    |> render_click()
+
+    # Keep the same repo selected
+    assert live
+           |> element("a.active", "Phoenix LiveDashboardTest SecondaryRepo Stats")
+           |> has_element?()
   end
 
   test "search" do

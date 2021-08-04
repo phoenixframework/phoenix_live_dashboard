@@ -328,6 +328,10 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     * `nav_param` - An atom that configures the navigation parameter.
       It is useful when two nav bars are present in the same page.
 
+    * `extra_params` - A list of strings representing the parameters
+      that should stay when a tab is clicked. By default the nav ignores
+      all params, except the current node if any.
+
   """
   @spec nav_bar(keyword()) :: component()
   def nav_bar(assigns) do

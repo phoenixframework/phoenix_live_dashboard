@@ -8,10 +8,18 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
 
   @impl true
   def update(assigns, socket) do
-    %{page: page, items: items, nav_param: nav_param} = assigns
+    %{page: page, items: items, nav_param: nav_param, extra_params: extra_params} = assigns
 
     current = current_item(page.params, items, nav_param)
-    {:ok, assign(socket, items: items, current: current, page: page, nav_param: nav_param)}
+
+    {:ok,
+     assign(socket,
+       items: items,
+       current: current,
+       page: page,
+       nav_param: nav_param,
+       extra_params: extra_params
+     )}
   end
 
   defp current_item(params, items, nav_param) do
@@ -39,7 +47,40 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         raise ArgumentError, msg <> inspect(no_list)
 
       {:ok, items} ->
-        %{items: normalize_items(items), nav_param: normalize_nav_param(params)}
+        nav_param = normalize_nav_param(params)
+
+        %{
+          items: normalize_items(items),
+          nav_param: nav_param,
+          extra_params: normalize_extra_params(params, nav_param)
+        }
+    end
+  end
+
+  defp normalize_extra_params(params, nav_param) do
+    case Map.fetch(params, :extra_params) do
+      :error ->
+        []
+
+      {:ok, extra_params_list} when is_list(extra_params_list) ->
+        unless Enum.all?(extra_params_list, &is_binary/1) do
+          msg = ":extra_params must be a list of strings, got: "
+          raise ArgumentError, msg <> inspect(extra_params_list)
+        end
+
+        nav_param = to_string(nav_param)
+
+        if nav_param in extra_params_list do
+          msg = ":extra_params must not contain the :nav_param field name #{inspect(nav_param)}"
+
+          raise ArgumentError, msg
+        end
+
+        extra_params_list
+
+      {:ok, extra_params} ->
+        msg = ":extra_params must be a list of strings, got: "
+        raise ArgumentError, msg <> inspect(extra_params)
     end
   end
 
@@ -129,7 +170,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
           <ul class="nav nav-pills mt-n2 mb-4">
             <%= for {id, item} <- @items do %>
               <li class="nav-item">
-                <%= render_item_link(@socket, @page, item, @current, @nav_param, id) %>
+                <%= render_item_link(@socket, @page, item, @current, @nav_param, id, @extra_params) %>
               </li>
             <% end %>
           </ul>
@@ -140,15 +181,16 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
     """
   end
 
-  defp render_item_link(socket, page, item, current, nav_param, id) do
-    # The nav ignores all params, except the current node if any
+  defp render_item_link(socket, page, item, current, nav_param, id, extra_params) do
+    params_to_keep = for {key, value} <- page.params, key in extra_params, do: {key, value}
+
     path =
       Phoenix.LiveDashboard.PageBuilder.live_dashboard_path(
         socket,
         page.route,
         page.node,
         page.params,
-        [{nav_param, id}]
+        [{nav_param, id} | params_to_keep]
       )
 
     class = "nav-link#{if current == id, do: " active"}"

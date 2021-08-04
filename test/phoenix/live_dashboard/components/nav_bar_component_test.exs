@@ -33,6 +33,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
           bar: [name: "Bar", method: :redirect, render: {SimpleComponent, %{text: "bar_text"}}]
         ],
         nav_param: :nav,
+        extra_params: [],
         page: %Phoenix.LiveDashboard.PageBuilder{
           node: Keyword.get(opts, :node, node()),
           route: Keyword.get(opts, :route, :foobaz),
@@ -73,6 +74,23 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
 
       assert result =~
                ~s|<a class="nav-link active" data-phx-link="redirect" data-phx-link-state="push" href="/dashboard/foobaz?tab=bar">Bar</a>|
+    end
+
+    test "renders nav bar keeping extra params" do
+      result_without_extra = render_items(params: %{"nav" => "bar", "sort_by" => "field"})
+
+      refute result_without_extra =~ "sort_by=field"
+
+      result =
+        render_items(
+          params: %{"nav" => "bar", "sort_by" => "field", "search" => "baz"},
+          extra_params: ["sort_by"]
+        )
+
+      assert result =~ ~s|href="/dashboard/foobaz?nav=foo&amp;sort_by=field"|
+      assert result =~ ~s|href="/dashboard/foobaz?nav=bar&amp;sort_by=field"|
+
+      refute result =~ "search=baz"
     end
   end
 
@@ -149,7 +167,28 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         })
       end
 
-      assert %{items: [id: item], nav_param: nav_param} =
+      msg = ":extra_params must be a list of strings, got: [:another_param]"
+
+      assert_raise ArgumentError, msg, fn ->
+        NavBarComponent.normalize_params(%{
+          extra_params: [:another_param],
+          page: page,
+          items: [id: [name: "name", render: fn -> {Component, %{}} end]]
+        })
+      end
+
+      msg = ":extra_params must not contain the :nav_param field name \"tab\""
+
+      assert_raise ArgumentError, msg, fn ->
+        NavBarComponent.normalize_params(%{
+          nav_param: :tab,
+          extra_params: ["tab"],
+          page: page,
+          items: [id: [name: "name", render: fn -> {Component, %{}} end]]
+        })
+      end
+
+      assert %{items: [id: item], nav_param: nav_param, extra_params: []} =
                NavBarComponent.normalize_params(%{
                  page: page,
                  items: [id: [name: "name", render: fn -> {Component, %{}} end]]
