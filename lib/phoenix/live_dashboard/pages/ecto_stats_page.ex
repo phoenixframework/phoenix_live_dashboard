@@ -40,7 +40,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   defp auto_discover do
     with true <- function_exported?(Ecto.Repo, :all_running, 0),
          [_ | _] = repos <- Ecto.Repo.all_running(),
-         [_ | _] = repos_with_extra <- Enum.filter(repos, &extra_available?/1) do
+         [_ | _] = named_repos <- Enum.filter(repos, &is_atom/1),
+         [_ | _] = repos_with_extra <- Enum.filter(named_repos, &extra_available?/1) do
       {:ok, repos_with_extra}
     else
       false ->
