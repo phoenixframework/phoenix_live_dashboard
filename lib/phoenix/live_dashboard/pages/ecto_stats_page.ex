@@ -38,18 +38,17 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   end
 
   defp auto_discover do
-    with true <- function_exported?(Ecto.Repo, :all_running, 0),
-         [_ | _] = repos <- Ecto.Repo.all_running(),
-         [_ | _] = named_repos <- Enum.filter(repos, &is_atom/1),
-         [_ | _] = repos_with_extra <- Enum.filter(named_repos, &extra_available?/1) do
-      {:ok, repos_with_extra}
-    else
-      false ->
-        {:error, :repos_auto_discovery_not_available}
+    case named_stats_available_repos() do
+      [_ | _] = repos ->
+        {:ok, repos}
 
       [] ->
         {:error, :no_ecto_repos_available}
     end
+  end
+
+  defp named_stats_available_repos do
+    Enum.filter(Ecto.Repo.all_running(), &extra_available?/1)
   end
 
   defp filter_repos_with_extra(repos) do
@@ -77,10 +76,6 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       {:ok, _repos} ->
         {:ok, @page_title}
 
-      {:error, :repos_auto_discovery_not_available} ->
-        # Page will display the error.
-        {:ok, @page_title}
-
       {:error, _} ->
         {:disabled, @page_title, @disabled_link}
     end
@@ -104,10 +99,12 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     Enum.any?(repos, &extra_available?/1)
   end
 
-  defp extra_available?(repo) do
+  defp extra_available?(repo) when is_atom(repo) do
     extra = info_module_for(repo)
     extra && Code.ensure_loaded?(extra)
   end
+
+  defp extra_available?(_repo_pid), do: false
 
   defp info_module_for(repo) do
     case repo.__adapter__ do
@@ -126,7 +123,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
           info_module = info_module_for(repo)
 
           {repo,
-           name: format_nav_name(repo),
+           name: inspect(repo),
            render: fn ->
              render_repo_tab(%{
                repo: repo,
@@ -142,10 +139,6 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   defp render_repo_tab(assigns) do
     nav_bar(items: items(assigns), extra_params: ["repo"])
-  end
-
-  defp format_nav_name(repo) do
-    "#{repo |> inspect() |> String.replace(".", " ")} Stats"
   end
 
   @forbidden_tables [:kill_all, :mandelbrot]

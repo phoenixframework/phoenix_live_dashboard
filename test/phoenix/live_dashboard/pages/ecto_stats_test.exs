@@ -24,8 +24,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     {:ok, live, _} = live(build_conn(), ecto_stats_path())
     rendered = render(live)
 
-    assert rendered =~ "Phoenix LiveDashboardTest Repo Stats"
-    refute rendered =~ "Phoenix LiveDashboardTest SecondaryRepo Stats"
+    assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
+    refute rendered =~ "Phoenix.LiveDashboardTest.SecondaryRepo"
 
     assert rendered =~ "All locks"
     assert rendered =~ "Extensions"
@@ -37,8 +37,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     {:ok, live, _} = live(build_conn(), ecto_stats_path())
     rendered = render(live)
 
-    assert rendered =~ "Phoenix LiveDashboardTest Repo Stats"
-    assert rendered =~ "Phoenix LiveDashboardTest SecondaryRepo Stats"
+    assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.SecondaryRepo"
   end
 
   @forbidden_navs [:kill_all, :mandelbrot]
@@ -58,7 +58,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert {:ok, live, _} = live(build_conn(), ecto_stats_path(nav, "", SecondaryRepo))
 
     assert live
-           |> element("a.active", "Phoenix LiveDashboardTest SecondaryRepo Stats")
+           |> element("a.active", "Phoenix.LiveDashboardTest.SecondaryRepo")
            |> has_element?()
 
     another_nav = Enum.random(available_navs -- [nav])
@@ -69,7 +69,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
     # Keep the same repo selected
     assert live
-           |> element("a.active", "Phoenix LiveDashboardTest SecondaryRepo Stats")
+           |> element("a.active", "Phoenix.LiveDashboardTest.SecondaryRepo")
            |> has_element?()
   end
 
