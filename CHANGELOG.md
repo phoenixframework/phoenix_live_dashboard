@@ -4,10 +4,12 @@
 
 * Fallback to longpoll when websockets are not available
 * Remove CPU cards as the result was often innacurate
-* Ignore nil measurements in telemetry panes
+* Ignore `nil` measurements in telemetry panes
 * Remember refresh selection using cookie
 * Show reductions diff in Processes table
 * Allow `home_app` (besides Elixir and Phoenix) to be configured
+* Support styles in `navbar` and parameter customization
+* Add auto-discovery of Ecto repositories
 * Add many more components
 
 ## v0.4.0 (2020-11-20)
