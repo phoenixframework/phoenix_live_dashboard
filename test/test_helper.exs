@@ -117,7 +117,6 @@ Application.ensure_all_started(:os_mon)
 
 Supervisor.start_link(
   [
-    Phoenix.LiveDashboardTest.Repo,
     {Phoenix.PubSub, name: Phoenix.LiveDashboardTest.PubSub, adapter: Phoenix.PubSub.PG2},
     Phoenix.LiveDashboardTest.Endpoint
   ],

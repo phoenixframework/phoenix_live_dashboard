@@ -67,7 +67,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   @impl true
   def menu_link(%{repos: repos}, capabilities) do
     cond do
-      not Enum.any?(repos, fn repo -> repo in capabilities.processes end) ->
+      Enum.all?(repos, fn repo -> repo not in capabilities.processes end) ->
         :skip
 
       extra_available_for_any?(repos) ->

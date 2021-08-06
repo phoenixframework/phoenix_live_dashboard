@@ -20,6 +20,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   end
 
   test "renders" do
+    start_main_repo!()
+
     {:ok, live, _} = live(build_conn(), ecto_stats_path())
     rendered = render(live)
 
@@ -40,9 +42,21 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Phoenix.LiveDashboardTest.SecondaryRepo"
   end
 
+  test "renders error without running repos" do
+    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+    rendered = render(live)
+
+    refute rendered =~ "Phoenix.LiveDashboardTest.Repo"
+
+    assert rendered =~
+             "No Ecto repository was found. Currently only PSQL databases are supported."
+  end
+
   @forbidden_navs [:kill_all, :mandelbrot]
 
   test "navs" do
+    start_main_repo!()
+
     for {nav, _} <- EctoPSQLExtras.queries(Repo), nav not in @forbidden_navs do
       assert {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
     end
@@ -73,6 +87,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   end
 
   test "search" do
+    start_main_repo!()
+
     {:ok, live, _} = live(build_conn(), ecto_stats_path(:extensions))
     rendered = render(live)
     assert rendered =~ "Default version"
@@ -102,6 +118,10 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
   defp ecto_stats_path(nav, search, repo) do
     "#{ecto_stats_path()}?nav=#{nav}&search=#{search}&repo=#{repo}"
+  end
+
+  defp start_main_repo! do
+    start_supervised!(Repo)
   end
 
   defp start_secondary_repo! do
