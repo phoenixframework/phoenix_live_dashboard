@@ -63,12 +63,10 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         []
 
       {:ok, extra_params_list} when is_list(extra_params_list) ->
-        unless Enum.all?(extra_params_list, &is_binary/1) do
-          msg = ":extra_params must be a list of strings, got: "
+        unless Enum.all?(extra_params_list, &is_atom/1) do
+          msg = ":extra_params must be a list of atoms, got: "
           raise ArgumentError, msg <> inspect(extra_params_list)
         end
-
-        nav_param = to_string(nav_param)
 
         if nav_param in extra_params_list do
           msg = ":extra_params must not contain the :nav_param field name #{inspect(nav_param)}"
@@ -76,10 +74,10 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
           raise ArgumentError, msg
         end
 
-        extra_params_list
+        Enum.map(extra_params_list, &to_string/1)
 
       {:ok, extra_params} ->
-        msg = ":extra_params must be a list of strings, got: "
+        msg = ":extra_params must be a list of atoms, got: "
         raise ArgumentError, msg <> inspect(extra_params)
     end
   end

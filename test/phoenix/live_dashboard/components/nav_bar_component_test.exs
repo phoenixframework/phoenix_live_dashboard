@@ -167,22 +167,22 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         })
       end
 
-      msg = ":extra_params must be a list of strings, got: [:another_param]"
+      msg = ~s|:extra_params must be a list of atoms, got: ["another_param"]|
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{
-          extra_params: [:another_param],
+          extra_params: ["another_param"],
           page: page,
           items: [id: [name: "name", render: fn -> {Component, %{}} end]]
         })
       end
 
-      msg = ":extra_params must not contain the :nav_param field name \"tab\""
+      msg = ":extra_params must not contain the :nav_param field name :tab"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{
           nav_param: :tab,
-          extra_params: ["tab"],
+          extra_params: [:tab],
           page: page,
           items: [id: [name: "name", render: fn -> {Component, %{}} end]]
         })

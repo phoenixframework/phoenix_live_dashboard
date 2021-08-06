@@ -116,12 +116,12 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
            end}
         end
 
-      nav_bar(items: items, nav_param: :repo, extra_params: ["nav"])
+      nav_bar(items: items, nav_param: :repo, extra_params: [:nav])
     end
   end
 
   defp render_repo_tab(assigns) do
-    nav_bar(items: items(assigns), extra_params: ["repo"])
+    nav_bar(items: items(assigns), extra_params: [:repo])
   end
 
   @forbidden_tables [:kill_all, :mandelbrot]
