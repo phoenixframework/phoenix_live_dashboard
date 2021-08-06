@@ -3,50 +3,91 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   use Phoenix.LiveDashboard.PageBuilder
   import Phoenix.LiveDashboard.Helpers
 
-  @compile {:no_warn_undefined, [Decimal, EctoPSQLExtras]}
+  @compile {:no_warn_undefined, [Decimal, EctoPSQLExtras, {Ecto.Repo, :all_running, 0}]}
   @disabled_link "https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html"
+  @page_title "Ecto Stats"
 
   @impl true
-  def init(%{repo: nil}), do: {:ok, %{repo: nil, ecto_options: []}}
+  def init(%{repos: repos, ecto_psql_extras_options: ecto_options}) do
+    capabilities = for repo <- List.wrap(repos), do: {:process, repo}
+    repos = repos || :auto_discover
 
-  def init(%{repo: repo, ecto_psql_extras_options: ecto_options}),
-    do: {:ok, %{repo: repo, ecto_options: ecto_options}, process: repo}
-
-  @impl true
-  def mount(_params, %{repo: repo, ecto_options: ecto_options}, socket) do
-    {:ok,
-     assign(socket,
-       repo: repo,
-       ecto_options: ecto_options,
-       info_module: info_module_for(repo)
-     )}
+    {:ok, %{repos: repos, ecto_options: ecto_options}, capabilities}
   end
 
   @impl true
-  def menu_link(%{repo: nil}, _capabilities) do
-    if Code.ensure_loaded?(Ecto.Adapters.SQL) do
-      {:disabled, "Ecto Stats", @disabled_link}
-    else
-      :skip
+  def mount(_params, %{repos: repos, ecto_options: ecto_options}, socket) do
+    socket = assign(socket, ecto_options: ecto_options)
+
+    result =
+      case repos do
+        :auto_discover ->
+          auto_discover()
+
+        [_ | _] = repos ->
+          {:ok, repos}
+
+        _ ->
+          {:error, :no_ecto_repos_available}
+      end
+
+    case result do
+      {:ok, repos} ->
+        {:ok, assign(socket, :repos, repos)}
+
+      {:error, error} ->
+        {:ok, assign(socket, :error, error)}
     end
   end
 
-  @impl true
-  def menu_link(%{repo: repo}, capabilities) do
-    title = "#{repo |> inspect() |> String.replace(".", " ")} Stats"
-    extra = info_module_for(repo)
+  defp auto_discover do
+    case named_stats_available_repos() do
+      [_ | _] = repos ->
+        {:ok, repos}
 
+      [] ->
+        {:error, :no_ecto_repos_available}
+    end
+  end
+
+  defp named_stats_available_repos do
+    Enum.filter(Ecto.Repo.all_running(), &extra_available?/1)
+  end
+
+  @impl true
+  def menu_link(%{repos: []}, _capabilities) do
+    :skip
+  end
+
+  @impl true
+  def menu_link(%{repos: :auto_discover}, _caps) do
+    {:ok, @page_title}
+  end
+
+  @impl true
+  def menu_link(%{repos: repos}, capabilities) do
     cond do
-      repo not in capabilities.processes ->
+      Enum.all?(repos, fn repo -> repo not in capabilities.processes end) ->
         :skip
 
-      extra && Code.ensure_loaded?(extra) ->
-        {:ok, title}
+      extra_available_for_any?(repos) ->
+        {:ok, @page_title}
 
       true ->
-        {:disabled, title, @disabled_link}
+        {:disabled, @page_title, @disabled_link}
     end
   end
+
+  defp extra_available_for_any?(repos) do
+    Enum.any?(repos, &extra_available?/1)
+  end
+
+  defp extra_available?(repo) when is_atom(repo) do
+    extra = info_module_for(repo)
+    extra && Code.ensure_loaded?(extra)
+  end
+
+  defp extra_available?(_repo_pid), do: false
 
   defp info_module_for(repo) do
     case repo.__adapter__ do
@@ -57,7 +98,30 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   @impl true
   def render_page(assigns) do
-    nav_bar(items: items(assigns))
+    if assigns[:error] do
+      render_error(assigns)
+    else
+      items =
+        for repo <- assigns.repos do
+          info_module = info_module_for(repo)
+
+          {repo,
+           name: inspect(repo),
+           render: fn ->
+             render_repo_tab(%{
+               repo: repo,
+               info_module: info_module,
+               ecto_options: assigns.ecto_options
+             })
+           end}
+        end
+
+      nav_bar(items: items, nav_param: :repo, extra_params: [:nav])
+    end
+  end
+
+  defp render_repo_tab(assigns) do
+    nav_bar(items: items(assigns), extra_params: [:repo])
   end
 
   @forbidden_tables [:kill_all, :mandelbrot]
@@ -170,4 +234,22 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   defp format(_type, value),
     do: value
+
+  defp render_error(assigns) do
+    error_message =
+      case assigns.error do
+        :no_ecto_repos_available ->
+          "No Ecto repository was found. Currently only PSQL databases are supported."
+      end
+
+    row(
+      components: [
+        columns(
+          components: [
+            card(value: error_message)
+          ]
+        )
+      ]
+    )
+  end
 end

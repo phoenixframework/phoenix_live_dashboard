@@ -12,6 +12,17 @@ end
 
 _ = Ecto.Adapters.Postgres.storage_up(Phoenix.LiveDashboardTest.Repo.config())
 
+# SecondaryRepo should be started on demand in your tests.
+Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.SecondaryRepo,
+  url: "ecto://#{pg_url}/phx_dashboard_test"
+)
+
+defmodule Phoenix.LiveDashboardTest.SecondaryRepo do
+  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
+end
+
+_ = Ecto.Adapters.Postgres.storage_up(Phoenix.LiveDashboardTest.SecondaryRepo.config())
+
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Endpoint,
   url: [host: "localhost", port: 4000],
   secret_key_base: "Hu4qQN3iKzTV4fJxhorPQlA/osH9fAMtbtjVS58PFgfw3ja5Z18Q/WSNR9wP4OfW",
@@ -53,9 +64,9 @@ defmodule Phoenix.LiveDashboardTest.Router do
   scope "/", ThisWontBeUsed, as: :this_wont_be_used do
     pipe_through :browser
 
+    # Ecto repos will be auto discoverable.
     live_dashboard "/dashboard",
-      metrics: Phoenix.LiveDashboardTest.Telemetry,
-      ecto_repos: [Phoenix.LiveDashboardTest.Repo]
+      metrics: Phoenix.LiveDashboardTest.Telemetry
 
     live_dashboard "/config",
       live_socket_path: "/custom/live",
@@ -106,7 +117,6 @@ Application.ensure_all_started(:os_mon)
 
 Supervisor.start_link(
   [
-    Phoenix.LiveDashboardTest.Repo,
     {Phoenix.PubSub, name: Phoenix.LiveDashboardTest.PubSub, adapter: Phoenix.PubSub.PG2},
     Phoenix.LiveDashboardTest.Endpoint
   ],
