@@ -116,7 +116,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
            end}
         end
 
-      nav_bar(items: items, nav_param: :repo, extra_params: [:nav])
+      nav_bar(items: items, nav_param: :repo, extra_params: [:nav], style: :bar)
     end
   end
 

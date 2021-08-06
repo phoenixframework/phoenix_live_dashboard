@@ -303,8 +303,8 @@ defmodule Phoenix.LiveDashboard.Router do
         processes: {Phoenix.LiveDashboard.ProcessesPage, %{}},
         ports: {Phoenix.LiveDashboard.PortsPage, %{}},
         sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
-        ecto_stats: {Phoenix.LiveDashboard.EctoStatsPage, ecto_session},
-        ets: {Phoenix.LiveDashboard.EtsPage, %{}}
+        ets: {Phoenix.LiveDashboard.EtsPage, %{}},
+        ecto_stats: {Phoenix.LiveDashboard.EctoStatsPage, ecto_session}
       ]
       |> Enum.concat(additional_pages)
       |> Enum.map(fn {key, {module, opts}} ->

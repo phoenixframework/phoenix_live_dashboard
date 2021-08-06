@@ -7,19 +7,10 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   end
 
   @impl true
-  def update(assigns, socket) do
-    %{page: page, items: items, nav_param: nav_param, extra_params: extra_params} = assigns
-
+  def update(%{page: page, items: items, nav_param: nav_param} = assigns, socket) do
+    socket = assign(socket, assigns)
     current = current_item(page.params, items, nav_param)
-
-    {:ok,
-     assign(socket,
-       items: items,
-       current: current,
-       page: page,
-       nav_param: nav_param,
-       extra_params: extra_params
-     )}
+    {:ok, assign(socket, :current, current)}
   end
 
   defp current_item(params, items, nav_param) do
@@ -52,7 +43,8 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         %{
           items: normalize_items(items),
           nav_param: nav_param,
-          extra_params: normalize_extra_params(params, nav_param)
+          extra_params: normalize_extra_params(params, nav_param),
+          style: normalize_style(params)
         }
     end
   end
@@ -93,6 +85,16 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
       {:ok, nav_param} ->
         raise ArgumentError, ":nav_param parameter must be an atom, got: #{inspect(nav_param)}"
     end
+  end
+
+  defp normalize_style(params) do
+    style = Map.get(params, :style, :pills)
+
+    unless style in [:pills, :bar] do
+      raise ArgumentError, ":style must be either :pills or :bar"
+    end
+
+    style
   end
 
   def normalize_items(items) do
@@ -165,7 +167,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
     <div>
       <div class="row">
         <div class="container">
-          <ul class="nav nav-pills mt-n2 mb-4">
+          <ul class={"nav nav-#{@style} mt-n2 mb-4"}>
             <%= for {id, item} <- @items do %>
               <li class="nav-item">
                 <%= render_item_link(@socket, @page, item, @current, @nav_param, id, @extra_params) %>

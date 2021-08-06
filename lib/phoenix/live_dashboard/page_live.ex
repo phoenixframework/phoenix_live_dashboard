@@ -326,7 +326,11 @@ defmodule Phoenix.LiveDashboard.PageLive do
   ## Navbar handling
 
   defp maybe_link(_socket, _page, {:current, text}) do
-    content_tag(:div, text, class: "menu-item active")
+    assigns = %{text: text}
+
+    ~H"""
+    <div class="menu-item active"><%= text %></div>
+    """
   end
 
   defp maybe_link(socket, page, {:enabled, text, route}) do

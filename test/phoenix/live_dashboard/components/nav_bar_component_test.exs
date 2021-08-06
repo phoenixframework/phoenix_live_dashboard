@@ -33,6 +33,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
           bar: [name: "Bar", method: :redirect, render: {SimpleComponent, %{text: "bar_text"}}]
         ],
         nav_param: :nav,
+        style: :pills,
         extra_params: [],
         page: %Phoenix.LiveDashboard.PageBuilder{
           node: Keyword.get(opts, :node, node()),

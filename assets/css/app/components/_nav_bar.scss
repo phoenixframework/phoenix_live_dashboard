@@ -1,0 +1,13 @@
+.nav-bar {
+  background-color: $nav-pills-link-active-bg;
+  border-radius: 6px;
+  line-height: 1.6;
+}
+
+.nav-bar .nav-link {
+  color: $color-gray;
+}
+
+.nav-bar .nav-link.active {
+  color: $color-white;
+}

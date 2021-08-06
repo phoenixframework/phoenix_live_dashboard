@@ -224,10 +224,10 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                  processes: {Phoenix.LiveDashboard.ProcessesPage, %{}},
                  ports: {Phoenix.LiveDashboard.PortsPage, %{}},
                  sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
+                 ets: {Phoenix.LiveDashboard.EtsPage, %{}},
                  ecto_stats:
                    {Phoenix.LiveDashboard.EctoStatsPage,
-                    %{repos: :auto_discover, ecto_options: []}},
-                 ets: {Phoenix.LiveDashboard.EtsPage, %{}}
+                    %{repos: :auto_discover, ecto_options: []}}
                ],
                "requirements" => [{:application, :os_mon}]
              } = csp_session(build_conn())
