@@ -8,10 +8,9 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   alias Phoenix.LiveDashboard.EctoStatsPage
   alias Phoenix.LiveDashboardTest.Repo
   alias Phoenix.LiveDashboardTest.SecondaryRepo
-  @link "https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html"
 
   test "menu_link/2" do
-    assert {:disabled, "Ecto Stats", @link} = EctoStatsPage.menu_link(%{repos: []}, %{})
+    assert :skip = EctoStatsPage.menu_link(%{repos: []}, %{})
     assert :skip = EctoStatsPage.menu_link(%{repos: [Repo]}, %{processes: []})
 
     assert {:ok, "Ecto Stats"} = EctoStatsPage.menu_link(%{repos: [Repo]}, %{processes: [Repo]})

@@ -19,16 +19,19 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   def mount(_params, %{repos: repos, ecto_options: ecto_options}, socket) do
     socket = assign(socket, ecto_options: ecto_options)
 
-    fun =
+    result =
       case repos do
         :auto_discover ->
-          fn _ -> auto_discover() end
+          auto_discover()
 
-        repos when is_list(repos) ->
-          &filter_repos_with_extra/1
+        [_ | _] = repos ->
+          {:ok, repos}
+
+        _ ->
+          {:error, :no_ecto_repos_available}
       end
 
-    case fun.(repos) do
+    case result do
       {:ok, repos} ->
         {:ok, assign(socket, :repos, repos)}
 
@@ -51,34 +54,14 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     Enum.filter(Ecto.Repo.all_running(), &extra_available?/1)
   end
 
-  defp filter_repos_with_extra(repos) do
-    repos_with_extra = Enum.filter(repos, &extra_available?/1)
-
-    if repos_with_extra == [] do
-      {:error, :no_ecto_repos_available}
-    else
-      {:ok, repos_with_extra}
-    end
-  end
-
   @impl true
   def menu_link(%{repos: []}, _capabilities) do
-    if Code.ensure_loaded?(Ecto.Adapters.SQL) do
-      {:disabled, @page_title, @disabled_link}
-    else
-      :skip
-    end
+    :skip
   end
 
   @impl true
   def menu_link(%{repos: :auto_discover}, _caps) do
-    case auto_discover() do
-      {:ok, _repos} ->
-        {:ok, @page_title}
-
-      {:error, _} ->
-        {:disabled, @page_title, @disabled_link}
-    end
+    {:ok, @page_title}
   end
 
   @impl true
@@ -255,11 +238,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   defp render_error(assigns) do
     error_message =
       case assigns.error do
-        :repos_auto_discovery_not_available ->
-          "The version of Ecto installed does not support the auto discovery of repos. Please update your Ecto to >= 3.6.2"
-
         :no_ecto_repos_available ->
-          "No Ecto repository with available extra info was found. Currently only PSQL databases are supported."
+          "No Ecto repository was found. Currently only PSQL databases are supported."
       end
 
     row(
