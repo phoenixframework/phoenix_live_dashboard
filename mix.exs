@@ -24,7 +24,6 @@ defmodule Phoenix.LiveDashboard.MixProject do
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       mod: {Phoenix.LiveDashboard.Application, []},
@@ -39,7 +38,6 @@ defmodule Phoenix.LiveDashboard.MixProject do
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       # Actual deps

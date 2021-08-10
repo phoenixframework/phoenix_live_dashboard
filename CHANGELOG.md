@@ -1,16 +1,17 @@
 # CHANGELOG
 
-## v0.5.0-dev
+## v0.5.0 (2020-08-10)
 
+* Require LiveView v0.16.0
 * Fallback to longpoll when websockets are not available
 * Remove CPU cards as the result was often innacurate
 * Ignore `nil` measurements in telemetry panes
-* Remember refresh selection using cookie
+* Remember refresh selection by using cookies
 * Show reductions diff in Processes table
 * Allow `home_app` (besides Elixir and Phoenix) to be configured
-* Support styles in `navbar` and parameter customization
+* Support styles in `navbar` and provide parameter customization
 * Add auto-discovery of Ecto repositories
-* Add many more components
+* Add many more components to PageBuilder
 
 ## v0.4.0 (2020-11-20)
 
