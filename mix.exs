@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.5.0-dev"
+  @version "0.5.0"
 
   def project do
     [
@@ -43,7 +43,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
   defp deps do
     [
       # Actual deps
-      {:phoenix_live_view, "~> 0.16.0-dev", phoenix_live_view_opts()},
+      {:phoenix_live_view, "~> 0.16.0", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.6.0"},
       {:ecto_psql_extras, "~> 0.6", optional: true},
       {:ecto, "~> 3.6.2 or ~> 3.7", optional: true},
@@ -64,7 +64,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
     if path = System.get_env("LIVE_VIEW_PATH") do
       [path: path]
     else
-      [github: "phoenixframework/phoenix_live_view"]
+      []
     end
   end
 
