@@ -6,6 +6,9 @@ module.exports = {
         require('precss'),
         require('cssnano')({
             preset: 'default',
+        }),
+        require("postcss-url")({
+            url: "copy",
         })
     ]
 }
