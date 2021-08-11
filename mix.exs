@@ -35,7 +35,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
     [
       setup: ["deps.get", "cmd npm install --prefix assets"],
       dev: "run --no-halt dev.exs",
-      "assets.build": ["esbuild default --minify", "cmd npm --prefix=assets run build"]
+      "assets.build": ["esbuild default --minify", "sass default --no-source-map --style=compressed"]
     ]
   end
 
@@ -56,7 +56,8 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:floki, "~> 0.27.0", only: :test},
       {:stream_data, "~> 0.1", only: :test},
       {:ex_doc, "~> 0.21", only: :docs},
-      {:esbuild, "~> 0.2.1", only: :dev}
+      {:esbuild, "~> 0.2.1", only: :dev},
+      {:dart_sass, "~> 0.1", only: :dev}
     ]
   end
 

@@ -1,5 +1,5 @@
 import { ColorWheel, LineColor } from './color_wheel'
-import uPlot from 'uplot'
+import uPlot from '../../vendor/uPlot'
 
 const SeriesValue = (options) => {
   if (!options.unit) return {}

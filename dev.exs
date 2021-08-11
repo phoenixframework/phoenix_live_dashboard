@@ -21,14 +21,16 @@ Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
   check_origin: false,
   pubsub_server: Demo.PubSub,
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    npx: [
-      "postcss",
-      "css/app.css",
-      "--output=../priv/static/assets/app.css",
-      "--watch",
-      cd: Path.expand("assets", __DIR__)
-    ],
+    esbuild: {
+      Esbuild,
+      :install_and_run,
+      [:default, ~w(--sourcemap=inline --watch)]
+    },
+    sass: {
+      DartSass,
+      :install_and_run,
+      [:default, ~w(--embed-source-map --source-map-urls=absolute --watch)]
+    }
   ],
   live_reload: [
     patterns: [
