@@ -1,6 +1,8 @@
 @import "./app/variables";
 @import "./app/fonts";
-@import "~bootstrap/scss/bootstrap";
+@import "../node_modules/bootstrap/scss/bootstrap.scss";
+@import  "../node_modules/uplot/dist/uPlot.min.css";
+
 @import "./app/layout";
 
 // Extends
