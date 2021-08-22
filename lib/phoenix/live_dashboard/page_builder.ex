@@ -781,7 +781,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @doc """
   Computes a router path to the current page with merged params.
   """
-  @spec live_dashboard_path(Socket.t(), page :: %__MODULE__{}, map()) :: binary()
+  @spec live_dashboard_path(Socket.t(), page :: %__MODULE__{}, map() | Keyword.t()) :: binary()
   def live_dashboard_path(socket, %{route: route, node: node, params: old_params}, extra) do
     new_params = Enum.into(extra, old_params, fn {k, v} -> {Atom.to_string(k), v} end)
     live_dashboard_path(socket, route, node, old_params, new_params)
