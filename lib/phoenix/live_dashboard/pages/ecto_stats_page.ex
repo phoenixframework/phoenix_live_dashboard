@@ -239,7 +239,14 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     error_message =
       case assigns.error do
         :no_ecto_repos_available ->
-          "No Ecto repository was found. Currently only PSQL databases are supported."
+          error_details = """
+          No Ecto repository was found or Ecto PSQL Extras is not installed.
+          Currently only PSQL databases are supported.
+
+          Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details.
+          """
+
+          {:safe, error_details}
       end
 
     row(

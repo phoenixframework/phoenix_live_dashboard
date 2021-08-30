@@ -49,7 +49,12 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     refute rendered =~ "Phoenix.LiveDashboardTest.Repo"
 
     assert rendered =~
-             "No Ecto repository was found. Currently only PSQL databases are supported."
+             "No Ecto repository was found or Ecto PSQL Extras is not installed."
+
+    assert rendered =~ "Currently only PSQL databases are supported."
+
+    assert rendered =~
+             ~s|Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details|
   end
 
   @forbidden_navs [:kill_all, :mandelbrot]
