@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
 
   defp current_item(params, items, nav_param) do
     with %{^nav_param => item} <- params,
-         true <- Enum.any?(items, &match?({^item, _}, &1)) do
+         true <- List.keymember?(items, item, 0) do
       item
     else
       _ -> default_item(items)
