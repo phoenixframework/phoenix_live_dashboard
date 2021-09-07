@@ -14,19 +14,15 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   end
 
   defp current_item(params, items, nav_param) do
-    nav_param = Atom.to_string(nav_param)
-
     with %{^nav_param => item} <- params,
-         true <- Enum.any?(items, fn {id, _} -> Atom.to_string(id) == item end) do
-      String.to_existing_atom(item)
+         true <- List.keymember?(items, item, 0) do
+      item
     else
       _ -> default_item(items)
     end
   end
 
-  defp default_item([{id, _} | _]) do
-    id
-  end
+  defp default_item([{id, _} | _]), do: id
 
   def normalize_params(params) do
     case Map.fetch(params, :items) do
@@ -55,10 +51,12 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         []
 
       {:ok, extra_params_list} when is_list(extra_params_list) ->
-        unless Enum.all?(extra_params_list, &is_atom/1) do
-          msg = ":extra_params must be a list of atoms, got: "
+        unless Enum.all?(extra_params_list, &(is_binary(&1) or is_atom(&1))) do
+          msg = ":extra_params must be a list of strings or atoms, got: "
           raise ArgumentError, msg <> inspect(extra_params_list)
         end
+
+        extra_params_list = Enum.map(extra_params_list, &to_string/1)
 
         if nav_param in extra_params_list do
           msg = ":extra_params must not contain the :nav_param field name #{inspect(nav_param)}"
@@ -66,10 +64,10 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
           raise ArgumentError, msg
         end
 
-        Enum.map(extra_params_list, &to_string/1)
+        extra_params_list
 
       {:ok, extra_params} ->
-        msg = ":extra_params must be a list of atoms, got: "
+        msg = ":extra_params must be a list of strings or atoms, got: "
         raise ArgumentError, msg <> inspect(extra_params)
     end
   end
@@ -77,13 +75,17 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   defp normalize_nav_param(params) do
     case Map.fetch(params, :nav_param) do
       :error ->
-        :nav
+        "nav"
 
-      {:ok, nav_param} when is_atom(nav_param) ->
+      {:ok, nav_param} when is_binary(nav_param) ->
         nav_param
 
+      {:ok, nav_param} when is_atom(nav_param) ->
+        Atom.to_string(nav_param)
+
       {:ok, nav_param} ->
-        raise ArgumentError, ":nav_param parameter must be an atom, got: #{inspect(nav_param)}"
+        raise ArgumentError,
+              ":nav_param parameter must be an string or atom, got: #{inspect(nav_param)}"
     end
   end
 
@@ -102,6 +104,10 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   end
 
   defp normalize_item({id, item}) when is_atom(id) and is_list(item) do
+    normalize_item({Atom.to_string(id), item})
+  end
+
+  defp normalize_item({id, item}) when is_binary(id) and is_list(item) do
     {id,
      item
      |> validate_item_render()
@@ -110,7 +116,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   end
 
   defp normalize_item(invalid_item) do
-    msg = ":items must be [{atom(), [name: string(), render: fun()], got: "
+    msg = ":items must be [{string() | atom(), [name: string(), render: fun()], got: "
 
     raise ArgumentError, msg <> inspect(invalid_item)
   end
@@ -176,7 +182,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
           </ul>
         </div>
       </div>
-      <%= render_content(@page, @items[@current][:render]) %>
+      <%= render_item_content(@page, @items, @current) %>
     </div>
     """
   end
@@ -199,6 +205,11 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
       :patch -> live_patch(item[:name], to: path, class: class)
       :redirect -> live_redirect(item[:name], to: path, class: class)
     end
+  end
+
+  defp render_item_content(page, items, id) do
+    {_, opts} = List.keyfind(items, id, 0)
+    render_content(page, opts[:render])
   end
 
   defp render_content(page, component_or_fun) do

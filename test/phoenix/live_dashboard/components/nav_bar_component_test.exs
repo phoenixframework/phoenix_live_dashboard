@@ -29,10 +29,16 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
     opts =
       [
         items: [
-          foo: [name: "Foo", method: :patch, render: {SimpleComponent, %{text: "foo_text"}}],
-          bar: [name: "Bar", method: :redirect, render: {SimpleComponent, %{text: "bar_text"}}]
+          {
+            "foo",
+            [name: "Foo", method: :patch, render: {SimpleComponent, %{text: "foo_text"}}]
+          },
+          {
+            "bar",
+            [name: "Bar", method: :redirect, render: {SimpleComponent, %{text: "bar_text"}}]
+          }
         ],
-        nav_param: :nav,
+        nav_param: "nav",
         style: :pills,
         extra_params: [],
         page: %Phoenix.LiveDashboard.PageBuilder{
@@ -68,7 +74,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
     end
 
     test "renders a custom nav parameter" do
-      result = render_items(nav_param: :tab, params: %{"tab" => "bar"})
+      result = render_items(nav_param: "tab", params: %{"tab" => "bar"})
 
       assert result =~
                ~s|<a class="nav-link" data-phx-link="patch" data-phx-link-state="push" href="/dashboard/foobaz?tab=foo">Foo</a>|
@@ -109,7 +115,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         NavBarComponent.normalize_params(%{page: page, items: :invalid})
       end
 
-      msg = ":items must be [{atom(), [name: string(), render: fun()], got: :invalid"
+      msg = ":items must be [{string() | atom(), [name: string(), render: fun()], got: :invalid"
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{page: page, items: [:invalid]})
@@ -158,47 +164,49 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
         })
       end
 
-      msg = ":nav_param parameter must be an atom, got: \"tab\""
+      msg = ":nav_param parameter must be an string or atom, got: 1"
+
+      assert_raise ArgumentError, msg, fn ->
+        NavBarComponent.normalize_params(%{
+          nav_param: 1,
+          page: page,
+          items: [id: [name: "name", render: fn -> {Component, %{}} end]]
+        })
+      end
+
+      msg = ~s|:extra_params must be a list of strings or atoms, got: [1]|
+
+      assert_raise ArgumentError, msg, fn ->
+        NavBarComponent.normalize_params(%{
+          extra_params: [1],
+          page: page,
+          items: [id: [name: "name", render: fn -> {Component, %{}} end]]
+        })
+      end
+
+      msg = ":extra_params must not contain the :nav_param field name \"tab\""
 
       assert_raise ArgumentError, msg, fn ->
         NavBarComponent.normalize_params(%{
           nav_param: "tab",
+          extra_params: ["tab"],
           page: page,
           items: [id: [name: "name", render: fn -> {Component, %{}} end]]
         })
       end
 
-      msg = ~s|:extra_params must be a list of atoms, got: ["another_param"]|
+      item_in = [name: "name", render: fn -> {Component, %{}} end]
 
-      assert_raise ArgumentError, msg, fn ->
-        NavBarComponent.normalize_params(%{
-          extra_params: ["another_param"],
-          page: page,
-          items: [id: [name: "name", render: fn -> {Component, %{}} end]]
-        })
-      end
-
-      msg = ":extra_params must not contain the :nav_param field name :tab"
-
-      assert_raise ArgumentError, msg, fn ->
-        NavBarComponent.normalize_params(%{
-          nav_param: :tab,
-          extra_params: [:tab],
-          page: page,
-          items: [id: [name: "name", render: fn -> {Component, %{}} end]]
-        })
-      end
-
-      assert %{items: [id: item], nav_param: nav_param, extra_params: []} =
-               NavBarComponent.normalize_params(%{
-                 page: page,
-                 items: [id: [name: "name", render: fn -> {Component, %{}} end]]
-               })
+      assert %{items: [{"id", item}], nav_param: nav_param, extra_params: []} =
+               NavBarComponent.normalize_params(%{page: page, items: [id: item_in]})
 
       assert item[:name] == "name"
       assert item[:render]
       assert item[:method] == :patch
-      assert nav_param == :nav
+      assert nav_param == "nav"
+
+      assert %{items: [{"id", ^item}]} =
+               NavBarComponent.normalize_params(%{page: page, items: [{"id", item_in}]})
     end
   end
 end
