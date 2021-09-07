@@ -127,9 +127,6 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         msg = ":render parameter must be in item: #{inspect(item)}"
         raise ArgumentError, msg
 
-      {component, component_assigns} when is_atom(component) and is_map(component_assigns) ->
-        item
-
       {:ok, render} when is_function(render, 0) ->
         item
 
