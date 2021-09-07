@@ -207,13 +207,9 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
     end
   end
 
-  defp find_item_by_id(items, id) do
-    items |> List.keyfind(id, 0) |> elem(1)
-  end
-
   defp render_item_content(page, items, id) do
-    component_or_fun = find_item_by_id(items, id)[:render]
-    render_content(page, component_or_fun)
+    {_, opts} = List.keyfind!(items, id, 0)
+    render_content(page, opts[:render])
   end
 
   defp render_content(page, component_or_fun) do
