@@ -4,7 +4,7 @@
 
 * Require LiveView v0.16.0
 * Fallback to longpoll when websockets are not available
-* Remove CPU cards as the result was often innacurate
+* Remove CPU cards as the result was often inaccurate
 * Ignore `nil` measurements in telemetry panes
 * Remember refresh selection by using cookies
 * Show reductions diff in Processes table

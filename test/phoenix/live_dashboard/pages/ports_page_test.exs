@@ -49,7 +49,7 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
 
   test "order ports by output" do
     # We got already forker running as #Port<0.0>
-    # And we need something thats on all systems and stays attached to the port
+    # And we need something that's on all systems and stays attached to the port
     sleep = Port.open({:spawn, "sleep 5"}, [:binary])
     send(sleep, {self(), {:command, "increase output"}})
 

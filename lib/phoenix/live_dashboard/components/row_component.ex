@@ -28,7 +28,7 @@ defmodule Phoenix.LiveDashboard.RowComponent do
       params
     else
       raise ArgumentError,
-            ":components must have at least 1 compoment and at most 3 components, got: " <>
+            ":components must have at least 1 component and at most 3 components, got: " <>
               inspect(components_length)
     end
   end

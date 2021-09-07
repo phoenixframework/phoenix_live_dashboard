@@ -53,7 +53,7 @@ defmodule Phoenix.LiveDashboard.ColumnsComponentTest do
     end
 
     test "normalizes columns" do
-      msg = ":components must have at least 1 compoment and at most 3 components, got: 0"
+      msg = ":components must have at least 1 component and at most 3 components, got: 0"
 
       assert_raise ArgumentError, msg, fn ->
         ColumnsComponent.normalize_params(%{
