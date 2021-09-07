@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.5.1 (2020-09-07)
+
+* Clarify "No Ecto Repos" messages
+* Support strings on navbars titles
+
 ## v0.5.0 (2020-08-10)
 
 * Require LiveView v0.16.0
