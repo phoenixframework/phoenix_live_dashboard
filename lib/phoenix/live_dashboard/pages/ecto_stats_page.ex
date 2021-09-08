@@ -22,7 +22,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     result =
       case repos do
         :auto_discover ->
-          auto_discover()
+          auto_discover(socket.assigns.page.node)
 
         [_ | _] = repos ->
           {:ok, repos}
@@ -40,18 +40,27 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     end
   end
 
-  defp auto_discover do
-    case named_stats_available_repos() do
-      [_ | _] = repos ->
+  defp auto_discover(node) do
+    case named_stats_available_repos(node) do
+      {:ok, [_ | _] = repos} ->
         {:ok, repos}
 
-      [] ->
+      {:ok, []} ->
         {:error, :no_ecto_repos_available}
+
+      {:error, _} = error ->
+        error
     end
   end
 
-  defp named_stats_available_repos do
-    Enum.filter(Ecto.Repo.all_running(), &extra_available?/1)
+  defp named_stats_available_repos(node) do
+    case :rpc.call(node, Ecto.Repo, :all_running, []) do
+      repos when is_list(repos) ->
+        {:ok, Enum.filter(repos, fn repo -> extra_available?(node, repo) end)}
+
+      {:badrpc, _error} ->
+        {:error, :cannot_list_running_repos}
+    end
   end
 
   @impl true
@@ -70,7 +79,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       Enum.all?(repos, fn repo -> repo not in capabilities.processes end) ->
         :skip
 
-      extra_available_for_any?(repos) ->
+      extra_available_for_any?(Node.self(), repos) ->
         {:ok, @page_title}
 
       true ->
@@ -78,19 +87,29 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     end
   end
 
-  defp extra_available_for_any?(repos) do
-    Enum.any?(repos, &extra_available?/1)
+  defp extra_available_for_any?(node, repos) do
+    Enum.any?(repos, fn repo -> extra_available?(node, repo) end)
   end
 
-  defp extra_available?(repo) when is_atom(repo) do
-    extra = info_module_for(repo)
-    extra && Code.ensure_loaded?(extra)
+  defp extra_available?(node, repo) when is_atom(repo) do
+    extra = info_module_for(node, repo)
+    extra && extra_loaded?(node, extra)
   end
 
-  defp extra_available?(_repo_pid), do: false
+  defp extra_available?(_node, _repo_pid), do: false
 
-  defp info_module_for(repo) do
-    case repo.__adapter__ do
+  defp extra_loaded?(node, extra) do
+    case :rpc.call(node, Code, :ensure_loaded?, [extra]) do
+      true ->
+        true
+
+      _ ->
+        false
+    end
+  end
+
+  defp info_module_for(node, repo) do
+    case :rpc.call(node, repo, :__adapter__, []) do
       Ecto.Adapters.Postgres -> EctoPSQLExtras
       _ -> nil
     end
@@ -101,15 +120,18 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     if assigns[:error] do
       render_error(assigns)
     else
+      current_node = assigns.page.node
+
       items =
         for repo <- assigns.repos do
-          info_module = info_module_for(repo)
+          info_module = info_module_for(current_node, repo)
 
           {repo,
            name: inspect(repo),
            render: fn ->
              render_repo_tab(%{
                repo: repo,
+               node: current_node,
                info_module: info_module,
                ecto_options: assigns.ecto_options
              })
@@ -126,19 +148,19 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   @forbidden_tables [:kill_all, :mandelbrot]
 
-  defp items(%{repo: repo, info_module: info_module, ecto_options: ecto_options}) do
-    for {table_name, table_module} <- info_module.queries(repo),
+  defp items(%{repo: repo, info_module: info_module, ecto_options: ecto_options, node: node}) do
+    for {table_name, table_module} <- :rpc.call(node, info_module, :queries, [repo]),
         table_name not in @forbidden_tables do
       {table_name,
        name: Phoenix.Naming.humanize(table_name),
        render: fn ->
-         render_table(repo, info_module, table_name, table_module, ecto_options)
+         render_table(node, repo, info_module, table_name, table_module, ecto_options)
        end}
     end
   end
 
-  defp render_table(repo, info_module, table_name, table_module, ecto_options) do
-    info = table_module.info()
+  defp render_table(node, repo, info_module, table_name, table_module, ecto_options) do
+    info = :rpc.call(node, table_module, :info, [])
 
     columns =
       for %{name: name, type: type} <- info.columns do
@@ -164,7 +186,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   defp sortable(:string), do: :asc
   defp sortable(_), do: :desc
 
-  defp row_fetcher(repo, info_module, table_name, searchable, ecto_options, params, _node) do
+  defp row_fetcher(repo, info_module, table_name, searchable, ecto_options, params, node) do
     opts =
       case Keyword.fetch(ecto_options, table_name) do
         {:ok, args} -> [args: args]
@@ -172,7 +194,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       end
       |> Keyword.merge(format: :raw)
 
-    %{columns: columns, rows: rows} = info_module.query(table_name, repo, opts)
+    %{columns: columns, rows: rows} =
+      :rpc.call(node, info_module, :query, [table_name, repo, opts])
 
     mapped =
       for row <- rows do
@@ -240,13 +263,16 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       case assigns.error do
         :no_ecto_repos_available ->
           error_details = """
-          No Ecto repository was found or Ecto PSQL Extras is not installed.
+          No Ecto repository was found running on this node or Ecto PSQL Extras is not installed.
           Currently only PSQL databases are supported.
 
           Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details.
           """
 
           {:safe, error_details}
+
+        :cannot_list_running_repos ->
+          "Cannot list running repositories. Make sure that Ecto is running with version ~> 3.7."
       end
 
     row(

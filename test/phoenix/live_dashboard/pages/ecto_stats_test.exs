@@ -49,7 +49,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     refute rendered =~ "Phoenix.LiveDashboardTest.Repo"
 
     assert rendered =~
-             "No Ecto repository was found or Ecto PSQL Extras is not installed."
+             "No Ecto repository was found running on this node or Ecto PSQL Extras is not installed."
 
     assert rendered =~ "Currently only PSQL databases are supported."
 
