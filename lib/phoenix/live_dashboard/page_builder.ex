@@ -399,7 +399,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         fields_card(
           title: "Run queues",
           inner_title: "Total",
-          fields: ["USER": "...", "ROOTDIR: "..."]
+          fields: ["USER": "...", "ROOTDIR": "..."]
         )
       end
 
