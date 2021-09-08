@@ -352,7 +352,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         card(
           title: "Run queues",
           inner_title: "Total",
-          class: "additional-class",
+          class: ["additional-class"],
           value: 1.5
         )
       end
