@@ -52,7 +52,7 @@ const minChartSize = {
   height: 300
 }
 
-// Limits how often a funtion is invoked
+// Limits how often a function is invoked
 function throttle(cb, limit) {
   let wait = false;
 

@@ -44,7 +44,7 @@ defmodule Phoenix.LiveDashboard.Router do
       It can be a `module` or a `{module, function}`. If nothing is
       given, the metrics functionality will be disabled.
 
-    * `:metrics_history` - Configures a callback for retreiving metric history.
+    * `:metrics_history` - Configures a callback for retrieving metric history.
       It must be an "MFA" tuple of  `{Module, :function, arguments}` such as
         metrics_history: {MyStorage, :metrics_history, []}
       If not set, metrics will start out empty/blank and only display
