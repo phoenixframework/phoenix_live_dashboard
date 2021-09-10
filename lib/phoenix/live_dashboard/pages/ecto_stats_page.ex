@@ -99,13 +99,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   defp extra_available?(_node, _repo_pid), do: false
 
   defp extra_loaded?(node, extra) do
-    case :rpc.call(node, Code, :ensure_loaded?, [extra]) do
-      true ->
-        true
-
-      _ ->
-        false
-    end
+    :rpc.call(node, Code, :ensure_loaded?, [extra]) == true
   end
 
   defp info_module_for(node, repo) do
