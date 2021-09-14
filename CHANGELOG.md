@@ -1,11 +1,11 @@
 # CHANGELOG
 
-## v0.5.1 (2020-09-07)
+## v0.5.1 (2021-09-07)
 
 * Clarify "No Ecto Repos" messages
 * Support strings on navbars titles
 
-## v0.5.0 (2020-08-10)
+## v0.5.0 (2021-08-10)
 
 * Require LiveView v0.16.0
 * Fallback to longpoll when websockets are not available
