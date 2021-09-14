@@ -93,13 +93,16 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   defp extra_available?(node, repo) when is_atom(repo) do
     extra = info_module_for(node, repo)
-    extra && extra_loaded?(node, extra)
+    extra && extra_loaded?(extra)
   end
 
   defp extra_available?(_node, _repo_pid), do: false
 
-  defp extra_loaded?(node, extra) do
-    :rpc.call(node, Code, :ensure_loaded?, [extra]) == true
+  # We check if the extra module is available locally, because
+  # that module should be able to send RPC calls. Therefore the
+  # user does not need to have extra module installed on every node.
+  defp extra_loaded?(extra) do
+    Code.ensure_loaded?(extra)
   end
 
   defp info_module_for(node, repo) do
@@ -143,18 +146,18 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   @forbidden_tables [:kill_all, :mandelbrot]
 
   defp items(%{repo: repo, info_module: info_module, ecto_options: ecto_options, node: node}) do
-    for {table_name, table_module} <- :rpc.call(node, info_module, :queries, [repo]),
+    for {table_name, table_module} <- info_module.queries({repo, node}),
         table_name not in @forbidden_tables do
       {table_name,
        name: Phoenix.Naming.humanize(table_name),
        render: fn ->
-         render_table(node, repo, info_module, table_name, table_module, ecto_options)
+         render_table(repo, info_module, table_name, table_module, ecto_options)
        end}
     end
   end
 
-  defp render_table(node, repo, info_module, table_name, table_module, ecto_options) do
-    info = :rpc.call(node, table_module, :info, [])
+  defp render_table(repo, info_module, table_name, table_module, ecto_options) do
+    info = table_module.info()
 
     columns =
       for %{name: name, type: type} <- info.columns do
@@ -188,8 +191,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       end
       |> Keyword.merge(format: :raw)
 
-    %{columns: columns, rows: rows} =
-      :rpc.call(node, info_module, :query, [table_name, repo, opts])
+    %{columns: columns, rows: rows} = info_module.query(table_name, {repo, node}, opts)
 
     mapped =
       for row <- rows do
