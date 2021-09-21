@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.5.2 (2021-09-21)
+
+* Fix Ecto stats page when running on multi node env
+
 ## v0.5.1 (2021-09-07)
 
 * Clarify "No Ecto Repos" messages
