@@ -47,7 +47,7 @@ Add the following to your `mix.exs` and run `mix deps.get`:
 ```elixir
 def deps do
   [
-    {:phoenix_live_dashboard, "~> 0.1"}
+    {:phoenix_live_dashboard, "~> 0.5"}
   ]
 end
 ```
