@@ -130,6 +130,22 @@ Finally, you will also want to configure your `config/prod.exs` and use your dom
 
 Then you should be good to go!
 
+## Using from the command line with PLDS
+
+It's possible to use the LiveDashboard without having to add it as a dependency of your
+application, or when you don't have Phoenix installed. [`PLDS`](https://hexdocs.pm/plds) is a command
+line tool that provides a standalone version of LiveDashboard with some batteries included.
+
+You can install it with:
+
+    $ mix escript.install hex plds
+
+And connect to a running node with:
+
+    $ plds server --connect mynode --open
+
+For more details, please check the [PLDS documentation](https://hexdocs.pm/plds).
+
 <!-- MDOC !-->
 
 ## Contributing
