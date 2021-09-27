@@ -42,13 +42,17 @@ defmodule Phoenix.LiveDashboard.Router do
 
     * `:metrics` - Configures the module to retrieve metrics from.
       It can be a `module` or a `{module, function}`. If nothing is
-      given, the metrics functionality will be disabled.
+      given, the metrics functionality will be disabled. If `false` is
+      passed, then the menu item won't be visible.
 
     * `:metrics_history` - Configures a callback for retrieving metric history.
       It must be an "MFA" tuple of  `{Module, :function, arguments}` such as
         metrics_history: {MyStorage, :metrics_history, []}
       If not set, metrics will start out empty/blank and only display
       data that occurs while the browser page is open.
+
+    * `:request_logger` - By default the Request Logger page is enabled. Passing
+       `false` will disable this page.
 
     * `:request_logger_cookie_domain` - Configures the domain the request_logger
       cookie will be written to. It can be a string or `:parent` atom.
@@ -109,6 +113,9 @@ defmodule Phoenix.LiveDashboard.Router do
       case options[:metrics] do
         nil ->
           nil
+
+        false ->
+          :skip
 
         mod when is_atom(mod) ->
           {mod, :metrics}
@@ -193,6 +200,21 @@ defmodule Phoenix.LiveDashboard.Router do
                   inspect(other)
       end
 
+    request_logger_flag =
+      case options[:request_logger] do
+        nil ->
+          true
+
+        bool when is_boolean(bool) ->
+          bool
+
+        other ->
+          raise ArgumentError,
+                ":request_logger must be a boolean, got: " <> inspect(other)
+      end
+
+    request_logger = {request_logger_flag, request_logger_cookie_domain}
+
     ecto_repos = options[:ecto_repos]
 
     ecto_psql_extras_options =
@@ -227,7 +249,7 @@ defmodule Phoenix.LiveDashboard.Router do
       metrics,
       metrics_history,
       additional_pages,
-      request_logger_cookie_domain,
+      request_logger,
       ecto_repos,
       ecto_psql_extras_options,
       csp_nonce_assign_key
@@ -273,21 +295,11 @@ defmodule Phoenix.LiveDashboard.Router do
         metrics,
         metrics_history,
         additional_pages,
-        request_logger_cookie_domain,
+        request_logger,
         ecto_repos,
         ecto_psql_extras_options,
         csp_nonce_assign_key
       ) do
-    metrics_session = %{
-      "metrics" => metrics,
-      "metrics_history" => metrics_history
-    }
-
-    request_logger_session = %{
-      "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn),
-      "cookie_domain" => request_logger_cookie_domain
-    }
-
     ecto_session = %{
       repos: ecto_repos(ecto_repos),
       ecto_psql_extras_options: ecto_psql_extras_options
@@ -295,17 +307,19 @@ defmodule Phoenix.LiveDashboard.Router do
 
     {pages, requirements} =
       [
-        home: {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys, "home_app" => home_app}},
-        os_mon: {Phoenix.LiveDashboard.OSMonPage, %{}},
-        metrics: {Phoenix.LiveDashboard.MetricsPage, metrics_session},
-        request_logger: {Phoenix.LiveDashboard.RequestLoggerPage, request_logger_session},
+        home: {Phoenix.LiveDashboard.HomePage, %{env_keys: env_keys, home_app: home_app}},
+        os_mon: {Phoenix.LiveDashboard.OSMonPage, %{}}
+      ]
+      |> Enum.concat(metrics_page(metrics, metrics_history))
+      |> Enum.concat(request_logger_page(conn, request_logger))
+      |> Enum.concat(
         applications: {Phoenix.LiveDashboard.ApplicationsPage, %{}},
         processes: {Phoenix.LiveDashboard.ProcessesPage, %{}},
         ports: {Phoenix.LiveDashboard.PortsPage, %{}},
         sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
         ets: {Phoenix.LiveDashboard.EtsPage, %{}},
         ecto_stats: {Phoenix.LiveDashboard.EctoStatsPage, ecto_session}
-      ]
+      )
       |> Enum.concat(additional_pages)
       |> Enum.map(fn {key, {module, opts}} ->
         {session, requirements} = initialize_page(module, opts)
@@ -323,6 +337,28 @@ defmodule Phoenix.LiveDashboard.Router do
         script: conn.assigns[csp_nonce_assign_key[:script]]
       }
     }
+  end
+
+  defp metrics_page(:skip, _), do: []
+
+  defp metrics_page(metrics, metrics_history) do
+    session = %{
+      metrics: metrics,
+      metrics_history: metrics_history
+    }
+
+    [metrics: {Phoenix.LiveDashboard.MetricsPage, session}]
+  end
+
+  defp request_logger_page(_conn, {false, _}), do: []
+
+  defp request_logger_page(conn, {true, cookie_domain}) do
+    session = %{
+      request_logger: Phoenix.LiveDashboard.RequestLogger.param_key(conn),
+      cookie_domain: cookie_domain
+    }
+
+    [request_logger: {Phoenix.LiveDashboard.RequestLoggerPage, session}]
   end
 
   defp ecto_repos(nil), do: nil

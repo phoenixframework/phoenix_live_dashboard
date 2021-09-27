@@ -42,7 +42,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   @impl true
   def mount(_params, session, socket) do
-    {app_title, app_name} = session["home_app"]
+    {app_title, app_name} = session[:home_app]
 
     %{
       # Read once
@@ -52,7 +52,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
       system_limits: system_limits,
       # Updated periodically
       system_usage: system_usage
-    } = SystemInfo.fetch_system_info(socket.assigns.page.node, session["env_keys"], app_name)
+    } = SystemInfo.fetch_system_info(socket.assigns.page.node, session[:env_keys], app_name)
 
     socket =
       assign(socket,
