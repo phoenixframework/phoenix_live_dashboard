@@ -48,10 +48,6 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     :skip
   end
 
-  def menu_link(:disabled, _) do
-    :skip
-  end
-
   def menu_link(%{"metrics" => nil}, _) do
     {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/metrics.html"}
   end

@@ -76,7 +76,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
     assert session_opts(metrics: false)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, :disabled, nil, [], {true, nil}, nil, [], nil]}
+              [nil, @home_app, false, :skip, nil, [], {true, nil}, nil, [], nil]}
 
     assert_raise ArgumentError, fn ->
       session_opts(metrics: [])
