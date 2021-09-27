@@ -251,15 +251,13 @@ defmodule Phoenix.LiveDashboard.RouterTest do
       assert %{
                "allow_destructive_actions" => false,
                "pages" => [
-                 home:
-                   {Phoenix.LiveDashboard.HomePage, %{"env_keys" => [], "home_app" => @home_app}},
+                 home: {Phoenix.LiveDashboard.HomePage, %{env_keys: [], home_app: @home_app}},
                  os_mon: {Phoenix.LiveDashboard.OSMonPage, %{}},
                  metrics:
-                   {Phoenix.LiveDashboard.MetricsPage,
-                    %{"metrics" => [], "metrics_history" => []}},
+                   {Phoenix.LiveDashboard.MetricsPage, %{metrics: [], metrics_history: []}},
                  request_logger:
                    {Phoenix.LiveDashboard.RequestLoggerPage,
-                    %{"request_logger" => nil, "cookie_domain" => nil}},
+                    %{request_logger: nil, cookie_domain: nil}},
                  applications: {Phoenix.LiveDashboard.ApplicationsPage, %{}},
                  processes: {Phoenix.LiveDashboard.ProcessesPage, %{}},
                  ports: {Phoenix.LiveDashboard.PortsPage, %{}},

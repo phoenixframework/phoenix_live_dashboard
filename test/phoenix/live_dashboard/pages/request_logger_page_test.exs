@@ -16,13 +16,13 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPageTest do
 
     assert {:disabled, "Request Logger", ^link} =
              Phoenix.LiveDashboard.RequestLoggerPage.menu_link(
-               %{"request_logger" => nil},
+               %{request_logger: nil},
                %{dashboard: true}
              )
 
     assert {:ok, "Request Logger"} =
              Phoenix.LiveDashboard.RequestLoggerPage.menu_link(
-               %{"request_logger" => {"param", "cookie"}},
+               %{request_logger: {"param", "cookie"}},
                %{dashboard: true}
              )
   end

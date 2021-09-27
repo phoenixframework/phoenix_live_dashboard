@@ -7,8 +7,8 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
   @impl true
   def mount(%{"stream" => stream}, session, socket) do
     %{
-      "request_logger" => {param_key, cookie_key},
-      "cookie_domain" => cookie_domain
+      request_logger: {param_key, cookie_key},
+      cookie_domain: cookie_domain
     } = session
 
     if connected?(socket) do
@@ -32,7 +32,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
     {:ok, socket, temporary_assigns: [messages: []]}
   end
 
-  def mount(_, %{"request_logger" => _}, socket) do
+  def mount(_, %{request_logger: _}, socket) do
     stream = :crypto.strong_rand_bytes(3) |> Base.url_encode64()
     to = live_dashboard_path(socket, socket.assigns.page, stream: stream)
     {:ok, push_redirect(socket, to: to)}
@@ -43,7 +43,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
     :skip
   end
 
-  def menu_link(%{"request_logger" => nil}, _) do
+  def menu_link(%{request_logger: nil}, _) do
     {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/request_logger.html"}
   end
 

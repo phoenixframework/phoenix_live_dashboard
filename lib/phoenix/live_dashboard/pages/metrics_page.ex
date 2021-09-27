@@ -7,7 +7,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   @menu_text "Metrics"
 
   @impl true
-  def mount(params, %{"metrics" => {mod, fun}, "metrics_history" => history}, socket) do
+  def mount(params, %{metrics: {mod, fun}, metrics_history: history}, socket) do
     all_metrics = apply(mod, fun, [])
     metrics_per_nav = Enum.group_by(all_metrics, &nav_name/1)
 
@@ -48,7 +48,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     :skip
   end
 
-  def menu_link(%{"metrics" => nil}, _) do
+  def menu_link(%{metrics: nil}, _) do
     {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/metrics.html"}
   end
 

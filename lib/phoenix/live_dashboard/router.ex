@@ -307,7 +307,7 @@ defmodule Phoenix.LiveDashboard.Router do
 
     {pages, requirements} =
       [
-        home: {Phoenix.LiveDashboard.HomePage, %{"env_keys" => env_keys, "home_app" => home_app}},
+        home: {Phoenix.LiveDashboard.HomePage, %{env_keys: env_keys, home_app: home_app}},
         os_mon: {Phoenix.LiveDashboard.OSMonPage, %{}}
       ]
       |> Enum.concat(metrics_page(metrics, metrics_history))
@@ -343,8 +343,8 @@ defmodule Phoenix.LiveDashboard.Router do
 
   defp metrics_page(metrics, metrics_history) do
     session = %{
-      "metrics" => metrics,
-      "metrics_history" => metrics_history
+      metrics: metrics,
+      metrics_history: metrics_history
     }
 
     [metrics: {Phoenix.LiveDashboard.MetricsPage, session}]
@@ -354,8 +354,8 @@ defmodule Phoenix.LiveDashboard.Router do
 
   defp request_logger_page(conn, {true, cookie_domain}) do
     session = %{
-      "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn),
-      "cookie_domain" => cookie_domain
+      request_logger: Phoenix.LiveDashboard.RequestLogger.param_key(conn),
+      cookie_domain: cookie_domain
     }
 
     [request_logger: {Phoenix.LiveDashboard.RequestLoggerPage, session}]
