@@ -12,6 +12,11 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPageTest do
     assert :skip =
              Phoenix.LiveDashboard.RequestLoggerPage.menu_link(%{}, %{dashboard_running?: false})
 
+    assert :skip =
+             Phoenix.LiveDashboard.RequestLoggerPage.menu_link(:disabled, %{
+               dashboard_running?: true
+             })
+
     link = "https://hexdocs.pm/phoenix_live_dashboard/request_logger.html"
 
     assert {:disabled, "Request Logger", ^link} =

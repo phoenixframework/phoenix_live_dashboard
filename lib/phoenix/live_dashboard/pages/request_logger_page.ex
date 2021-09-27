@@ -43,6 +43,10 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
     :skip
   end
 
+  def menu_link(:disabled, _) do
+    :skip
+  end
+
   def menu_link(%{"request_logger" => nil}, _) do
     {:disabled, @menu_text, "https://hexdocs.pm/phoenix_live_dashboard/request_logger.html"}
   end

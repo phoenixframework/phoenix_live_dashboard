@@ -42,13 +42,17 @@ defmodule Phoenix.LiveDashboard.Router do
 
     * `:metrics` - Configures the module to retrieve metrics from.
       It can be a `module` or a `{module, function}`. If nothing is
-      given, the metrics functionality will be disabled.
+      given, the metrics functionality will be disabled. If `false` is
+      passed, then the menu item won't be visible.
 
     * `:metrics_history` - Configures a callback for retrieving metric history.
       It must be an "MFA" tuple of  `{Module, :function, arguments}` such as
         metrics_history: {MyStorage, :metrics_history, []}
       If not set, metrics will start out empty/blank and only display
       data that occurs while the browser page is open.
+
+    * `:request_logger` - By default the Request Logger page is enabled. Passing
+       `false` will disable this page.
 
     * `:request_logger_cookie_domain` - Configures the domain the request_logger
       cookie will be written to. It can be a string or `:parent` atom.
@@ -109,6 +113,9 @@ defmodule Phoenix.LiveDashboard.Router do
       case options[:metrics] do
         nil ->
           nil
+
+        false ->
+          :disabled
 
         mod when is_atom(mod) ->
           {mod, :metrics}
@@ -193,6 +200,21 @@ defmodule Phoenix.LiveDashboard.Router do
                   inspect(other)
       end
 
+    request_logger_flag =
+      case options[:request_logger] do
+        nil ->
+          true
+
+        bool when is_boolean(bool) ->
+          bool
+
+        other ->
+          raise ArgumentError,
+                ":request_logger must be a boolean, got: " <> inspect(other)
+      end
+
+    request_logger = {request_logger_flag, request_logger_cookie_domain}
+
     ecto_repos = options[:ecto_repos]
 
     ecto_psql_extras_options =
@@ -227,7 +249,7 @@ defmodule Phoenix.LiveDashboard.Router do
       metrics,
       metrics_history,
       additional_pages,
-      request_logger_cookie_domain,
+      request_logger,
       ecto_repos,
       ecto_psql_extras_options,
       csp_nonce_assign_key
@@ -273,20 +295,32 @@ defmodule Phoenix.LiveDashboard.Router do
         metrics,
         metrics_history,
         additional_pages,
-        request_logger_cookie_domain,
+        request_logger,
         ecto_repos,
         ecto_psql_extras_options,
         csp_nonce_assign_key
       ) do
-    metrics_session = %{
-      "metrics" => metrics,
-      "metrics_history" => metrics_history
-    }
+    metrics_session =
+      if metrics == :disabled do
+        :disabled
+      else
+        %{
+          "metrics" => metrics,
+          "metrics_history" => metrics_history
+        }
+      end
 
-    request_logger_session = %{
-      "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn),
-      "cookie_domain" => request_logger_cookie_domain
-    }
+    {request_logger_enabled?, request_logger_cookie_domain} = request_logger
+
+    request_logger_session =
+      if request_logger_enabled? do
+        %{
+          "request_logger" => Phoenix.LiveDashboard.RequestLogger.param_key(conn),
+          "cookie_domain" => request_logger_cookie_domain
+        }
+      else
+        :disabled
+      end
 
     ecto_session = %{
       repos: ecto_repos(ecto_repos),
