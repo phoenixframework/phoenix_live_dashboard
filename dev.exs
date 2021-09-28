@@ -31,7 +31,7 @@ Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
   ],
   live_reload: [
     patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"dist/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"lib/phoenix/live_dashboard/(live|views)/.*(ex)$",
       ~r"lib/phoenix/live_dashboard/templates/.*(ex)$"
     ]
