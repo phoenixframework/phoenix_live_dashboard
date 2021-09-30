@@ -122,15 +122,24 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       assert count > 1
     end
 
-    test "includes :gen_tcp_socket and :gen_udp_socket" do
-      if Code.ensure_loaded?(:gen_udp_socket) do
+    test "includes :gen_tcp_socket" do
+      if Code.ensure_loaded?(:gen_tcp_socket) do
         :gen_tcp.listen(0, inet_backend: :socket, ip: {127, 0, 0, 1})
-        :gen_udp.open(0, inet_backend: :socket, ip: {127, 0, 0, 1})
 
         {sockets, _count} = SystemInfo.fetch_sockets(node(), "", :send_oct, :asc, 100)
         socket_mods = Enum.map(sockets, fn socket -> socket[:module] end)
 
         assert :gen_tcp_socket in socket_mods
+      end
+    end
+
+    test "includes :gen_udp_socket" do
+      if Code.ensure_loaded?(:gen_udp_socket) do
+        :gen_udp.open(0, inet_backend: :socket, ip: {127, 0, 0, 1})
+
+        {sockets, _count} = SystemInfo.fetch_sockets(node(), "", :send_oct, :asc, 100)
+        socket_mods = Enum.map(sockets, fn socket -> socket[:module] end)
+
         assert :gen_udp_socket in socket_mods
       end
     end
