@@ -519,7 +519,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   defp gen_tcp_sockets() do
     if function_exported?(:gen_tcp_socket, :which_sockets, 0) do
-      :gen_tcp_socket.which_sockets()
+      apply(:gen_tcp_socket, :which_sockets, [])
     else
       []
     end
@@ -527,7 +527,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   defp gen_udp_sockets() do
     if function_exported?(:gen_udp_socket, :which_sockets, 0) do
-      :gen_udp_socket.which_sockets()
+      apply(:gen_udp_socket, :which_sockets, [])
     else
       []
     end
