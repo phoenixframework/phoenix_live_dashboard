@@ -123,16 +123,10 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "includes :gen_tcp_socket and :gen_udp_socket" do
-      socket_backend_supported? =
-        try do
-          :gen_tcp.listen(0, inet_backend: :socket, ip: {127, 0, 0, 1})
-          :gen_udp.open(0, inet_backend: :socket, ip: {127, 0, 0, 1})
-          true
-        rescue
-          _ -> false
-        end
+      if Code.ensure_loaded?(:gen_udp_socket) do
+        :gen_tcp.listen(0, inet_backend: :socket, ip: {127, 0, 0, 1})
+        :gen_udp.open(0, inet_backend: :socket, ip: {127, 0, 0, 1})
 
-      if socket_backend_supported? do
         {sockets, _count} = SystemInfo.fetch_sockets(node(), "", :send_oct, :asc, 100)
         socket_mods = Enum.map(sockets, fn socket -> socket[:module] end)
 
