@@ -501,9 +501,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def sockets_callback(search, sort_by, sort_dir, limit) do
     sorter = if sort_dir == :asc, do: &<=/2, else: &>=/2
+    sockets = Port.list() ++ :gen_tcp_socket.which_sockets() ++ :gen_udp_socket.which_sockets()
 
     sockets =
-      for port <- Port.list(), info = socket_info(port), show_socket?(info, search), do: info
+      for port <- sockets, info = socket_info(port), show_socket?(info, search), do: info
 
     count = length(sockets)
     sockets = sockets |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter) |> Enum.take(limit)
@@ -515,6 +516,25 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       nil -> :error
       info -> {:ok, info}
     end
+  end
+
+  defp socket_info({:"$inet", gen_socket_mod, {pid, {:"$socket", _ref}}} = socket) do
+     with info when not is_nil(info) <- gen_socket_mod.info(socket),
+          port <- get_socket_fd(socket, gen_socket_mod) do
+      [
+        module: gen_socket_mod,
+        port: port,
+        local_address: format_address(gen_socket_mod.sockname(socket)),
+        foreign_address: format_address(gen_socket_mod.peername(socket)),
+        state: format_socket_state(info[:rstates]),
+        type: info[:type],
+        connected: pid,
+        send_oct: info[:counters][:send_oct],
+        recv_oct: info[:counters][:recv_oct]
+      ]
+     else
+      _ -> nil
+     end
   end
 
   defp socket_info(port) do
@@ -535,6 +555,13 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       ] ++ stat
     else
       _ -> nil
+    end
+  end
+
+  defp get_socket_fd(socket, gen_socket_mod) do
+    case gen_socket_mod.getopts(socket, [:fd]) do
+      {:ok, [fd: fd]} -> "esock[#{fd}]"
+      _ -> "esock"
     end
   end
 
@@ -615,6 +642,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       [:bound, :listen | _] -> "LISTEN"
       [:bound, :connecting | _] -> "CONNECTING"
       [:bound, :open] -> "BOUND"
+      [:bound, :selected] -> "CONNECTED"
       [:connected, :open] -> "CONNECTED"
       [:open] -> "IDLE"
       [] -> "CLOSED"

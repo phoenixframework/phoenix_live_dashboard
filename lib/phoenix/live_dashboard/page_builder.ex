@@ -704,10 +704,14 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
       <button phx-click="show-info" phx-value-info=<%= encode_socket(@socket) %>/>
   """
-  @spec encode_socket(port()) :: binary()
+  @spec encode_socket(port() | binary()) :: binary()
   def encode_socket(ref) when is_port(ref) do
     '#Port' ++ rest = :erlang.port_to_list(ref)
     "Socket#{rest}"
+  end
+
+  def encode_socket(ref) when is_binary(ref) do
+    ref
   end
 
   @doc """
