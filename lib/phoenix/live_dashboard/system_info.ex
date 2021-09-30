@@ -501,10 +501,9 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def sockets_callback(search, sort_by, sort_dir, limit) do
     sorter = if sort_dir == :asc, do: &<=/2, else: &>=/2
-    sockets = Port.list() ++ :gen_tcp_socket.which_sockets() ++ :gen_udp_socket.which_sockets()
+    sockets = Port.list() ++ gen_tcp_sockets() ++ gen_udp_sockets()
 
-    sockets =
-      for port <- sockets, info = socket_info(port), show_socket?(info, search), do: info
+    sockets = for port <- sockets, info = socket_info(port), show_socket?(info, search), do: info
 
     count = length(sockets)
     sockets = sockets |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter) |> Enum.take(limit)
@@ -518,9 +517,25 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
+  defp gen_tcp_sockets() do
+    if function_exported?(:gen_tcp_socket, :which_sockets, 0) do
+      :gen_tcp_socket.which_sockets()
+    else
+      []
+    end
+  end
+
+  defp gen_udp_sockets() do
+    if function_exported?(:gen_udp_socket, :which_sockets, 0) do
+      :gen_udp_socket.which_sockets()
+    else
+      []
+    end
+  end
+
   defp socket_info({:"$inet", gen_socket_mod, {pid, {:"$socket", _ref}}} = socket) do
-     with info when not is_nil(info) <- gen_socket_mod.info(socket),
-          port <- get_socket_fd(socket, gen_socket_mod) do
+    with info when not is_nil(info) <- gen_socket_mod.info(socket),
+         port <- get_socket_fd(socket, gen_socket_mod) do
       [
         module: gen_socket_mod,
         port: port,
@@ -532,9 +547,9 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
         send_oct: info[:counters][:send_oct],
         recv_oct: info[:counters][:recv_oct]
       ]
-     else
+    else
       _ -> nil
-     end
+    end
   end
 
   defp socket_info(port) do
