@@ -133,8 +133,8 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       end
     end
 
-    test "includes :gen_udp_socket" do
-      if Code.ensure_loaded?(:gen_udp_socket) do
+    if Code.ensure_loaded?(:gen_udp_socket) do
+      test "includes :gen_udp_socket" do
         :gen_udp.open(0, inet_backend: :socket, ip: {127, 0, 0, 1})
 
         {sockets, _count} = SystemInfo.fetch_sockets(node(), "", :send_oct, :asc, 100)
