@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.5.3 (2021-10-06)
+
+* Show OTP 24.1+ new sockets in tab
+* Allow metrics and request logger to be disabled
+* Do not include embedded assets in priv
+
 ## v0.5.2 (2021-09-21)
 
 * Fix Ecto stats page when running on multi node env
