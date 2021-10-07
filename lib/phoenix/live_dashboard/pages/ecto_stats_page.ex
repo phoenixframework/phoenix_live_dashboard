@@ -108,6 +108,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   defp info_module_for(node, repo) do
     case :rpc.call(node, repo, :__adapter__, []) do
       Ecto.Adapters.Postgres -> EctoPSQLExtras
+      Ecto.Adapters.MyXQL -> EctoMySQLExtras
       _ -> nil
     end
   end
@@ -259,8 +260,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       case assigns.error do
         :no_ecto_repos_available ->
           error_details = """
-          No Ecto repository was found running on this node or Ecto PSQL Extras is not installed.
-          Currently only PSQL databases are supported.
+          No Ecto repository was found running on this node.
+          Depending on the database Ecto PSQL Extras, for PostgreSQL, or Ecto MySQL Extras, for MySQL/MariaDB, should be installed.
 
           Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details.
           """
