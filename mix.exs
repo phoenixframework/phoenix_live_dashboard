@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.5.2"
+  @version "0.5.3"
 
   def project do
     [
@@ -93,7 +93,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       maintainers: ["Michael Crumm", "Chris McCord", "José Valim", "Alex Castaño"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/phoenixframework/phoenix_live_dashboard"},
-      files: ~w(dist lib priv CHANGELOG.md LICENSE.md mix.exs README.md)
+      files: ~w(dist lib CHANGELOG.md LICENSE.md mix.exs README.md)
     ]
   end
 end
