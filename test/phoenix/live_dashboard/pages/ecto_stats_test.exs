@@ -49,9 +49,12 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     refute rendered =~ "Phoenix.LiveDashboardTest.Repo"
 
     assert rendered =~
-             "No Ecto repository was found running on this node or Ecto PSQL Extras is not installed."
+             "No Ecto repository was found running on this node."
 
-    assert rendered =~ "Currently only PSQL databases are supported."
+    assert rendered =~ "Currently only PSQL and MySQL databases are supported."
+
+    assert rendered =~
+             "Depending on the database Ecto PSQL Extras or Ecto MySQL Extras should be installed."
 
     assert rendered =~
              ~s|Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details|

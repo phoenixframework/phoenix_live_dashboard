@@ -261,7 +261,9 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
         :no_ecto_repos_available ->
           error_details = """
           No Ecto repository was found running on this node.
-          Depending on the database Ecto PSQL Extras, for PostgreSQL, or Ecto MySQL Extras, for MySQL/MariaDB, should be installed.
+          Currently only PSQL and MySQL databases are supported.
+
+          Depending on the database Ecto PSQL Extras or Ecto MySQL Extras should be installed.
 
           Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details.
           """
