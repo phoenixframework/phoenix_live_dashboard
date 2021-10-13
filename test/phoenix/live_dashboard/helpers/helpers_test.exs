@@ -2,6 +2,57 @@ defmodule Phoenix.LiveDashboard.HelpersTest do
   use ExUnit.Case, async: true
 
   import Phoenix.LiveDashboard.Helpers
+  import Phoenix.ConnTest
+
+  alias Phoenix.LiveDashboard.SystemInfo
+
+  test "format_value/1" do
+    # This exists to appease the `live_patch` with a basic value which works, but
+    # we don't need to return anything else because we aren't testing `live_path`
+    live_dashboard_path = fn _, _ -> "/test" end
+
+    pid = self()
+
+    pid_html =
+      inspect(pid)
+      |> Phoenix.HTML.html_escape()
+      |> Phoenix.HTML.safe_to_string()
+
+    process_details = %SystemInfo.ProcessDetails{pid: pid, name_or_initial_call: "Fake Name"}
+
+    result =
+      format_value(process_details, live_dashboard_path)
+      |> Phoenix.HTML.safe_to_string()
+
+    assert String.match?(result, ~r(<a .*href="/test".*>#{pid_html} - Fake Name</a>))
+
+    result =
+      format_value(pid, live_dashboard_path)
+      |> Phoenix.HTML.safe_to_string()
+
+    assert String.match?(result, ~r(<a .*href="/test".*>#{pid_html}</a>))
+
+    port = Port.open({:spawn, "sleep 1"}, [:binary])
+
+    port_html =
+      inspect(port)
+      |> Phoenix.HTML.html_escape()
+      |> Phoenix.HTML.safe_to_string()
+
+    process_details = %SystemInfo.PortDetails{port: port, description: "Fake Description"}
+
+    result =
+      format_value(process_details, live_dashboard_path)
+      |> Phoenix.HTML.safe_to_string()
+
+    assert String.match?(result, ~r(<a .*href="/test".*>#{port_html} - Fake Description</a>))
+
+    result =
+      format_value(port, live_dashboard_path)
+      |> Phoenix.HTML.safe_to_string()
+
+    assert String.match?(result, ~r(<a .*href="/test".*>#{port_html}))
+  end
 
   test "format_uptime/1" do
     assert format_uptime(1000) == "0m"

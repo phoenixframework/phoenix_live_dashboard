@@ -1,19 +1,39 @@
 defmodule Phoenix.LiveDashboard.Helpers do
   @moduledoc false
 
-  alias Phoenix.LiveDashboard.PageBuilder
+  alias Phoenix.LiveDashboard.{PageBuilder, SystemInfo}
   import Phoenix.LiveView.Helpers
   @format_limit 100
 
   @doc """
   Formats any value.
   """
+  def format_value(
+        %SystemInfo.ProcessDetails{pid: pid, name_or_initial_call: name_or_initial_call},
+        live_dashboard_path
+      ) do
+    live_patch("#{inspect(pid)} - #{name_or_initial_call}",
+      to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid))
+    )
+  end
+
+  def format_value(
+        %SystemInfo.PortDetails{port: port, description: description},
+        live_dashboard_path
+      ) do
+    live_patch("#{inspect(port)} - #{description}",
+      to: live_dashboard_path.(node(port), info: PageBuilder.encode_port(port))
+    )
+  end
+
+  # Not used in `phoenix_live_dashboard` code, but available for custom pages
   def format_value(port, live_dashboard_path) when is_port(port) do
     live_patch(inspect(port),
       to: live_dashboard_path.(node(port), info: PageBuilder.encode_port(port))
     )
   end
 
+  # Not used in `phoenix_live_dashboard` code, but available for custom pages
   def format_value(pid, live_dashboard_path) when is_pid(pid) do
     live_patch(inspect(pid),
       to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid))
