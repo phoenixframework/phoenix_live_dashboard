@@ -8,6 +8,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   alias Phoenix.LiveDashboard.EctoStatsPage
   alias Phoenix.LiveDashboardTest.Repo
   alias Phoenix.LiveDashboardTest.SecondaryRepo
+  alias Phoenix.LiveDashboardTest.MySQLRepo
 
   test "menu_link/2" do
     assert :skip = EctoStatsPage.menu_link(%{repos: []}, %{})
@@ -27,6 +28,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
     refute rendered =~ "Phoenix.LiveDashboardTest.SecondaryRepo"
+    refute rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
 
     assert rendered =~ "All locks"
     assert rendered =~ "Extensions"
@@ -40,6 +42,15 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
     assert rendered =~ "Phoenix.LiveDashboardTest.SecondaryRepo"
+
+    start_mysql_repo!()
+
+    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+    rendered = render(live)
+
+    assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.SecondaryRepo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
   end
 
   test "renders error without running repos" do
@@ -66,6 +77,12 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     start_main_repo!()
 
     for {nav, _} <- EctoPSQLExtras.queries(Repo), nav not in @forbidden_navs do
+      assert {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
+    end
+
+    start_mysql_repo!()
+
+    for {nav, _} <- EctoMySQLExtras.queries(MySQLRepo) do
       assert {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
     end
 
@@ -110,6 +127,28 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Installed version"
     refute rendered =~ "fuzzystrmatch"
     assert rendered =~ "hstore"
+
+    start_mysql_repo!()
+
+    {:ok, live, _} = live(build_conn(), ecto_stats_path(:plugins, "", MySQLRepo))
+
+    rendered = render(live)
+    assert rendered =~ "Version"
+    assert rendered =~ "Status"
+    assert rendered =~ "PERFORMANCE_SCHEMA"
+    assert rendered =~ "InnoDB"
+
+    {:ok, live, _} =
+      live(
+        build_conn(),
+        ecto_stats_path(:plugins, "InnoDB", MySQLRepo)
+      )
+
+    rendered = render(live)
+    assert rendered =~ "Version"
+    assert rendered =~ "Status"
+    refute rendered =~ "PERFORMANCE_SCHEMA"
+    assert rendered =~ "InnoDB"
   end
 
   defp ecto_stats_path() do
@@ -134,5 +173,9 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
   defp start_secondary_repo! do
     start_supervised!(SecondaryRepo)
+  end
+
+  defp start_mysql_repo! do
+    start_supervised!(MySQLRepo)
   end
 end
