@@ -395,6 +395,9 @@ defmodule DemoWeb.Router do
       },
       ecto_psql_extras_options: [
         long_running_queries: [threshold: "200 milliseconds"]
+      ],
+      ecto_mysql_extras_options: [
+        long_running_queries: [threshold: 200]
       ]
     )
   end

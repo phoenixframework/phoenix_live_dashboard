@@ -8,11 +8,22 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   @page_title "Ecto Stats"
 
   @impl true
-  def init(%{repos: repos, ecto_psql_extras_options: ecto_options}) do
+  def init(%{
+        repos: repos,
+        ecto_psql_extras_options: ecto_psql_extras_options,
+        ecto_mysql_extras_options: ecto_mysql_extras_options
+      }) do
     capabilities = for repo <- List.wrap(repos), do: {:process, repo}
     repos = repos || :auto_discover
 
-    {:ok, %{repos: repos, ecto_options: ecto_options}, capabilities}
+    {:ok,
+     %{
+       repos: repos,
+       ecto_options: [
+         ecto_psql_extras_options: ecto_psql_extras_options,
+         ecto_mysql_extras_options: ecto_mysql_extras_options
+       ]
+     }, capabilities}
   end
 
   @impl true
@@ -185,8 +196,15 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   defp sortable(_), do: :desc
 
   defp row_fetcher(repo, info_module, table_name, searchable, ecto_options, params, node) do
+    ecto_db_extras_options =
+      case info_module do
+        EctoPSQLExtras -> Keyword.fetch!(ecto_options, :ecto_psql_extras_options)
+        EctoMySQLExtras -> Keyword.fetch!(ecto_options, :ecto_mysql_extras_options)
+        _ -> []
+      end
+
     opts =
-      case Keyword.fetch(ecto_options, table_name) do
+      case Keyword.fetch(ecto_db_extras_options, table_name) do
         {:ok, args} -> [args: args]
         :error -> []
       end
