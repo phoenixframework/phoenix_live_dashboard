@@ -182,7 +182,6 @@ class CommonMetric {
       })
     }
 
-    console.log({measurements});
     measurements.forEach((measurement) => this.__handler.call(this, measurement, this.__callback))
     this.chart.setData(dataForDatasets(this.datasets))
   }
