@@ -1,7 +1,7 @@
 System.put_env("PHX_DASHBOARD_TEST", "PHX_DASHBOARD_ENV_VALUE")
 
 pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
-mysql_url = System.get_env("MYSQL_URL") || "mysql:mysql@127.0.0.1"
+mysql_url = System.get_env("MYSQL_URL") || "root@127.0.0.1"
 
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Repo,
   url: "ecto://#{pg_url}/phx_dashboard_test"
@@ -13,16 +13,15 @@ end
 
 _ = Ecto.Adapters.Postgres.storage_up(Phoenix.LiveDashboardTest.Repo.config())
 
-# SecondaryRepo should be started on demand in your tests.
-Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.SecondaryRepo,
+Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.PGRepo,
   url: "ecto://#{pg_url}/phx_dashboard_test"
 )
 
-defmodule Phoenix.LiveDashboardTest.SecondaryRepo do
+defmodule Phoenix.LiveDashboardTest.PGRepo do
   use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
 end
 
-_ = Ecto.Adapters.Postgres.storage_up(Phoenix.LiveDashboardTest.SecondaryRepo.config())
+_ = Ecto.Adapters.Postgres.storage_up(Phoenix.LiveDashboardTest.PGRepo.config())
 
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.MySQLRepo,
   url: "ecto://#{mysql_url}/phx_dashboard_test"

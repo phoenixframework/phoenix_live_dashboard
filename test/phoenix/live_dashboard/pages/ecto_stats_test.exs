@@ -7,7 +7,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
   alias Phoenix.LiveDashboard.EctoStatsPage
   alias Phoenix.LiveDashboardTest.Repo
-  alias Phoenix.LiveDashboardTest.SecondaryRepo
+  alias Phoenix.LiveDashboardTest.PGRepo
   alias Phoenix.LiveDashboardTest.MySQLRepo
 
   test "menu_link/2" do
@@ -27,7 +27,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     rendered = render(live)
 
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
-    refute rendered =~ "Phoenix.LiveDashboardTest.SecondaryRepo"
+    refute rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
     refute rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
 
     assert rendered =~ "All locks"
@@ -35,13 +35,13 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Transactionid"
     assert rendered =~ "Granted"
 
-    start_secondary_repo!()
+    start_pg_repo!()
 
     {:ok, live, _} = live(build_conn(), ecto_stats_path())
     rendered = render(live)
 
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
-    assert rendered =~ "Phoenix.LiveDashboardTest.SecondaryRepo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
 
     start_mysql_repo!()
 
@@ -49,7 +49,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     rendered = render(live)
 
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
-    assert rendered =~ "Phoenix.LiveDashboardTest.SecondaryRepo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
     assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
   end
 
@@ -86,17 +86,17 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
       assert {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
     end
 
-    start_secondary_repo!()
+    start_pg_repo!()
 
     available_navs =
-      for {nav, _} <- EctoPSQLExtras.queries(SecondaryRepo), nav not in @forbidden_navs, do: nav
+      for {nav, _} <- EctoPSQLExtras.queries(PGRepo), nav not in @forbidden_navs, do: nav
 
     nav = Enum.random(available_navs)
 
-    assert {:ok, live, _} = live(build_conn(), ecto_stats_path(nav, "", SecondaryRepo))
+    assert {:ok, live, _} = live(build_conn(), ecto_stats_path(nav, "", PGRepo))
 
     assert live
-           |> element("a.active", "Phoenix.LiveDashboardTest.SecondaryRepo")
+           |> element("a.active", "Phoenix.LiveDashboardTest.PGRepo")
            |> has_element?()
 
     another_nav = Enum.random(available_navs -- [nav])
@@ -107,7 +107,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
     # Keep the same repo selected
     assert live
-           |> element("a.active", "Phoenix.LiveDashboardTest.SecondaryRepo")
+           |> element("a.active", "Phoenix.LiveDashboardTest.PGRepo")
            |> has_element?()
   end
 
@@ -171,8 +171,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     start_supervised!(Repo)
   end
 
-  defp start_secondary_repo! do
-    start_supervised!(SecondaryRepo)
+  defp start_pg_repo! do
+    start_supervised!(PGRepo)
   end
 
   defp start_mysql_repo! do

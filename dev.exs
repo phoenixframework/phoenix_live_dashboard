@@ -2,14 +2,23 @@
 Logger.configure(level: :debug)
 
 pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
-pg_database = System.get_env("PG_DATABASE") || "phx_dashboard_dev"
-Application.put_env(:phoenix_live_dashboard, Demo.Repo, url: "ecto://#{pg_url}/#{pg_database}")
+pg_db = System.get_env("PG_DATABASE") || "phx_dashboard_dev"
+Application.put_env(:phoenix_live_dashboard, Demo.Postgres, url: "ecto://#{pg_url}/#{pg_db}")
 
-defmodule Demo.Repo do
+defmodule Demo.Postgres do
   use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
 end
 
-_ = Ecto.Adapters.Postgres.storage_up(Demo.Repo.config())
+mysql_url = System.get_env("MYSQL_URL") || "root@127.0.0.1"
+mysql_db = System.get_env("MYSQL_DATABASE") || "phx_dashboard_dev"
+Application.put_env(:phoenix_live_dashboard, Demo.MyXQL, url: "ecto://#{mysql_url}/#{mysql_db}")
+
+defmodule Demo.MyXQL do
+  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.MyXQL
+end
+
+_ = Ecto.Adapters.Postgres.storage_up(Demo.Postgres.config())
+_ = Ecto.Adapters.MyXQL.storage_up(Demo.MyXQL.config())
 
 # Configures the endpoint
 Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
@@ -383,7 +392,6 @@ defmodule DemoWeb.Router do
       metrics: DemoWeb.Telemetry,
       metrics_history: {DemoWeb.History, :data, []},
       allow_destructive_actions: true,
-      ecto_repos: [Demo.Repo],
       home_app: {"Erlang's stdlib", :stdlib},
       additional_pages: [
         components: DemoWeb.GraphShowcasePage
@@ -446,7 +454,8 @@ Application.put_env(:phoenix, :serve_endpoints, true)
 
 Task.async(fn ->
   children = [
-    Demo.Repo,
+    Demo.Postgres,
+    Demo.MyXQL,
     {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
     {DemoWeb.History, DemoWeb.Telemetry.metrics()},
     DemoWeb.Endpoint
