@@ -178,10 +178,11 @@ class CommonMetric {
     let currentSize = this.datasets[0].data.length
     if (currentSize >= this.pruneThreshold) {
       this.datasets = this.datasets.map(({ data, ...rest }) => {
-        return { data: data.slice(-Math.floor(currentSize / 2)), ...rest }
+        return { data: data.slice(-this.pruneThreshold), ...rest }
       })
     }
 
+    console.log({measurements});
     measurements.forEach((measurement) => this.__handler.call(this, measurement, this.__callback))
     this.chart.setData(dataForDatasets(this.datasets))
   }
@@ -285,7 +286,7 @@ class Summary {
   __maybePruneDatasets() {
     let currentSize = this.datasets[0].data.length
     if (currentSize >= this.pruneThreshold) {
-      let start = -Math.floor(currentSize / 2)
+      let start = -this.pruneThreshold;
       this.datasets = this.datasets.map(({ key, data, agg }) => {
         let dataPruned = data.slice(start)
         if (!agg) {
