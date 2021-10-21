@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-18.04
     env:
       MIX_ENV: test
+      MYSQL_URL: "root:mysql@127.0.0.1"
     services:
       pg:
         image: postgres:11
@@ -21,6 +22,14 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_DATABASE: phx_dashboard_test
+          MYSQL_ROOT_PASSWORD: "mysql"
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       fail-fast: false
       matrix:

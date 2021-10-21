@@ -8,11 +8,22 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   @page_title "Ecto Stats"
 
   @impl true
-  def init(%{repos: repos, ecto_psql_extras_options: ecto_options}) do
+  def init(%{
+        repos: repos,
+        ecto_psql_extras_options: ecto_psql_extras_options,
+        ecto_mysql_extras_options: ecto_mysql_extras_options
+      }) do
     capabilities = for repo <- List.wrap(repos), do: {:process, repo}
     repos = repos || :auto_discover
 
-    {:ok, %{repos: repos, ecto_options: ecto_options}, capabilities}
+    {:ok,
+     %{
+       repos: repos,
+       ecto_options: [
+         ecto_psql_extras_options: ecto_psql_extras_options,
+         ecto_mysql_extras_options: ecto_mysql_extras_options
+       ]
+     }, capabilities}
   end
 
   @impl true
@@ -108,6 +119,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   defp info_module_for(node, repo) do
     case :rpc.call(node, repo, :__adapter__, []) do
       Ecto.Adapters.Postgres -> EctoPSQLExtras
+      Ecto.Adapters.MyXQL -> EctoMySQLExtras
       _ -> nil
     end
   end
@@ -184,8 +196,15 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   defp sortable(_), do: :desc
 
   defp row_fetcher(repo, info_module, table_name, searchable, ecto_options, params, node) do
+    ecto_db_extras_options =
+      case info_module do
+        EctoPSQLExtras -> Keyword.fetch!(ecto_options, :ecto_psql_extras_options)
+        EctoMySQLExtras -> Keyword.fetch!(ecto_options, :ecto_mysql_extras_options)
+        _ -> []
+      end
+
     opts =
-      case Keyword.fetch(ecto_options, table_name) do
+      case Keyword.fetch(ecto_db_extras_options, table_name) do
         {:ok, args} -> [args: args]
         :error -> []
       end
@@ -259,8 +278,10 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       case assigns.error do
         :no_ecto_repos_available ->
           error_details = """
-          No Ecto repository was found running on this node or Ecto PSQL Extras is not installed.
-          Currently only PSQL databases are supported.
+          No Ecto repository was found running on this node.
+          Currently only PSQL and MySQL databases are supported.
+
+          Depending on the database Ecto PSQL Extras or Ecto MySQL Extras should be installed.
 
           Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details.
           """
