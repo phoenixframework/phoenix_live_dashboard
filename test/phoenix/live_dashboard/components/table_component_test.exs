@@ -124,17 +124,17 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       result = render_table(limit: [10, 100, 1000])
 
       assert result =~
-               ~s|<option value=\"10\" selected>10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
+               ~s|<option selected value=\"10\">10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
 
       result = render_table(params: %{"limit" => "5"}, limit: [10, 100, 1000])
 
       assert result =~
-               ~s|<option value=\"10\" selected>10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
+               ~s|<option selected value=\"10\">10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
 
       result = render_table(params: %{"limit" => "100"}, limit: [10, 100, 1000])
 
       assert result =~
-               ~s|<option value=\"10\">10</option><option value=\"100\" selected>100</option><option value=\"1000\">1000</option>|
+               ~s|<option value=\"10\">10</option><option selected value=\"100\">100</option><option value=\"1000\">1000</option>|
     end
 
     test "disables limit" do
