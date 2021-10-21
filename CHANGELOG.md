@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.6.0 (2021-10-21)
+
+* Require LiveView v0.17.1
+* Add Ecto Stats for MySQL (and MariaDB) databases
+
 ## v0.5.3 (2021-10-06)
 
 * Show OTP 24.1+ new sockets in tab

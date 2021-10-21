@@ -56,7 +56,6 @@ which is a keyword where:
 - each key is the name of the query
 - each value is itself a keyword to be passed as `args`
 
-
 For example, if you want to configure the threshold for `long_running_queries`:
 
 #### PostgreSQL example
