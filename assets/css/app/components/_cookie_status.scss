@@ -7,7 +7,7 @@
   position: relative;
   opacity: 0;
 
-  &[data-enabled="true"] {
+  &[data-enabled] {
     opacity: 0.75;
   }
 

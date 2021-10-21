@@ -160,7 +160,7 @@ defmodule DemoWeb.PageController do
   def call(conn, :index) do
     content(conn, """
     <h2>Phoenix LiveDashboard Dev</h2>
-    <a href="/dashboard" target="_blank">Open Dashboard</a>
+    <a href="/dashboard">Open Dashboard</a>
     """)
   end
 
