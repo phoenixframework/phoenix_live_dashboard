@@ -175,6 +175,8 @@ class CommonMetric {
 
   handleMeasurements(measurements) {
     // prune datasets when we reach the max number of events
+    measurements.forEach((measurement) => this.__handler.call(this, measurement, this.__callback))
+
     let currentSize = this.datasets[0].data.length
     if (currentSize >= this.pruneThreshold) {
       this.datasets = this.datasets.map(({ data, ...rest }) => {
@@ -182,7 +184,6 @@ class CommonMetric {
       })
     }
 
-    measurements.forEach((measurement) => this.__handler.call(this, measurement, this.__callback))
     this.chart.setData(dataForDatasets(this.datasets))
   }
 }
@@ -210,8 +211,8 @@ class Summary {
   }
 
   handleMeasurements(measurements) {
-    this.__maybePruneDatasets()
     measurements.forEach((measurement) => this.__handler(measurement))
+    this.__maybePruneDatasets()
     this.chart.setData(dataForDatasets(this.datasets))
   }
 
@@ -284,7 +285,7 @@ class Summary {
 
   __maybePruneDatasets() {
     let currentSize = this.datasets[0].data.length
-    if (currentSize >= this.pruneThreshold) {
+    if (currentSize > this.pruneThreshold) {
       let start = -this.pruneThreshold;
       this.datasets = this.datasets.map(({ key, data, agg }) => {
         let dataPruned = data.slice(start)
