@@ -2,6 +2,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
 
+  import Phoenix.HTML
   import Phoenix.LiveDashboard.Helpers
 
   alias Phoenix.LiveDashboard.SystemInfo
@@ -25,7 +26,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
       Each scheduler has its own queue, which is measured by this number. If this number keeps on
       growing, it means the machine is overloaded. The queue sizes can also be broken into CPU and IO.
     """,
-    atoms: """
+    atoms: ~E"""
       If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
       You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
     """,
