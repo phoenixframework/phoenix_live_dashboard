@@ -91,7 +91,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
 
   describe "ets" do
     test "all with limit" do
-      {ets, count} = SystemInfo.fetch_ets(node(), "", :memory, :asc, 100)
+      {ets, count} = SystemInfo.fetch_ets(node(), "", :memory, :asc, 200)
       assert Enum.count(ets) == count
       {ets, count} = SystemInfo.fetch_ets(node(), "", :memory, :asc, 1)
       assert Enum.count(ets) == 1
