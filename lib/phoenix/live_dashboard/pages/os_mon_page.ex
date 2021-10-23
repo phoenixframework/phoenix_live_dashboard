@@ -2,7 +2,6 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
 
-  import Phoenix.HTML
   import Phoenix.LiveDashboard.Helpers
 
   alias Phoenix.LiveDashboard.SystemInfo
@@ -173,7 +172,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   defp rup_avg(value, count), do: Float.ceil(value / 256 / count, 2)
 
   defp cpu_hint(assigns) do
-    ~E"""
+    ~H"""
     <p>The load panes show the CPU demand in the last 1, 5 and 15 minutes over all cores.</p>
 
     <%= if @cpu_count > 0 do %>
