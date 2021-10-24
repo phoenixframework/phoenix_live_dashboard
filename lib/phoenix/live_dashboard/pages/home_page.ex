@@ -2,6 +2,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
 
+  import Phoenix.HTML
   import Phoenix.LiveDashboard.Helpers
 
   alias Phoenix.LiveDashboard.SystemInfo
@@ -21,21 +22,21 @@ defmodule Phoenix.LiveDashboard.HomePage do
     total_input: "The total number of bytes received through ports/sockets.",
     total_output: "The total number of bytes output to ports/sockets.",
     total_queues: """
-      Each core in your machine gets a scheduler to process all instructions within the Erlang VM.
-      Each scheduler has its own queue, which is measured by this number. If this number keeps on
-      growing, it means the machine is overloaded. The queue sizes can also be broken into CPU and IO.
+    Each core in your machine gets a scheduler to process all instructions within the Erlang VM.
+    Each scheduler has its own queue, which is measured by this number. If this number keeps on
+    growing, it means the machine is overloaded. The queue sizes can also be broken into CPU and IO.
     """,
     atoms: """
-      If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
-      You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
+    If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
+    You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
     """,
     ports: """
-      If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
-      This means ports are being opened by a parent process that never exits or never closes them.
+    If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
+    This means ports are being opened by a parent process that never exits or never closes them.
     """,
     processes: """
-      If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
-      This means processes are being spawned and they never exit.
+    If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
+    This means processes are being spawned and they never exit.
     """
   ]
 
@@ -274,7 +275,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
         limit: system_limits[type],
         percent: percentage(system_usage[type], system_limits[type]),
         dom_sub_id: "total",
-        hint: @hints[type],
+        hint: raw(@hints[type]),
         title: Phoenix.Naming.humanize(type)
       }
     ]
