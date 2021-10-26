@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-18.04
     env:
       MIX_ENV: test
-      MYSQL_URL: root:mysql@127.0.0.1
     services:
       pg:
         image: postgres:11
@@ -26,7 +25,7 @@ jobs:
         image: mysql:8
         env:
           MYSQL_DATABASE: phx_dashboard_test
-          MYSQL_ROOT_PASSWORD: mysql
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 5
