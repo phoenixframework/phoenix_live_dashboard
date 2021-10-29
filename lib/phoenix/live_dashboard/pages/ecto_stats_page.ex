@@ -81,7 +81,13 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   @impl true
   def menu_link(%{repos: :auto_discover}, _caps) do
-    {:ok, @page_title}
+    # We require the extras plugins to be on this node,
+    # which means we also require Ecto.Adapters.SQL on this node.
+    if Code.ensure_loaded?(Ecto.Adapters.SQL) do
+      {:ok, @page_title}
+    else
+      :skip
+    end
   end
 
   @impl true
@@ -277,29 +283,26 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     error_message =
       case assigns.error do
         :no_ecto_repos_available ->
-          error_details = """
-          No Ecto repository was found running on this node.
-          Currently only PSQL and MySQL databases are supported.
+          ~H"""
+          <small>
+            No Ecto repository was found running on this node.
+            Currently only PSQL and MySQL databases are supported.
 
-          Depending on the database Ecto PSQL Extras or Ecto MySQL Extras should be installed.
+            Depending on the database Ecto PSQL Extras or Ecto MySQL Extras should be installed.
 
-          Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details.
+            Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details.
+          </small>
           """
 
-          {:safe, error_details}
-
         :cannot_list_running_repos ->
-          "Cannot list running repositories. Make sure that Ecto is running with version ~> 3.7."
+          ~H"""
+          <small>
+            Cannot list running repositories.
+            Make sure that Ecto is running with version ~> 3.7.
+          </small>
+          """
       end
 
-    row(
-      components: [
-        columns(
-          components: [
-            card(value: error_message)
-          ]
-        )
-      ]
-    )
+    card(value: error_message)
   end
 end
