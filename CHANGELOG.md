@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.1 (2021-10-29)
+
+* Require LiveView v0.17.3
+* Remove warnings on latest Phoenix.HTML
+* Make charts smoother when prunning data
+
 ## v0.6.0 (2021-10-21)
 
 * Require LiveView v0.17.1
