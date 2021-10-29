@@ -155,7 +155,15 @@ For those planning to contribute to this project, you can run a dev version of t
     $ mix setup
     $ mix dev
 
-Alternatively, run `iex -S mix dev` if you also want a shell.
+Additionally, you may pass some options to enable Ecto testing. For example, to enable the PostgreSQL repo:
+
+    $ mix dev --postgres
+
+...and to enable the MySQL repo:
+
+    $ mix dev --mysql
+
+Alternatively, run `iex -S mix dev [flags]` if you also want a shell.
 
 Assets are minimized by default. If you'd like to skip assets optimization and run webpack in development mode you can do it using the `NODE_ENV` environment variable:
 

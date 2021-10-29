@@ -1,24 +1,45 @@
-# iex -S mix dev
+#######################################
+# Development Server for LiveDashboard
+#
+# Options:
+#
+#   * --postgres - starts the Demo.Postgres repo
+#
+#   * --mysql - starts the Demo.MyXQL repo
+#
+# Usage:
+#
+# $ iex -S mix dev [flags]
+#######################################
 Logger.configure(level: :debug)
 
-pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
-pg_db = System.get_env("PG_DATABASE") || "phx_dashboard_dev"
-Application.put_env(:phoenix_live_dashboard, Demo.Postgres, url: "ecto://#{pg_url}/#{pg_db}")
+argv = System.argv()
+{opts, _, _} = OptionParser.parse(argv, strict: [mysql: :boolean, postgres: :boolean])
+%{mysql: mysql?, postgres: postgres?} = Map.merge(%{mysql: false, postgres: false}, Map.new(opts))
 
-defmodule Demo.Postgres do
-  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
+if postgres? do
+  pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
+  pg_db = System.get_env("PG_DATABASE") || "phx_dashboard_dev"
+  Application.put_env(:phoenix_live_dashboard, Demo.Postgres, url: "ecto://#{pg_url}/#{pg_db}")
+
+  defmodule Demo.Postgres do
+    use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
+  end
+
+  _ = Ecto.Adapters.Postgres.storage_up(Demo.Postgres.config())
 end
 
-mysql_url = System.get_env("MYSQL_URL") || "root@127.0.0.1"
-mysql_db = System.get_env("MYSQL_DATABASE") || "phx_dashboard_dev"
-Application.put_env(:phoenix_live_dashboard, Demo.MyXQL, url: "ecto://#{mysql_url}/#{mysql_db}")
+if mysql? do
+  mysql_url = System.get_env("MYSQL_URL") || "root@127.0.0.1"
+  mysql_db = System.get_env("MYSQL_DATABASE") || "phx_dashboard_dev"
+  Application.put_env(:phoenix_live_dashboard, Demo.MyXQL, url: "ecto://#{mysql_url}/#{mysql_db}")
 
-defmodule Demo.MyXQL do
-  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.MyXQL
+  defmodule Demo.MyXQL do
+    use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.MyXQL
+  end
+
+  _ = Ecto.Adapters.MyXQL.storage_up(Demo.MyXQL.config())
 end
-
-_ = Ecto.Adapters.Postgres.storage_up(Demo.Postgres.config())
-_ = Ecto.Adapters.MyXQL.storage_up(Demo.MyXQL.config())
 
 # Configures the endpoint
 Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
@@ -453,13 +474,17 @@ Application.ensure_all_started(:os_mon)
 Application.put_env(:phoenix, :serve_endpoints, true)
 
 Task.async(fn ->
-  children = [
-    Demo.Postgres,
-    Demo.MyXQL,
-    {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
-    {DemoWeb.History, DemoWeb.Telemetry.metrics()},
-    DemoWeb.Endpoint
-  ]
+  children = []
+  children = if postgres?, do: [Demo.Postgres | children], else: children
+  children = if mysql?, do: [Demo.MyXQL | children], else: children
+
+  children =
+    children ++
+      [
+        {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
+        {DemoWeb.History, DemoWeb.Telemetry.metrics()},
+        DemoWeb.Endpoint
+      ]
 
   {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
   Process.sleep(:infinity)
