@@ -53,16 +53,16 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "info" do
-      {:ok, pid} = SystemInfo.fetch_process_info(Process.whereis(:user))
-      assert pid[:registered_name] == :user
-      assert is_integer(pid[:message_queue_len])
-      assert pid[:initial_call] == {:erlang, :apply, 2}
+      {:ok, info} = SystemInfo.fetch_process_info(Process.whereis(:user))
+      assert info[:registered_name] == :user
+      assert is_integer(info[:message_queue_len])
+      assert info[:initial_call] == {:erlang, :apply, 2}
 
-      {:ok, pid} =
-        SystemInfo.fetch_process_info(Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor))
+      pid = Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor)
+      {:ok, info} = SystemInfo.fetch_process_info(pid)
 
-      assert pid[:registered_name] == Phoenix.LiveDashboard.DynamicSupervisor
-      assert pid[:initial_call] == {:supervisor, Supervisor.Default, 1}
+      assert info[:registered_name] == Phoenix.LiveDashboard.DynamicSupervisor
+      assert info[:initial_call] == {:supervisor, Supervisor.Default, 1}
     end
   end
 
@@ -85,7 +85,12 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     test "info" do
       {:ok, port} = SystemInfo.fetch_port_info(hd(Port.list()))
       assert port[:name] == 'forker'
-      assert inspect(port[:connected]) == "#PID<0.0.0>"
+
+      connected_details = port[:connected]
+      %module{pid: pid} = connected_details
+
+      assert module == SystemInfo.ProcessDetails
+      assert pid == :erlang.list_to_pid('<0.0.0>')
     end
   end
 
