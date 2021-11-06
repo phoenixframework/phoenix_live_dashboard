@@ -30,23 +30,24 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     cpu_count = length(os_mon.cpu_per_core)
     row_params = %{os_mon: os_mon, cpu_count: cpu_count, csp_nonces: assigns.csp_nonces}
 
+    top_row = cpu_components(row_params) ++ memory_components(row_params)
+    bottom_row = [disk_usage_row(row_params)]
+
     row(
       components: [
-        columns(
-          components: [
-            [
-              cpu_load_row(row_params),
-              cpu_avg_row(row_params)
-            ],
-            [
-              memory_usage_row(row_params)
-            ]
-          ]
-        ),
-        columns(components: [disk_usage_row(row_params)])
+        columns(components: top_row),
+        columns(components: bottom_row)
       ]
     )
   end
+
+  defp cpu_components(%{os_mon: %{cpu_avg1: num}} = row_params) when is_number(num) do
+    [[cpu_load_row(row_params), cpu_avg_row(row_params)]]
+  end
+
+  defp cpu_components(%{}), do: []
+
+  defp memory_components(row_params), do: [[memory_usage_row(row_params)]]
 
   defp cpu_load_row(%{os_mon: os_mon} = assigns) do
     row(
