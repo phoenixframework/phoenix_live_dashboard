@@ -164,7 +164,12 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   @forbidden_tables [:kill_all, :mandelbrot]
 
   defp items(%{repo: repo, info_module: info_module, ecto_options: ecto_options, node: node}) do
-    for {table_name, table_module} <- info_module.queries({repo, node}),
+    sorted_queries =
+      Enum.sort(info_module.queries({repo, node}), fn a, b ->
+        elem(a, 1).info[:index] < elem(b, 1).info[:index]
+      end)
+
+    for {table_name, table_module} <- sorted_queries,
         table_name not in @forbidden_tables do
       {table_name,
        name: Phoenix.Naming.humanize(table_name),
