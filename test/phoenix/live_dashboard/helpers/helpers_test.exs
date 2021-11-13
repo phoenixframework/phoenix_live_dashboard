@@ -2,8 +2,6 @@ defmodule Phoenix.LiveDashboard.HelpersTest do
   use ExUnit.Case, async: true
 
   import Phoenix.LiveDashboard.Helpers
-  import Phoenix.ConnTest
-
   alias Phoenix.LiveDashboard.SystemInfo
 
   test "format_value/1" do

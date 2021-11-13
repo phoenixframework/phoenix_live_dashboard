@@ -29,11 +29,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
     refute rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
     refute rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
-
-    assert rendered =~ "All locks"
-    assert rendered =~ "Extensions"
-    assert rendered =~ "Transactionid"
-    assert rendered =~ "Granted"
+    assert rendered =~ ~r"Showing \d+ entries"
 
     start_pg_repo!()
 
