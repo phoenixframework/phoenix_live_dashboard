@@ -76,7 +76,7 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
 
     for {event_name, metrics} <- metrics_per_event do
       id = {__MODULE__, event_name, self()}
-      :telemetry.attach(id, event_name, &handle_metrics/4, {parent, metrics})
+      :telemetry.attach(id, event_name, &__MODULE__.handle_metrics/4, {parent, metrics})
     end
 
     {:ok, %{ref: ref, events: Map.keys(metrics_per_event)}}
