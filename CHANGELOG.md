@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.2 (2021-12-07)
+
+* Improve navigation on Ecto Stats page
+* Fix warning on telemetry attaching
+* Support more recent MIME versions
+
 ## v0.6.1 (2021-10-29)
 
 * Require LiveView v0.17.3
