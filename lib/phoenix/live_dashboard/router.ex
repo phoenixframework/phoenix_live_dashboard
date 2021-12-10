@@ -90,6 +90,13 @@ defmodule Phoenix.LiveDashboard.Router do
 
   """
   defmacro live_dashboard(path, opts \\ []) do
+    opts =
+      if Macro.quoted_literal?(opts) do
+        Macro.prewalk(opts, &expand_alias(&1, __CALLER__))
+      else
+        opts
+      end
+
     quote bind_quoted: binding() do
       scope path, alias: false, as: false do
         {session_name, session_opts, route_opts} = Phoenix.LiveDashboard.Router.__options__(opts)
@@ -104,6 +111,11 @@ defmodule Phoenix.LiveDashboard.Router do
       end
     end
   end
+
+  defp expand_alias({:__aliases__, _, _} = alias, env),
+    do: Macro.expand(alias, %{env | function: {:live_dashboard, 2}})
+
+  defp expand_alias(other, _env), do: other
 
   @doc false
   def __options__(options) do
