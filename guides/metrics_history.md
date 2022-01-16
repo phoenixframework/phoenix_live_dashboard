@@ -1,20 +1,30 @@
 # Configuring metrics history
 
 If you wish to populate metrics with history saved from telemetry or another data source,
-modify the dashboard config to include a metrics_history key like so:
+modify the dashboard config (in "my_app_web/router.ex") to include a `metrics_history` key like so:
 
 ```elixir
 live_dashboard "/dashboard",
   metrics: MyAppWeb.Telemetry,
-  metrics_history: {MyApp.MyStorage, :metrics_history, []}
+  metrics_history: {MyApp.MetricsStorage, :metrics_history, []}
 ```
 
-where `MyStorage` is a module and `:metrics_history` is a function taking a single argument in this example, which will always be a metric.  The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map.  The function `Phoenix.LiveDashboard.extract_datapoint_for_metric/4` will return a map in exactly this format (with optional time argument if you want to override the default of `System.system_time(:microsecond)`), or it may return `nil` in which case the data point should not be saved.
+where `MetricsStorage` is a module and `:metrics_history` is a function taking a single argument in this example, which will always be a metric.
 
-As an example, if you want history for all metrics, you can store history for those metrics in a [circular buffer](https://en.wikipedia.org/wiki/Circular_buffer) and emit recent telemetry when each client connects. LiveDashboard calls into your module for history for the metrics on that tab.  You would also need to add the module to your Application children, and initialize it with some or all of your metrics, such as from `MyAppWeb.Telemetry.metrics/0`. You could store the data in an ETS table or in Redis or the database, or anywhere else, but for this example we'll show using a GenServer and the [circular_buffer](https://hex.pm/packages/circular_buffer) library:
+The function must return a list, empty if there is no data, or a list of maps with `:label`, `:measurement` and `:time` keys in every map. The function `Phoenix.LiveDashboard.extract_datapoint_for_metric/4` will return a map in exactly this format (with optional time argument if you want to override the default of `System.system_time(:microsecond)`), or it may return `nil` in which case the data point should not be saved.
+
+You could store the data in an ETS table or in Redis or the database, or anywhere else, but for this example we'll use a GenServer, with a [circular buffer](https://en.wikipedia.org/wiki/Circular_buffer) to emit recent telemetry when each client connects.
+
+In your `mix.exs`, add the following to your `deps`:
 
 ```elixir
-  defmodule MyApp.MyStorage do
+  {:circular_buffer, "~> 0.4.0"},
+```
+
+Then add the following module "lib/my_app_web/metrics_storage.ex":
+
+```elixir
+  defmodule MyAppWeb.MetricsStorage do
     use GenServer
 
     @history_buffer_size 50
@@ -81,3 +91,12 @@ As an example, if you want history for all metrics, you can store history for th
     end
   end
 ```
+
+Finally, add the new module to your Application children, and initialize it with some or all of your metrics, such as from `MyAppWeb.Telemetry.metrics/0`.
+
+```elixir
+  # Start genserver to store transient metrics
+  {MyAppWeb.MetricsStorage, MyAppWeb.Telemetry.metrics()},
+```
+
+Now, when you select a tab on the Metrics dashboard, LiveDashboard will call into your module to get the metrics history for that tab.
