@@ -1,7 +1,7 @@
 # Configuring metrics history
 
 If you wish to populate metrics with history saved from telemetry or another data source,
-modify the dashboard config to include a metrics_history key like so:
+modify the dashboard config (in "my_app_web/router.ex") to include a metrics_history key like so:
 
 ```elixir
 live_dashboard "/dashboard",
