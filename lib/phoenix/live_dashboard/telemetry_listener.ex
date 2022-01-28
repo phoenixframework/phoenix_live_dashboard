@@ -63,8 +63,10 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
         %{} -> acc
       end
     end)
-    |> Enum.reduce(&[&1, " " | &2])
-    |> IO.iodata_to_binary()
+    |> case do
+      [] -> nil
+      reversed_tags -> reversed_tags |> Enum.reduce(&[&1, " " | &2]) |> IO.iodata_to_binary()
+    end
   end
 
   @impl true

@@ -54,6 +54,14 @@ defmodule Phoenix.LiveDashboard.TelemetryListenerTest do
     assert_receive {:telemetry, [{0, "given tag", 100, _}]}
   end
 
+  test "converts tags and tag values to labels with no matching tag" do
+    # No tag values captured shouldn't crash
+    metric = counter("a.b.c", tags: [:given, :extra, :unknown])
+    TelemetryListener.listen(node(), [metric])
+    :telemetry.execute([:a, :b], %{c: 100}, %{})
+    assert_receive {:telemetry, [{0, nil, 100, _}]}
+  end
+
   test "groups by event name" do
     TelemetryListener.listen(node(), [counter("a.b.c"), counter("a.b.d")])
     :telemetry.execute([:a, :b], %{c: 100, d: 200}, %{})
