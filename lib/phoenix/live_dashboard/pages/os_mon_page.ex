@@ -41,8 +41,12 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     )
   end
 
-  defp cpu_components(%{os_mon: %{cpu_avg1: num}} = row_params) when is_number(num) do
-    [[cpu_load_row(row_params), cpu_avg_row(row_params)]]
+  defp cpu_components(%{os_mon: %{cpu_avg1: num1, cpu_avg5: num5, cpu_avg15: num15}} = row_params)
+       when is_number(num1) and is_number(num5) and is_number(num15) do
+    [
+      [cpu_load_row(row_params)] ++
+        if(row_params.cpu_count > 0, do: [cpu_avg_row(row_params)], else: [])
+    ]
   end
 
   defp cpu_components(%{}), do: []
