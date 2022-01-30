@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.6.3 (2022-01-30)
+
+* Fix crash on metrics page when none of the tags specified in a metric are found
+* Fix crash on OS data when CPU information cannot be retrieved
+* Do not generate compile-time dependencies for dashboard parameters
+
 ## v0.6.2 (2021-12-07)
 
 * Improve navigation on Ecto Stats page
