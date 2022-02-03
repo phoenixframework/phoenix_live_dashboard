@@ -22,13 +22,13 @@ defmodule Phoenix.LiveDashboard.HelpersTest do
       format_value(process_details, live_dashboard_path)
       |> Phoenix.HTML.safe_to_string()
 
-    assert String.match?(result, ~r(<a .*href="/test".*>#{pid_html} - Fake Name</a>))
+    assert String.match?(result, ~r{<a .*href="/test".*>#{pid_html} \(Fake Name\)</a>})
 
     result =
       format_value(pid, live_dashboard_path)
       |> Phoenix.HTML.safe_to_string()
 
-    assert String.match?(result, ~r(<a .*href="/test".*>#{pid_html}</a>))
+    assert String.match?(result, ~r{<a .*href="/test".*>#{pid_html}</a>})
 
     port = Port.open({:spawn, "sleep 1"}, [:binary])
 
@@ -43,13 +43,13 @@ defmodule Phoenix.LiveDashboard.HelpersTest do
       format_value(process_details, live_dashboard_path)
       |> Phoenix.HTML.safe_to_string()
 
-    assert String.match?(result, ~r(<a .*href="/test".*>#{port_html} - Fake Description</a>))
+    assert String.match?(result, ~r{<a .*href="/test".*>#{port_html} \(Fake Description\)</a>})
 
     result =
       format_value(port, live_dashboard_path)
       |> Phoenix.HTML.safe_to_string()
 
-    assert String.match?(result, ~r(<a .*href="/test".*>#{port_html}))
+    assert String.match?(result, ~r{<a .*href="/test".*>#{port_html}})
   end
 
   test "format_uptime/1" do

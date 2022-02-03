@@ -717,14 +717,22 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   defp pid_or_port_details(port) when is_port(port), do: to_port_details(port)
   defp pid_or_port_details(reference) when is_reference(reference), do: reference
 
-  def to_process_details(pid) when is_pid(pid) do
-    initial_call = process_initial_call(pid)
+  def to_process_details(pid) when is_pid(pid) and node(pid) == node() do
+    {name, initial_call} =
+      case Process.info(pid, [:initial_call, :dictionary, :registered_name]) do
+        [{:initial_call, initial_call}, {:dictionary, dictionary}, {:registered_name, name}] ->
+          initial_call = Keyword.get(dictionary, :"$initial_call", initial_call)
+          name = if is_atom(name), do: inspect(name), else: format_initial_call(initial_call)
+          {name, initial_call}
+        _ ->
+          {nil, nil}
+      end
 
-    %ProcessDetails{
-      pid: pid,
-      name_or_initial_call: process_name_or_initial_call(pid, initial_call),
-      initial_call: initial_call
-    }
+    %ProcessDetails{pid: pid, name_or_initial_call: name, initial_call: initial_call}
+  end
+
+  def to_process_details(pid) when is_pid(pid) do
+    %ProcessDetails{pid: pid, name_or_initial_call: nil, initial_call: nil}
   end
 
   def to_process_details(name) when is_atom(name) do
@@ -732,32 +740,9 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     |> to_process_details()
   end
 
-  defp process_name_or_initial_call(pid, initial_call) do
-    case Process.info(pid, :registered_name) do
-      {:registered_name, name} when is_atom(name) ->
-        inspect(name)
-
-      _ ->
-        format_initial_call(initial_call)
-    end
-  end
-
-  defp process_initial_call(pid) do
-    case Process.info(pid, [:initial_call, :dictionary]) do
-      [{:initial_call, initial_call}, {:dictionary, dictionary}] ->
-        Keyword.get(dictionary, :"$initial_call", initial_call)
-
-      nil ->
-        nil
-    end
-  end
-
-  defp format_initial_call({:supervisor, mod, arity}),
-    do: Exception.format_mfa(mod, :init, arity)
-
+  defp format_initial_call({:supervisor, mod, arity}), do: Exception.format_mfa(mod, :init, arity)
   defp format_initial_call({m, f, a}), do: Exception.format_mfa(m, f, a)
-
-  defp format_initial_call(nil), do: "PROCESS MISSING"
+  defp format_initial_call(nil), do: nil
 
   def to_port_details(port) when is_port(port) do
     description =
