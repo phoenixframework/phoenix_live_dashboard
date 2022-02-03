@@ -12,16 +12,21 @@ defmodule Phoenix.LiveDashboard.Helpers do
         %SystemInfo.ProcessDetails{pid: pid, name_or_initial_call: name_or_initial_call},
         live_dashboard_path
       ) do
-    live_patch("#{inspect(pid)} - #{name_or_initial_call}",
-      to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid))
-    )
+    text =
+      if name_or_initial_call do
+        "#{inspect(pid)} (#{name_or_initial_call})"
+      else
+        inspect(pid)
+      end
+
+    live_patch(text, to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid)))
   end
 
   def format_value(
         %SystemInfo.PortDetails{port: port, description: description},
         live_dashboard_path
       ) do
-    live_patch("#{inspect(port)} - #{description}",
+    live_patch("#{inspect(port)} (#{description})",
       to: live_dashboard_path.(node(port), info: PageBuilder.encode_port(port))
     )
   end
