@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.6.4 (2022-02-03)
+
+* Fix crash on PID info modal when remote pids were present
+
 ## v0.6.3 (2022-01-30)
 
 * Fix crash on metrics page when none of the tags specified in a metric are found
