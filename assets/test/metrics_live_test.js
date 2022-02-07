@@ -137,10 +137,15 @@ describe('Metrics no tags', () => {
     const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: false, label: "Duration" })
 
     expect(chart.metric.datasets).toEqual([
-      { key: "|x|", data: [] },
+      { key: "|x|", data: [], derived: {from: -1, mode: "", dataRaw: []}},
       {
         key: "Duration",
         data: [],
+        derived: {
+          from: -1,
+          mode: "",
+          dataRaw: []
+        },
         agg: {
           avg: [],
           min: [],
@@ -165,11 +170,21 @@ describe('Metrics no tags', () => {
     expect(chart.metric.datasets).toEqual([
       {
         key: "|x|",
-        data: [1]
+        data: [1],
+        derived: {
+          from: -1,
+          mode: "",
+          dataRaw: []
+        }
       },
       {
         key: "Duration",
         data: [2],
+        derived: {
+          from: -1,
+          mode: "",
+          dataRaw: []
+        },
         agg: {
           avg: [2],
           min: [2],
@@ -204,11 +219,21 @@ describe('Metrics no tags', () => {
     expect(chart.metric.datasets).toEqual([
       {
         key: "|x|",
-        data: [1, 3, 5, 7]
+        data: [1, 3, 5, 7],
+        derived: {
+          from: -1,
+          mode: "",
+          dataRaw: []
+        }
       },
       {
         key: "Duration",
         data: [2, 4, 6, 8],
+        derived: {
+          from: -1,
+          mode: "",
+          dataRaw: []
+        },
         agg: {
           avg: [2, 3, 4, 5],
           min: [2, 2, 2, 2],
@@ -218,6 +243,115 @@ describe('Metrics no tags', () => {
         },
         last: {
           max: 8,
+          min: 2
+        }
+      }
+    ])
+  })
+
+  test('Summary (derived)', () => {
+    const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: false, label: "Duration", deriveModes:"mean"
+   })
+
+    expect(chart.metric.datasets).toEqual([
+      { key: "|x|", data: [], derived: {from: -1, mode: "", dataRaw: []}},
+      {
+        key: "Duration",
+        data: [],
+        derived: {
+          from: -1,
+          mode: "",
+          dataRaw: []
+        },
+        agg: {
+          avg: [],
+          min: [],
+          max: [],
+          count: 0,
+          total: 0
+        },
+        last: {
+          max: null,
+          min: null
+        }
+      },
+      {
+        key: "Duration-mean",
+        data: [],
+        derived: {
+          from: 1,
+          mode: "mean",
+          dataRaw: []
+        },
+        agg: {
+          avg: [],
+          min: [],
+          max: [],
+          count: 0,
+          total: 0
+        },
+        last: {
+          max: null,
+          min: null
+        }
+      }
+    ])
+
+    chart.pushData([{ x: 'a', y: 2, z: 1 }])
+
+    expect(mockSetData).toHaveBeenCalledWith([
+      [1],
+      [2],
+      [2]
+    ])
+
+    expect(chart.metric.datasets).toEqual([
+      {
+        key: "|x|",
+        data: [1],
+        derived: {
+          from: -1,
+          mode: "",
+          dataRaw: []
+        }
+      },
+      {
+        key: "Duration",
+        data: [2],
+        derived: {
+          from: -1,
+          mode: "",
+          dataRaw: []
+        },
+        agg: {
+          avg: [2],
+          min: [2],
+          max: [2],
+          count: 1,
+          total: 2
+        },
+        last: {
+          max: 2,
+          min: 2
+        }
+      },
+      {
+        key: "Duration-mean",
+        data: [2],
+        derived: {
+          from: 1,
+          mode: "mean",
+          dataRaw: [{ x: 'a', y: 2, z: 1}]
+        },
+        agg: {
+          avg: [2],
+          min: [2],
+          max: [2],
+          count: 1,
+          total: 2
+        },
+        last: {
+          max: 2,
           min: 2
         }
       }
@@ -384,11 +518,21 @@ describe('Metrics with tags', () => {
       expect(chart.metric.datasets).toEqual([
         {
           key: "|x|",
-          data: [1]
+          data: [1],
+          derived: {
+            from: -1,
+            mode: "",
+            dataRaw: []
+          }
         },
         {
           key: "a",
           data: [2],
+          derived: {
+            from: -1,
+            mode: "",
+            dataRaw: []
+          },
           agg: {
             avg: [2],
             min: [2],
@@ -414,11 +558,21 @@ describe('Metrics with tags', () => {
       expect(chart.metric.datasets).toEqual([
         {
           key: "|x|",
-          data: [1, 3]
+          data: [1, 3],
+          derived: {
+            from: -1,
+            mode: "",
+            dataRaw: []
+          }
         },
         {
           key: "a",
           data: [2, null],
+          derived: {
+            from: -1,
+            mode: "",
+            dataRaw: []
+          },
           agg: {
             avg: [2, null],
             min: [2, null],
@@ -434,6 +588,11 @@ describe('Metrics with tags', () => {
         {
           key: "b",
           data: [null, 4],
+          derived: {
+            from: -1,
+            mode: "",
+            dataRaw: []
+          },
           agg: {
             avg: [null, 4],
             min: [null, 4],
@@ -483,11 +642,21 @@ describe('Metrics with tags', () => {
       expect(chart.metric.datasets).toEqual([
         {
           key: "|x|",
-          data: [1, 2, 3, 4, 5, 6]
+          data: [1, 2, 3, 4, 5, 6],
+          derived: {
+            from: -1,
+            mode: "",
+            dataRaw: []
+          }
         },
         {
           key: "a",
           data: [-6, null, -2, null, 2, null],
+          derived: {
+            from: -1,
+            mode: "",
+            dataRaw: []
+          },
           agg: {
             avg: [-6, null, -4, null, -2, null],
             min: [-6, null, -6, null, -6, null],
@@ -503,6 +672,11 @@ describe('Metrics with tags', () => {
         {
           key: "b",
           data: [null, -4, null, 0, null, 4],
+          derived: {
+            from: -1,
+            mode: "",
+            dataRaw: []
+          },
           agg: {
             avg: [null, -4, null, -2, null, 0],
             min: [null, -4, null, -4, null, -4],
@@ -528,7 +702,400 @@ describe('Metrics with tags', () => {
         [-4, null, 0, null, 4, null]
       ])
     })
+
+    describe("Derived series", () => {
+      test("adds series", () => {
+        const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true, deriveModes: "mean~p90"
+       })
+        expect(mockDelSeries).toHaveBeenCalledTimes(1)
+
+        chart.pushData([{ x: "a", y: 2, z: 1 }])
+
+        expect(mockSetData).toHaveBeenCalledWith([
+          [1],
+          [2],
+          [2],
+          [2],
+        ])
+
+        expect(chart.metric.datasets).toEqual([
+        {
+            key: "|x|",
+            data: [1],
+            derived: {
+              from: -1,
+              mode: "",
+              dataRaw: []
+            }
+          },
+          {
+            key: "a",
+            data: [2],
+            derived: {
+              from: -1,
+              mode: "",
+              dataRaw: []
+            },
+            agg: {
+              avg: [2],
+              min: [2],
+              max: [2],
+              count: 1,
+              total: 2
+            },
+            last: {
+              max: 2,
+              min: 2
+            }
+          },
+          {
+            key: "a-mean",
+            data: [2],
+            derived: {
+              from: 1,
+              mode: "mean",
+              dataRaw: [{ x: "a", y: 2, z: 1 }]
+            },
+            agg: {
+              avg: [2],
+              min: [2],
+              max: [2],
+              count: 1,
+              total: 2
+            },
+            last: {
+              max: 2,
+              min: 2
+            }
+          },
+          {
+            key: "a-p90",
+            data: [2],
+            derived: {
+              from: 1,
+              mode: "p90",
+              dataRaw: [{ x: "a", y: 2, z: 1 }]
+            },
+            agg: {
+              avg: [2],
+              min: [2],
+              max: [2],
+              count: 1,
+              total: 2
+            },
+            last: {
+              max: 2,
+              min: 2
+            }
+          }
+        ])
+      })
+
+      test("aligns derived series by tag", () => {
+        const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true, deriveModes: "mean"
+        })
+        expect(mockDelSeries).toHaveBeenCalledTimes(1)
+
+        chart.pushData([{ x: "a", y: 2, z: 1 }])
+
+        expect(mockSetData).toHaveBeenCalledWith([
+          [1],
+          [2],
+          [2],
+        ])
+
+        expect(chart.metric.datasets).toEqual([
+          {
+            key: "|x|",
+            data: [1],
+            derived: {
+              from: -1,
+              mode: "",
+              dataRaw: []
+            }
+          },
+          {
+            key: "a",
+            data: [2],
+            derived: {
+              from: -1,
+              mode: "",
+              dataRaw: []
+            },
+            agg: {
+              avg: [2],
+              min: [2],
+              max: [2],
+              count: 1,
+              total: 2
+            },
+            last: {
+              max: 2,
+              min: 2
+            }
+          },
+          {
+            key: "a-mean",
+            data: [2],
+            derived: {
+              from: 1,
+              mode: "mean",
+              dataRaw: [{ x: "a", y: 2, z: 1 }]
+            },
+            agg: {
+              avg: [2],
+              min: [2],
+              max: [2],
+              count: 1,
+              total: 2
+            },
+            last: {
+              max: 2,
+              min: 2
+            }
+          }
+        ])
+
+        chart.pushData([{ x: "b", y: 4, z: 3 }])
+
+        expect(mockSetData).toHaveBeenCalledWith([
+          [1, 3],
+          [2, null],
+          [2, null],
+          [null, 4],
+          [null, 4]
+        ])
+
+        expect(chart.metric.datasets).toEqual([
+          {
+            key: "|x|",
+            data: [1, 3],
+            derived: {
+              from: -1,
+              mode: "",
+              dataRaw: []
+            }
+          },
+          {
+            key: "a", //will have id 1
+            data: [2, null],
+            derived: {
+              from: -1,
+              mode: "",
+              dataRaw: []
+            },
+            agg: {
+              avg: [2, null],
+              min: [2, null],
+              max: [2, null],
+              count: 1,
+              total: 2
+            },
+            last: {
+              max: 2,
+              min: 2
+            }
+          },
+          {
+            key: "a-mean", //will have id 2
+            data: [2, null],
+            derived: {
+              from: 1, //a will be 1
+              mode: "mean",
+              dataRaw: [{ x: "a", y: 2, z: 1 }, null]
+            },
+            agg: {
+              avg: [2, null],
+              min: [2, null],
+              max: [2, null],
+              count: 1,
+              total: 2
+            },
+            last: {
+              max: 2,
+              min: 2
+            }
+          },
+          {
+            key: "b", //will have id 3
+            data: [null, 4],
+            derived: {
+              from: -1,
+              mode: "",
+              dataRaw: []
+            },
+            agg: {
+              avg: [null, 4],
+              min: [null, 4],
+              max: [null, 4],
+              count: 1,
+              total: 4
+            },
+            last: {
+              max: 4,
+              min: 4
+            }
+          },
+          {
+            key: "b-mean",
+            data: [null, 4],
+            derived: {
+              from: 3,
+              mode: "mean",
+              dataRaw: [null, { x: "b", y: 4, z: 3 }]
+            },
+            agg: {
+              avg: [null, 4],
+              min: [null, 4],
+              max: [null, 4],
+              count: 1,
+              total: 4
+            },
+            last: {
+              max: 4,
+              min: 4
+            }
+          }
+        ])
+
+        chart.pushData([
+          { x: 'c', y: 6, z: 5 },
+          { x: 'a', y: 2, z: 7 }
+        ])
+
+        expect(mockSetData).toHaveBeenCalledWith([
+          [1, 3, 5, 7],
+          [2, null, null, 2],
+          [2, null, null, 2],
+          [null, 4, null, null],
+          [null, 4, null, null],
+          [null, null, 6, null],
+          [null, null, 6, null]
+        ])
+      })
+
+      test("mean numerics", () => {
+        const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true, deriveModes: "mean"
+        })
+        expect(mockDelSeries).toHaveBeenCalledTimes(1)
+
+        chart.pushData([
+          { x: "a", y: 2, z: 1 },
+          { x: "a", y: 3, z: 2 },
+          { x: "a", y: 4, z: 3 },
+          { x: "a", y: 5, z: 4 },
+          { x: "a", y: 6, z: 5 },
+          { x: "a", y: -10, z: 6 },
+        ])
+
+        expect(mockSetData).toHaveBeenCalledWith([
+          [1,2,3,4,5,6],
+          [2,3,4,5,6,-10],
+          [2,2.5,3,3.5,4,10/6]
+        ])
+      })
+
+      test("percentile numerics", () => {
+        const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true, deriveModes: "p50~p90"
+        })
+        expect(mockDelSeries).toHaveBeenCalledTimes(1)
+
+
+        chart.pushData([
+          { x: "a", y: 2, z: 1 },
+          { x: "a", y: 4, z: 2 },
+          { x: "a", y: 3, z: 3 },
+          { x: "a", y: 3, z: 4 },
+          { x: "a", y: 4, z: 5 },
+          { x: "a", y: -7, z: 6 },
+        ])
+
+        expect(mockSetData).toHaveBeenCalledWith([
+          [1,2,3,4,5,6],
+          [2,4,3,3,4,-7],
+          [2,2,3,3,3,3], // 50th percentile
+          [2,2,3,3,4,4], // 90th percentile
+        ])
+      })
+
+      test("windowing timer filters old points", () => {
+        const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true, deriveModes: "mean", deriveWindowSecs: 2})
+        expect(mockDelSeries).toHaveBeenCalledTimes(1)
+
+        chart.pushData([
+          { x: "a", y: 2, z: 1 },
+          { x: "a", y: 4, z: 2 },
+          { x: "a", y: 3, z: 3 },
+          { x: "a", y: 12, z: 8 },
+          { x: "a", y: 4, z: 10 },
+          { x: "a", y: -7, z: 22 },
+          { x: "a", y: 9, z: 24.1 },
+        ])
+
+        expect(mockSetData).toHaveBeenCalledWith([
+          [1,2,3,8,10,22,24.1],
+          [2,4,3,12,4,-7,9],
+          [2,3,3,12,8,-7,9], // mean of last 2 sec
+        ])
+      })
+
+      test("filters nulls", () => {
+        const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true, deriveModes: "mean",
+        deriveWindowSecs: 2})
+        expect(mockDelSeries).toHaveBeenCalledTimes(1)
+
+        chart.pushData([
+          { x: "a", y: 2, z: 1 },
+          { x: "a", y: 4, z: 2 },
+          { x: "b", y: 3, z: 3 },
+          { x: "a", y: 12, z: 4 },
+          { x: "a", y: 4, z: 10 },
+          { x: "a", y: -7, z: 22 },
+          { x: "a", y: 9, z: 24.1 },
+        ])
+
+        expect(mockSetData).toHaveBeenCalledWith([
+          [1,2,3,4,10,22,24.1],
+          [2,4,null,12,4,-7,9], // a
+          [2,3,null,8,4,-7,9], // a: mean of last 2 sec
+          [null,null,3,null,null,null,null], // b
+          [null,null,3,null,null,null,null] // b: mean of last 2 sec
+        ])
+      })
+
+      test("is pruned", () => {
+        const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true, deriveModes: "mean",
+         deriveWindowSecs: 1000, pruneThreshold: 2})
+        expect(mockDelSeries).toHaveBeenCalledTimes(1)
+
+        const dataToPush = [
+          { x: "a", y: 2, z: 1 },
+          { x: "a", y: 3, z: 2 },
+          { x: "a", y: 4, z: 3 },
+          { x: "a", y: 5, z: 4 },
+          { x: "a", y: 6, z: 5 },
+          { x: "a", y: 7, z: 6 },
+        ]
+        
+        //so that prune is called after each push
+        dataToPush.forEach(
+          d => {
+            chart.pushData([d])
+          }
+        )
+        
+        expect(mockSetData).toHaveBeenLastCalledWith([
+          [5,6],
+          [6,7], // a
+          [5,6] // a: mean of last 3 items because prune happens after measurement is computed
+        ])
+
+      })
+
+    })
+
   })
+    
 })
 
 describe("refresh interval", () => {

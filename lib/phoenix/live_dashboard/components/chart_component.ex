@@ -2,6 +2,8 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
   @default_prune_threshold 1_000
+  @default_derive_window_secs 120
+  @default_derive_modes []
 
   @impl true
   def mount(socket) do
@@ -21,7 +23,9 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
           label: chart_label(metric),
           tags: Enum.join(metric.tags, "-"),
           unit: chart_unit(metric.unit),
-          prune_threshold: prune_threshold(metric)
+          prune_threshold: prune_threshold(metric),
+          derive_window_secs: derive_window_secs(metric),
+          derive_modes: derive_modes(metric)
         )
       else
         socket
@@ -49,7 +53,10 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
               data-title={@title}
               data-tags={@tags}
               data-unit={@unit}
-              data-prune-threshold={@prune_threshold}>
+              data-prune-threshold={@prune_threshold}
+              data-derive-modes={@derive_modes}
+              data-derive-window-secs={@derive_window_secs}
+          >
           </div>
         </div>
         <%= if @description do %>
@@ -110,5 +117,56 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
     end
 
     value
+  end
+
+  defp derive_window_secs(metric) do
+    derive_window_secs =
+      metric.reporter_options[:derive_window_secs]
+      |> validate_derive_window_secs()
+
+    to_string(derive_window_secs || @default_derive_window_secs)
+  end
+
+  defp validate_derive_window_secs(nil), do: nil
+
+  defp validate_derive_window_secs(value) do
+    unless is_integer(value) and value > 0 do
+      raise ArgumentError,
+        ":derive_window_secs must be a positive integer, got: #{inspect(value)}"
+    end
+
+    value
+  end
+
+  defp derive_modes(metric) do
+    derive_modes =
+      metric.reporter_options[:derive_modes]
+      |> validate_derive_modes()
+
+      Enum.join(derive_modes || @default_derive_modes, "~")
+  end
+
+  defp validate_derive_modes(nil), do: nil
+
+  defp validate_derive_modes(modes) do
+    :ok = Enum.each(
+      modes,
+      fn mode ->
+        unless mode == "mean" do
+          percentile = try do
+            {"p", value} = String.split_at(mode, 1)
+            String.to_integer(value)
+          rescue
+            _e -> raise ArgumentError, ":modes must be a list of strings. strings must be either 'mean' or 'pX' where X is an integer between 0 and 100, got: #{inspect(modes)}"
+          end
+
+          unless percentile >= 0 and percentile <= 100 do
+            raise ArgumentError,
+            ":modes included a percentile specification pX where x was outsize of the range 0-100, got: #{inspect(mode)}"
+          end
+        end
+      end
+    )
+    modes
   end
 end
