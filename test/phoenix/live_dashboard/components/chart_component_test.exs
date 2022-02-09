@@ -68,6 +68,69 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
       end
     end
 
+    test "adds derived modes" do
+      result = render_chart(
+        metric: summary([:a, :b, :c, :count], reporter_options: [derive_modes: ["p90","mean"]])
+      )
+
+      assert result =~ ~s|data-derive-modes="p90~mean"|
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: summary([:a, :b, :c, :count], reporter_options: [derive_modes: "p90"])
+        )
+      end
+
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: summary([:a, :b, :c, :count], reporter_options: [derive_modes: [90]])
+        )
+      end
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: summary([:a, :b, :c, :count], reporter_options: [derive_modes: ["p101"]])
+        )
+      end
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: summary([:a, :b, :c, :count], reporter_options: [derive_modes: ["p"]])
+        )
+      end
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: summary([:a, :b, :c, :count], reporter_options: [derive_modes: ["other"]])
+        )
+      end
+
+      result = render_chart(
+        metric: summary([:a, :b, :c, :count], reporter_options: [derive_window_secs: 40])
+      )
+
+      assert result =~ ~s|data-derive-window-secs="40"|
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: summary([:a, :b, :c, :count], reporter_options: [derive_window_secs: -1])
+        )
+      end
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: summary([:a, :b, :c, :count], reporter_options: [derive_window_secs: 1.2])
+        )
+      end
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: summary([:a, :b, :c, :count], reporter_options: [derive_window_secs: :infinity])
+        )
+      end
+    end
+
     test "renders data" do
       result = render_chart(metric: last_value([:a, :b, :c, :count]), data: [{"x", "y", "z"}])
       assert result =~ ~s|<span data-x="x" data-y="y" data-z="z">|

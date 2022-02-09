@@ -149,24 +149,31 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp validate_derive_modes(nil), do: nil
 
   defp validate_derive_modes(modes) do
-    :ok = Enum.each(
-      modes,
-      fn mode ->
-        unless mode == "mean" do
-          percentile = try do
-            {"p", value} = String.split_at(mode, 1)
-            String.to_integer(value)
-          rescue
-            _e -> raise ArgumentError, ":modes must be a list of strings. strings must be either 'mean' or 'pX' where X is an integer between 0 and 100, got: #{inspect(modes)}"
-          end
+    err_string = ":modes must be a list of strings. strings must be either 'mean' or 'pX' where X is an integer between 0 and 100, got: #{inspect(modes)}"
 
-          unless percentile >= 0 and percentile <= 100 do
-            raise ArgumentError,
-            ":modes included a percentile specification pX where x was outsize of the range 0-100, got: #{inspect(mode)}"
+    if is_list(modes) do
+      :ok = Enum.each(
+        modes,
+        fn mode ->
+          unless mode == "mean" do
+            percentile = try do
+              {"p", value} = String.split_at(mode, 1)
+              String.to_integer(value)
+            rescue
+              _e -> raise ArgumentError, err_string
+            end
+
+            unless percentile >= 0 and percentile <= 100 do
+              raise ArgumentError,
+              ":modes included a percentile specification pX where x was outsize of the range 0-100, got: #{inspect(mode)}"
+            end
           end
         end
-      end
-    )
+      )
+    else
+      raise ArgumentError, err_string
+    end
+
     modes
   end
 end
