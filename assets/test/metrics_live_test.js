@@ -996,7 +996,7 @@ describe('Metrics with tags', () => {
       })
 
       test("percentile numerics", () => {
-        const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true, deriveModes: "p50~p90"
+        const chart = new TelemetryChart(document.body, { metric: "summary", tagged: true, deriveModes: "p50~p90~p0~p100"
         })
         expect(mockDelSeries).toHaveBeenCalledTimes(1)
 
@@ -1015,6 +1015,8 @@ describe('Metrics with tags', () => {
           [2,4,3,3,4,-7],
           [2,2,3,3,3,3], // 50th percentile
           [2,2,3,3,4,4], // 90th percentile
+          [2,2,2,2,2,-7], // 0th percentile
+          [2,4,4,4,4,4], // 100th percentile
         ])
       })
 
