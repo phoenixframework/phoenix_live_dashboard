@@ -724,6 +724,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
           initial_call = Keyword.get(dictionary, :"$initial_call", initial_call)
           name = if is_atom(name), do: inspect(name), else: format_initial_call(initial_call)
           {name, initial_call}
+
         _ ->
           {nil, nil}
       end
