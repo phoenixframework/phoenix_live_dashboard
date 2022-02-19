@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.6.5 (2022-02-20)
+
+* Support and require Phoenix.LiveView 0.17.7
+
 ## v0.6.4 (2022-02-03)
 
 * Fix crash on PID info modal when remote pids were present
