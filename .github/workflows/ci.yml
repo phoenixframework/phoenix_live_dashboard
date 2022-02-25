@@ -36,29 +36,25 @@ jobs:
       matrix:
         os: [ubuntu-18.04, windows-2019]
         include:
-          - pair:
-              elixir: 1.7.4
-              otp: 21.3.8.17
-          - pair:
-              elixir: 1.11.4
-              otp: 23.3.1
-          - pair:
-              elixir: 1.12.1
-              otp: 24.0.2
+          - elixir: 1.7.4
+            otp: 21.3.8.17
+          - elixir: 1.11.4
+            otp: 23.3.1
+          - elixir: 1.12.1
+            otp: 24.0.2
             lint: lint
         exclude:
           - os: windows-2019
-            pair:
-              elixir: 1.7.4
-              otp: 21.3.8.17
+            elixir: 1.7.4
+            otp: 21.3.8.17
 
     steps:
       - uses: actions/checkout@v2
 
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: ${{matrix.pair.otp}}
-          elixir-version: ${{matrix.pair.elixir}}
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
 
       - name: Install Dependencies
         run: mix deps.get --only test
