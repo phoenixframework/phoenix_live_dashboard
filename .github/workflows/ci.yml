@@ -9,7 +9,7 @@ on:
 
 jobs:
   mix_test:
-    name: mix test (Elixir ${{matrix.elixir}} | OTP ${{matrix.otp}})
+    name: mix test (${{matrix.os}} | Elixir ${{matrix.elixir}} | OTP ${{matrix.otp}})
     runs-on: ${{ matrix.os }}
     env:
       MIX_ENV: test
