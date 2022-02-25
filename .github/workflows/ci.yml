@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - mc-windows-ci
 
 jobs:
   mix_test:
