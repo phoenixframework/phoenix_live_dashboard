@@ -3,6 +3,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
   use Phoenix.LiveDashboard.PageBuilder
 
   import Phoenix.HTML
+  import Phoenix.LiveDashboard.Helpers
 
   alias Phoenix.LiveDashboard.SystemInfo
 
@@ -21,26 +22,28 @@ defmodule Phoenix.LiveDashboard.HomePage do
     total_input: "The total number of bytes received through ports/sockets.",
     total_output: "The total number of bytes output to ports/sockets.",
     total_queues: """
-      Each core in your machine gets a scheduler to process all instructions within the Erlang VM.
-      Each scheduler has its own queue, which is measured by this number. If this number keeps on
-      growing, it means the machine is overloaded. The queue sizes can also be broken into CPU and IO.
+    Each core in your machine gets a scheduler to process all instructions within the Erlang VM.
+    Each scheduler has its own queue, which is measured by this number. If this number keeps on
+    growing, it means the machine is overloaded. The queue sizes can also be broken into CPU and IO.
     """,
-    atoms: ~E"""
-      If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
-      You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
+    atoms: """
+    If the number of atoms keeps growing even if the system load is stable, you may have an atom leak in your application.
+    You must avoid functions such as <code>String.to_atom/1</code> which can create atoms dynamically.
     """,
     ports: """
-      If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
-      This means ports are being opened by a parent process that never exits or never closes them.
+    If the number of ports keeps growing even if the system load is stable, you may have a port leak in your application.
+    This means ports are being opened by a parent process that never exits or never closes them.
     """,
     processes: """
-      If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
-      This means processes are being spawned and they never exit.
+    If the number of processes keeps growing even if the system load is stable, you may have a process leak in your application.
+    This means processes are being spawned and they never exit.
     """
   ]
 
   @impl true
   def mount(_params, session, socket) do
+    {app_title, app_name} = session[:home_app]
+
     %{
       # Read once
       system_info: system_info,
@@ -49,14 +52,15 @@ defmodule Phoenix.LiveDashboard.HomePage do
       system_limits: system_limits,
       # Updated periodically
       system_usage: system_usage
-    } = SystemInfo.fetch_system_info(socket.assigns.page.node, session["env_keys"])
+    } = SystemInfo.fetch_system_info(socket.assigns.page.node, session[:env_keys], app_name)
 
     socket =
       assign(socket,
         system_info: system_info,
         system_limits: system_limits,
         system_usage: system_usage,
-        environment: environment
+        environment: environment,
+        app_title: app_title
       )
 
     {:ok, socket}
@@ -70,7 +74,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
           components: [
             [
               erlang_info_row(assigns.system_info),
-              elixir_info_row(assigns.system_info),
+              elixir_info_row(assigns.system_info, assigns.app_title),
               io_info_row(assigns.system_usage),
               run_queues_row(assigns.system_usage),
               environments_row(assigns.environment)
@@ -108,7 +112,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp elixir_info_row(system_info) do
+  defp elixir_info_row(system_info, app_title) do
     row(
       components: [
         columns(
@@ -124,8 +128,8 @@ defmodule Phoenix.LiveDashboard.HomePage do
               class: ["bg-phoenix", "text-white"]
             ),
             card(
-              inner_title: "Dashboard",
-              value: system_info[:dashboard_version],
+              inner_title: app_title,
+              value: system_info[:app_version],
               class: ["bg-dashboard", "text-white"]
             )
           ]
@@ -199,14 +203,14 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp atoms_usage_row(assings) do
-    usages = usage_params(:atoms, assings)
+  defp atoms_usage_row(assigns) do
+    usages = usage_params(:atoms, assigns)
 
     params = [
       usages: usages,
       dom_id: "atoms",
       title: "System limits",
-      csp_nonces: assings.csp_nonces
+      csp_nonces: assigns.csp_nonces
     ]
 
     row(
@@ -220,9 +224,9 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp ports_usage_row(assings) do
-    usages = usage_params(:ports, assings)
-    params = [usages: usages, dom_id: "ports", csp_nonces: assings.csp_nonces]
+  defp ports_usage_row(assigns) do
+    usages = usage_params(:ports, assigns)
+    params = [usages: usages, dom_id: "ports", csp_nonces: assigns.csp_nonces]
 
     row(
       components: [
@@ -235,9 +239,9 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp processes_usage_row(assings) do
-    usages = usage_params(:processes, assings)
-    params = [usages: usages, dom_id: "processes", csp_nonces: assings.csp_nonces]
+  defp processes_usage_row(assigns) do
+    usages = usage_params(:processes, assigns)
+    params = [usages: usages, dom_id: "processes", csp_nonces: assigns.csp_nonces]
 
     row(
       components: [
@@ -250,8 +254,8 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp memory_shared_usage_row(assings) do
-    params = memory_usage_params(assings)
+  defp memory_shared_usage_row(assigns) do
+    params = memory_usage_params(assigns)
 
     row(
       components: [
@@ -271,13 +275,13 @@ defmodule Phoenix.LiveDashboard.HomePage do
         limit: system_limits[type],
         percent: percentage(system_usage[type], system_limits[type]),
         dom_sub_id: "total",
-        hint: @hints[type],
+        hint: raw(@hints[type]),
         title: Phoenix.Naming.humanize(type)
       }
     ]
   end
 
-  defp memory_usage_params(%{system_usage: system_usage} = assings) do
+  defp memory_usage_params(%{system_usage: system_usage} = assigns) do
     total = system_usage.memory.total
     memory_usage = calculate_memory_usage(system_usage.memory)
     usages = [calculate_memory_usage_percent(memory_usage, total)]
@@ -289,7 +293,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
       total_legend: "Total usage:",
       total_usage: format_bytes(system_usage.memory[:total]),
       total_formatter: &format_bytes(&1),
-      csp_nonces: assings.csp_nonces,
+      csp_nonces: assigns.csp_nonces,
       dom_id: "memory"
     ]
   end

@@ -1,5 +1,64 @@
 # CHANGELOG
 
+## v0.6.5 (2022-02-20)
+
+* Support and require Phoenix.LiveView 0.17.7
+
+## v0.6.4 (2022-02-03)
+
+* Fix crash on PID info modal when remote pids were present
+
+## v0.6.3 (2022-01-30)
+
+* Fix crash on metrics page when none of the tags specified in a metric are found
+* Fix crash on OS data when CPU information cannot be retrieved
+* Do not generate compile-time dependencies for dashboard parameters
+
+## v0.6.2 (2021-12-07)
+
+* Improve navigation on Ecto Stats page
+* Fix warning on telemetry attaching
+* Support more recent MIME versions
+
+## v0.6.1 (2021-10-29)
+
+* Require LiveView v0.17.3
+* Remove warnings on latest Phoenix.HTML
+* Make charts smoother when prunning data
+
+## v0.6.0 (2021-10-21)
+
+* Require LiveView v0.17.1
+* Add Ecto Stats for MySQL (and MariaDB) databases
+
+## v0.5.3 (2021-10-06)
+
+* Show OTP 24.1+ new sockets in tab
+* Allow metrics and request logger to be disabled
+* Do not include embedded assets in priv
+
+## v0.5.2 (2021-09-21)
+
+* Fix Ecto stats page when running on multi node env
+
+## v0.5.1 (2021-09-07)
+
+* Clarify "No Ecto Repos" messages
+* Support strings on navbars titles
+
+## v0.5.0 (2021-08-10)
+
+* Require LiveView v0.16.0
+* Fallback to longpoll when websockets are not available
+* Remove CPU cards as the result was often inaccurate
+* Ignore `nil` measurements in telemetry panes
+* Remember refresh selection by using cookies
+* Show reductions diff in Processes table
+* Allow `home_app` (besides Elixir and Phoenix) to be configured
+* Support styles in `navbar` and provide parameter customization
+* Add auto-discovery of Ecto repositories
+* Add many more components to PageBuilder
+
 ## v0.4.0 (2020-11-20)
 
 * Require LiveView v0.15.0

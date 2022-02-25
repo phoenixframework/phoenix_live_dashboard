@@ -4,7 +4,7 @@
   padding: .375rem .75rem;
   display: inline-block;
 
-  &[data-enabled="true"] {
+  &[data-enabled] {
     animation-name: blink;
     animation-duration: 1.5s;
     animation-timing-function: ease-out;

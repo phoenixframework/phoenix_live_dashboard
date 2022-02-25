@@ -63,8 +63,10 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
         %{} -> acc
       end
     end)
-    |> Enum.reduce(&[&1, " " | &2])
-    |> IO.iodata_to_binary()
+    |> case do
+      [] -> nil
+      reversed_tags -> reversed_tags |> Enum.reduce(&[&1, " " | &2]) |> IO.iodata_to_binary()
+    end
   end
 
   @impl true
@@ -76,7 +78,7 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
 
     for {event_name, metrics} <- metrics_per_event do
       id = {__MODULE__, event_name, self()}
-      :telemetry.attach(id, event_name, &handle_metrics/4, {parent, metrics})
+      :telemetry.attach(id, event_name, &__MODULE__.handle_metrics/4, {parent, metrics})
     end
 
     {:ok, %{ref: ref, events: Map.keys(metrics_per_event)}}

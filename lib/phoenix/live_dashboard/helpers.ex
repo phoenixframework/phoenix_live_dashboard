@@ -1,88 +1,48 @@
 defmodule Phoenix.LiveDashboard.Helpers do
   @moduledoc false
 
+  alias Phoenix.LiveDashboard.{PageBuilder, SystemInfo}
   import Phoenix.LiveView.Helpers
   @format_limit 100
 
   @doc """
-  Computes a route path to the given route, node, and params.
+  Formats any value.
   """
-  def live_dashboard_path(socket, route, node, old_params, new_params) when is_atom(node) do
-    apply(
-      socket.router.__helpers__(),
-      :live_dashboard_path,
-      if node == node() and is_nil(old_params["node"]) do
-        [socket, :page, route, new_params]
+  def format_value(
+        %SystemInfo.ProcessDetails{pid: pid, name_or_initial_call: name_or_initial_call},
+        live_dashboard_path
+      ) do
+    text =
+      if name_or_initial_call do
+        "#{inspect(pid)} (#{name_or_initial_call})"
       else
-        [socket, :page, node, route, new_params]
+        inspect(pid)
       end
+
+    live_patch(text, to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid)))
+  end
+
+  def format_value(
+        %SystemInfo.PortDetails{port: port, description: description},
+        live_dashboard_path
+      ) do
+    live_patch("#{inspect(port)} (#{description})",
+      to: live_dashboard_path.(node(port), info: PageBuilder.encode_port(port))
     )
   end
 
-  @doc """
-  Computes a router path to the current page.
-  """
-  def live_dashboard_path(socket, %{route: route, node: node, params: params}) do
-    live_dashboard_path(socket, route, node, params, params)
-  end
-
-  @doc """
-  Computes a router path to the current page with merged params.
-  """
-  def live_dashboard_path(socket, %{route: route, node: node, params: old_params}, extra) do
-    new_params = Enum.into(extra, old_params, fn {k, v} -> {Atom.to_string(k), v} end)
-    live_dashboard_path(socket, route, node, old_params, new_params)
-  end
-
-  @doc """
-  Encodes Sockets for URLs.
-  """
-  def encode_socket(ref) do
-    '#Port' ++ rest = :erlang.port_to_list(ref)
-    "Socket#{rest}"
-  end
-
-  @doc """
-  Encodes ETSs for URLs.
-  """
-  def encode_ets(ref) do
-    '#Ref' ++ rest = :erlang.ref_to_list(ref)
-    "ETS#{rest}"
-  end
-
-  @doc """
-  Encodes PIDs for URLs.
-  """
-  def encode_pid(pid) do
-    "PID#{:erlang.pid_to_list(pid)}"
-  end
-
-  @doc """
-  Encodes Port for URLs.
-  """
-  def encode_port(port) when is_port(port) do
-    port
-    |> :erlang.port_to_list()
-    |> tl()
-    |> List.to_string()
-  end
-
-  @doc """
-  Encodes an application for URLs.
-  """
-  def encode_app(app) when is_atom(app) do
-    "App<#{app}>"
-  end
-
-  @doc """
-  Formats any value.
-  """
+  # Not used in `phoenix_live_dashboard` code, but available for custom pages
   def format_value(port, live_dashboard_path) when is_port(port) do
-    live_patch(inspect(port), to: live_dashboard_path.(node(port), info: encode_port(port)))
+    live_patch(inspect(port),
+      to: live_dashboard_path.(node(port), info: PageBuilder.encode_port(port))
+    )
   end
 
+  # Not used in `phoenix_live_dashboard` code, but available for custom pages
   def format_value(pid, live_dashboard_path) when is_pid(pid) do
-    live_patch(inspect(pid), to: live_dashboard_path.(node(pid), info: encode_pid(pid)))
+    live_patch(inspect(pid),
+      to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid))
+    )
   end
 
   def format_value([_ | _] = list, live_dashboard_path) do
@@ -205,7 +165,7 @@ defmodule Phoenix.LiveDashboard.Helpers do
   def hint(do: block) do
     assigns = %{block: block}
 
-    ~L"""
+    ~H"""
     <div class="hint">
       <svg class="hint-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="44" height="44" fill="none"/>

@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.4.0"
+  @version "0.6.5"
 
   def project do
     [
@@ -24,7 +24,6 @@ defmodule Phoenix.LiveDashboard.MixProject do
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       mod: {Phoenix.LiveDashboard.Application, []},
@@ -39,17 +38,18 @@ defmodule Phoenix.LiveDashboard.MixProject do
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       # Actual deps
-      {:phoenix_live_view, "~> 0.15.0", phoenix_live_view_opts()},
-      {:telemetry_metrics, "~> 0.4.0 or ~> 0.5.0 or ~> 0.6.0"},
-      {:phoenix_html, "~> 2.14.1 or ~> 2.15"},
-      {:ecto_psql_extras, "~> 0.6", optional: true},
+      {:mime, "~> 1.6 or ~> 2.0"},
+      {:phoenix_live_view, "~> 0.17.7", phoenix_live_view_opts()},
+      {:telemetry_metrics, "~> 0.6.0"},
+      {:ecto_psql_extras, "~> 0.7", optional: true},
+      {:ecto_mysql_extras, "~> 0.3", optional: true},
+      {:ecto, "~> 3.6.2 or ~> 3.7", optional: true},
 
       # Dev and test
-      {:circular_buffer, "~> 0.2", only: :dev},
+      {:circular_buffer, "~> 0.3", only: :dev},
       {:telemetry_poller, "~> 0.4", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:plug_cowboy, "~> 2.0", only: :dev},
@@ -94,7 +94,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       maintainers: ["Michael Crumm", "Chris McCord", "José Valim", "Alex Castaño"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/phoenixframework/phoenix_live_dashboard"},
-      files: ~w(lib priv CHANGELOG.md LICENSE.md mix.exs README.md)
+      files: ~w(dist lib CHANGELOG.md LICENSE.md mix.exs README.md)
     ]
   end
 end

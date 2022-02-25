@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.ColumnsComponent do
   defp validate_required(params, list) do
     case Enum.find(list, &(not Map.has_key?(params, &1))) do
       nil -> :ok
-      key -> raise ArgumentError, "expected #{inspect(key)} parameter to be received"
+      key -> raise ArgumentError, "the #{inspect(key)} parameter is expected in columns component"
     end
 
     params
@@ -28,36 +28,25 @@ defmodule Phoenix.LiveDashboard.ColumnsComponent do
       Map.put_new(params, :columns_class, div(12, columns_length))
     else
       raise ArgumentError,
-            "expected :components to have at min 1 compoment and max 3 components, received: {inspect(columns_lenght)}"
+            ":components must have at least 1 component and at most 3 components, got: " <>
+              inspect(columns_length)
     end
   end
 
   defp normalize_columns(%{components: components}) do
-    raise ArgumentError, "expected :components to be a list, received: #{inspect(components)}"
+    raise ArgumentError, ":components must be a list, got: #{inspect(components)}"
   end
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
       <%= for column_components <- @components do %>
-        <div class="col-sm-<%= @columns_class %> mb-4 flex-column d-flex">
-          <%= render_component(column_components, assigns) %>
+        <div class={"col-sm-#{@columns_class} mb-4 flex-column d-flex"}>
+          <%= for {component_module, component_params} <- List.wrap(column_components) do %>
+            <%= live_component component_module, component_params %>
+          <% end %>
         </div>
       <% end %>
-    """
-  end
-
-  defp render_component(components, assigns) when is_list(components) do
-    ~L"""
-    <%= for {component_module, component_params} <- components do %>
-      <%= live_component @socket, component_module, component_params %>
-    <% end %>
-    """
-  end
-
-  defp render_component({component_module, component_params}, assigns) do
-    ~L"""
-      <%= live_component @socket, component_module, component_params %>
     """
   end
 end

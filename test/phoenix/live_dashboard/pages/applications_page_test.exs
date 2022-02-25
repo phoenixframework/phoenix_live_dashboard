@@ -53,7 +53,10 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
     Application.start(:ssh)
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
-    assert rendered =~ ~s|<tr id="app-ssh" phx-click|
+
+    assert rendered =~
+             ~s|tr phx-click="show_info" phx-value-info="App&lt;ssh&gt;" phx-page-loading="phx-page-loading" id="app-ssh">|
+
     Application.unload(:ssh)
   end
 
@@ -65,9 +68,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
   end
 
   defp applications_href(limit, search, sort_by, sort_dir) do
-    ~s|href="#{
-      Plug.HTML.html_escape_to_iodata(applications_path(limit, search, sort_by, sort_dir))
-    }"|
+    ~s|href="#{Plug.HTML.html_escape_to_iodata(applications_path(limit, search, sort_by, sort_dir))}"|
   end
 
   defp applications_path(limit, search, sort_by, sort_dir) do

@@ -6,7 +6,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   customizing the menu appearance. One notable difference, however,
   is that a page implements a `render_page/1` callback, which must
   return one or more page builder components, instead of a `render/1`
-  callback that returns `~L`.
+  callback that returns `~H` or `~L` (deprecated).
 
   A simple and straight-forward example of a custom page is the
   `Phoenix.LiveDashboard.ETSPage` that ships with the dashboard:
@@ -104,7 +104,17 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   ## Components
 
   A page can only have the components listed with this page.
-  At the moment, only `nav_bar/1` and `table/1` are supported.
+
+  We currently support `card/1`, `columns/1`, `fields_card/1`,
+  `layered_graph/1`, `nav_bar/1`, `row/1`, `shared_usage_card/1`, `table/1`,
+  and `usage_card/1`.
+
+  ## Helpers
+
+  Some helpers are available for page building. The supported
+  helpers are: `live_dashboard_path/2`, `live_dashboard_path/3`,
+  `encode_app/1`, `encode_ets/1`, `encode_pid/1`, `encode_port/1`,
+  and `encode_socket/1`.
   """
 
   defstruct info: nil,
@@ -129,14 +139,15 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         }
 
   alias Phoenix.LiveDashboard.{
-    TableComponent,
-    NavBarComponent,
     CardComponent,
-    FieldsCardComponent,
-    UsageCardComponent,
-    SharedUsageCardComponent,
     ColumnsComponent,
-    RowComponent
+    FieldsCardComponent,
+    LayeredGraphComponent,
+    NavBarComponent,
+    RowComponent,
+    SharedUsageCardComponent,
+    TableComponent,
+    UsageCardComponent
   }
 
   @doc """
@@ -193,6 +204,16 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @callback handle_params(unsigned_params(), uri :: String.t(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
 
+  @doc """
+  Callback invoked when an event is called.
+
+  Note that `show_info` event is handled automatically by
+  `Phoenix.LiveDashboard.PageBuilder`,
+  but the `info` parameter (`phx-value-info`) needs to be encoded with
+  one of the `encode_*` helper functions.
+
+  For more details, see [`Phoenix.LiveView bindings`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#module-bindings)
+  """
   @callback handle_event(event :: binary, unsigned_params(), socket :: Socket.t()) ::
               {:noreply, Socket.t()} | {:reply, map, Socket.t()}
 
@@ -234,18 +255,23 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
     * `:columns` - Required. A `Keyword` list with the following keys:
       * `:field` - Required. An identifier for the column.
+      * `:sortable` - Required for at least one column. Either `:asc` or
+        `:desc` with the default sorting. When set, the column header is
+        clickable and it fetches again rows with the new order. Default: `nil`.
       * `:header` - Label to show in the current column. Default value is calculated from `:field`.
       * `:header_attrs` - A list with HTML attributes for the column header. Default: `[]`.
       * `:format` - Function which receives the value and returns the cell information.
         Default is the field value itself.
       * `:cell_attrs` - A list with HTML attributes for the table cell. Default: `[]`.
-      * `:sortable` - Either `:asc` or `:desc` with the default sorting. When set, the column
-        header is clickable and it fetches again rows with the new order. At least one column
-        should be sortable. Default: `nil`
 
     * `:row_fetcher` - Required. A function which receives the params and the node and
       returns a tuple with the rows and the total number:
-      `(params(), node()) -> {list(), integer() | binary()}`
+      `(params(), node() -> {list(), integer() | binary()})`.
+      Optionally, if the function needs to keep a state, it can be defined as a tuple
+      where the first element is a function and the second is the initial state.
+      In this case, the function will receive the state as third argument and must return
+      a tuple with the rows, the total number, and the new state for the following call:
+      `{(params(), node(), term() -> {list(), integer() | binary(), term()}), term()}`
 
     * `:rows_name` - A string to name the representation of the rows.
       Default is calculated from the current page.
@@ -284,7 +310,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           items: [
             phoenix_metrics: [
               name: "Phoenix Metrics",
-              render: table(...)
+              render: fn -> table(...) end
             ],
 
             vm_metrics: [
@@ -296,6 +322,16 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       end
 
   You can see it in use the Metrics and Ecto info pages.
+
+  ## Options
+
+    * `nav_param` - An atom that configures the navigation parameter.
+      It is useful when two nav bars are present in the same page.
+
+    * `extra_params` - A list of strings representing the parameters
+      that should stay when a tab is clicked. By default the nav ignores
+      all params, except the current node if any.
+
   """
   @spec nav_bar(keyword()) :: component()
   def nav_bar(assigns) do
@@ -316,7 +352,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         card(
           title: "Run queues",
           inner_title: "Total",
-          class: "additional-class",
+          class: ["additional-class"],
           value: 1.5
         )
       end
@@ -363,8 +399,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         fields_card(
           title: "Run queues",
           inner_title: "Total",
-          class: "additional-class",
-          fields: ["USER": "...", "ROOTDIR: "..."]
+          fields: ["USER": "...", "ROOTDIR": "..."]
         )
       end
 
@@ -580,11 +615,199 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {SharedUsageCardComponent, assigns}
   end
 
+  @doc """
+  A component for drawing layered graphs.
+
+  This is useful to represent pipelines like we have on
+  [BroadwayDashboard](https://hexdocs.pm/broadway_dashboard) where
+  each layer points to nodes of the layer below.
+  It draws the layers from top to bottom.
+
+  The calculation of layers and positions is done automatically
+  based on options.
+
+  ## Options
+
+    * `:title` - The title of the component. Default: `nil`.
+
+    * `:hint` - A textual hint to show close to the title. Default: `nil`.
+
+    * `:layers` - A graph of layers with nodes. They represent
+      our graph structure (see example). Each layer is a list
+      of nodes, where each node has the following fields:
+
+      - `:id` - The ID of the given node.
+      - `:children` - The IDs of children nodes.
+      - `:data` - A string or a map. If it's a map, the required fields
+        are `detail` and `label`.
+
+    * `:show_grid?` - Enable or disable the display of a grid. This
+      is useful for development. Default: `false`.
+
+    * `:y_label_offset` - The "y" offset of label position relative to the
+      center of its circle. Default: `5`.
+
+    * `:y_detail_offset` - The "y" offset of detail position relative to the
+      center of its circle. Default: `18`.
+
+    * `:background` - A function that calculates the background for a
+      node based on it's data. Default: `fn _node_data -> "gray" end`.
+
+    * `:format_label` - A function that formats the label. Defaults
+      to a function that returns the label or data if data is binary.
+
+    * `:format_detail` - A function that formats the detail field.
+      This is only going to be called if data is a map.
+      Default: `fn node_data -> node_data.detail end`.
+
+  ## Examples
+
+      iex> layers = [
+      ...>   [
+      ...>     %{
+      ...>       id: "a1",
+      ...>       data: "a1",
+      ...>       children: ["b1"]
+      ...>     }
+      ...>   ],
+      ...>   [
+      ...>     %{
+      ...>       id: "b1"
+      ...>       data: %{
+      ...>         detail: 0,
+      ...>         label: "b1"
+      ...>       },
+      ...>       children: []
+      ...>      }
+      ...>    ]
+      ...> ]
+      iex> layered_graph(layers: layers, title: "My Graph", hint: "A simple graph")
+  """
+  @spec layered_graph(keyword()) :: component()
+  def layered_graph(assigns) do
+    assigns =
+      assigns
+      |> Map.new()
+      |> LayeredGraphComponent.normalize_params()
+
+    {LayeredGraphComponent, assigns}
+  end
+
+  ## Helpers
+
+  @doc """
+  Encodes Sockets for URLs.
+
+  ## Example
+
+  This function can be used to encode `@socket` for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_socket(@socket) %>/>
+  """
+  @spec encode_socket(port() | binary()) :: binary()
+  def encode_socket(ref) when is_port(ref) do
+    '#Port' ++ rest = :erlang.port_to_list(ref)
+    "Socket#{rest}"
+  end
+
+  def encode_socket(ref) when is_binary(ref) do
+    ref
+  end
+
+  @doc """
+  Encodes ETSs references for URLs.
+
+  ## Example
+
+  This function can be used to encode an ETS reference for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_ets(@reference) %>/>
+  """
+  @spec encode_ets(reference()) :: binary()
+  def encode_ets(ref) when is_reference(ref) do
+    '#Ref' ++ rest = :erlang.ref_to_list(ref)
+    "ETS#{rest}"
+  end
+
+  @doc """
+  Encodes PIDs for URLs.
+
+  ## Example
+
+  This function can be used to encode a PID for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_pid(@pid) %>/>
+  """
+  @spec encode_pid(pid()) :: binary()
+  def encode_pid(pid) when is_pid(pid) do
+    "PID#{:erlang.pid_to_list(pid)}"
+  end
+
+  @doc """
+  Encodes Port for URLs.
+
+  ## Example
+
+  This function can be used to encode a Port for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_port(@port) %>/>
+  """
+  @spec encode_port(port()) :: binary()
+  def encode_port(port) when is_port(port) do
+    port
+    |> :erlang.port_to_list()
+    |> tl()
+    |> List.to_string()
+  end
+
+  @doc """
+  Encodes an application for URLs.
+
+  ## Example
+
+  This function can be used to encode an application for an event value:
+
+      <button phx-click="show-info" phx-value-info=<%= encode_app(@my_app) %>/>
+  """
+  @spec encode_app(atom()) :: binary()
+  def encode_app(app) when is_atom(app) do
+    "App<#{app}>"
+  end
+
+  @doc """
+  Computes a router path to the current page.
+  """
+  @spec live_dashboard_path(Socket.t(), page :: %__MODULE__{}) :: binary()
+  def live_dashboard_path(socket, %{route: route, node: node, params: params}) do
+    live_dashboard_path(socket, route, node, params, params)
+  end
+
+  @doc """
+  Computes a router path to the current page with merged params.
+  """
+  @spec live_dashboard_path(Socket.t(), page :: %__MODULE__{}, map() | Keyword.t()) :: binary()
+  def live_dashboard_path(socket, %{route: route, node: node, params: old_params}, extra) do
+    new_params = Enum.into(extra, old_params, fn {k, v} -> {Atom.to_string(k), v} end)
+    live_dashboard_path(socket, route, node, old_params, new_params)
+  end
+
+  @doc false
+  def live_dashboard_path(socket, route, node, old_params, new_params) when is_atom(node) do
+    apply(
+      socket.router.__helpers__(),
+      :live_dashboard_path,
+      if node == node() and is_nil(old_params["node"]) do
+        [socket, :page, route, new_params]
+      else
+        [socket, :page, node, route, new_params]
+      end
+    )
+  end
+
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
       import Phoenix.LiveView
       import Phoenix.LiveView.Helpers
-      import Phoenix.LiveDashboard.Helpers
       import Phoenix.LiveDashboard.PageBuilder
 
       @behaviour Phoenix.LiveDashboard.PageBuilder

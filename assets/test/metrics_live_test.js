@@ -246,8 +246,8 @@ describe('Metrics no tags', () => {
     ])
 
     expect(mockSetData).toHaveBeenCalledWith([
-      [3, 4, 5],
-      [5, 7, 9]
+      [2, 3, 4, 5],
+      [3, 5, 7, 9]
     ])
   })
 })
@@ -461,7 +461,7 @@ describe('Metrics with tags', () => {
       ])
     })
 
-    test('when dataset > pruneThreshold, prunes data and aggregations by half', () => {
+    test('when dataset > pruneThreshold, prunes data to length of pruneThreshold', () => {
       const chart = new TelemetryChart(document.body, { metric: 'summary', tagged: true, pruneThreshold: 6 })
 
       // Fill the chart
@@ -523,9 +523,9 @@ describe('Metrics with tags', () => {
       ])
 
       expect(mockSetData).toHaveBeenCalledWith([
-        [4, 5, 6, 7],
-        [null, 2, null, 6],
-        [0, null, 4, null]
+        [2, 3, 4, 5, 6, 7],
+        [null, -2, null, 2, null, 6],
+        [-4, null, 0, null, 4, null]
       ])
     })
   })

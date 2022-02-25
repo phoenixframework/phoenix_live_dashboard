@@ -1,15 +1,45 @@
-# iex -S mix dev
+#######################################
+# Development Server for LiveDashboard
+#
+# Options:
+#
+#   * --postgres - starts the Demo.Postgres repo
+#
+#   * --mysql - starts the Demo.MyXQL repo
+#
+# Usage:
+#
+# $ iex -S mix dev [flags]
+#######################################
 Logger.configure(level: :debug)
 
-pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
-pg_database = System.get_env("PG_DATABASE") || "phx_dashboard_dev"
-Application.put_env(:phoenix_live_dashboard, Demo.Repo, url: "ecto://#{pg_url}/#{pg_database}")
+argv = System.argv()
+{opts, _, _} = OptionParser.parse(argv, strict: [mysql: :boolean, postgres: :boolean])
+%{mysql: mysql?, postgres: postgres?} = Map.merge(%{mysql: false, postgres: false}, Map.new(opts))
 
-defmodule Demo.Repo do
-  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
+if postgres? do
+  pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
+  pg_db = System.get_env("PG_DATABASE") || "phx_dashboard_dev"
+  Application.put_env(:phoenix_live_dashboard, Demo.Postgres, url: "ecto://#{pg_url}/#{pg_db}")
+
+  defmodule Demo.Postgres do
+    use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
+  end
+
+  _ = Ecto.Adapters.Postgres.storage_up(Demo.Postgres.config())
 end
 
-_ = Ecto.Adapters.Postgres.storage_up(Demo.Repo.config())
+if mysql? do
+  mysql_url = System.get_env("MYSQL_URL") || "root@127.0.0.1"
+  mysql_db = System.get_env("MYSQL_DATABASE") || "phx_dashboard_dev"
+  Application.put_env(:phoenix_live_dashboard, Demo.MyXQL, url: "ecto://#{mysql_url}/#{mysql_db}")
+
+  defmodule Demo.MyXQL do
+    use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.MyXQL
+  end
+
+  _ = Ecto.Adapters.MyXQL.storage_up(Demo.MyXQL.config())
+end
 
 # Configures the endpoint
 Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
@@ -31,7 +61,7 @@ Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
   ],
   live_reload: [
     patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"dist/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"lib/phoenix/live_dashboard/(live|views)/.*(ex)$",
       ~r"lib/phoenix/live_dashboard/templates/.*(ex)$"
     ]
@@ -151,7 +181,7 @@ defmodule DemoWeb.PageController do
   def call(conn, :index) do
     content(conn, """
     <h2>Phoenix LiveDashboard Dev</h2>
-    <a href="/dashboard" target="_blank">Open Dashboard</a>
+    <a href="/dashboard">Open Dashboard</a>
     """)
   end
 
@@ -164,6 +194,202 @@ defmodule DemoWeb.PageController do
     conn
     |> put_resp_header("content-type", "text/html")
     |> send_resp(200, "<!doctype html><html><body>#{content}</body></html>")
+  end
+end
+
+defmodule DemoWeb.GraphShowcasePage do
+  use Phoenix.LiveDashboard.PageBuilder, refresher?: false
+
+  @impl true
+  def menu_link(_, _) do
+    {:ok, "Graph component"}
+  end
+
+  @impl true
+  def mount(_params, _, socket) do
+    {:ok, socket}
+  end
+
+  @impl true
+  def render_page(_assigns) do
+    items = [
+      simple_graph: [name: "Simple", render: &simple/0],
+      groups_graph: [name: "Groups", render: &two_groups/0],
+      groups_with_intercalation_graph: [
+        name: "Groups with intercalation",
+        render: &two_groups_intercalation/0
+      ],
+      broadway_graph: [name: "Broadway graph", render: &broadway_graph/0],
+      wider_graph: [name: "Wider graph", render: &wider_graph/0]
+    ]
+
+    nav_bar(items: items)
+  end
+
+  defp simple do
+    layered_graph(
+      title: "Simple graph",
+      layers: [
+        [%{id: "a1", data: "a1", children: ["b1", "b2"]}],
+        [%{id: "b1", data: "b1", children: ["c1"]}, %{id: "b2", data: "b2", children: ["c1"]}],
+        [%{id: "c1", data: "c1", children: []}]
+      ]
+    )
+  end
+
+  defp two_groups do
+    background = fn data -> if String.starts_with?(data, "a"), do: "#5d89c7", else: "#555" end
+
+    layered_graph(
+      title: "Two groups",
+      background: background,
+      hint: "This chart shows that we can have groups based on parent nodes.",
+      layers: [
+        [
+          %{id: "a1", data: "a1", children: ["b1", "b2"]},
+          %{id: "a2", data: "a2", children: ["b3", "b4"]},
+          %{id: "a3", data: "a3", children: ["b3", "b4"]},
+          %{id: "a4", data: "a4", children: ["b3", "b4"]},
+          %{id: "a5", data: "a5", children: ["b3", "b4"]}
+        ],
+        [
+          %{id: "b1", data: "b1", children: []},
+          %{id: "b2", data: "b2", children: []},
+          %{id: "b3", data: "b3", children: []},
+          %{id: "b4", data: "b4", children: []}
+        ]
+      ]
+    )
+  end
+
+  defp two_groups_intercalation do
+    format_label = &String.upcase/1
+
+    layered_graph(
+      title: "Two groups with intercalation",
+      hint: "This chart shows that intercalation of children is correctly displayed.",
+      format_label: format_label,
+      layers: [
+        [
+          %{id: "a1", data: "a1", children: ["b1", "b3", "b5"]},
+          %{id: "a2", data: "a2", children: ["b2", "b4", "b6"]}
+        ],
+        [
+          %{id: "b1", data: "b1", children: []},
+          %{id: "b2", data: "b2", children: []},
+          %{id: "b3", data: "b3", children: []},
+          %{id: "b4", data: "b4", children: []},
+          %{id: "b5", data: "b5", children: []},
+          %{id: "b6", data: "b6", children: []}
+        ]
+      ]
+    )
+  end
+
+  defp broadway_graph do
+    background = fn data ->
+      case data do
+        %{detail: perc} ->
+          hue = 100 - perc
+
+          "hsl(#{hue}, 80%, 35%)"
+
+        _ ->
+          "lightgray"
+      end
+    end
+
+    format_detail = fn data -> "#{data.detail}%" end
+
+    layers = [
+      [
+        %{
+          children: [
+            Demo.Pipeline.Broadway.Processor_default_0,
+            Demo.Pipeline.Broadway.Processor_default_1,
+            Demo.Pipeline.Broadway.Processor_default_2,
+            Demo.Pipeline.Broadway.Processor_default_3,
+            Demo.Pipeline.Broadway.Processor_default_4
+          ],
+          data: "prod_0",
+          id: Demo.Pipeline.Broadway.Producer_0
+        }
+      ],
+      [
+        %{
+          children: [Demo.Pipeline.Broadway.Batcher_default],
+          data: %{detail: 84, label: "proc_0"},
+          id: Demo.Pipeline.Broadway.Processor_default_0
+        },
+        %{
+          children: [Demo.Pipeline.Broadway.Batcher_default],
+          data: %{detail: 13, label: "proc_1"},
+          id: Demo.Pipeline.Broadway.Processor_default_1
+        },
+        %{
+          children: [Demo.Pipeline.Broadway.Batcher_default],
+          data: %{detail: 80, label: "proc_2"},
+          id: Demo.Pipeline.Broadway.Processor_default_2
+        },
+        %{
+          children: [Demo.Pipeline.Broadway.Batcher_default],
+          data: %{detail: 82, label: "proc_3"},
+          id: Demo.Pipeline.Broadway.Processor_default_3
+        },
+        %{
+          children: [Demo.Pipeline.Broadway.Batcher_default],
+          data: %{detail: 40, label: "proc_4"},
+          id: Demo.Pipeline.Broadway.Processor_default_4
+        }
+      ],
+      [
+        %{
+          children: [
+            Demo.Pipeline.Broadway.BatchProcessor_default_0,
+            Demo.Pipeline.Broadway.BatchProcessor_default_1,
+            Demo.Pipeline.Broadway.BatchProcessor_default_2
+          ],
+          data: %{detail: 33, label: "default"},
+          id: Demo.Pipeline.Broadway.Batcher_default
+        }
+      ],
+      [
+        %{
+          children: [],
+          data: %{detail: 61, label: "proc_0"},
+          id: Demo.Pipeline.Broadway.BatchProcessor_default_0
+        },
+        %{
+          children: [],
+          data: %{detail: 61, label: "proc_1"},
+          id: Demo.Pipeline.Broadway.BatchProcessor_default_1
+        },
+        %{
+          children: [],
+          data: %{detail: 53, label: "proc_2"},
+          id: Demo.Pipeline.Broadway.BatchProcessor_default_2
+        }
+      ]
+    ]
+
+    layered_graph(
+      layers: layers,
+      background: background,
+      format_detail: format_detail,
+      title: "Broadway graph"
+    )
+  end
+
+  defp wider_graph do
+    bottom_layer = for i <- 1..20, do: %{id: "b#{i}", data: "b#{i}", children: []}
+
+    layered_graph(
+      title: "Simple graph",
+      layers: [
+        [%{id: "a1", data: "a1", children: Enum.map(1..20, &"b#{&1}")}],
+        bottom_layer
+      ]
+    )
   end
 end
 
@@ -187,16 +413,25 @@ defmodule DemoWeb.Router do
       metrics: DemoWeb.Telemetry,
       metrics_history: {DemoWeb.History, :data, []},
       allow_destructive_actions: true,
-      ecto_repos: [Demo.Repo],
+      home_app: {"Erlang's stdlib", :stdlib},
+      additional_pages: [
+        components: DemoWeb.GraphShowcasePage
+      ],
       csp_nonce_assign_key: %{
         img: :img_csp_nonce,
         style: :style_csp_nonce,
         script: :script_csp_nonce
-      }
+      },
+      ecto_psql_extras_options: [
+        long_running_queries: [threshold: "200 milliseconds"]
+      ],
+      ecto_mysql_extras_options: [
+        long_running_queries: [threshold: 200]
+      ]
     )
   end
 
-  defp put_csp(conn, _params) do
+  def put_csp(conn, _opts) do
     [img_nonce, style_nonce, script_nonce] =
       for _i <- 1..3, do: 16 |> :crypto.strong_rand_bytes() |> Base.url_encode64(padding: false)
 
@@ -238,14 +473,20 @@ end
 Application.ensure_all_started(:os_mon)
 Application.put_env(:phoenix, :serve_endpoints, true)
 
-Task.start(fn ->
-  children = [
-    Demo.Repo,
-    {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
-    {DemoWeb.History, DemoWeb.Telemetry.metrics()},
-    DemoWeb.Endpoint
-  ]
+Task.async(fn ->
+  children = []
+  children = if postgres?, do: [Demo.Postgres | children], else: children
+  children = if mysql?, do: [Demo.MyXQL | children], else: children
+
+  children =
+    children ++
+      [
+        {Phoenix.PubSub, [name: Demo.PubSub, adapter: Phoenix.PubSub.PG2]},
+        {DemoWeb.History, DemoWeb.Telemetry.metrics()},
+        DemoWeb.Endpoint
+      ]
 
   {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
   Process.sleep(:infinity)
 end)
+|> Task.await(:infinity)

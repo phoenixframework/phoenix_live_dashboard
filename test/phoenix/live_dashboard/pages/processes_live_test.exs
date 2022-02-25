@@ -64,16 +64,16 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
     Agent.start_link(fn -> List.duplicate("a", 1000) end, name: :process_live_test_high_reductions)
 
-    {:ok, live, _} = live(build_conn(), processes_path(1000, "", :reductions, :desc))
+    {:ok, live, _} = live(build_conn(), processes_path(1000, "", :reductions_diff, :desc))
     rendered = render(live)
     assert rendered =~ ~r/:process_live_test_high_reductions.*:process_live_test_low_reductions/s
-    assert rendered =~ processes_href(1000, "", :reductions, :asc)
-    refute rendered =~ processes_href(1000, "", :reductions, :desc)
+    assert rendered =~ processes_href(1000, "", :reductions_diff, :asc)
+    refute rendered =~ processes_href(1000, "", :reductions_diff, :desc)
 
-    rendered = render_patch(live, processes_path(1000, "", :reductions, :asc))
+    rendered = render_patch(live, processes_path(1000, "", :reductions_diff, :asc))
     assert rendered =~ ~r/:process_live_test_low_reductions.*:process_live_test_high_reductions/s
-    assert rendered =~ processes_href(1000, "", :reductions, :desc)
-    refute rendered =~ processes_href(1000, "", :reductions, :asc)
+    assert rendered =~ processes_href(1000, "", :reductions_diff, :desc)
+    refute rendered =~ processes_href(1000, "", :reductions_diff, :asc)
   end
 
   test "order processes by message queue len" do
@@ -144,7 +144,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
   defp process_info_path(prefix \\ "dashboard", pid, limit, sort_by, sort_dir) do
     processes_path(prefix, limit, "", sort_by, sort_dir) <>
-      "&info=#{Phoenix.LiveDashboard.Helpers.encode_pid(pid)}"
+      "&info=#{Phoenix.LiveDashboard.PageBuilder.encode_pid(pid)}"
   end
 
   defp processes_path(prefix \\ "dashboard", limit, search, sort_by, sort_dir) do

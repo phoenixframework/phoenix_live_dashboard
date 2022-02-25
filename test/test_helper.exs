@@ -1,6 +1,7 @@
 System.put_env("PHX_DASHBOARD_TEST", "PHX_DASHBOARD_ENV_VALUE")
 
 pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
+mysql_url = System.get_env("MYSQL_URL") || "root@127.0.0.1"
 
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Repo,
   url: "ecto://#{pg_url}/phx_dashboard_test"
@@ -11,6 +12,26 @@ defmodule Phoenix.LiveDashboardTest.Repo do
 end
 
 _ = Ecto.Adapters.Postgres.storage_up(Phoenix.LiveDashboardTest.Repo.config())
+
+Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.PGRepo,
+  url: "ecto://#{pg_url}/phx_dashboard_test"
+)
+
+defmodule Phoenix.LiveDashboardTest.PGRepo do
+  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
+end
+
+_ = Ecto.Adapters.Postgres.storage_up(Phoenix.LiveDashboardTest.PGRepo.config())
+
+Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.MySQLRepo,
+  url: "ecto://#{mysql_url}/phx_dashboard_test"
+)
+
+defmodule Phoenix.LiveDashboardTest.MySQLRepo do
+  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.MyXQL
+end
+
+_ = Ecto.Adapters.MyXQL.storage_up(Phoenix.LiveDashboardTest.MySQLRepo.config())
 
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Endpoint,
   url: [host: "localhost", port: 4000],
@@ -53,9 +74,9 @@ defmodule Phoenix.LiveDashboardTest.Router do
   scope "/", ThisWontBeUsed, as: :this_wont_be_used do
     pipe_through :browser
 
+    # Ecto repos will be auto discoverable.
     live_dashboard "/dashboard",
-      metrics: Phoenix.LiveDashboardTest.Telemetry,
-      ecto_repos: [Phoenix.LiveDashboardTest.Repo]
+      metrics: Phoenix.LiveDashboardTest.Telemetry
 
     live_dashboard "/config",
       live_socket_path: "/custom/live",
@@ -65,13 +86,16 @@ defmodule Phoenix.LiveDashboardTest.Router do
         script: :script_csp_nonce
       },
       env_keys: ["PHX_DASHBOARD_TEST"],
+      home_app: {"Erlang's stdlib", :stdlib},
       allow_destructive_actions: true,
       metrics: Phoenix.LiveDashboardTest.Telemetry,
       metrics_history: {TestHistory, :test_data, []},
-      request_logger_cookie_domain: "my.domain"
+      request_logger_cookie_domain: "my.domain",
+      live_session_name: :config_dashboard
 
     live_dashboard "/parent_cookie_domain",
-      request_logger_cookie_domain: :parent
+      request_logger_cookie_domain: :parent,
+      live_session_name: :cookie_dashboard
   end
 end
 
@@ -103,7 +127,6 @@ Application.ensure_all_started(:os_mon)
 
 Supervisor.start_link(
   [
-    Phoenix.LiveDashboardTest.Repo,
     {Phoenix.PubSub, name: Phoenix.LiveDashboardTest.PubSub, adapter: Phoenix.PubSub.PG2},
     Phoenix.LiveDashboardTest.Endpoint
   ],

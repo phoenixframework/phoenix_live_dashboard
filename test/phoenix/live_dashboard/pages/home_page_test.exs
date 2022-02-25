@@ -38,6 +38,15 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
              ~s|<h6 class=\"banner-card-title\">\n      Uptime\n      \n    </h6><div class=\"banner-card-value\">0m</div>|
   end
 
+  test "shows custom home app" do
+    {:ok, live, _} = live(build_conn(), "/config/home")
+    rendered = render(live)
+
+    assert rendered =~
+             ~s|<h6 class="banner-card-title">\n      Erlang&apos;s stdlib\n      \n    </h6><div class="banner-card-value">| <>
+               ~s|#{Application.spec(:stdlib, :vsn)}</div>|
+  end
+
   test "shows memory usage information" do
     {:ok, live, _} = live(build_conn(), "/dashboard/home")
     rendered = render(live)

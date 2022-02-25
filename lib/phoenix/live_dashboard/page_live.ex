@@ -13,11 +13,14 @@ defmodule Phoenix.LiveDashboard.PageLive do
   alias __MODULE__
 
   @derive {Inspect, only: []}
+  @default_refresh 15
+  @refresh_options [1, 2, 5, 15, 30]
   defstruct links: [],
             nodes: [],
+            dashboard_mount_path: nil,
             refresher?: true,
-            refresh: 15,
-            refresh_options: for(i <- [1, 2, 5, 15, 30], do: {"#{i}s", i}),
+            refresh: @default_refresh,
+            refresh_options: for(i <- @refresh_options, do: {"#{i}s", i}),
             timer: nil
 
   @impl true
@@ -87,9 +90,21 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp assign_refresh(socket) do
     module = socket.assigns.page.module
 
-    socket
-    |> update_menu(refresher?: module.__page_live__(:refresher?))
-    |> init_schedule_refresh()
+    refresh = get_stored_refresh(socket)
+    update_menu(socket, refresh: refresh, refresher?: module.__page_live__(:refresher?))
+  end
+
+  defp get_stored_refresh(socket) do
+    key = Atom.to_string(socket.assigns.page.route)
+    refresh = get_connect_params(socket)["refresh_data"][key]
+
+    with false <- is_nil(refresh),
+         {refresh, ""} <- Integer.parse(refresh),
+         true <- refresh in @refresh_options do
+      refresh
+    else
+      _ -> @default_refresh
+    end
   end
 
   defp init_schedule_refresh(socket) do
@@ -150,13 +165,27 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   @impl true
   def handle_params(params, url, socket) do
-    socket = assign_params(socket, params)
+    socket =
+      socket
+      |> assign_params(params)
+      |> dashboard_mount_path(url, params)
+
     maybe_apply_module(socket, :handle_params, [params, url], &{:noreply, &1})
+  end
+
+  defp dashboard_mount_path(socket, url, params) do
+    %{path: path} = URI.parse(url)
+    range = if params["node"], do: 0..-3, else: 0..-2
+
+    mount_path = path |> String.split("/", trim: true) |> Enum.slice(range) |> Enum.join("/")
+    mount_path = "/" <> mount_path
+
+    update_menu(socket, dashboard_mount_path: mount_path)
   end
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <header class="d-flex">
       <div id="menu" class="container d-flex flex-column">
         <h1>Phoenix LiveDashboard</h1>
@@ -165,7 +194,10 @@ defmodule Phoenix.LiveDashboard.PageLive do
           <form id="refresher" phx-change="select_refresh">
             <%= if @menu.refresher? do %>
               <label for="refresh-interval-select">Update every</label>
-              <select name="refresh" class="custom-select custom-select-sm" id="refresh-interval-select">
+              <select name="refresh" class="custom-select custom-select-sm"
+                      id="refresh-interval-select" data-page={@page.route}
+                      data-dashboard-mount-path={@menu.dashboard_mount_path}
+                      phx-hook="PhxRememberRefresh">
                 <%= options_for_select(@menu.refresh_options, @menu.refresh) %>
               </select>
             <% else %>
@@ -190,31 +222,33 @@ defmodule Phoenix.LiveDashboard.PageLive do
     </header>
     <%= live_info(@socket, @page) %>
     <section id="main" role="main" class="container">
-      <%= render_page(@socket, @page.module, assigns) %>
+      <%= render_page(@page.module, assigns) %>
     </section>
     """
   end
 
   # Those pages are handled especially outside of the component tree.
-  defp render_page(_socket, module, assigns)
+  defp render_page(module, assigns)
        when module in [Phoenix.LiveDashboard.RequestLoggerPage] do
     module.render(assigns)
   end
 
-  defp render_page(socket, module, assigns) do
+  defp render_page(module, assigns) do
     {component, component_assigns} = module.render_page(assigns)
     component_assigns = Map.put(component_assigns, :page, assigns.page)
-    live_component(socket, component, component_assigns)
+    live_component(component, component_assigns)
   end
 
-  defp live_info(_socket, %{info: nil}), do: nil
+  defp live_info(_, %{info: nil}), do: nil
 
   defp live_info(socket, %{info: title, node: node, params: params} = page) do
     if component = extract_info_component(title) do
       params = Map.delete(params, "info")
-      path = &live_dashboard_path(socket, page.route, &1, params, Enum.into(&2, params))
 
-      live_modal(socket, component,
+      path =
+        &PageBuilder.live_dashboard_path(socket, page.route, &1, params, Enum.into(&2, params))
+
+      live_modal(component,
         id: title,
         return_to: path.(node, []),
         title: title,
@@ -225,11 +259,11 @@ defmodule Phoenix.LiveDashboard.PageLive do
     end
   end
 
-  defp live_modal(socket, component, opts) do
+  defp live_modal(component, opts) do
     path = Keyword.fetch!(opts, :return_to)
     title = Keyword.fetch!(opts, :title)
     modal_opts = [id: :modal, return_to: path, component: component, opts: opts, title: title]
-    live_component(socket, Phoenix.LiveDashboard.ModalComponent, modal_opts)
+    live_component(Phoenix.LiveDashboard.ModalComponent, modal_opts)
   end
 
   defp extract_info_component("PID<" <> _), do: Phoenix.LiveDashboard.ProcessInfoComponent
@@ -266,7 +300,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
     page = socket.assigns.page
 
     if node && node != page.node do
-      to = live_dashboard_path(socket, page.route, node, page.params, page.params)
+      to = PageBuilder.live_dashboard_path(socket, page.route, node, page.params, page.params)
       {:noreply, push_redirect(socket, to: to)}
     else
       {:noreply, redirect_to_current_node(socket)}
@@ -281,7 +315,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   def handle_event("show_info", %{"info" => info}, socket) do
-    to = live_dashboard_path(socket, socket.assigns.page, info: info)
+    to = PageBuilder.live_dashboard_path(socket, socket.assigns.page, info: info)
     {:noreply, push_patch(socket, to: to)}
   end
 
@@ -292,12 +326,16 @@ defmodule Phoenix.LiveDashboard.PageLive do
   ## Navbar handling
 
   defp maybe_link(_socket, _page, {:current, text}) do
-    content_tag(:div, text, class: "menu-item active")
+    assigns = %{text: text}
+
+    ~H"""
+    <div class="menu-item active"><%= text %></div>
+    """
   end
 
   defp maybe_link(socket, page, {:enabled, text, route}) do
     live_redirect(text,
-      to: live_dashboard_path(socket, route, page.node, page.params, []),
+      to: PageBuilder.live_dashboard_path(socket, route, page.node, page.params, []),
       class: "menu-item"
     )
   end
@@ -305,7 +343,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp maybe_link(_socket, _page, {:disabled, text}) do
     assigns = %{text: text}
 
-    ~L"""
+    ~H"""
     <div class="menu-item menu-item-disabled">
       <%= @text %>
     </div>
@@ -315,7 +353,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   defp maybe_link(_socket, _page, {:disabled, text, more_info_url}) do
     assigns = %{more_info_url: more_info_url, text: text}
 
-    ~L"""
+    ~H"""
     <div class="menu-item menu-item-disabled">
       <%= @text %> <%= link "Enable", to: @more_info_url, class: "menu-item-enable-button" %>
     </div>
@@ -335,7 +373,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp redirect_to_current_node(socket) do
-    push_redirect(socket, to: live_dashboard_path(socket, :home, node(), %{}, %{}))
+    push_redirect(socket, to: PageBuilder.live_dashboard_path(socket, :home, node(), %{}, %{}))
   end
 
   defp update_page(socket, assigns) do

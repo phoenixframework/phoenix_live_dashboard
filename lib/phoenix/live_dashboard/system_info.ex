@@ -2,6 +2,18 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   # Helpers for fetching and formatting system info.
   @moduledoc false
 
+  # These structs are not loaded into remote nodes, but they can be used as structs
+  # because they are expanded at compile-time
+  defmodule ProcessDetails do
+    @moduledoc false
+    defstruct [:pid, :name_or_initial_call, :initial_call]
+  end
+
+  defmodule PortDetails do
+    @moduledoc false
+    defstruct [:port, :description]
+  end
+
   def node_capabilities(node, requirements) do
     case :rpc.call(node, :code, :is_loaded, [__MODULE__]) do
       {:file, _} ->
@@ -32,9 +44,16 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Fetchers
 
-  def fetch_processes(node, search, sort_by, sort_dir, limit) do
+  def fetch_processes(node, search, sort_by, sort_dir, limit, prev_reductions \\ nil) do
     search = search && String.downcase(search)
-    :rpc.call(node, __MODULE__, :processes_callback, [search, sort_by, sort_dir, limit])
+
+    :rpc.call(node, __MODULE__, :processes_callback, [
+      search,
+      sort_by,
+      sort_dir,
+      limit,
+      prev_reductions
+    ])
   end
 
   def fetch_ets(node, search, sort_by, sort_dir, limit) do
@@ -72,8 +91,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :ets_info_callback, [ref])
   end
 
-  def fetch_system_info(node, keys) do
-    :rpc.call(node, __MODULE__, :info_callback, [keys])
+  def fetch_system_info(node, keys, app) do
+    :rpc.call(node, __MODULE__, :info_callback, [keys, app])
   end
 
   def fetch_system_usage(node) do
@@ -95,13 +114,13 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ## System callbacks
 
   @doc false
-  def info_callback(keys) do
+  def info_callback(keys, app) do
     %{
       system_info: %{
         banner: :erlang.system_info(:system_version),
         elixir_version: System.version(),
         phoenix_version: Application.spec(:phoenix, :vsn) || "None",
-        dashboard_version: Application.spec(:phoenix_live_dashboard, :vsn) || "None",
+        app_version: Application.spec(app, :vsn) || "None",
         system_architecture: :erlang.system_info(:system_architecture)
       },
       system_limits: %{
@@ -179,9 +198,6 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ## Process Callbacks
 
   @processes_keys [
-    :registered_name,
-    :initial_call,
-    :dictionary,
     :memory,
     :reductions,
     :message_queue_len,
@@ -189,30 +205,36 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ]
 
   @doc false
-  def processes_callback(search, sort_by, sort_dir, limit) do
+  def processes_callback(search, sort_by, sort_dir, limit, prev_reductions) do
     multiplier = sort_dir_multipler(sort_dir)
 
     processes =
-      for pid <- Process.list(), info = process_info(pid), show_process?(info, search) do
+      for pid <- Process.list(),
+          info = process_info(pid, prev_reductions[pid]),
+          show_process?(info, search) do
         sorter = info[sort_by] * multiplier
         {sorter, info}
       end
 
+    next_state = for {_sorter, info} <- processes, into: %{}, do: {info[:pid], info[:reductions]}
+
     count = if search, do: length(processes), else: :erlang.system_info(:process_count)
     processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
-    {processes, count}
+
+    {processes, count, next_state}
   end
 
-  defp process_info(pid) do
+  defp process_info(pid, prev_reductions) do
     if info = Process.info(pid, @processes_keys) do
-      [{:registered_name, name}, {:initial_call, initial_call}, {:dictionary, dict} | rest] = info
+      diff = info[:reductions] - (prev_reductions || 0)
 
-      initial_call = Keyword.get(dict, :"$initial_call", initial_call)
+      details = to_process_details(pid)
 
-      name_or_initial_call =
-        if is_atom(name), do: inspect(name), else: format_initial_call(initial_call)
-
-      [pid: pid, name_or_initial_call: name_or_initial_call] ++ rest
+      [
+        pid: pid,
+        name_or_initial_call: details.name_or_initial_call,
+        reductions_diff: diff
+      ] ++ info
     end
   end
 
@@ -227,15 +249,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   @process_info_keys [
-    :initial_call,
     :dictionary,
+    :links,
+    :monitors,
+    :monitored_by,
     :registered_name,
     :current_function,
     :status,
     :message_queue_len,
-    :links,
-    :monitors,
-    :monitored_by,
     :trap_exit,
     :error_handler,
     :priority,
@@ -251,14 +272,42 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def process_info_callback(pid) do
     case Process.info(pid, @process_info_keys) do
-      [{:initial_call, initial_call}, {:dictionary, dict} | info] ->
-        initial_call = Keyword.get(dict, :"$initial_call", initial_call)
-        {:ok, [{:initial_call, initial_call} | info]}
-
       nil ->
         :error
+
+      info ->
+        details = to_process_details(pid)
+
+        {:ok,
+         info
+         |> Enum.map(&process_info_callback_key/1)
+         |> Keyword.put(:initial_call, details.initial_call)}
     end
   end
+
+  defp process_info_callback_key({:links, links}),
+    do: {:links, Enum.map(links, &pid_or_port_details/1)}
+
+  defp process_info_callback_key({:monitors, monitors}) do
+    {:monitors,
+     monitors
+     |> Enum.map(fn {_label, pid_or_port} -> pid_or_port end)
+     |> Enum.map(&pid_or_port_details/1)}
+  end
+
+  defp process_info_callback_key({:monitored_by, monitored_by}),
+    do: {:monitored_by, Enum.map(monitored_by, &pid_or_port_details/1)}
+
+  defp process_info_callback_key({:group_leader, group_leader}),
+    do: {:group_leader, pid_or_port_details(group_leader)}
+
+  defp process_info_callback_key({:dictionary, dictionary}) do
+    {:ancestors,
+     Keyword.get(dictionary, :"$ancestors", [])
+     |> Enum.map(&pid_or_port_details/1)}
+  end
+
+  defp process_info_callback_key({key, value}), do: {key, value}
 
   ## Applications callbacks
 
@@ -415,8 +464,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   @doc false
   def port_info_callback(port) do
     case Port.info(port) do
-      [_ | _] = info -> {:ok, info}
-      nil -> :error
+      [_ | _] = info ->
+        {:ok,
+         info
+         |> Keyword.update!(:links, fn links -> Enum.map(links, &pid_or_port_details/1) end)
+         |> Keyword.update!(:connected, &pid_or_port_details/1)}
+
+      nil ->
+        :error
     end
   end
 
@@ -470,8 +525,17 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def ets_info_callback(ref) do
     case :ets.info(ref) do
-      :undefined -> :error
-      info -> {:ok, info}
+      :undefined ->
+        :error
+
+      info ->
+        {:ok,
+         info
+         |> Keyword.update!(:owner, &pid_or_port_details/1)
+         |> Keyword.update!(:heir, fn
+           :none -> nil
+           heir -> pid_or_port_details(heir)
+         end)}
     end
   end
 
@@ -479,9 +543,9 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def sockets_callback(search, sort_by, sort_dir, limit) do
     sorter = if sort_dir == :asc, do: &<=/2, else: &>=/2
+    sockets = Port.list() ++ gen_tcp_sockets() ++ gen_udp_sockets()
 
-    sockets =
-      for port <- Port.list(), info = socket_info(port), show_socket?(info, search), do: info
+    sockets = for port <- sockets, info = socket_info(port), show_socket?(info, search), do: info
 
     count = length(sockets)
     sockets = sockets |> Enum.sort_by(&Keyword.fetch!(&1, sort_by), sorter) |> Enum.take(limit)
@@ -490,8 +554,48 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def socket_info_callback(port) do
     case socket_info(port) do
-      nil -> :error
-      info -> {:ok, info}
+      nil ->
+        :error
+
+      info ->
+        {:ok,
+         info
+         |> Keyword.update!(:connected, &pid_or_port_details/1)}
+    end
+  end
+
+  defp gen_tcp_sockets() do
+    if function_exported?(:gen_tcp_socket, :which_sockets, 0) do
+      apply(:gen_tcp_socket, :which_sockets, [])
+    else
+      []
+    end
+  end
+
+  defp gen_udp_sockets() do
+    if function_exported?(:gen_udp_socket, :which_sockets, 0) do
+      apply(:gen_udp_socket, :which_sockets, [])
+    else
+      []
+    end
+  end
+
+  defp socket_info({:"$inet", gen_socket_mod, {pid, {:"$socket", _ref}}} = socket) do
+    with info when not is_nil(info) <- gen_socket_mod.info(socket),
+         port <- get_socket_fd(socket, gen_socket_mod) do
+      [
+        module: gen_socket_mod,
+        port: port,
+        local_address: format_address(gen_socket_mod.sockname(socket)),
+        foreign_address: format_address(gen_socket_mod.peername(socket)),
+        state: format_socket_state(info[:rstates]),
+        type: info[:type],
+        connected: pid,
+        send_oct: info[:counters][:send_oct],
+        recv_oct: info[:counters][:recv_oct]
+      ]
+    else
+      _ -> nil
     end
   end
 
@@ -513,6 +617,13 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       ] ++ stat
     else
       _ -> nil
+    end
+  end
+
+  defp get_socket_fd(socket, gen_socket_mod) do
+    case gen_socket_mod.getopts(socket, [:fd]) do
+      {:ok, [fd: fd]} -> "esock[#{fd}]"
+      _ -> "esock"
     end
   end
 
@@ -565,9 +676,6 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Helpers
 
-  defp format_initial_call({:supervisor, mod, arity}), do: Exception.format_mfa(mod, :init, arity)
-  defp format_initial_call({m, f, a}), do: Exception.format_mfa(m, f, a)
-
   # The address is formatted based on the implementation of `:inet.fmt_addr/2`
   defp format_address({:error, :enotconn}), do: "*:*"
   defp format_address({:error, _}), do: " "
@@ -593,6 +701,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       [:bound, :listen | _] -> "LISTEN"
       [:bound, :connecting | _] -> "CONNECTING"
       [:bound, :open] -> "BOUND"
+      [:bound, :selected] -> "CONNECTED"
       [:connected, :open] -> "CONNECTED"
       [:open] -> "IDLE"
       [] -> "CLOSED"
@@ -602,4 +711,47 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   defp sort_dir_multipler(:asc), do: 1
   defp sort_dir_multipler(:desc), do: -1
+
+  defp pid_or_port_details(pid) when is_pid(pid), do: to_process_details(pid)
+  defp pid_or_port_details(name) when is_atom(name), do: to_process_details(name)
+  defp pid_or_port_details(port) when is_port(port), do: to_port_details(port)
+  defp pid_or_port_details(reference) when is_reference(reference), do: reference
+
+  def to_process_details(pid) when is_pid(pid) and node(pid) == node() do
+    {name, initial_call} =
+      case Process.info(pid, [:initial_call, :dictionary, :registered_name]) do
+        [{:initial_call, initial_call}, {:dictionary, dictionary}, {:registered_name, name}] ->
+          initial_call = Keyword.get(dictionary, :"$initial_call", initial_call)
+          name = if is_atom(name), do: inspect(name), else: format_initial_call(initial_call)
+          {name, initial_call}
+
+        _ ->
+          {nil, nil}
+      end
+
+    %ProcessDetails{pid: pid, name_or_initial_call: name, initial_call: initial_call}
+  end
+
+  def to_process_details(pid) when is_pid(pid) do
+    %ProcessDetails{pid: pid, name_or_initial_call: nil, initial_call: nil}
+  end
+
+  def to_process_details(name) when is_atom(name) do
+    Process.whereis(name)
+    |> to_process_details()
+  end
+
+  defp format_initial_call({:supervisor, mod, arity}), do: Exception.format_mfa(mod, :init, arity)
+  defp format_initial_call({m, f, a}), do: Exception.format_mfa(m, f, a)
+  defp format_initial_call(nil), do: nil
+
+  def to_port_details(port) when is_port(port) do
+    description =
+      case Port.info(port, :name) do
+        {:name, name} -> name
+        _ -> port
+      end
+
+    %PortDetails{port: port, description: description}
+  end
 end

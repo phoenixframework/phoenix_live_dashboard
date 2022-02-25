@@ -12,13 +12,13 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
 
     assert {:disabled, "Metrics", ^link} =
              Phoenix.LiveDashboard.MetricsPage.menu_link(
-               %{"metrics" => nil},
+               %{metrics: nil},
                %{dashboard: true}
              )
 
     assert {:ok, "Metrics"} =
              Phoenix.LiveDashboard.MetricsPage.menu_link(
-               %{"metrics" => {Module, :fun}},
+               %{metrics: {Module, :fun}},
                %{dashboard: true}
              )
   end

@@ -20,6 +20,11 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     {[[foo: 1, bar: 2, baz: 3], [foo: 4, bar: 5, baz: 6]], 2}
   end
 
+  defp row_fetcher(params, node, state) do
+    send(self(), {:row_fetcher, params, node, state})
+    {[[foo: 1, bar: 2, baz: 3], [foo: 4, bar: 5, baz: 6]], 2, state + 1}
+  end
+
   defp render_table(opts) do
     columns = [%{field: :foo, sortable: :desc}, %{field: :bar, sortable: :desc}, %{field: :baz}]
 
@@ -59,6 +64,21 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
 
       render_table(params: params)
       assert_received {:row_fetcher, %{sort_dir: :asc, limit: 5000, sort_by: :bar}, ^node}
+    end
+
+    test "calls to row_fetcher/3 with params, node and state" do
+      render_table(row_fetcher: {&row_fetcher/3, 0}, params: %{})
+      assert_received {:row_fetcher, %{sort_dir: :desc, limit: 50, sort_by: :foo}, node, 0}
+      assert node == node()
+
+      params = %{
+        "sort_by" => "bar",
+        "sort_dir" => "asc",
+        "limit" => "5000"
+      }
+
+      render_table(row_fetcher: {&row_fetcher/3, 1}, params: params)
+      assert_received {:row_fetcher, %{sort_dir: :asc, limit: 5000, sort_by: :bar}, ^node, 1}
     end
 
     test "renders columns" do
@@ -104,17 +124,17 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
       result = render_table(limit: [10, 100, 1000])
 
       assert result =~
-               ~s|<option value=\"10\" selected>10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
+               ~s|<option selected value=\"10\">10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
 
       result = render_table(params: %{"limit" => "5"}, limit: [10, 100, 1000])
 
       assert result =~
-               ~s|<option value=\"10\" selected>10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
+               ~s|<option selected value=\"10\">10</option><option value=\"100\">100</option><option value=\"1000\">1000</option>|
 
       result = render_table(params: %{"limit" => "100"}, limit: [10, 100, 1000])
 
       assert result =~
-               ~s|<option value=\"10\">10</option><option value=\"100\" selected>100</option><option value=\"1000\">1000</option>|
+               ~s|<option value=\"10\">10</option><option selected value=\"100\">100</option><option value=\"1000\">1000</option>|
     end
 
     test "disables limit" do
@@ -154,25 +174,25 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
 
   describe "normalize_params/1" do
     test "validates required params" do
-      msg = "expected :columns parameter to be received"
+      msg = "the :columns parameter is expected in table component"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{})
       end
 
-      msg = "expected :id parameter to be received"
+      msg = "the :id parameter is expected in table component"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{columns: []})
       end
 
-      msg = "expected :row_fetcher parameter to be received"
+      msg = "the :row_fetcher parameter is expected in table component"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{id: "id", columns: []})
       end
 
-      msg = "expected :title parameter to be received"
+      msg = "the :title parameter is expected in table component"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{
@@ -184,7 +204,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     end
 
     test "normalizes columns" do
-      msg = "expected :field parameter to be received, column received: []"
+      msg = "the :field parameter is expected, got: []"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{
@@ -195,7 +215,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         })
       end
 
-      msg = "expected :field parameter to not be nil, column received: [field: nil]"
+      msg = ":field parameter must not be nil, got: [field: nil]"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{
@@ -206,7 +226,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         })
       end
 
-      msg = "expected :field parameter to be an atom or a string, column received: [field: 7]"
+      msg = ":field parameter must be an atom or a string, got: [field: 7]"
 
       assert_raise ArgumentError, msg, fn ->
         TableComponent.normalize_params(%{
@@ -217,12 +237,34 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         })
       end
 
+      msg = "must have at least one column with :sortable parameter"
+
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{
+          title: "title",
+          row_fetcher: &row_fetcher/2,
+          id: "id",
+          columns: [[field: "id"]]
+        })
+      end
+
+      msg = ":columns must be a list, got: nil"
+
+      assert_raise ArgumentError, msg, fn ->
+        TableComponent.normalize_params(%{
+          title: "title",
+          row_fetcher: &row_fetcher/2,
+          id: "id",
+          columns: nil
+        })
+      end
+
       assert params =
                TableComponent.normalize_params(%{
                  title: "title",
                  row_fetcher: &row_fetcher/2,
                  id: "id",
-                 columns: [[field: "id"]]
+                 columns: [[field: "id", sortable: "asc"], [field: "id2"]]
                })
 
       assert [
@@ -232,11 +274,20 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
                  format: format_fun,
                  header: "Id",
                  header_attrs: [],
+                 sortable: "asc"
+               },
+               %{
+                 cell_attrs: [],
+                 field: "id2",
+                 format: format_fun,
+                 header: "Id2",
+                 header_attrs: [],
                  sortable: nil
                }
              ] = params.columns
 
       assert "id" = format_fun.("id")
+      assert "id2" = format_fun.("id2")
     end
 
     test "adds default values" do
@@ -255,7 +306,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
                  title: "title",
                  row_fetcher: &row_fetcher/2,
                  id: "id",
-                 columns: [[field: :id]]
+                 columns: [[field: :id, sortable: "asc"]]
                })
 
       assert is_function(fun, 2)

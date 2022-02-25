@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.RequestLogger do
     cookie_key = opts[:cookie_key]
 
     unless param_key || cookie_key do
-      raise ArgumentError, "expected either :param_key or :cookie_key to be given"
+      raise ArgumentError, "either :param_key or :cookie_key is expected"
     end
 
     {param_key, cookie_key}

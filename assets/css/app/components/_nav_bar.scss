@@ -1,0 +1,18 @@
+.nav-bar {
+  background-color: $color-gray;
+  border-radius: 6px;
+  line-height: 1.6;
+}
+
+.nav-bar .nav-link {
+  color: $color-gray-900;
+
+  &:hover {
+    color: $color-elixir-800;
+  }
+}
+
+.nav-bar .nav-link.active {
+  color: $color-elixir-800;
+  border-bottom: 3px solid $nav-pills-link-active-bg;
+}

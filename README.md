@@ -1,5 +1,7 @@
 # Phoenix LiveDashboard
 
+[![CI](https://github.com/phoenixframework/phoenix_live_dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/phoenixframework/phoenix_live_dashboard/actions/workflows/ci.yml)
+
 [Online Documentation](https://hexdocs.pm/phoenix_live_dashboard).
 
 <!-- MDOC !-->
@@ -45,7 +47,7 @@ Add the following to your `mix.exs` and run `mix deps.get`:
 ```elixir
 def deps do
   [
-    {:phoenix_live_dashboard, "~> 0.1"}
+    {:phoenix_live_dashboard, "~> 0.5"}
   ]
 end
 ```
@@ -100,18 +102,23 @@ If you want to use the LiveDashboard in production, you should put it behind som
 ```elixir
 # lib/my_app_web/router.ex
 use MyAppWeb, :router
-import Plug.BasicAuth
 import Phoenix.LiveDashboard.Router
 
 ...
 
 pipeline :admins_only do
-  plug :basic_auth, username: "admin", password: "a very special secret"
+  plug :admin_basic_auth
 end
 
 scope "/" do
   pipe_through [:browser, :admins_only]
   live_dashboard "/dashboard"
+end
+
+defp admin_basic_auth(conn, _opts) do
+  username = System.fetch_env!("AUTH_USERNAME")
+  password = System.fetch_env!("AUTH_PASSWORD")
+  Plug.BasicAuth.basic_auth(conn, username: username, password: password)
 end
 ```
 
@@ -123,6 +130,22 @@ Finally, you will also want to configure your `config/prod.exs` and use your dom
 
 Then you should be good to go!
 
+## Using from the command line with PLDS
+
+It's possible to use the LiveDashboard without having to add it as a dependency of your
+application, or when you don't have Phoenix installed. [`PLDS`](https://hexdocs.pm/plds) is a command
+line tool that provides a standalone version of LiveDashboard with some batteries included.
+
+You can install it with:
+
+    $ mix escript.install hex plds
+
+And connect to a running node with:
+
+    $ plds server --connect mynode --open
+
+For more details, please check the [PLDS documentation](https://hexdocs.pm/plds).
+
 <!-- MDOC !-->
 
 ## Contributing
@@ -132,9 +155,17 @@ For those planning to contribute to this project, you can run a dev version of t
     $ mix setup
     $ mix dev
 
-Alternatively, run `iex -S mix dev` if you also want a shell.
+Additionally, you may pass some options to enable Ecto testing. For example, to enable the PostgreSQL repo:
 
-Assets are minimized by default. If you'd like to skip assets optimization and run webpack in development mode you can do it using the `NODE_ENV` enviroment variable:
+    $ mix dev --postgres
+
+...and to enable the MySQL repo:
+
+    $ mix dev --mysql
+
+Alternatively, run `iex -S mix dev [flags]` if you also want a shell.
+
+Assets are minimized by default. If you'd like to skip assets optimization and run webpack in development mode you can do it using the `NODE_ENV` environment variable:
 
     $ NODE_ENV=development mix dev
 

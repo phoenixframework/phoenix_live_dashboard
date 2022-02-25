@@ -8,12 +8,24 @@ defmodule Phoenix.LiveDashboard.FieldsCardComponent do
 
   def normalize_params(params) do
     params
+    |> validate_required([:fields])
     |> put_defaults()
+  end
+
+  defp validate_required(params, list) do
+    case Enum.find(list, &(not Map.has_key?(params, &1))) do
+      nil ->
+        :ok
+
+      key ->
+        raise ArgumentError, "the #{inspect(key)} parameter is expected in fields card component"
+    end
+
+    params
   end
 
   defp put_defaults(params) do
     params
-    |> Map.put_new(:fields, [])
     |> Map.put_new(:title, nil)
     |> Map.put_new(:inner_title, nil)
     |> Map.put_new(:hint, nil)
@@ -22,7 +34,7 @@ defmodule Phoenix.LiveDashboard.FieldsCardComponent do
 
   @impl true
   def render(assigns) do
-    ~L"""
+    ~H"""
     <%= if @fields && not Enum.empty?(@fields) do %>
       <%= if @title do %>
         <h5 class="card-title">
