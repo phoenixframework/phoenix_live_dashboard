@@ -100,11 +100,16 @@ defmodule Phoenix.LiveDashboardTest.Router do
 end
 
 defmodule TestHistory do
-  def label, do: "Z"
-  def measurement, do: 26
+  def label1, do: "Z"
+  def measurement1, do: 26
+  def label2, do: "X"
+  def measurement2, do: 27
 
   def test_data(_metric) do
-    [%{label: label(), measurement: measurement(), time: System.system_time(:microsecond)}]
+    [
+      %{label: label1(), measurement: measurement1(), time: System.system_time(:microsecond)},
+      %{label: label2(), measurement: measurement2(), time: System.system_time(:microsecond)}
+    ]
   end
 end
 

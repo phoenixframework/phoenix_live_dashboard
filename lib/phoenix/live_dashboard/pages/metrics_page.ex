@@ -88,6 +88,24 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     end
   end
 
+  defp send_updates_for_entries_in_chunks(entries, nav) do
+    ## Batch historical data up into chunks of 500 to reduce the number
+    ## of messages sent over the wire, but keep them small enough that
+    ## the client still feels responsive.
+    Enum.group_by(
+      entries,
+      fn {id, _, _, _} -> id end,
+      fn {_, label, measurement, time} -> {label, measurement, time} end
+    )
+    |> Enum.each(fn {id, data} ->
+      data
+      |> Enum.chunk_every(500)
+      |> Enum.each(fn chunk ->
+        send_update(ChartComponent, id: id(id, nav), data: chunk)
+      end)
+    end)
+  end
+
   defp id(id, nav), do: "#{nav}-#{id}"
 
   @impl true
@@ -102,7 +120,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     for {metric, id} <- Enum.with_index(metrics) do
       metric
       |> history_for(id, history)
-      |> send_updates_for_entries(nav)
+      |> send_updates_for_entries_in_chunks(nav)
     end
   end
 
