@@ -86,8 +86,8 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     )
   end
 
-  defp memory_usage_row(%{os_mon: os_mon}) do
-    params = memory_usage_params(os_mon)
+  defp memory_usage_row(%{os_mon: os_mon, csp_nonces: csp_nonces}) do
+    params = memory_usage_params(os_mon, csp_nonces)
 
     row(
       components: [
@@ -100,8 +100,8 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     )
   end
 
-  defp disk_usage_row(%{os_mon: os_mon}) do
-    params = disk_usage_params(os_mon)
+  defp disk_usage_row(%{os_mon: os_mon, csp_nonces: csp_nonces}) do
+    params = disk_usage_params(os_mon, csp_nonces)
 
     row(
       title: "Disk",
@@ -115,16 +115,16 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     )
   end
 
-  defp memory_usage_params(os_mon) do
+  defp memory_usage_params(os_mon, csp_nonces) do
     usages = calculate_memory_usage(os_mon.system_mem)
 
-    [title: "Memory", usages: usages, dom_id: "memory"]
+    [title: "Memory", usages: usages, dom_id: "memory", csp_nonces: csp_nonces]
   end
 
-  defp disk_usage_params(os_mon) do
+  defp disk_usage_params(os_mon, csp_nonces) do
     usages = calculate_disk_usage(os_mon.disk)
 
-    [title: "Disk", usages: usages, dom_id: "disk"]
+    [title: "Disk", usages: usages, dom_id: "disk", csp_nonces: csp_nonces]
   end
 
   defp calculate_memory_usage(system_memory) do
