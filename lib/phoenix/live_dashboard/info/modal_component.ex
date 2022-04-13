@@ -5,7 +5,6 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
     {:ok, assign(socket, fullscreen?: false)}
   end
 
-
   def render(assigns) do
     ~H"""
     <div id={@id} class="dash-modal modal"
