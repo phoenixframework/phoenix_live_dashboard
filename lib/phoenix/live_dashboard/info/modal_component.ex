@@ -1,9 +1,26 @@
 defmodule Phoenix.LiveDashboard.ModalComponent do
   use Phoenix.LiveDashboard.Web, :live_component
+  alias Phoenix.LiveView.JS
 
   def mount(socket) do
     {:ok, assign(socket, fullscreen?: false)}
   end
+
+
+  defp enable_fullscreen() do
+    JS.hide()
+    |> JS.toggle(to: "#fullscreen-off", display: "inline-block")
+    |> JS.remove_class("modal-dialog", to: "#modal-container")
+    |> JS.add_class("modal-fullscreen", to: "#modal-container")
+  end
+
+  defp disable_fullscreen() do
+    JS.hide()
+    |> JS.toggle(to: "#fullscreen-on", display: "inline-block")
+    |> JS.remove_class("modal-fullscreen", to: "#modal-container")
+    |> JS.add_class("modal-dialog", to: "#modal-container")
+  end
+
 
   def render(assigns) do
     ~H"""
@@ -14,14 +31,16 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
       phx-key="escape"
       phx-target={"##{@id}"}
       phx-page-loading>
-
-      <div class={if @fullscreen?, do: "modal-fullscreen", else: "modal-dialog modal-lg"}>
+      <div class="modal-dialog modal-lg" id="modal-container">
         <div class="modal-content">
           <div class="modal-header">
             <h6 class="modal-title"><%=@title %></h6>
             <div class="modal-action">
-              <span phx-click="toggle-fullscreen" phx-target={@myself} class="modal-action-item mr-3">
-                <%= fullscreen_icon(@fullscreen?) %>
+              <span phx-click={enable_fullscreen()} class="modal-action-item mr-3" id="fullscreen-on">
+                 &#128471;&#xFE0E;
+              </span>
+              <span phx-click={disable_fullscreen()} class="modal-action-item mr-3" id="fullscreen-off" style="display: none;">
+                 &#128470;&#xFE0E;
               </span>
               <%= live_patch raw("&times;"), to: @return_to, class: "modal-action-item mt-n1" %>
             </div>
@@ -34,12 +53,6 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
     </div>
     """
   end
-
-  defp fullscreen_icon(true),
-    do: raw("&#128471;&#xFE0E;")
-  defp fullscreen_icon(false),
-    do: raw("&#128470;&#xFE0E;")
-
 
   def handle_event("toggle-fullscreen", _, socket) do
     {:noreply, assign(socket, fullscreen?: !socket.assigns.fullscreen?)}
