@@ -36,7 +36,7 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
               <span phx-click={disable_fullscreen()} class="modal-action-item mr-3" id="fullscreen-off" style="display: none;">
                  &#128471;&#xFE0E;
               </span>
-              <%= live_patch raw("&times;"), to: @return_to, class: "modal-action-item mt-n1" %>
+              <%= live_patch raw("&times;"), to: @return_to, class: "modal-action-item mt-n1", id: "modal-close"%>
             </div>
           </div>
           <div class="modal-body">

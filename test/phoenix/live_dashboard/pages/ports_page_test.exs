@@ -82,7 +82,7 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
     assert rendered =~ "modal-content"
     assert rendered =~ ~r/Port Name.*forker/
 
-    refute live |> element("#modal .close") |> render_click() =~ "modal"
+    refute live |> element("#modal-close") |> render_click() =~ "modal"
     return_path = ports_path(50, "", :output, :asc)
     assert_patch(live, return_path)
   end
