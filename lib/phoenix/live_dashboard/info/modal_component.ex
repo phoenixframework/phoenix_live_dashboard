@@ -2,11 +2,6 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
   use Phoenix.LiveDashboard.Web, :live_component
   alias Phoenix.LiveView.JS
 
-  def mount(socket) do
-    {:ok, assign(socket, fullscreen?: false)}
-  end
-
-
   defp enable_fullscreen() do
     JS.hide()
     |> JS.toggle(to: "#fullscreen-off", display: "inline-block")
@@ -20,7 +15,6 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
     |> JS.remove_class("modal-fullscreen", to: "#modal-container")
     |> JS.add_class("modal-dialog", to: "#modal-container")
   end
-
 
   def render(assigns) do
     ~H"""
@@ -52,10 +46,6 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
       </div>
     </div>
     """
-  end
-
-  def handle_event("toggle-fullscreen", _, socket) do
-    {:noreply, assign(socket, fullscreen?: !socket.assigns.fullscreen?)}
   end
 
   def handle_event("close", _, socket) do
