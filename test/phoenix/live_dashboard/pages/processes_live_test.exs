@@ -108,7 +108,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     assert rendered =~ ~r/Registered name.*Phoenix.LiveDashboard.DynamicSupervisor/
     assert rendered =~ ~r/Initial call.*Supervisor.Default.init\/1/
 
-    refute live |> element("#modal .close") |> render_click() =~ "modal"
+    refute live |> element("#modal-close") |> render_click() =~ "modal"
     return_path = processes_path(10, "", :message_queue_len, :desc)
     assert_patch(live, return_path)
   end

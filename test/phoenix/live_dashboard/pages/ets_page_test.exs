@@ -77,7 +77,7 @@ defmodule Phoenix.LiveDashboard.EtsPageTest do
     assert rendered =~ "modal-content"
     assert rendered =~ ~r/:table_test_ets/
 
-    refute live |> element("#modal .close") |> render_click() =~ "modal"
+    refute live |> element("#modal-close") |> render_click() =~ "modal"
     return_path = ets_path(1000, "", :size, :desc)
     assert_patch(live, return_path)
   end

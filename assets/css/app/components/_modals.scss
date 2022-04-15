@@ -18,6 +18,27 @@
     max-width: 900px;
   }
 
+  .modal-fullscreen {
+    width: 100vw;
+    max-width: none;
+    height: 100%;
+    margin: 0;
+
+    .modal-content {
+      height: 100%;
+      border: 0;
+      border-radius: none;
+    }
+
+    .modal-header {
+      border-radius: none;
+    }
+
+    .modal-body {
+      overflow-y: auto;
+    }
+  }
+
   .modal-header {
     background-color: $color-gray-100;
     border-bottom: 2px solid $color-gray-500;
@@ -28,9 +49,17 @@
   }
 
   .modal-content {
-    .modal-close {
+    .modal-action { 
+      padding: 1rem;
+      margin: -1rem -1rem -1rem auto;
+      line-height: 1;
+    }
+
+    .modal-action-item {
+      display: inline-block;
       color: #aaa;
-      font-size: 28px;
+      font-size: 1.5rem;
+      vertical-align: middle;
       font-weight: bold;
       text-align: right;
 
