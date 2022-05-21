@@ -440,7 +440,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
       def render_page(assigns) do
         columns(
-          columns: [
+          components: [
             card(...),
             card_usage(...)
           ]
@@ -453,7 +453,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   These are the options supported by the component:
 
-    * `:columns` - Required. A list of components.
+    * `:components` - Required. A list of components.
       It can receive up to 3 components.
       Each element will be one column.
   """
