@@ -68,7 +68,6 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
              render_repo_tab(%{
                repo: repo,
                node: current_node,
-               # TODO do we need?
                ecto_options: assigns.ecto_options
              })
            end}
