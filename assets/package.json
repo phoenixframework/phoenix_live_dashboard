@@ -13,7 +13,7 @@
     "test.watch": "jest --watch"
   },
   "dependencies": {
-    "bootstrap": "^4.4.1",
+    "bootstrap": "^4.6.2",
     "nprogress": "^0.2.0",
     "phoenix": "../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
