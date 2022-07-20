@@ -333,7 +333,8 @@ defmodule Phoenix.LiveDashboard.Router do
     ecto_session = %{
       repos: ecto_repos(ecto_repos),
       ecto_psql_extras_options: ecto_psql_extras_options,
-      ecto_mysql_extras_options: ecto_mysql_extras_options
+      ecto_mysql_extras_options: ecto_mysql_extras_options,
+      ecto_migrations_paths: ["../../bitfo/brain/priv/repo/migrations"]
     }
 
     {pages, requirements} =
@@ -349,6 +350,7 @@ defmodule Phoenix.LiveDashboard.Router do
         ports: {Phoenix.LiveDashboard.PortsPage, %{}},
         sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
         ets: {Phoenix.LiveDashboard.EtsPage, %{}},
+        ecto_repos: {Phoenix.LiveDashboard.EctoReposPage, ecto_session},
         ecto_stats: {Phoenix.LiveDashboard.EctoStatsPage, ecto_session}
       )
       |> Enum.concat(additional_pages)
