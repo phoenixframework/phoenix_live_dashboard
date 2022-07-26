@@ -8,8 +8,7 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
 
   @impl true
   def init(%{
-        repos: repos,
-        ecto_migrations_paths: ecto_migrations_paths
+        repos: repos
       }) do
     capabilities = for repo <- List.wrap(repos), do: {:process, repo}
     repos = repos || :auto_discover
@@ -17,16 +16,11 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
     {:ok,
      %{
        repos: repos,
-       ecto_options: [
-         ecto_migrations_paths: ecto_migrations_paths
-       ]
      }, capabilities}
   end
 
   @impl true
-  def mount(_params, %{repos: repos, ecto_options: ecto_options}, socket) do
-    socket = assign(socket, ecto_options: ecto_options)
-
+  def mount(_params, %{repos: repos}, socket) do
     result =
       case repos do
         :auto_discover ->
@@ -68,7 +62,6 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
              render_repo_tab(%{
                repo: repo,
                node: current_node,
-               ecto_options: assigns.ecto_options
              })
            end}
         end
@@ -81,17 +74,17 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
     nav_bar(items: items(assigns), extra_params: [:repo])
   end
 
-  defp items(%{repo: repo, ecto_options: ecto_options}) do
+  defp items(%{repo: repo}) do
     for tab <- [:migrations] do
       {tab,
        name: Phoenix.Naming.humanize(tab),
        render: fn ->
-         render_migrations(repo, tab, ecto_options)
+         render_migrations(repo, tab)
        end}
     end
   end
 
-  defp render_migrations(repo, table_name, ecto_options) do
+  defp render_migrations(repo, table_name) do
     columns = [
       %{field: :status, sortable: :asc, format: &format(:string, &1)},
       %{field: :name, sortable: :asc, format: &format(:string, &1)},
@@ -109,22 +102,17 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
       search: searchable != [],
       columns: columns,
       rows_name: "entries",
-      row_fetcher: &row_fetcher(repo, searchable, ecto_options, &1, &2),
+      row_fetcher: &row_fetcher(repo, searchable, &1, &2),
       title: Phoenix.Naming.humanize(table_name)
     )
   end
 
-  defp row_fetcher(repo, searchable, ecto_options, params, _node) do
+  defp row_fetcher(repo, searchable, params, _node) do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir} = params
 
-    migrations =
-      case Keyword.get(ecto_options, :ecto_migrations_paths, []) do
-        [] -> Ecto.Migrator.migrations(repo)
-        locations -> Ecto.Migrator.migrations(repo, locations)
-      end
-
     mapped =
-      migrations
+      repo
+      |> Ecto.Migrator.migrations()
       |> Enum.map(fn {status, number, name} ->
         %{status: status, number: number, name: Phoenix.Naming.humanize(name)}
       end)

@@ -295,6 +295,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                  ports: {Phoenix.LiveDashboard.PortsPage, %{}},
                  sockets: {Phoenix.LiveDashboard.SocketsPage, %{}},
                  ets: {Phoenix.LiveDashboard.EtsPage, %{}},
+                 ecto_repos: {Phoenix.LiveDashboard.EctoReposPage, %{repos: :auto_discover}},
                  ecto_stats:
                    {Phoenix.LiveDashboard.EctoStatsPage,
                     %{

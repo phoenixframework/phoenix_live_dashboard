@@ -333,8 +333,7 @@ defmodule Phoenix.LiveDashboard.Router do
     ecto_session = %{
       repos: ecto_repos(ecto_repos),
       ecto_psql_extras_options: ecto_psql_extras_options,
-      ecto_mysql_extras_options: ecto_mysql_extras_options,
-      ecto_migrations_paths: ["../../bitfo/brain/priv/repo/migrations"]
+      ecto_mysql_extras_options: ecto_mysql_extras_options
     }
 
     {pages, requirements} =
