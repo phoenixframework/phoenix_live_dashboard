@@ -5,10 +5,12 @@ on:
   push:
     branches:
       - master
+      - mc-windows-ci
 
 jobs:
   mix_test:
-    runs-on: ubuntu-18.04
+    name: mix test (${{matrix.os}} | Elixir ${{matrix.elixir}} | OTP ${{matrix.otp}})
+    runs-on: ${{ matrix.os }}
     env:
       MIX_ENV: test
     services:
@@ -32,24 +34,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-18.04, windows-2019]
+        elixir: [1.12.1]
+        otp: [24.0.2]
         include:
-          - pair:
-              elixir: 1.7.4
-              otp: 21.3.8.17
-          - pair:
-              elixir: 1.11.4
-              otp: 23.3.1
-          - pair:
-              elixir: 1.12.1
-              otp: 24.0.2
+          - os: ubuntu-18.04
+            elixir: 1.7.4
+            otp: 21.3.8.17
+          - os: ubuntu-18.04
+            elixir: 1.11.4
+            otp: 23.3.1
+          - os: ubuntu-18.04
+            elixir: 1.13.0
+            otp: 24.0.2
             lint: lint
+
     steps:
       - uses: actions/checkout@v2
 
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: ${{matrix.pair.otp}}
-          elixir-version: ${{matrix.pair.elixir}}
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
 
       - name: Install Dependencies
         run: mix deps.get --only test
