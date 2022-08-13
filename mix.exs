@@ -1,13 +1,13 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.6.5"
+  @version "0.7.0-dev"
 
   def project do
     [
       app: :phoenix_live_dashboard,
       version: @version,
-      elixir: "~> 1.7",
+      elixir: "~> 1.11",
       compilers: [:phoenix] ++ Mix.compilers(),
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
