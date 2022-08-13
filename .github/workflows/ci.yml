@@ -45,7 +45,6 @@ jobs:
               otp: 24.0.2
             lint: lint
     steps:
-    steps:
       - uses: actions/checkout@v2
 
       - uses: erlef/setup-beam@v1
