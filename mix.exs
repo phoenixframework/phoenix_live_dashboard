@@ -45,7 +45,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:phoenix_live_view, "~> 0.17.7", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.6.0"},
       {:ecto_psql_extras, "~> 0.7", optional: true},
-      {:ecto_mysql_extras, "~> 0.3", optional: true},
+      {:ecto_mysql_extras, "~> 0.5", optional: true},
       {:ecto, "~> 3.6.2 or ~> 3.7", optional: true},
 
       # Dev and test
