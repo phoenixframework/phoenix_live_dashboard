@@ -15,7 +15,7 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
 
     {:ok,
      %{
-       repos: repos,
+       repos: repos
      }, capabilities}
   end
 
@@ -43,6 +43,8 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
   end
 
   @impl true
+  def menu_link(%{repos: []}, _capabilities), do: :skip
+
   def menu_link(%{repos: _}, _capabilities) do
     {:ok, @page_title}
   end
@@ -61,7 +63,7 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
            render: fn ->
              render_repo_tab(%{
                repo: repo,
-               node: current_node,
+               node: current_node
              })
            end}
         end
