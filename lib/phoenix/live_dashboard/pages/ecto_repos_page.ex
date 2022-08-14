@@ -43,10 +43,29 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
   end
 
   @impl true
-  def menu_link(%{repos: []}, _capabilities), do: :skip
 
-  def menu_link(%{repos: _}, _capabilities) do
-    {:ok, @page_title}
+  def menu_link(%{repos: []}, _capabilities) do
+    :skip
+  end
+
+  @impl true
+  def menu_link(%{repos: :auto_discover}, _caps) do
+    # We require the extras plugins to be on this node,
+    # which means we also require Ecto.Adapters.SQL on this node.
+    if Code.ensure_loaded?(Ecto.Adapters.SQL) do
+      {:ok, @page_title}
+    else
+      :skip
+    end
+  end
+
+  @impl true
+  def menu_link(%{repos: repos}, capabilities) do
+    if Enum.all?(repos, fn repo -> repo not in capabilities.processes end) do
+      :skip
+    else
+      {:disabled, @page_title}
+    end
   end
 
   @impl true

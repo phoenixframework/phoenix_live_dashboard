@@ -14,16 +14,16 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
     assert :skip = EctoReposPage.menu_link(%{repos: []}, %{})
     assert :skip = EctoReposPage.menu_link(%{repos: [Repo]}, %{processes: []})
 
-    assert {:ok, "Ecto Stats"} = EctoReposPage.menu_link(%{repos: [Repo]}, %{processes: [Repo]})
+    assert {:disabled, "Ecto Repos"} = EctoReposPage.menu_link(%{repos: [Repo]}, %{processes: [Repo]})
 
-    assert {:ok, "Ecto Stats"} =
+    assert {:ok, "Ecto Repos"} =
              EctoReposPage.menu_link(%{repos: :auto_discover}, %{processes: []})
   end
 
   test "renders" do
     start_main_repo!()
 
-    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+    {:ok, live, _} = live(build_conn(), ecto_repos_path())
     rendered = render(live)
 
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
@@ -33,7 +33,7 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
 
     start_pg_repo!()
 
-    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+    {:ok, live, _} = live(build_conn(), ecto_repos_path())
     rendered = render(live)
 
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
@@ -41,7 +41,7 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
 
     start_mysql_repo!()
 
-    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+    {:ok, live, _} = live(build_conn(), ecto_repos_path())
     rendered = render(live)
 
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
@@ -50,7 +50,7 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
   end
 
   test "renders error without running repos" do
-    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+    {:ok, live, _} = live(build_conn(), ecto_repos_path())
     rendered = render(live)
 
     refute rendered =~ "Phoenix.LiveDashboardTest.Repo"
@@ -73,13 +73,13 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
     start_main_repo!()
 
     for {nav, _} <- EctoPSQLExtras.queries(Repo), nav not in @forbidden_navs do
-      assert {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
+      assert {:ok, _, _} = live(build_conn(), ecto_repos_path(nav))
     end
 
     start_mysql_repo!()
 
     for {nav, _} <- EctoMySQLExtras.queries(MySQLRepo) do
-      assert {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
+      assert {:ok, _, _} = live(build_conn(), ecto_repos_path(nav))
     end
 
     start_pg_repo!()
@@ -89,7 +89,7 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
 
     nav = Enum.random(available_navs)
 
-    assert {:ok, live, _} = live(build_conn(), ecto_stats_path(nav, "", PGRepo))
+    assert {:ok, live, _} = live(build_conn(), ecto_repos_path(nav, "", PGRepo))
 
     assert live
            |> element("a.active", "Phoenix.LiveDashboardTest.PGRepo")
@@ -110,14 +110,14 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
   test "search" do
     start_main_repo!()
 
-    {:ok, live, _} = live(build_conn(), ecto_stats_path(:extensions))
+    {:ok, live, _} = live(build_conn(), ecto_repos_path(:extensions))
     rendered = render(live)
     assert rendered =~ "Default version"
     assert rendered =~ "Installed version"
     assert rendered =~ "fuzzystrmatch"
     assert rendered =~ "hstore"
 
-    {:ok, live, _} = live(build_conn(), ecto_stats_path(:extensions, "hstore"))
+    {:ok, live, _} = live(build_conn(), ecto_repos_path(:extensions, "hstore"))
     rendered = render(live)
     assert rendered =~ "Default version"
     assert rendered =~ "Installed version"
@@ -126,7 +126,7 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
 
     start_mysql_repo!()
 
-    {:ok, live, _} = live(build_conn(), ecto_stats_path(:plugins, "", MySQLRepo))
+    {:ok, live, _} = live(build_conn(), ecto_repos_path(:plugins, "", MySQLRepo))
 
     rendered = render(live)
     assert rendered =~ "Version"
@@ -137,7 +137,7 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
     {:ok, live, _} =
       live(
         build_conn(),
-        ecto_stats_path(:plugins, "InnoDB", MySQLRepo)
+        ecto_repos_path(:plugins, "InnoDB", MySQLRepo)
       )
 
     rendered = render(live)
@@ -147,31 +147,31 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
     assert rendered =~ "InnoDB"
   end
 
-  defp ecto_stats_path() do
-    "/dashboard/ecto_stats"
+  defp ecto_repos_path() do
+    "/dashboard/ecto_repos"
   end
 
-  defp ecto_stats_path(nav) do
-    "#{ecto_stats_path()}?nav=#{nav}"
+  defp ecto_repos_path(nav) do
+    "#{ecto_repos_path()}?nav=#{nav}"
   end
 
-  defp ecto_stats_path(nav, search) do
-    "#{ecto_stats_path()}?nav=#{nav}&search=#{search}"
+  defp ecto_repos_path(nav, search) do
+    "#{ecto_repos_path()}?nav=#{nav}&search=#{search}"
   end
 
-  defp ecto_stats_path(nav, search, repo) do
-    "#{ecto_stats_path()}?nav=#{nav}&search=#{search}&repo=#{repo}"
+  defp ecto_repos_path(nav, search, repo) do
+    "#{ecto_repos_path()}?nav=#{nav}&search=#{search}&repo=#{repo}"
   end
 
   defp start_main_repo! do
-    start_supervised!(Repo)
+    start_supervised(Repo)
   end
 
   defp start_pg_repo! do
-    start_supervised!(PGRepo)
+    start_supervised(PGRepo)
   end
 
   defp start_mysql_repo! do
-    start_supervised!(MySQLRepo)
+    start_supervised(MySQLRepo)
   end
 end

@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
@@ -164,14 +164,14 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   end
 
   defp start_main_repo! do
-    start_supervised!(Repo)
+    start_supervised(Repo)
   end
 
   defp start_pg_repo! do
-    start_supervised!(PGRepo)
+    start_supervised(PGRepo)
   end
 
   defp start_mysql_repo! do
-    start_supervised!(MySQLRepo)
+    start_supervised(MySQLRepo)
   end
 end
