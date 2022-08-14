@@ -14,7 +14,8 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
     assert :skip = EctoReposPage.menu_link(%{repos: []}, %{})
     assert :skip = EctoReposPage.menu_link(%{repos: [Repo]}, %{processes: []})
 
-    assert {:disabled, "Ecto Repos"} = EctoReposPage.menu_link(%{repos: [Repo]}, %{processes: [Repo]})
+    assert {:disabled, "Ecto Repos"} =
+             EctoReposPage.menu_link(%{repos: [Repo]}, %{processes: [Repo]})
 
     assert {:ok, "Ecto Repos"} =
              EctoReposPage.menu_link(%{repos: :auto_discover}, %{processes: []})
@@ -67,100 +68,38 @@ defmodule Phoenix.LiveDashboard.EctoReposPageTest do
              ~s|Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details|
   end
 
-  @forbidden_navs [:kill_all, :mandelbrot]
-
   test "navs" do
     start_main_repo!()
 
-    for {nav, _} <- EctoPSQLExtras.queries(Repo), nav not in @forbidden_navs do
-      assert {:ok, _, _} = live(build_conn(), ecto_repos_path(nav))
-    end
+    assert {:ok, _, _} = live(build_conn(), ecto_repos_path(nav: "migrations"))
 
     start_mysql_repo!()
 
-    for {nav, _} <- EctoMySQLExtras.queries(MySQLRepo) do
-      assert {:ok, _, _} = live(build_conn(), ecto_repos_path(nav))
-    end
+    assert {:ok, _, _} =
+             live(
+               build_conn(),
+               ecto_repos_path(nav: "migrations", repo: Phoenix.LiveDashboardTest.MySQLRepo)
+             )
 
     start_pg_repo!()
 
-    available_navs =
-      for {nav, _} <- EctoPSQLExtras.queries(PGRepo), nav not in @forbidden_navs, do: nav
-
-    nav = Enum.random(available_navs)
-
-    assert {:ok, live, _} = live(build_conn(), ecto_repos_path(nav, "", PGRepo))
-
-    assert live
-           |> element("a.active", "Phoenix.LiveDashboardTest.PGRepo")
-           |> has_element?()
-
-    another_nav = Enum.random(available_navs -- [nav])
-
-    live
-    |> element(~s|a.nav-link[href*='nav=#{another_nav}']|)
-    |> render_click()
-
-    # Keep the same repo selected
-    assert live
-           |> element("a.active", "Phoenix.LiveDashboardTest.PGRepo")
-           |> has_element?()
+    assert {:ok, _, _} =
+             live(
+               build_conn(),
+               ecto_repos_path(nav: "migrations", repo: Phoenix.LiveDashboardTest.PGRepo)
+             )
   end
 
-  test "search" do
-    start_main_repo!()
+  defp ecto_repos_path(query \\ []) do
+    base = "/dashboard/ecto_repos"
 
-    {:ok, live, _} = live(build_conn(), ecto_repos_path(:extensions))
-    rendered = render(live)
-    assert rendered =~ "Default version"
-    assert rendered =~ "Installed version"
-    assert rendered =~ "fuzzystrmatch"
-    assert rendered =~ "hstore"
+    case URI.encode_query(query) do
+      "" ->
+        base
 
-    {:ok, live, _} = live(build_conn(), ecto_repos_path(:extensions, "hstore"))
-    rendered = render(live)
-    assert rendered =~ "Default version"
-    assert rendered =~ "Installed version"
-    refute rendered =~ "fuzzystrmatch"
-    assert rendered =~ "hstore"
-
-    start_mysql_repo!()
-
-    {:ok, live, _} = live(build_conn(), ecto_repos_path(:plugins, "", MySQLRepo))
-
-    rendered = render(live)
-    assert rendered =~ "Version"
-    assert rendered =~ "Status"
-    assert rendered =~ "PERFORMANCE_SCHEMA"
-    assert rendered =~ "InnoDB"
-
-    {:ok, live, _} =
-      live(
-        build_conn(),
-        ecto_repos_path(:plugins, "InnoDB", MySQLRepo)
-      )
-
-    rendered = render(live)
-    assert rendered =~ "Version"
-    assert rendered =~ "Status"
-    refute rendered =~ "PERFORMANCE_SCHEMA"
-    assert rendered =~ "InnoDB"
-  end
-
-  defp ecto_repos_path() do
-    "/dashboard/ecto_repos"
-  end
-
-  defp ecto_repos_path(nav) do
-    "#{ecto_repos_path()}?nav=#{nav}"
-  end
-
-  defp ecto_repos_path(nav, search) do
-    "#{ecto_repos_path()}?nav=#{nav}&search=#{search}"
-  end
-
-  defp ecto_repos_path(nav, search, repo) do
-    "#{ecto_repos_path()}?nav=#{nav}&search=#{search}&repo=#{repo}"
+      query ->
+        base <> "?" <> query
+    end
   end
 
   defp start_main_repo! do

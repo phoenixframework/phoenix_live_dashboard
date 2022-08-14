@@ -169,6 +169,9 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
 
   defp auto_discover(node) do
     case :rpc.call(node, Ecto.Repo, :all_running, []) do
+      [] ->
+        {:error, :no_ecto_repos_available}
+
       repos when is_list(repos) ->
         {:ok, repos}
 
