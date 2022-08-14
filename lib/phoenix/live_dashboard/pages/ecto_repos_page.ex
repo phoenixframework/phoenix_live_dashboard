@@ -1,7 +1,6 @@
 defmodule Phoenix.LiveDashboard.EctoReposPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
-  import Phoenix.LiveDashboard.Helpers
 
   @compile {:no_warn_undefined, [{Ecto.Repo, :all_running, 0}]}
   @page_title "Ecto Repos"
@@ -107,9 +106,9 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
 
   defp render_migrations(repo, table_name) do
     columns = [
-      %{field: :status, sortable: :asc, format: &format(:string, &1)},
-      %{field: :name, sortable: :asc, format: &format(:string, &1)},
-      %{field: :number, sortable: :asc, format: &format(:string, &1)}
+      %{field: :status, sortable: :asc},
+      %{field: :name, sortable: :asc},
+      %{field: :number, sortable: :asc}
     ]
 
     searchable = [:name]
@@ -154,18 +153,6 @@ defmodule Phoenix.LiveDashboard.EctoReposPage do
 
     {sorted, length(sorted)}
   end
-
-  defp format(_, %struct{} = value) when struct in [Decimal, Postgrex.Interval],
-    do: struct.to_string(value)
-
-  defp format(:bytes, value) when is_integer(value),
-    do: format_bytes(value)
-
-  defp format(:percent, value) when is_number(value),
-    do: value |> Kernel.*(100.0) |> Float.round(1) |> Float.to_string()
-
-  defp format(_type, value),
-    do: value
 
   defp auto_discover(node) do
     case :rpc.call(node, Ecto.Repo, :all_running, []) do
