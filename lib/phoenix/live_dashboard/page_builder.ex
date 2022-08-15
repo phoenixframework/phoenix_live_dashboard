@@ -793,15 +793,24 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   @doc false
   def live_dashboard_path(socket, route, node, old_params, new_params) when is_atom(node) do
-    apply(
-      socket.router.__helpers__(),
-      :live_dashboard_path,
-      if node == node() and is_nil(old_params["node"]) do
-        [socket, :page, route, new_params]
-      else
-        [socket, :page, node, route, new_params]
-      end
-    )
+    new_params = for {key, val} <- new_params, key not in ~w(page node), do: {key, val}
+    prefix = socket.router.__live_dashboard_prefix__()
+
+    if node == node() and is_nil(old_params["node"]) do
+      Phoenix.VerifiedRoutes.unverified_path(
+        socket,
+        socket.router,
+        "#{prefix}/#{route}",
+        new_params
+      )
+    else
+      Phoenix.VerifiedRoutes.unverified_path(
+        socket,
+        socket.router,
+        "#{prefix}/#{URI.encode_www_form(to_string(node))}/#{route}",
+        new_params
+      )
+    end
   end
 
   defmacro __using__(opts) do
