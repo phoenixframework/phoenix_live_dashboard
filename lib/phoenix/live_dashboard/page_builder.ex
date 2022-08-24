@@ -279,8 +279,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     * `:default_sort_by` - The default columnt to sort by to.
       Defaults to the first sortable column.
 
-    * `:title` - The title of the table.
-      Default is calculated with the current page.
+    * `:title` - Required. The title of the table.
 
     * `:limit` - A list of integers to limit the number of rows to show.
       Default: `[50, 100, 500, 1000, 5000]`. May be set to `false` to disable the `limit`.
