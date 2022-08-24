@@ -276,6 +276,10 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     * `:rows_name` - A string to name the representation of the rows.
       Default is calculated from the current page.
 
+    * `:row_attrs` - A function that return a list with HTML attributes for the table row. It
+      receive the row as argument and return a list of 2 element tuple with HTML attribute name
+      and value. The default function returns an empty list `[]`.
+
     * `:default_sort_by` - The default columnt to sort by to.
       Defaults to the first sortable column.
 
