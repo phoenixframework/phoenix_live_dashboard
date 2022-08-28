@@ -15,19 +15,22 @@ defmodule Phoenix.LiveDashboard.RowComponentTest do
     end
   end
 
+  defp render_row_component(opts) do
+    default_opts = [page: %Phoenix.LiveDashboard.PageBuilder{}]
+
+    render_component(RowComponent, Keyword.merge(default_opts, opts))
+  end
+
   describe "rendering" do
     test "one row in row component" do
-      result =
-        render_component(RowComponent,
-          components: [{SimpleComponent, %{text: "test-text"}}]
-        )
+      result = render_row_component(components: [{SimpleComponent, %{text: "test-text"}}])
 
       assert result =~ ~r|<div class=\"row\">[\r\n\s]*<div>test-text<\/div>[\r\n\s]*<\/div>|
     end
 
     test "three rows in row component" do
       result =
-        render_component(RowComponent,
+        render_row_component(
           components: [
             {SimpleComponent, %{text: "test-text-1"}},
             {SimpleComponent, %{text: "test-text-2"}},
