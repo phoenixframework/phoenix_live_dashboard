@@ -15,9 +15,6 @@
   "dependencies": {
     "bootstrap": "^4.6.2",
     "nprogress": "^0.2.0",
-    "phoenix": "../deps/phoenix",
-    "phoenix_html": "file:../deps/phoenix_html",
-    "phoenix_live_view": "file:../deps/phoenix_live_view",
     "uplot": "^1.0.11"
   },
   "devDependencies": {
