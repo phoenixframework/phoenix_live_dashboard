@@ -1,6 +1,9 @@
+@use "nprogress/nprogress.css";
+@use "uplot/dist/uPlot.min.css";
+
 @import "./app/variables";
 @import "./app/fonts";
-@import "~bootstrap/scss/bootstrap";
+@import "bootstrap/scss/bootstrap";
 @import "./app/layout";
 
 // Extends
@@ -29,10 +32,8 @@
 @import "./app/components/color_bar_legend";
 @import "./app/components/layered_graph";
 
-
 // Utils
 @import "./app/utils/resource_usage";
 @import "./app/utils/tabular_info";
 
 @import "./app/liveview";
-@import "../node_modules/nprogress/nprogress.css";
