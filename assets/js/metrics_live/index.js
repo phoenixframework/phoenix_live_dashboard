@@ -1,4 +1,4 @@
-import { ColorWheel, LineColor } from './color_wheel'
+import { LineColor } from './color_wheel'
 import uPlot from 'uplot'
 
 const SeriesValue = (options) => {
@@ -26,13 +26,19 @@ const YAxisValue = (options) => {
 const XAxis = (_options) => {
   return {
     space: 55,
+    // [0]:   minimum num secs in found axis split (tick incr)
+    // [1]:   default tick format
+    // [2-7]: rollover tick formats
+    // [8]:   mode: 0: replace [1] -> [2-7], 1: concat [1] + [2-7]
     values: [
-      [3600 * 24 * 365, "{YYYY}", 7, "{YYYY}"],
-      [3600 * 24 * 28, "{MMM}", 7, "{MMM}\n{YYYY}"],
-      [3600 * 24, "{MM}-{DD}", 7, "{MM}-{DD}\n{YYYY}"],
-      [3600, "{HH}:{mm}", 4, "{HH}:{mm}\n{YYYY}-{MM}-{DD}"],
-      [60, "{HH}:{mm}", 4, "{HH}:{mm}\n{YYYY}-{MM}-{DD}"],
-      [1, "{ss}", 2, "{HH}:{mm}:{ss}\n{YYYY}-{MM}-{DD}"],
+      // tick incr          default           year                             month    day                        hour     min                sec       mode
+      [3600 * 24 * 365,   "{YYYY}",         null,                            null,    null,                      null,    null,              null,        1],
+      [3600 * 24 * 28,    "{MMM}",          "\n{YYYY}",                      null,    null,                      null,    null,              null,        1],
+      [3600 * 24,         "{M}/{D}",        "\n{YYYY}",                      null,    null,                      null,    null,              null,        1],
+      [3600,              "{h}{aa}",        "\n{M}/{D}/{YY}",                null,    "\n{M}/{D}",               null,    null,              null,        1],
+      [60,                "{h}:{mm}{aa}",   "\n{M}/{D}/{YY}",                null,    "\n{M}/{D}",               null,    null,              null,        1],
+      [1,                 ":{ss}",          "\n{M}/{D}/{YY} {h}:{mm}{aa}",   null,    "\n{M}/{D} {h}:{mm}{aa}",  null,    "\n{h}:{mm}{aa}",  null,        1],
+      [0.001,             ":{ss}.{fff}",    "\n{M}/{D}/{YY} {h}:{mm}{aa}",   null,    "\n{M}/{D} {h}:{mm}{aa}",  null,    "\n{h}:{mm}{aa}",  null,        1],
     ]
   }
 }
