@@ -57,6 +57,10 @@ const minChartSize = {
   height: 300
 }
 
+const cursorOpts = {
+  sync: { key: 'metrics-live' }
+}
+
 // Limits how often a function is invoked
 function throttle(cb, limit) {
   let wait = false;
@@ -137,6 +141,7 @@ class CommonMetric {
       title: options.title,
       width: options.width,
       height: options.height,
+      cursor: cursorOpts,
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0)
@@ -344,6 +349,7 @@ class Summary {
       title: options.title,
       width: options.width,
       height: options.height,
+      cursor: cursorOpts,
       series: [
         { ...XSeriesValue() },
         newSeriesConfig(options, 0)
