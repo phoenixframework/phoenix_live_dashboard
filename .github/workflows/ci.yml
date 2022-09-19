@@ -78,13 +78,13 @@ jobs:
       - name: Install Dependencies
         run: mix deps.get --only test
 
-      - name: Setup Node.js 12.x
-        uses: actions/setup-node@v1
+      - name: Setup Node.js 16.x
+        uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 16
 
       - name: npm install and test
         run: |
           cd assets
-          npm install
+          npm ci
           npm test

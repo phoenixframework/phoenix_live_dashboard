@@ -1,5 +1,4 @@
 import { ColorWheel, LineColor } from './color_wheel'
-import _css from 'uplot/dist/uPlot.min.css'
 import uPlot from 'uplot'
 
 const SeriesValue = (options) => {

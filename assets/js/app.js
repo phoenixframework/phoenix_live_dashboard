@@ -1,4 +1,3 @@
-import css from "../css/app.scss"
 import "phoenix_html"
 import { Socket, LongPoll } from "phoenix"
 import NProgress from "nprogress"

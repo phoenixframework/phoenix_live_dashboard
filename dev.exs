@@ -51,17 +51,14 @@ Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
   check_origin: false,
   pubsub_server: Demo.PubSub,
   watchers: [
-    node: [
-      "node_modules/webpack/bin/webpack.js",
-      "--mode",
-      System.get_env("NODE_ENV") || "production",
-      "--watch-stdin",
-      cd: "assets"
-    ]
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
+    sass:
+      {DartSass, :install_and_run,
+       [:default, ~w(--embed-source-map --source-map-urls=absolute --watch)]}
   ],
   live_reload: [
     patterns: [
-      ~r"dist/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/assets/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"lib/phoenix/live_dashboard/(live|views)/.*(ex)$",
       ~r"lib/phoenix/live_dashboard/templates/.*(ex)$"
     ]

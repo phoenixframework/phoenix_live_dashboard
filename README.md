@@ -165,13 +165,11 @@ Additionally, you may pass some options to enable Ecto testing. For example, to 
 
 Alternatively, run `iex -S mix dev [flags]` if you also want a shell.
 
-Assets are minimized by default. If you'd like to skip assets optimization and run webpack in development mode you can do it using the `NODE_ENV` environment variable:
+Before submitting a pull request, discard any changes that were made to the `priv` directory.
 
-    $ NODE_ENV=development mix dev
+For example, to rollback using git restore:
 
-or
-
-    $ NODE_ENV=development iex -S mix dev
+    $ git restore priv
 
 ## License
 
