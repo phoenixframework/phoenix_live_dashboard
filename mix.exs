@@ -41,7 +41,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
     [
       # Actual deps
       {:mime, "~> 1.6 or ~> 2.0"},
-      {:phoenix, "~> 1.7.0-rc.0"},
+      {:phoenix, path: "~/oss/phoenix", override: true},
       {:phoenix_live_view, "~> 0.17.7 or ~> 0.18.0", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.6.0"},
       {:ecto_psql_extras, "~> 0.7", optional: true},

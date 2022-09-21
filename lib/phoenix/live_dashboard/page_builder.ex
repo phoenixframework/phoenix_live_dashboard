@@ -796,7 +796,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     new_params = for {key, val} <- new_params, key not in ~w(page node), do: {key, val}
     prefix = socket.router.__live_dashboard_prefix__()
 
-    path = 
+    path =
        if node == node() and is_nil(old_params["node"]) do
          "#{prefix}/#{route}"
        else
@@ -809,7 +809,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts] do
       import Phoenix.LiveView
-      import Phoenix.LiveView.Helpers
+      use Phoenix.Component
       import Phoenix.LiveDashboard.PageBuilder
 
       @behaviour Phoenix.LiveDashboard.PageBuilder

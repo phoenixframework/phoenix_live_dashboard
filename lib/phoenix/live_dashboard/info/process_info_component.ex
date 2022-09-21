@@ -42,10 +42,10 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
             <tr><td>Initial call</td><td><pre><%= @initial_call %></pre></td></tr>
             <tr><td>Status</td><td><pre><%= @status %></pre></td></tr>
             <tr><td>Message queue length</td><td><pre><%= @message_queue_len %></pre></td></tr>
-            <tr><td>Ancestors</td><td><pre><%= @ancestor_links %></pre></td></tr>
-            <tr><td>Other links</td><td><pre><%= @other_links %></pre></td></tr>
-            <tr><td>Monitors</td><td><pre><%= @monitors %></pre></td></tr>
-            <tr><td>Monitored by</td><td><pre><%= @monitored_by %></pre></td></tr>
+            <tr><td>Ancestors</td><td><pre><.info links={@ancestor_links} /></pre></td></tr>
+            <tr><td>Other links</td><td><pre><.info links={@other_links} /></pre></td></tr>
+            <tr><td>Monitors</td><td><pre><.info links={@monitors} /></pre></td></tr>
+            <tr><td>Monitored by</td><td><pre><.info links={@monitored_by} /></pre></td></tr>
             <tr><td>Trap exit</td><td><pre><%= @trap_exit %></pre></td></tr>
             <tr><td>Error handler</td><td><pre><%= @error_handler %></pre></td></tr>
             <tr><td>Priority</td><td><pre><%= @priority %></pre></td></tr>
@@ -117,4 +117,12 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   defp format_info(:initial_call, val, _), do: format_initial_call(val)
   defp format_info(:current_stacktrace, val, _), do: format_stacktrace(val)
   defp format_info(_key, val, live_dashboard_path), do: format_value(val, live_dashboard_path)
+
+  defp info(%{links: links} = assigns) when is_list(links) do
+    ~H"""
+    <%= for info <- @links do %><%= info %><% end %>
+    """
+  end
+
+  defp info(%{links: _links} = assigns), do: ~H|<%= @links %>|
 end

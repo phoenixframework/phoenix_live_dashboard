@@ -20,13 +20,15 @@ defmodule Phoenix.LiveDashboard.HelpersTest do
 
     result =
       format_value(process_details, live_dashboard_path)
-      |> Phoenix.HTML.safe_to_string()
+      |> Phoenix.HTML.Safe.to_iodata()
+      |> IO.iodata_to_binary()
 
     assert String.match?(result, ~r{<a .*href="/test".*>#{pid_html} \(Fake Name\)</a>})
 
     result =
       format_value(pid, live_dashboard_path)
-      |> Phoenix.HTML.safe_to_string()
+      |> Phoenix.HTML.Safe.to_iodata()
+      |> IO.iodata_to_binary()
 
     assert String.match?(result, ~r{<a .*href="/test".*>#{pid_html}</a>})
 
@@ -41,13 +43,15 @@ defmodule Phoenix.LiveDashboard.HelpersTest do
 
     result =
       format_value(process_details, live_dashboard_path)
-      |> Phoenix.HTML.safe_to_string()
+      |> Phoenix.HTML.Safe.to_iodata()
+      |> IO.iodata_to_binary()
 
     assert String.match?(result, ~r{<a .*href="/test".*>#{port_html} \(Fake Description\)</a>})
 
     result =
       format_value(port, live_dashboard_path)
-      |> Phoenix.HTML.safe_to_string()
+      |> Phoenix.HTML.Safe.to_iodata()
+      |> IO.iodata_to_binary()
 
     assert String.match?(result, ~r{<a .*href="/test".*>#{port_html}})
   end
