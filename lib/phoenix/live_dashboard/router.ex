@@ -97,33 +97,36 @@ defmodule Phoenix.LiveDashboard.Router do
         opts
       end
 
-    # TODO: Remove check once we require Phoenix v1.7
-    verified_routes_setup =
-      if Code.ensure_loaded?(Phoenix.VerifiedRoutes) do
-        quote do
-          unless Module.get_attribute(__MODULE__, :live_dashboard_prefix) do
-            @live_dashboard_prefix Phoenix.Router.scoped_path(__MODULE__, path)
-            def __live_dashboard_prefix__, do: @live_dashboard_prefix
+    scope =
+      quote bind_quoted: binding() do
+        scope path, alias: false, as: false do
+          {session_name, session_opts, route_opts} =
+            Phoenix.LiveDashboard.Router.__options__(opts)
+
+          import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
+
+          live_session session_name, session_opts do
+            # All helpers are public contracts and cannot be changed
+            live "/", Phoenix.LiveDashboard.PageLive, :home, route_opts
+            live "/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
+            live "/:node/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
           end
         end
       end
 
-    scope_setup =
-    quote bind_quoted: binding() do
-      scope path, alias: false, as: false do
-        {session_name, session_opts, route_opts} = Phoenix.LiveDashboard.Router.__options__(opts)
-        import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
+    # TODO: Remove check once we require Phoenix v1.7
+    if Code.ensure_loaded?(Phoenix.VerifiedRoutes) do
+      quote do
+        unquote(scope)
 
-        live_session session_name, session_opts do
-          # All helpers are public contracts and cannot be changed
-          live "/", Phoenix.LiveDashboard.PageLive, :home, route_opts
-          live "/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
-          live "/:node/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
+        unless Module.get_attribute(__MODULE__, :live_dashboard_prefix) do
+          @live_dashboard_prefix Phoenix.Router.scoped_path(__MODULE__, path)
+          def __live_dashboard_prefix__, do: @live_dashboard_prefix
         end
       end
+    else
+      scope
     end
-
-    {verified_routes_setup, scope_setup}
   end
 
   defp expand_alias({:__aliases__, _, _} = alias, env),
