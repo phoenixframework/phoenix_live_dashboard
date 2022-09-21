@@ -33,11 +33,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "cmd --cd assets npm install"],
-      dev: "run --no-halt dev.exs",
-      "assets.deploy": [
-        "esbuild default --minify",
-        "sass default --no-source-map --style=compressed"
-      ]
+      dev: "run --no-halt dev.exs"
     ]
   end
 
