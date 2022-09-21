@@ -15,10 +15,16 @@ defmodule Phoenix.LiveDashboard.ColumnsComponentTest do
     end
   end
 
+  defp render_columns_component(opts) do
+    default_opts = [page: %Phoenix.LiveDashboard.PageBuilder{}]
+
+    render_component(ColumnsComponent, Keyword.merge(default_opts, opts))
+  end
+
   describe "rendering" do
     test "one column in columns component" do
       result =
-        render_component(ColumnsComponent,
+        render_columns_component(
           components: [{SimpleComponent, %{text: "test-text"}}],
           columns_class: "12"
         )
@@ -29,7 +35,7 @@ defmodule Phoenix.LiveDashboard.ColumnsComponentTest do
 
     test "three columns in columns component" do
       result =
-        render_component(ColumnsComponent,
+        render_columns_component(
           components: [
             {SimpleComponent, %{text: "test-text-1"}},
             {SimpleComponent, %{text: "test-text-2"}},

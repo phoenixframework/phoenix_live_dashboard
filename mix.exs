@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.7.0"
+  @version "0.7.0-dev"
 
   def project do
     [
@@ -32,8 +32,12 @@ defmodule Phoenix.LiveDashboard.MixProject do
 
   defp aliases do
     [
-      setup: ["deps.get", "cmd npm install --prefix assets"],
-      dev: "run --no-halt dev.exs"
+      setup: ["deps.get", "cmd --cd assets npm install"],
+      dev: "run --no-halt dev.exs",
+      "assets.deploy": [
+        "esbuild default --minify",
+        "sass default --no-source-map --style=compressed"
+      ]
     ]
   end
 
@@ -45,7 +49,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:phoenix_live_view, "~> 0.18.0", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.6.0"},
       {:ecto_psql_extras, "~> 0.7", optional: true},
-      {:ecto_mysql_extras, "~> 0.3", optional: true},
+      {:ecto_mysql_extras, "~> 0.5", optional: true},
       {:ecto, "~> 3.6.2 or ~> 3.7", optional: true},
 
       # Dev and test
@@ -56,7 +60,9 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:jason, "~> 1.0", only: [:dev, :test, :docs]},
       {:floki, "~> 0.27.0", only: :test},
       {:stream_data, "~> 0.1", only: :test},
-      {:ex_doc, "~> 0.21", only: :docs}
+      {:ex_doc, "~> 0.21", only: :docs},
+      {:esbuild, "~> 0.5", only: :dev},
+      {:dart_sass, "~> 0.5", only: :dev}
     ]
   end
 
@@ -94,7 +100,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       maintainers: ["Michael Crumm", "Chris McCord", "José Valim", "Alex Castaño"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/phoenixframework/phoenix_live_dashboard"},
-      files: ~w(dist lib CHANGELOG.md LICENSE.md mix.exs README.md)
+      files: ~w(priv lib CHANGELOG.md LICENSE.md mix.exs README.md)
     ]
   end
 end

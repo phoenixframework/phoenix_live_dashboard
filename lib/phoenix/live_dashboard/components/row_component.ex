@@ -42,7 +42,7 @@ defmodule Phoenix.LiveDashboard.RowComponent do
     ~H"""
     <div class="row">
       <%= for {component_module, component_params} <- @components do %>
-        <%= live_component component_module, component_params %>
+        <%= live_component component_module, Map.put(component_params, :page, @page) %>
       <% end %>
     </div>
     """
