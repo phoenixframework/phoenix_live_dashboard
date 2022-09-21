@@ -57,10 +57,10 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
       result = render_items([])
 
       assert result =~
-               ~s|<a class="nav-link active" data-phx-link="patch" data-phx-link-state="push" href="/dashboard/foobaz?nav=foo">Foo</a>|
+               ~s|<a href=\"/dashboard/foobaz?nav=foo\" class=\"nav-link active\" data-phx-link=\"patch\" data-phx-link-state=\"push\">Foo</a>|
 
       assert result =~
-               ~s|<a class="nav-link" data-phx-link="redirect" data-phx-link-state="push" href="/dashboard/foobaz?nav=bar">Bar</a>|
+               ~s|<a href=\"/dashboard/foobaz?nav=bar\" class=\"nav-link\" data-phx-link=\"redirect\" data-phx-link-state=\"push\">Bar</a>|
 
       assert result =~ ~s|<div>foo_text</div>|
     end
@@ -77,10 +77,10 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
       result = render_items(nav_param: "tab", params: %{"tab" => "bar"})
 
       assert result =~
-               ~s|<a class="nav-link" data-phx-link="patch" data-phx-link-state="push" href="/dashboard/foobaz?tab=foo">Foo</a>|
+               ~s|<a href=\"/dashboard/foobaz?tab=foo\" class=\"nav-link\" data-phx-link=\"patch\" data-phx-link-state=\"push\">Foo</a>|
 
       assert result =~
-               ~s|<a class="nav-link active" data-phx-link="redirect" data-phx-link-state="push" href="/dashboard/foobaz?tab=bar">Bar</a>|
+               ~s|<a href=\"/dashboard/foobaz?tab=bar\" class=\"nav-link active\" data-phx-link=\"redirect\" data-phx-link-state=\"push\">Bar</a>|
     end
 
     test "renders nav bar keeping extra params" do

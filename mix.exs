@@ -7,8 +7,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
     [
       app: :phoenix_live_dashboard,
       version: @version,
-      elixir: "~> 1.11",
-      compilers: [:phoenix] ++ Mix.compilers(),
+      elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       package: package(),
@@ -34,11 +33,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "cmd --cd assets npm install"],
-      dev: "run --no-halt dev.exs",
-      "assets.deploy": [
-        "esbuild default --minify",
-        "sass default --no-source-map --style=compressed"
-      ]
+      dev: "run --no-halt dev.exs"
     ]
   end
 
@@ -46,11 +41,12 @@ defmodule Phoenix.LiveDashboard.MixProject do
     [
       # Actual deps
       {:mime, "~> 1.6 or ~> 2.0"},
-      {:phoenix_live_view, "~> 0.17.7", phoenix_live_view_opts()},
+      {:phoenix_live_view, "~> 0.18.0", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.6.0"},
       {:ecto_psql_extras, "~> 0.7", optional: true},
       {:ecto_mysql_extras, "~> 0.5", optional: true},
       {:ecto, "~> 3.6.2 or ~> 3.7", optional: true},
+      # {:phoenix, path: "~/oss/phoenix", override: true},
 
       # Dev and test
       {:circular_buffer, "~> 0.3", only: :dev},

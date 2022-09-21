@@ -97,18 +97,35 @@ defmodule Phoenix.LiveDashboard.Router do
         opts
       end
 
-    quote bind_quoted: binding() do
-      scope path, alias: false, as: false do
-        {session_name, session_opts, route_opts} = Phoenix.LiveDashboard.Router.__options__(opts)
-        import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
+    scope =
+      quote bind_quoted: binding() do
+        scope path, alias: false, as: false do
+          {session_name, session_opts, route_opts} =
+            Phoenix.LiveDashboard.Router.__options__(opts)
 
-        live_session session_name, session_opts do
-          # All helpers are public contracts and cannot be changed
-          live "/", Phoenix.LiveDashboard.PageLive, :home, route_opts
-          live "/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
-          live "/:node/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
+          import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
+
+          live_session session_name, session_opts do
+            # All helpers are public contracts and cannot be changed
+            live "/", Phoenix.LiveDashboard.PageLive, :home, route_opts
+            live "/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
+            live "/:node/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
+          end
         end
       end
+
+    # TODO: Remove check once we require Phoenix v1.7
+    if Code.ensure_loaded?(Phoenix.VerifiedRoutes) do
+      quote do
+        unquote(scope)
+
+        unless Module.get_attribute(__MODULE__, :live_dashboard_prefix) do
+          @live_dashboard_prefix Phoenix.Router.scoped_path(__MODULE__, path)
+          def __live_dashboard_prefix__, do: @live_dashboard_prefix
+        end
+      end
+    else
+      scope
     end
   end
 

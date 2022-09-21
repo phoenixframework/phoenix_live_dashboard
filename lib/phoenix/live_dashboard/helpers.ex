@@ -2,7 +2,7 @@ defmodule Phoenix.LiveDashboard.Helpers do
   @moduledoc false
 
   alias Phoenix.LiveDashboard.{PageBuilder, SystemInfo}
-  import Phoenix.LiveView.Helpers
+  use Phoenix.Component
   @format_limit 100
 
   @doc """
