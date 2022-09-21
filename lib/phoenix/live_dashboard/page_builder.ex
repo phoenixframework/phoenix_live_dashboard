@@ -9,7 +9,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   callback that returns `~H` or `~L` (deprecated).
 
   A simple and straight-forward example of a custom page is the
-  `Phoenix.LiveDashboard.ETSPage` that ships with the dashboard:
+  `Phoenix.LiveDashboard.EtsPage` that ships with the dashboard:
 
       defmodule Phoenix.LiveDashboard.EtsPage do
         @moduledoc false

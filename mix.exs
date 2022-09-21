@@ -95,7 +95,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       maintainers: ["Michael Crumm", "Chris McCord", "José Valim", "Alex Castaño"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/phoenixframework/phoenix_live_dashboard"},
-      files: ~w(priv lib CHANGELOG.md LICENSE.md mix.exs README.md)
+      files: ~w(dist lib CHANGELOG.md LICENSE.md mix.exs README.md)
     ]
   end
 end
