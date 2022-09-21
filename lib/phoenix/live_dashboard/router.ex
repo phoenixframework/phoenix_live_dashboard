@@ -98,7 +98,6 @@ defmodule Phoenix.LiveDashboard.Router do
       end
 
     quote bind_quoted: binding() do
-
       unless Module.get_attribute(__MODULE__, :live_dashboard_prefix) do
         @live_dashboard_prefix Phoenix.Router.scoped_path(__MODULE__, path)
         def __live_dashboard_prefix__, do: @live_dashboard_prefix
