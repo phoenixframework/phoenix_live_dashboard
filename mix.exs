@@ -8,7 +8,6 @@ defmodule Phoenix.LiveDashboard.MixProject do
       app: :phoenix_live_dashboard,
       version: @version,
       elixir: "~> 1.7",
-      compilers: Mix.compilers(),
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       package: package(),
