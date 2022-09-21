@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.7.0 (2022-09-21)
+
+* Support and require Phoenix.LiveView 0.18.0
+* Add fullscreen when viewing the app info
+* Use csp_nonces on os_mon page
+
 ## v0.6.5 (2022-02-20)
 
 * Support and require Phoenix.LiveView 0.17.7
