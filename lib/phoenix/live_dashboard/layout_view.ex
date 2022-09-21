@@ -16,10 +16,7 @@ defmodule Phoenix.LiveDashboard.LayoutView do
 
   defp csp_nonce(conn, type) when type in [:script, :style, :img] do
     csp_nonce_assign_key = conn.private.csp_nonce_assign_key[type]
-
-    if csp_nonce = conn.assigns[csp_nonce_assign_key] do
-      raw("nonce=\"#{csp_nonce}\"")
-    end
+    conn.assigns[csp_nonce_assign_key]
   end
 
   def live_socket_path(conn) do

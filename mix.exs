@@ -1,13 +1,13 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.6.5"
+  @version "0.7.0"
 
   def project do
     [
       app: :phoenix_live_dashboard,
       version: @version,
-      elixir: "~> 1.7",
+      elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       package: package(),
@@ -42,7 +42,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       # Actual deps
       {:mime, "~> 1.6 or ~> 2.0"},
       {:phoenix, path: "~/oss/phoenix", override: true},
-      {:phoenix_live_view, "~> 0.17.7 or ~> 0.18.0", phoenix_live_view_opts()},
+      {:phoenix_live_view, "~> 0.18.0", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.6.0"},
       {:ecto_psql_extras, "~> 0.7", optional: true},
       {:ecto_mysql_extras, "~> 0.3", optional: true},

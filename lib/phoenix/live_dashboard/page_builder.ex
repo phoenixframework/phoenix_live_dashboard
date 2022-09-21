@@ -706,7 +706,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   """
   @spec encode_socket(port() | binary()) :: binary()
   def encode_socket(ref) when is_port(ref) do
-    '#Port' ++ rest = :erlang.port_to_list(ref)
+    ~c"#Port" ++ rest = :erlang.port_to_list(ref)
     "Socket#{rest}"
   end
 
@@ -725,7 +725,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   """
   @spec encode_ets(reference()) :: binary()
   def encode_ets(ref) when is_reference(ref) do
-    '#Ref' ++ rest = :erlang.ref_to_list(ref)
+    ~c"#Ref" ++ rest = :erlang.ref_to_list(ref)
     "ETS#{rest}"
   end
 
@@ -791,19 +791,34 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     live_dashboard_path(socket, route, node, old_params, new_params)
   end
 
+  # TODO: Remove this and the conditional on Phoenix v1.7+
+  @compile {:no_warn_undefined, Phoenix.VerifiedRoutes}
+
   @doc false
   def live_dashboard_path(socket, route, node, old_params, new_params) when is_atom(node) do
-    new_params = for {key, val} <- new_params, key not in ~w(page node), do: {key, val}
-    prefix = socket.router.__live_dashboard_prefix__()
+    if function_exported?(socket.router, :__live_dashboard_prefix__, 0) do
+      new_params = for {key, val} <- new_params, key not in ~w(page node), do: {key, val}
+      prefix = socket.router.__live_dashboard_prefix__()
 
-    path =
-       if node == node() and is_nil(old_params["node"]) do
-         "#{prefix}/#{route}"
-       else
-         "#{prefix}/#{URI.encode_www_form(to_string(node))}/#{route}"
-       end
+      path =
+        if node == node() and is_nil(old_params["node"]) do
+          "#{prefix}/#{route}"
+        else
+          "#{prefix}/#{URI.encode_www_form(to_string(node))}/#{route}"
+        end
 
-     Phoenix.VerifiedRoutes.unverified_path(socket, socket.router, path, new_params)
+      Phoenix.VerifiedRoutes.unverified_path(socket, socket.router, path, new_params)
+    else
+      apply(
+        socket.router.__helpers__(),
+        :live_dashboard_path,
+        if node == node() and is_nil(old_params["node"]) do
+          [socket, :page, route, new_params]
+        else
+          [socket, :page, node, route, new_params]
+        end
+      )
+    end
   end
 
   defmacro __using__(opts) do
