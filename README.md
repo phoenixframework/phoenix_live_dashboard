@@ -8,25 +8,25 @@
 
 LiveDashboard provides real-time performance monitoring and debugging tools for Phoenix developers. It provides the following modules:
 
-  * Home - See general information about the system
+- Home - See general information about the system
 
-  * OS Data - See general information about OS, such as CPU, Memory and Disk usage
+- OS Data - See general information about OS, such as CPU, Memory and Disk usage
 
-  * Metrics - See how your application performs under different conditions by visualizing [`:telemetry`](https://hexdocs.pm/telemetry) events with real-time charts
+- Metrics - See how your application performs under different conditions by visualizing [`:telemetry`](https://hexdocs.pm/telemetry) events with real-time charts
 
-  * Request logging - See everything that was logged for certain requests
+- Request logging - See everything that was logged for certain requests
 
-  * Applications - See, filter, and search applications in the current node
+- Applications - See, filter, and search applications in the current node
 
-  * Processes - See, filter, and search processes in the current node
+- Processes - See, filter, and search processes in the current node
 
-  * Ports - See, filter, and search ports (responsible for I/O) in the current node
+- Ports - See, filter, and search ports (responsible for I/O) in the current node
 
-  * Sockets - See, filter, and search sockets (responsible for tcp/udp) in the current node
+- Sockets - See, filter, and search sockets (responsible for tcp/udp) in the current node
 
-  * ETS - See, filter, and search ETS tables (in-memory storage) in the current node
+- ETS - See, filter, and search ETS tables (in-memory storage) in the current node
 
-  * Ecto Stats - Shows index, table, and general usage about the underlying Ecto Repo storage
+- Ecto Stats - Shows index, table, and general usage about the underlying Ecto Repo storage
 
 The dashboard also works across nodes. If your nodes are connected via Distributed Erlang, then you can access information from node B while accessing the dashboard on node A.
 
@@ -36,9 +36,9 @@ The dashboard also works across nodes. If your nodes are connected via Distribut
 
 To start using LiveDashboard, you will need three steps:
 
-  1. Add the `phoenix_live_dashboard` dependency
-  2. Configure LiveView
-  3. Add dashboard access
+1. Add the `phoenix_live_dashboard` dependency
+2. Configure LiveView
+3. Add dashboard access
 
 ### 1. Add the `phoenix_live_dashboard` dependency
 
@@ -47,7 +47,7 @@ Add the following to your `mix.exs` and run `mix deps.get`:
 ```elixir
 def deps do
   [
-    {:phoenix_live_dashboard, "~> 0.5"}
+    {:phoenix_live_dashboard, "~> 0.7"}
   ]
 end
 ```
@@ -66,6 +66,7 @@ First, update your endpoint's configuration to include a signing salt. You can g
 config :my_app, MyAppWeb.Endpoint,
   live_view: [signing_salt: "SECRET_SALT"]
 ```
+
 Then add the `Phoenix.LiveView.Socket` declaration to your endpoint:
 
 ```elixir
