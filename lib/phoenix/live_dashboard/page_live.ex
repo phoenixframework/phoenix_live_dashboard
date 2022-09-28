@@ -329,7 +329,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
     assigns = %{text: text}
 
     ~H"""
-    <div class="menu-item active"><%= text %></div>
+    <div class="menu-item active"><%= @text %></div>
     """
   end
 
