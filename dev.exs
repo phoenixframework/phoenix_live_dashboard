@@ -158,7 +158,11 @@ defmodule DemoWeb.Telemetry do
       ),
       summary("phoenix.router_dispatch.stop.duration",
         tags: [:route],
-        unit: {:native, :millisecond}
+        unit: {:native, :millisecond},
+        reporter_options: [
+          derive_modes: ["p90", "mean"],
+          derive_window_secs: 180
+        ]
       ),
 
       # VM Metrics

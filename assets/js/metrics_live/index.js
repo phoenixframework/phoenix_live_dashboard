@@ -114,6 +114,18 @@ function nextTaggedValueForCallback({ x, y, z }, callback) {
 }
 
 const getPruneThreshold = ({ pruneThreshold = 1000 }) => pruneThreshold
+const getDeriveSeries = ({ deriveModes = "" }) => {
+  let deriveSeries = {}
+  if (deriveModes !== ""){
+    deriveModes.split("~").forEach(
+      mode => (
+        deriveSeries["-" + mode] = mode
+      )
+    )
+  }
+  return deriveSeries
+}
+const getDeriveWindowSecs = ({ deriveWindowSecs = 120 }) => deriveWindowSecs
 
 // Handles the basic metrics like Counter, LastValue, and Sum.
 class CommonMetric {
@@ -195,16 +207,24 @@ class Summary {
     // Bind the series `values` callback to this instance
     config.series[1].values = this.__seriesValues.bind(this)
 
-    this.datasets = [{ key: "|x|", data: [] }]
+    this.datasets = [{ key: "|x|", data: [], derived: {from: -1, mode: "", dataRaw: []}}]
     this.chart = new uPlot(config, this.constructor.initialData(options), chartEl)
     this.pruneThreshold = getPruneThreshold(options)
     this.options = options
+    this.options.deriveSeries = getDeriveSeries(options)
+    this.options.deriveWindowSecs = getDeriveWindowSecs(options)
 
     if (options.tagged) {
       this.chart.delSeries(1)
       this.__handler = this.handleTaggedMeasurement.bind(this)
     } else {
-      this.datasets.push(this.constructor.newDataset(options.label))
+      this.datasets.push(this.constructor.newDataset(options.label, -1, "", 0))
+      Object.entries(this.options.deriveSeries).forEach(
+        entry => {
+          let [suffix, deriveMode] = entry
+          this.findOrCreateSeries(options.label + suffix, 1, deriveMode)
+        }
+      )
       this.__handler = this.handleMeasurement.bind(this)
     }
   }
@@ -216,8 +236,20 @@ class Summary {
   }
 
   handleTaggedMeasurement(measurement) {
-    let seriesIndex = this.findOrCreateSeries(measurement.x)
-    this.handleMeasurement(measurement, seriesIndex)
+    let rootSeriesIndex = this.findOrCreateSeries(measurement.x, -1, "")
+
+    //handle derived series creation
+    Object.entries(this.options.deriveSeries).forEach(
+        entry => {
+            let [suffix, deriveMode] = entry 
+            let label = measurement.x + suffix
+            //we create the series here. the update will be handeled below
+            this.findOrCreateSeries(label, rootSeriesIndex, deriveMode)
+        }
+    )
+
+    //actually do the measurements
+    this.handleMeasurement(measurement, rootSeriesIndex)
   }
 
   handleMeasurement(measurement, sidx = 1) {
@@ -225,20 +257,20 @@ class Summary {
     this.datasets = this.datasets.map((dataset, index) => {
       if (dataset.key === "|x|") {
         dataset.data.push(timestamp)
-      } else if (index === sidx) {
+      } else if (index === sidx || dataset.derived.from === sidx) {
         this.pushToDataset(dataset, measurement)
       } else {
-        this.pushToDataset(dataset, null)
+         this.pushToDataset(dataset, null)
       }
       return dataset
     })
   }
 
-  findOrCreateSeries(label) {
+  findOrCreateSeries(label, derivedFrom, deriveMode) {
     let seriesIndex = this.datasets.findIndex(({ key }) => label === key)
     if (seriesIndex === -1) {
       seriesIndex = this.datasets.push(
-        this.constructor.newDataset(label, this.datasets[0].data.length)
+        this.constructor.newDataset(label, derivedFrom, deriveMode, this.datasets[0].data.length)
       ) - 1
 
       let config = {
@@ -258,18 +290,57 @@ class Summary {
       dataset.agg.avg.push(null)
       dataset.agg.max.push(null)
       dataset.agg.min.push(null)
+
+      if (dataset.derived.from !== -1){
+        dataset.derived.dataRaw.push(null)
+      }
+
       return
     }
 
-    let { y } = measurement
+    var { y, z: timestamp } = measurement
 
     // Increment the new overall totals
     dataset.agg.count++
-    dataset.agg.total += y
 
-    // Push the value
+    if (dataset.derived.from !== -1) {
+        // Push the raw value
+        dataset.derived.dataRaw.push(measurement)
+        let mode = dataset.derived.mode
+        if (mode !== undefined && mode !== ""){
+            // perform windowing
+            let windowedData = dataset.derived.dataRaw.filter(v => {
+                if (v !== null){
+                    return v.z >= (timestamp - this.options.deriveWindowSecs)
+                }
+                return false
+                }
+            ).map(
+                v => {
+                    return v.y
+                }
+            )
+            let isPercentile = mode[0] == "p"
+            if (isPercentile) {
+                let percTarget = parseInt(mode.slice(1))
+                let sortedData = Array.from(windowedData).sort()
+                let dataLength = sortedData.length
+                let idx = Math.floor((percTarget / 100) * (dataLength - 1))
+                y = sortedData[idx]
+            } else if (mode == "mean"){
+                //mean
+                const reducer = (x,y) => x+y
+                y = windowedData.reduce(reducer) / windowedData.length
+            } else {
+                console.error("Unknown deriveMode")
+            }
+        }
+    }
+
+    //Push the usable value (potentially derived)
     dataset.data.push(y)
 
+    dataset.agg.total += y
     // Push min/max/avg
     if (dataset.last.min === null || y < dataset.last.min) { dataset.last.min = y }
     dataset.agg.min.push(dataset.last.min)
@@ -284,12 +355,22 @@ class Summary {
 
   __maybePruneDatasets() {
     let currentSize = this.datasets[0].data.length
+
     if (currentSize > this.pruneThreshold) {
       let start = -this.pruneThreshold;
-      this.datasets = this.datasets.map(({ key, data, agg }) => {
+      this.datasets = this.datasets.map(({ key, data, derived, agg }) => {
         let dataPruned = data.slice(start)
+        let derivedDataRawPruned = derived.dataRaw.slice(start)
+
+
+        let derivedPruned = {
+            from: derived.from,
+            mode: derived.mode,
+            dataRaw: derivedDataRawPruned
+        }
+
         if (!agg) {
-          return { key, data: dataPruned }
+          return { key, data: dataPruned, derived: derivedPruned}
         }
 
         let { avg, count, max, min, total } = agg
@@ -297,8 +378,9 @@ class Summary {
         let maxPruned = max.slice(start)
 
         return {
-          key,
+          key, 
           data: dataPruned,
+          derived: derivedPruned,
           agg: {
             avg: avg.slice(start),
             count,
@@ -359,10 +441,15 @@ class Summary {
     }
   }
 
-  static newDataset(key, length = 0) {
+  static newDataset(key, derivedFrom, deriveMode, length = 0) {
     let nils = length > 0 ? Array(length).fill(null) : []
     return {
       key,
+      derived: {
+        from: derivedFrom,
+        mode: deriveMode,
+        dataRaw: (derivedFrom !== -1) ? [...nils] : [],
+      },
       data: [...nils],
       agg: { avg: [...nils], count: 0, max: [...nils], min: [...nils], total: 0 },
       last: { max: null, min: null }
