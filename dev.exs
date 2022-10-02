@@ -142,6 +142,10 @@ defmodule DemoWeb.Telemetry do
         description: "Last value of phoenix.endpoint response time",
         unit: {:native, :millisecond}
       ),
+      distribution("phoenix.endpoint.stop.duration",
+        description: "Distribution of phoenix.endpoint response time",
+        unit: {:native, :millisecond}
+      ),
       counter("phoenix.endpoint.stop.duration",
         unit: {:native, :millisecond}
       ),

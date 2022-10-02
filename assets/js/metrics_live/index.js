@@ -1,4 +1,5 @@
 import { LineColor } from './color_wheel'
+import { Histogram } from './histogram.js'
 import uPlot from 'uplot'
 
 const SeriesValue = (options) => {
@@ -386,7 +387,8 @@ const __METRICS__ = {
   counter: CommonMetric,
   last_value: CommonMetric,
   sum: CommonMetric,
-  summary: Summary
+  summary: Summary,
+  distribution: Histogram
 }
 
 export class TelemetryChart {
