@@ -191,10 +191,26 @@ defmodule DemoWeb.PageController do
     content(conn, "<p>Hello, #{name}!</p>")
   end
 
+  def call(conn, :get) do
+    json(conn, %{
+      args: conn.params,
+      headers: Map.new(conn.req_headers),
+      url: Phoenix.Controller.current_url(conn)
+    })
+  end
+
   defp content(conn, content) do
     conn
     |> put_resp_header("content-type", "text/html")
     |> send_resp(200, "<!doctype html><html><body>#{content}</body></html>")
+  end
+
+  defp json(conn, data) do
+    body = Phoenix.json_library().encode_to_iodata!(data, pretty: true)
+
+    conn
+    |> Plug.Conn.put_resp_header("content-type", "application/json; charset=utf-8")
+    |> Plug.Conn.send_resp(200, body)
   end
 end
 
@@ -406,6 +422,7 @@ defmodule DemoWeb.Router do
   scope "/" do
     pipe_through :browser
     get "/", DemoWeb.PageController, :index
+    get "/get", DemoWeb.PageController, :get
     get "/hello", DemoWeb.PageController, :hello
     get "/hello/:name", DemoWeb.PageController, :hello
 
