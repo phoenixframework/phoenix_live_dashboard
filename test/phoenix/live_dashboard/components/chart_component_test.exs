@@ -33,6 +33,58 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
       assert result =~ ~s|data-title="a.b.c.count"|
     end
 
+    test "distribution metric" do
+      result = render_chart(metric: distribution([:a, :b, :c, :count]))
+      assert result =~ ~s|data-label="Count"|
+      assert result =~ ~s|data-metric="distribution"|
+      assert result =~ ~s|data-title="a.b.c.count"|
+      assert result =~ ~s|data-bucket-size="20"|
+    end
+
+    test "reporter_options: bucket_size only applies to distribution" do
+      result = render_chart(metric: last_value([:a, :b, :c, :count]))
+      refute result =~ ~s|data-bucket-size="20"|
+
+      result = render_chart(metric: summary([:a, :b, :c, :count]))
+      refute result =~ ~s|data-bucket-size="20"|
+
+      result = render_chart(metric: counter([:a, :b, :c, :duration]))
+      refute result =~ ~s|data-bucket-size="20"|
+    end
+
+    test "reporter_options: bucket_size must be a positive integer" do
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: distribution([:a, :b, :c, :size], reporter_options: [bucket_size: -1])
+        )
+      end
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: distribution([:a, :b, :c, :size], reporter_options: [bucket_size: 0])
+        )
+      end
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: distribution([:a, :b, :c, :size], reporter_options: [bucket_size: :an_atom])
+        )
+      end
+
+      assert_raise ArgumentError, fn ->
+        render_chart(
+          metric: distribution([:a, :b, :c, :size], reporter_options: [bucket_size: MyModule])
+        )
+      end
+
+      result =
+        render_chart(
+          metric: distribution([:a, :b, :c, :size], reporter_options: [bucket_size: 500])
+        )
+
+      assert result =~ ~s|data-bucket-size="500"|
+    end
+
     test "adds units" do
       result = render_chart(metric: last_value([:a, :b, :c, :size], unit: :megabyte))
       assert result =~ ~s|data-unit="MB"|

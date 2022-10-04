@@ -256,6 +256,39 @@ describe('Metrics no tags', () => {
         [3, 2]
       ])
     })
+
+    test('with custom bucketSize', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'distribution', tagged: false, bucketSize: 150 })
+
+      chart.pushData([{ x: 'a', y: 2, z: 0 }])
+
+      expect(mockSetData).toHaveBeenNthCalledWith(1, [
+        [0],
+        [1]
+      ])
+
+      chart.pushData([
+        { x: 'a', y: 2, z: 1 },
+        { x: 'a', y: 2, z: 2 }
+      ])
+
+      expect(mockSetData).toHaveBeenNthCalledWith(2, [
+        [0],
+        [3]
+      ])
+
+      chart.pushData([
+        { x: 'a', y: 50, z: 3 },
+        { x: 'a', y: 60, z: 4 },
+        { x: 'a', y: 150, z: 5 },
+        { x: 'a', y: 160, z: 6 }
+      ])
+
+      expect(mockSetData).toHaveBeenNthCalledWith(3, [
+        [0, 150],
+        [5, 2]
+      ])
+    })
   })
 
   test('pruneThreshold prunes datasets by half', () => {

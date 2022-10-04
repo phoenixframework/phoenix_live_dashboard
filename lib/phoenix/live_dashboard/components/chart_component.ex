@@ -3,6 +3,8 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
 
   @default_prune_threshold 1_000
 
+  @default_bucket_size 20
+
   @impl true
   def mount(socket) do
     {:ok, socket, temporary_assigns: [data: []]}
@@ -14,10 +16,14 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
 
     socket =
       if metric do
-        assign(socket,
+        kind = chart_kind(metric.__struct__)
+
+        socket
+        |> apply_metric(kind, metric)
+        |> assign(
           title: chart_title(metric),
           description: metric.description,
-          kind: chart_kind(metric.__struct__),
+          kind: kind,
           label: chart_label(metric),
           tags: Enum.join(metric.tags, "-"),
           unit: chart_unit(metric.unit),
@@ -49,7 +55,8 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
               data-title={@title}
               data-tags={@tags}
               data-unit={@unit}
-              data-prune-threshold={@prune_threshold}>
+              data-prune-threshold={@prune_threshold}
+              {@metric_attrs}>
           </div>
         </div>
         <%= if @description do %>
@@ -60,6 +67,14 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
       </div>
     </div>
     """
+  end
+
+  defp apply_metric(socket, :distribution, metric) do
+    assign(socket, :metric_attrs, %{data_bucket_size: bucket_size(metric)})
+  end
+
+  defp apply_metric(socket, _kind, _metric) do
+    assign(socket, :metric_attrs, %{})
   end
 
   defp chart_title(metric) do
@@ -94,17 +109,25 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp prune_threshold(metric) do
     prune_threshold =
       metric.reporter_options[:prune_threshold]
-      |> validate_prune_threshold()
+      |> validate_positive_integer_or_nil!(:prune_threshold)
 
     to_string(prune_threshold || @default_prune_threshold)
   end
 
-  defp validate_prune_threshold(nil), do: nil
+  defp bucket_size(metric) do
+    bucket_size =
+      metric.reporter_options[:bucket_size]
+      |> validate_positive_integer_or_nil!(:bucket_size)
 
-  defp validate_prune_threshold(value) do
+    to_string(bucket_size || @default_bucket_size)
+  end
+
+  defp validate_positive_integer_or_nil!(nil, _field), do: nil
+
+  defp validate_positive_integer_or_nil!(value, field) do
     unless is_integer(value) and value > 0 do
       raise ArgumentError,
-            ":prune_threshold must be a positive integer, got: #{inspect(value)}"
+            "#{inspect(field)} must be a positive integer, got: #{inspect(value)}"
     end
 
     value

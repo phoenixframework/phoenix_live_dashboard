@@ -144,7 +144,8 @@ defmodule DemoWeb.Telemetry do
       ),
       distribution("phoenix.endpoint.stop.duration",
         description: "Distribution of phoenix.endpoint response time",
-        unit: {:native, :millisecond}
+        unit: {:native, :millisecond},
+        reporter_options: [bucket_size: 2]
       ),
       counter("phoenix.endpoint.stop.duration",
         unit: {:native, :millisecond}

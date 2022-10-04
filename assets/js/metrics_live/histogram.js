@@ -1,10 +1,7 @@
 import { LineColor } from './color_wheel'
 import uPlot from 'uplot'
 
-let bucketIncr = 20
-let histOffset = 0
-
-const histBucket = v => incrRoundDn(v - histOffset, bucketIncr) + histOffset
+const histBucket = (v, offset, incr) => incrRoundDn(v - offset, incr) + offset
 const histSort = (a, b) => a - b
 
 function incrRoundDn(num, incr) {
@@ -27,18 +24,22 @@ function reBin(histogram, sort) {
   return [values, counts]
 }
 
+const getBucketSize = ({ bucketSize = 20 }) => +bucketSize
+
 export class Histogram {
   constructor(chart, options) {
     this.chart = chart
     this.datasets = new Map();
     this.options = options
+    this.bucketSize = getBucketSize(options)
+    this.histOffset = 0
     // todo: enable pruning for histogram?
   }
 
   handleMeasurements(data) {
     data.forEach(({ y }) => {
       if (y == null) { return }
-      y = histBucket(y)
+      y = histBucket(y, this.histOffset, this.bucketSize)
 
       let entry = this.datasets.get(y)
 
@@ -55,6 +56,7 @@ export class Histogram {
   static initialData() { return [[], []] }
 
   static getConfig(options) {
+    let bucketIncr = getBucketSize(options)
     let bars = uPlot.paths.bars({ align: 1, size: [1, Infinity], gap: 4 })
 
     return {
