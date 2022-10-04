@@ -5,31 +5,14 @@ let bucketIncr = 20
 let histOffset = 0
 
 const histBucket = v => incrRoundDn(v - histOffset, bucketIncr) + histOffset
-
-const histFilter = [null]
-
 const histSort = (a, b) => a - b
 
-function histogram(vals, bucket, filter, sort) {
-  let hist = new Map()
+function incrRoundDn(num, incr) {
+  return Math.floor(num / incr) * incr
+}
 
-  for (let i = 0; i < vals.length; i++) {
-    let v = vals[i]
-
-    if (v != null)
-      v = bucket(v)
-
-    let entry = hist.get(v)
-
-    if (entry)
-      entry.count++
-    else
-      hist.set(v, { value: v, count: 1 })
-  }
-
-  filter && filter.forEach(v => hist.delete(v))
-
-  let bins = [...hist.values()]
+function reBin(histogram, sort) {
+  let bins = [...histogram.values()]
 
   sort && bins.sort((a, b) => sort(a.value, b.value))
 
@@ -41,37 +24,32 @@ function histogram(vals, bucket, filter, sort) {
     counts[i] = bins[i].count
   }
 
-  return [
-    values,
-    counts,
-  ]
+  return [values, counts]
 }
-
-function incrRoundDn(num, incr) {
-  return Math.floor(num / incr) * incr
-}
-
-function aggAll(data, round, filter, sort) {
-  let allVals = [].concat(...data[1])
-  return histogram(allVals, round, filter, sort)
-}
-
-const dataForDatasets = (datasets) => datasets.slice(0).map(({ data }) => data)
 
 export class Histogram {
   constructor(chart, options) {
     this.chart = chart
-    this.datasets = [{ key: "|x|", data: [] }]
+    this.datasets = new Map();
     this.options = options
-    // todo: enable pruning for histogram
-    // this.pruneThreshold = getPruneThreshold(options)
-
-    this.datasets.push({ key: options.label, data: [] })
+    // todo: enable pruning for histogram?
   }
 
   handleMeasurements(data) {
-    data.forEach(({ y }) => { this.datasets[1].data.push(y) })
-    this.chart.setData(aggAll(dataForDatasets(this.datasets), histBucket, histFilter, histSort))
+    data.forEach(({ y }) => {
+      if (y == null) { return }
+      y = histBucket(y)
+
+      let entry = this.datasets.get(y)
+
+      if (entry) {
+        entry.count++
+      } else {
+        this.datasets.set(y, { value: y, count: 1 })
+      }
+    })
+
+    this.chart.setData(reBin(this.datasets, histSort))
   }
 
   static initialData() { return [[], []] }
