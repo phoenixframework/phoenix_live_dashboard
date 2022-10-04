@@ -1,0 +1,36 @@
+# Simulates traffic for the dashboard
+# Link: https://github.com/fcsonline/drill
+# $ cargo install drill
+# $ /path/to/drill --benchmark traffic.yml --quiet --stats
+---
+
+concurrency: 20
+base: 'http://localhost:4000'
+iterations: 1000
+
+plan:
+  - name: Get the homepage
+    request:
+      url: /
+
+  - name: Get request info
+    request:
+      url: /get
+
+  - name: Hello
+    request:
+      url: /hello
+
+  - name: Hello by name
+    request:
+      url: /hello/{{ item.name }}
+    shuffle: true
+    pick: 1
+    with_items:
+      - { name: 'mike' }
+      - { name: 'chris' }
+      - { name: 'josé' }
+
+  - name: Get the dashboard
+    request:
+      url: /dashboard

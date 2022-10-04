@@ -4,17 +4,18 @@ const mockAddSeries = jest.fn()
 const mockSetData = jest.fn()
 
 jest.mock('uplot', () => {
-  return {
-    __esModule: true,
-    default: jest.fn(() => {
-      return {
-        series: [],
-        addSeries: mockAddSeries,
-        delSeries: mockDelSeries,
-        setData: mockSetData
-      }
-    })
-  }
+  let defaultExport = jest.fn(() => {
+    return {
+      series: [],
+      addSeries: mockAddSeries,
+      delSeries: mockDelSeries,
+      setData: mockSetData
+    }
+  })
+
+  defaultExport.paths = { bars: () => { } }
+
+  return { __esModule: true, default: defaultExport }
 })
 
 import { TelemetryChart, newSeriesConfig } from '../js/metrics_live'
@@ -222,6 +223,72 @@ describe('Metrics no tags', () => {
         }
       }
     ])
+  })
+
+  describe('Distribution (Histogram)', () => {
+    test('bucketSize default value is 20', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'distribution', tagged: false })
+
+      chart.pushData([{ x: 'a', y: 2, z: 0 }])
+
+      expect(mockSetData).toHaveBeenNthCalledWith(1, [
+        [0],
+        [1]
+      ])
+
+      chart.pushData([
+        { x: 'a', y: 2, z: 1 },
+        { x: 'a', y: 2, z: 2 }
+      ])
+
+      expect(mockSetData).toHaveBeenNthCalledWith(2, [
+        [0],
+        [3]
+      ])
+
+      chart.pushData([
+        { x: 'a', y: 20, z: 3 },
+        { x: 'a', y: 30, z: 4 }
+      ])
+
+      expect(mockSetData).toHaveBeenNthCalledWith(3, [
+        [0, 20],
+        [3, 2]
+      ])
+    })
+
+    test('with custom bucketSize', () => {
+      const chart = new TelemetryChart(document.body, { metric: 'distribution', tagged: false, bucketSize: 150 })
+
+      chart.pushData([{ x: 'a', y: 2, z: 0 }])
+
+      expect(mockSetData).toHaveBeenNthCalledWith(1, [
+        [0],
+        [1]
+      ])
+
+      chart.pushData([
+        { x: 'a', y: 2, z: 1 },
+        { x: 'a', y: 2, z: 2 }
+      ])
+
+      expect(mockSetData).toHaveBeenNthCalledWith(2, [
+        [0],
+        [3]
+      ])
+
+      chart.pushData([
+        { x: 'a', y: 50, z: 3 },
+        { x: 'a', y: 60, z: 4 },
+        { x: 'a', y: 150, z: 5 },
+        { x: 'a', y: 160, z: 6 }
+      ])
+
+      expect(mockSetData).toHaveBeenNthCalledWith(3, [
+        [0, 150],
+        [5, 2]
+      ])
+    })
   })
 
   test('pruneThreshold prunes datasets by half', () => {

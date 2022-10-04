@@ -135,7 +135,7 @@ The following table shows how `Telemetry.Metrics` metrics map to LiveDashboard c
 | `counter`         | Always increased by 1                                      |
 | `sum`             | Always increased/decreased by an absolute value            |
 | `summary`         | Value/Min/Max/Avg                                          |
-| `distribution`    | (Coming Soon) recording measurements in individual buckets |
+| `distribution`    | Total number of events in individual buckets               |
 
 ### Reporter options
 
@@ -150,6 +150,9 @@ The following reporter options are available to the dashboard:
   * `:prune_threshold` - the maximum number of data
     points. When the threshold is reached, the chart data will
     be pruned by half. Default is `1_000`.
+
+  * `:bucket_size` - the unit width of each bucket. This option only
+    applies to `distribution` histograms. The default value is `20`.
 
 ### Metrics history
 
