@@ -1,7 +1,7 @@
 import { LineColor } from './color_wheel'
 import uPlot from 'uplot'
 
-let bucketIncr = 2
+let bucketIncr = 20
 let histOffset = 0
 
 const histBucket = v => incrRoundDn(v - histOffset, bucketIncr) + histOffset
