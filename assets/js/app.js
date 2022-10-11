@@ -1,7 +1,6 @@
-import "phoenix_html"
-import { Socket, LongPoll } from "phoenix"
+// Note: Phoenix JS dependencies are loaded
+// from their Application directories by the LayoutView
 import NProgress from "nprogress"
-import { LiveSocket } from "phoenix_live_view"
 import PhxChartComponent from "./metrics_live"
 import PhxRequestLoggerCookie from "./request_logger_cookie"
 import PhxRequestLoggerQueryParameter from "./request_logger_query_parameter"
@@ -21,7 +20,7 @@ let Hooks = {
 
 let socketPath = document.querySelector("html").getAttribute("phx-socket") || "/live"
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-let liveSocket = new LiveSocket(socketPath, Socket, {
+let liveSocket = new LiveView.LiveSocket(socketPath, Phoenix.Socket, {
   hooks: Hooks,
   params: (liveViewName) => {
     return {
@@ -48,7 +47,7 @@ socket.onConnError = (...args) => {
     // close the socket with an error code
     socket.disconnect(null, 3000)
     // fall back to long poll
-    socket.transport = LongPoll
+    socket.transport = Phoenix.LongPoll
     // reopen
     socket.connect()
   } else {
