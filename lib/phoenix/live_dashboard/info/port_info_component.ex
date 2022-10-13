@@ -26,7 +26,7 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
             <tr><td>Input</td><td><pre><%= format_bytes(@input) %></pre></td></tr>
             <tr><td>Output</td><td><pre><%= format_bytes(@output) %></pre></td></tr>
             <tr><td>OS pid</td><td><pre><%= @os_pid %></pre></td></tr>
-            <tr><td>Links</td><td><pre><%= @links %></pre></td></tr>
+            <tr><td>Links</td><td><pre><.info links={@links} /></pre></td></tr>
           </tbody>
         </table>
       <% else %>
@@ -69,4 +69,11 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
        do: val
 
   defp format_info(_key, val, live_dashboard_path), do: format_value(val, live_dashboard_path)
+  defp info(%{links: links} = assigns) when is_list(links) do
+    ~H"""
+    <%= for info <- @links do %><%= info %><% end %>
+    """
+  end
+
+  defp info(%{links: _links} = assigns), do: ~H|<%= @links %>|
 end
