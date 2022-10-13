@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.7.1 (2022-10-13)
+
+* Support distribution metrics
+* Load Phoenix assets from app directory
+
 ## v0.7.0 (2022-09-21)
 
 * Support and require Phoenix.LiveView 0.18.0
