@@ -43,9 +43,7 @@ Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Endpoint,
 )
 
 defmodule Phoenix.LiveDashboardTest.ErrorView do
-  use Phoenix.View, root: "test/templates"
-
-  def template_not_found(template, _assigns) do
+  def render(template, _assigns) do
     Phoenix.Controller.status_message_from_template(template)
   end
 end

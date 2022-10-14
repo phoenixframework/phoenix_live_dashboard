@@ -1,6 +1,8 @@
 defmodule Phoenix.LiveDashboard.LayoutView do
   @moduledoc false
-  use Phoenix.LiveDashboard.Web, :view
+  use Phoenix.LiveDashboard.Web, :html
+
+  embed_templates "layouts/*"
 
   phoenix_path = Application.app_dir(:phoenix, "priv/static/phoenix.js")
 
