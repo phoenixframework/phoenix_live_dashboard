@@ -68,13 +68,13 @@ defmodule Phoenix.LiveDashboard.MixProject do
     ]
   end
 
-  defp phoenix_live_view_opts do
-    if path = System.get_env("LIVE_VIEW_PATH") do
-      [path: path]
-    else
-      []
-    end
-  end
+  # defp phoenix_live_view_opts do
+  #   if path = System.get_env("LIVE_VIEW_PATH") do
+  #     [path: path]
+  #   else
+  #     []
+  #   end
+  # end
 
   defp docs do
     [
