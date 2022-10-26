@@ -1,7 +1,7 @@
 # Used by "mix format"
 locals_without_parens = [
   embed_templates: 1,
-  embed_templates: 2,
+  embed_templates: 2
 ]
 
 [
