@@ -43,7 +43,7 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
     rendered = render(live)
 
     assert rendered =~
-             ~s|<h6 class="banner-card-title">\n      Erlang&apos;s stdlib\n      \n    </h6><div class="banner-card-value">| <>
+             ~s|<h6 class="banner-card-title">\n      Erlang&#39;s stdlib\n      \n    </h6><div class="banner-card-value">| <>
                ~s|#{Application.spec(:stdlib, :vsn)}</div>|
   end
 

@@ -31,6 +31,8 @@ defmodule Phoenix.LiveDashboard.LayoutView do
   @app_css File.read!(css_path)
   def render("app.css", _), do: @app_css
 
+  def render("dash.html", assigns), do: dash(assigns)
+
   defp csp_nonce(conn, type) when type in [:script, :style, :img] do
     csp_nonce_assign_key = conn.private.csp_nonce_assign_key[type]
     conn.assigns[csp_nonce_assign_key]
