@@ -71,22 +71,14 @@ defmodule Phoenix.LiveDashboard.HomePage do
     ~H"""
     <.ac_row>
       <:col>
-        <.erlang_info_row banner={@system_info.banner} arch={@system_info.system_architecture}/>
-        <.elixir_info_row
-          elixir_version={@system_info.elixir_version}
-          phoenix_version={@system_info.phoenix_version}
-          app_version={@system_info.app_version}
-          app_title={@app_title}
-        />
+        <.erlang_info_row {@system_info} />
+        <.elixir_info_row {@system_info} app_title={@app_title} />
         <.io_info_row
           uptime={@system_usage.uptime}
           input={elem(@system_usage.io, 0)}
           output={elem(@system_usage.io, 1)}
         />
-        <.run_queues_row
-          total_run_queue={@system_usage.total_run_queue}
-          cpu_run_queue={@system_usage.cpu_run_queue}
-        />
+        <.run_queues_row {@system_usage}/>
       </:col>
       <:col>
         <.atoms_usage_row
@@ -137,14 +129,14 @@ defmodule Phoenix.LiveDashboard.HomePage do
   end
 
   attr :banner, :string, required: true
-  attr :arch, :string, required: true
+  attr :system_architecture, :string, required: true
 
   defp erlang_info_row(assigns) do
     ~H"""
     <.ac_row>
       <:col>
         <.ac_card title="System information" class="no-title">
-          <%= "#{@banner} [#{@arch}]" %>
+          <%= "#{@banner} [#{@system_architecture}]" %>
         </.ac_card>
       </:col>
     </.ac_row>
