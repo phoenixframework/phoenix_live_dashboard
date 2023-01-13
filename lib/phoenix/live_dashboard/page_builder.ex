@@ -117,6 +117,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   and `encode_socket/1`.
   """
 
+  use Phoenix.Component
+
   defstruct info: nil,
             module: nil,
             node: nil,
@@ -840,5 +842,139 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       def init(opts), do: {:ok, opts}
       defoverridable init: 1
     end
+  end
+
+  # attr :page, __MODULE__, required: true
+  slot(:col, required: true)
+
+  def ac_row(assigns) do
+    assigns = ac_row_normalize_assigns(assigns)
+
+    ~H"""
+    <div class="row">
+      <%= for col <- @col do %>
+        <div class={"col-sm-#{@columns_class} mb-4 flex-column d-flex"}>
+          <%= render_slot(col) %>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp ac_row_normalize_assigns(assigns) do
+    columns_length = length(assigns.col)
+
+    if columns_length < 4 do
+      assign(assigns, :columns_class, div(12, columns_length))
+    else
+      raise ArgumentError,
+            "row component should have at most 3 :col, got: " <> inspect(columns_length)
+    end
+  end
+
+  attr :text, :string, required: true
+
+  def ac_hint(assigns) do
+    ~H"""
+    <div class="hint">
+      <svg class="hint-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="44" height="44" fill="none"/>
+        <rect x="19" y="10" width="6" height="5.76" rx="1" class="hint-icon-fill"/>
+        <rect x="19" y="20" width="6" height="14" rx="1" class="hint-icon-fill"/>
+        <circle cx="22" cy="22" r="20" class="hint-icon-stroke" stroke-width="4"/>
+      </svg>
+      <div class="hint-text"><%= @text %></div>
+    </div>
+    """
+  end
+
+  attr :class, :string, default: ""
+  attr :title, :string, default: nil
+  attr :inner_title, :string, default: nil
+  attr :hint, :string, default: nil
+  attr :inner_hint, :string, default: nil
+  slot(:inner_block, required: true)
+
+  def ac_card(assigns) do
+    ~H"""
+    <h5 class="card-title" :if={@title}>
+      <%= @title %>
+      <.ac_hint :if={@hint} text={@hint}/>
+    </h5>
+    <div class={"banner-card mt-auto #{@class}"}>
+      <h6 class="banner-card-title" :if={@inner_title}>
+        <%= @inner_title %>
+        <.ac_hint :if={@inner_hint} text={@inner_hint} />
+      </h6>
+      <div class="banner-card-value">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
+    """
+  end
+
+  attr :class, :string
+  attr :title, :string, default: nil
+  attr :hint, :string, default: nil
+  attr :dom_id, :string, required: true
+  attr :csp_nonces, :any, default: %{img: nil, script: nil, style: nil}
+  attr :usages, :list, required: true
+
+  def ac_usage_card(assigns) do
+    ~H"""
+    <h5 class="card-title" :if={@title}>
+      <%= @title %>
+      <.ac_hint :if={@hint} text={@hint}/>
+    </h5>
+    <div class="card">
+      <div class="card-body card-usage" :for={usage <- @usages}>
+        <.ac_title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} class="py-2" percent={usage.percent} csp_nonces={@csp_nonces} %>
+          <div>
+            <%= usage.title %>
+            <.ac_hint text={usage[:hint]} :if={usage[:hint]}/>
+          </div>
+          <div>
+            <small class="text-muted pr-2">
+              <%= usage.current %> / <%= usage.limit %>
+            </small>
+            <strong :if={usage[:percent]}>
+              <%= usage[:percent] %>%
+            </strong>
+          </div>
+        </.ac_title_bar_component>
+      </div>
+    </div>
+    """
+  end
+
+  attr :class, :string, default: ""
+  attr :color, :string, default: "blue"
+  attr :dom_id, :string, required: true
+  attr :percent, :float, required: true
+  attr :csp_nonces, :any, required: true
+  slot(:inner_block, required: true)
+
+  def ac_title_bar_component(assigns) do
+    ~H"""
+    <div class={@class}>
+      <section>
+        <div class="d-flex justify-content-between">
+          <%= render_slot @inner_block %>
+        </div>
+        <style nonce={@csp_nonces.style}>#<%= "#{@dom_id}-progress" %>{width:<%= @percent %>%}</style>
+        <div class="progress flex-grow-1 mt-2">
+          <div
+          class={"progress-bar bg-#{@color}"}
+          role="progressbar"
+          aria-valuenow={@percent}
+          aria-valuemin="0"
+          aria-valuemax="100"
+          id={"#{@dom_id}-progress"}
+          >
+          </div>
+        </div>
+      </section>
+    </div>
+    """
   end
 end

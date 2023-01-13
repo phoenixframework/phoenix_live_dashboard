@@ -25,6 +25,7 @@ defmodule Phoenix.LiveDashboard.UsageCardComponent do
     %{params | usages: usages}
   end
 
+  # TODO?
   defp validate_required(params, list, parent_key \\ false) do
     case Enum.find(list, &(not Map.has_key?(params, &1))) do
       nil ->

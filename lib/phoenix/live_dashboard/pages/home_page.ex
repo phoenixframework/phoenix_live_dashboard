@@ -68,27 +68,67 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   @impl true
   def render_page(assigns) do
-    row(
-      components: [
-        columns(
-          components: [
-            [
-              erlang_info_row(assigns.system_info),
-              elixir_info_row(assigns.system_info, assigns.app_title),
-              io_info_row(assigns.system_usage),
-              run_queues_row(assigns.system_usage),
-              environments_row(assigns.environment)
-            ],
-            [
-              atoms_usage_row(assigns),
-              ports_usage_row(assigns),
-              processes_usage_row(assigns),
-              memory_shared_usage_row(assigns)
-            ]
-          ]
-        )
-      ]
-    )
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.erlang_info_row banner={@system_info.banner} arch={@system_info.system_architecture}/>
+        <.elixir_info_row
+          elixir_version={@system_info.elixir_version}
+          phoenix_version={@system_info.phoenix_version}
+          app_version={@system_info.app_version}
+          app_title={@app_title}
+        />
+        <.io_info_row
+          uptime={@system_usage.uptime}
+          input={elem(@system_usage.io, 0)}
+          output={elem(@system_usage.io, 1)}
+        />
+        <.run_queues_row
+          total_run_queue={@system_usage.total_run_queue}
+          cpu_run_queue={@system_usage.cpu_run_queue}
+        />
+      </:col>
+      <:col>
+        <.atoms_usage_row
+          system_usage={@system_usage}
+          system_limits={@system_limits}
+          csp_nonces={@csp_nonces}
+        />
+        <.ports_usage_row
+          system_usage={@system_usage}
+          system_limits={@system_limits}
+          csp_nonces={@csp_nonces}
+        />
+        <.processes_usage_row
+          system_usage={@system_usage}
+          system_limits={@system_limits}
+          csp_nonces={@csp_nonces}
+        />
+      </:col>
+    </.ac_row>
+    """
+
+    # row(
+    #   components: [
+    #     columns(
+    #       components: [
+    #         [
+    #           erlang_info_row(assigns.system_info),
+    #           elixir_info_row(assigns.system_info, assigns.app_title),
+    #           io_info_row(assigns.system_usage),
+    #           run_queues_row(assigns.system_usage),
+    #           environments_row(assigns.environment)
+    #         ],
+    #         [
+    #           atoms_usage_row(assigns),
+    #           ports_usage_row(assigns),
+    #           processes_usage_row(assigns),
+    #           memory_shared_usage_row(assigns)
+    #         ]
+    #       ]
+    #     )
+    #   ]
+    # )
   end
 
   @impl true
@@ -96,96 +136,101 @@ defmodule Phoenix.LiveDashboard.HomePage do
     {:ok, @menu_text}
   end
 
-  defp erlang_info_row(system_info) do
-    row(
-      components: [
-        columns(
-          components: [
-            card(
-              title: "System information",
-              value: "#{system_info.banner} [#{system_info.system_architecture}]",
-              class: ["no-title"]
-            )
-          ]
-        )
-      ]
-    )
+  attr :banner, :string, required: true
+  attr :arch, :string, required: true
+
+  defp erlang_info_row(assigns) do
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_card title="System information" class="no-title">
+          <%= "#{@banner} [#{@arch}]" %>
+        </.ac_card>
+      </:col>
+    </.ac_row>
+    """
   end
 
-  defp elixir_info_row(system_info, app_title) do
-    row(
-      components: [
-        columns(
-          components: [
-            card(
-              inner_title: "Elixir",
-              value: system_info[:elixir_version],
-              class: ["bg-elixir", "text-white"]
-            ),
-            card(
-              inner_title: "Phoenix",
-              value: system_info[:phoenix_version],
-              class: ["bg-phoenix", "text-white"]
-            ),
-            card(
-              inner_title: app_title,
-              value: system_info[:app_version],
-              class: ["bg-dashboard", "text-white"]
-            )
-          ]
-        )
-      ]
-    )
+  attr :elixir_version, :string, required: true
+  attr :phoenix_version, :string, required: true
+  attr :app_title, :string, required: true
+  attr :app_version, :string, required: true
+
+  defp elixir_info_row(assigns) do
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_card inner_title="Elixir" class="bg-elixir text-white">
+          <%= @elixir_version %>
+        </.ac_card>
+      </:col>
+      <:col>
+        <.ac_card inner_title="Phoenix" class="bg-phoenix text-white">
+          <%= @phoenix_version %>
+        </.ac_card>
+      </:col>
+      <:col>
+        <.ac_card inner_title={@app_title} class="bg-dashboard text-white">
+          <%= @app_version %>
+        </.ac_card>
+      </:col>
+    </.ac_row>
+    """
   end
 
-  defp io_info_row(system_usage) do
-    row(
-      components: [
-        columns(
-          components: [
-            card(
-              inner_title: "Uptime",
-              value: format_uptime(system_usage.uptime)
-            ),
-            card(
-              inner_title: "Total input",
-              inner_hint: @hints[:total_input],
-              value: format_bytes(system_usage.io |> elem(0))
-            ),
-            card(
-              inner_title: "Total output",
-              inner_hint: @hints[:total_output],
-              value: format_bytes(system_usage.io |> elem(1))
-            )
-          ]
-        )
-      ]
-    )
+  attr :uptime, :integer, required: true
+  attr :input, :integer, required: true
+  attr :output, :integer, required: true
+
+  defp io_info_row(assigns) do
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_card inner_title="Uptime">
+          <%= format_uptime(@uptime) %>
+        </.ac_card>
+      </:col>
+      <:col>
+        <.ac_card inner_title="Total input" inner_hint={hint_msg(:total_input)}>
+          <%= format_bytes(@input) %>
+        </.ac_card>
+      </:col>
+      <:col>
+        <.ac_card inner_title="Total output" inner_hint={hint_msg(:total_output)}>
+          <%= format_bytes(@input) %>
+        </.ac_card>
+      </:col>
+    </.ac_row>
+    """
   end
 
-  defp run_queues_row(system_usage) do
-    row(
-      components: [
-        columns(
-          components: [
-            card(
-              title: "Run queues",
-              inner_title: "Total",
-              inner_hint: @hints[:total_queues],
-              value: system_usage.total_run_queue
-            ),
-            card(
-              inner_title: "CPU",
-              value: system_usage.cpu_run_queue
-            ),
-            card(
-              inner_title: "IO",
-              value: system_usage.total_run_queue - system_usage.cpu_run_queue
-            )
-          ]
-        )
-      ]
-    )
+  attr :total_run_queue, :integer, required: true
+  attr :cpu_run_queue, :integer, required: true
+
+  defp run_queues_row(assigns) do
+    ~H"""
+      <.ac_row>
+        <:col>
+          <.ac_card
+              title="Run queues"
+              inner_title="Total"
+              inner_hint={hint_msg(:total_queues)}
+          >
+            <%= @total_run_queue %>
+          </.ac_card>
+        </:col>
+        <:col>
+          <.ac_card inner_title="CPU">
+            <%= @cpu_run_queue %>
+          </.ac_card>
+        </:col>
+        <:col>
+          <.ac_card inner_title="IO">
+            <%= @total_run_queue - @cpu_run_queue %>
+          </.ac_card>
+        </:col>
+      </.ac_row>
+    """
   end
 
   defp environments_row(environments) do
@@ -203,55 +248,59 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
+  attr :system_usage, :any, required: true
+  attr :system_limits, :any, required: true
+  attr :csp_nonces, :any, required: true
+
   defp atoms_usage_row(assigns) do
-    usages = usage_params(:atoms, assigns)
-
-    params = [
-      usages: usages,
-      dom_id: "atoms",
-      title: "System limits",
-      csp_nonces: assigns.csp_nonces
-    ]
-
-    row(
-      components: [
-        columns(
-          components: [
-            usage_card(params)
-          ]
-        )
-      ]
-    )
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_usage_card
+          usages={usage_params(:atoms, @system_usage, @system_limits)}
+          dom_id="atoms"
+          title="System limits"
+          csp_nonces={@csp_nonces}
+        />
+      </:col>
+    </.ac_row>
+    """
   end
+
+  attr :system_usage, :any, required: true
+  attr :system_limits, :any, required: true
+  attr :csp_nonces, :any, required: true
 
   defp ports_usage_row(assigns) do
-    usages = usage_params(:ports, assigns)
-    params = [usages: usages, dom_id: "ports", csp_nonces: assigns.csp_nonces]
-
-    row(
-      components: [
-        columns(
-          components: [
-            usage_card(params)
-          ]
-        )
-      ]
-    )
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_usage_card
+          usages={usage_params(:ports, @system_usage, @system_limits)}
+          dom_id="ports"
+          csp_nonces={@csp_nonces}
+        />
+      </:col>
+    </.ac_row>
+    """
   end
 
-  defp processes_usage_row(assigns) do
-    usages = usage_params(:processes, assigns)
-    params = [usages: usages, dom_id: "processes", csp_nonces: assigns.csp_nonces]
+  attr :system_usage, :any, required: true
+  attr :system_limits, :any, required: true
+  attr :csp_nonces, :any, required: true
 
-    row(
-      components: [
-        columns(
-          components: [
-            usage_card(params)
-          ]
-        )
-      ]
-    )
+  defp processes_usage_row(assigns) do
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_usage_card
+          usages={usage_params(:processes, @system_usage, @system_limits)}
+          dom_id="processes"
+          csp_nonces={@csp_nonces}
+        />
+      </:col>
+    </.ac_row>
+    """
   end
 
   defp memory_shared_usage_row(assigns) do
@@ -268,7 +317,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     )
   end
 
-  defp usage_params(type, %{system_usage: system_usage, system_limits: system_limits}) do
+  defp usage_params(type, system_usage, system_limits) do
     [
       %{
         current: system_usage[type],
@@ -315,6 +364,9 @@ defmodule Phoenix.LiveDashboard.HomePage do
       dom_sub_id: "total"
     }
   end
+
+  # TODO rename to hint after remove Helpers.hint
+  defp hint_msg(key), do: @hints[key]
 
   @impl true
   def handle_refresh(socket) do

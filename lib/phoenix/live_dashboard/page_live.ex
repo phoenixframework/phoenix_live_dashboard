@@ -234,9 +234,14 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp render_page(module, assigns) do
-    {component, component_assigns} = module.render_page(assigns)
-    component_assigns = Map.put(component_assigns, :page, assigns.page)
-    live_component(component, component_assigns)
+    case module.render_page(assigns) do
+      {component, component_assigns} ->
+        component_assigns = Map.put(component_assigns, :page, assigns.page)
+        live_component(component, component_assigns)
+
+      %Phoenix.LiveView.Rendered{} = rendered ->
+        rendered
+    end
   end
 
   defp live_info(_, %{info: nil}), do: nil
