@@ -26,105 +26,64 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
   @impl true
   def render_page(assigns) do
+    # FIXME this is wrong we should do it in mount
     os_mon = SystemInfo.fetch_os_mon_info(assigns.page.node)
     cpu_count = length(os_mon.cpu_per_core)
-    row_params = %{os_mon: os_mon, cpu_count: cpu_count, csp_nonces: assigns.csp_nonces}
+    assigns = assign(assigns, os_mon: os_mon, cpu_count: cpu_count)
+    # row_params = %{os_mon: os_mon, cpu_count: cpu_count, csp_nonces: assigns.csp_nonces}
 
-    top_row = cpu_components(row_params) ++ memory_components(row_params)
-    bottom_row = [disk_usage_row(row_params)]
+    # top_row = cpu_components(row_params) ++ memory_components(row_params)
+    # bottom_row = [disk_usage_row(row_params)]
 
-    row(
-      components: [
-        columns(components: top_row),
-        columns(components: bottom_row)
-      ]
-    )
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.cpu_components {assigns}/>
+      </:col>
+      <:col>
+        <.memory_components {assigns}/>
+      </:col>
+    </.ac_row>
+    <.ac_row>
+      <:col>
+        <.disk_usage_row {assigns}/>
+      </:col>
+    </.ac_row>
+    """
+
+    # row(
+    #   components: [
+    #     columns(components: top_row),
+    #     columns(components: bottom_row)
+    #   ]
+    # )
   end
 
-  defp cpu_components(%{os_mon: %{cpu_avg1: num1, cpu_avg5: num5, cpu_avg15: num15}} = row_params)
+  defp cpu_components(%{os_mon: %{cpu_avg1: num1, cpu_avg5: num5, cpu_avg15: num15}} = assigns)
        when is_number(num1) and is_number(num5) and is_number(num15) do
-    [
-      [cpu_load_row(row_params)] ++
-        if(row_params.cpu_count > 0, do: [cpu_avg_row(row_params)], else: [])
-    ]
+    ~H"""
+    <.cpu_load_row {assigns}/>
+    <.cpu_avg_row :if={multicore?(@cpu_count)} {assigns}/>
+    """
   end
 
   defp cpu_components(%{}), do: []
 
-  defp memory_components(row_params), do: [[memory_usage_row(row_params)]]
+  defp multicore?(cpu_count), do: cpu_count > 0
 
-  defp cpu_load_row(%{os_mon: os_mon} = assigns) do
-    row(
-      components: [
-        columns(
-          components: [
-            card(
-              title: "CPU",
-              hint: cpu_hint(assigns),
-              inner_title: "Load 1 min",
-              value: rup(os_mon.cpu_avg1)
-            ),
-            card(inner_title: "Load 5 min", value: rup(os_mon.cpu_avg5)),
-            card(inner_title: "Load 15 min", value: rup(os_mon.cpu_avg15))
-          ]
-        )
-      ]
-    )
-  end
-
-  defp cpu_avg_row(%{os_mon: os_mon, cpu_count: cpu_count}) do
-    row(
-      components: [
-        columns(
-          components: [
-            card(inner_title: "Avg 1 min", value: rup_avg(os_mon.cpu_avg1, cpu_count)),
-            card(inner_title: "Avg 5 min", value: rup_avg(os_mon.cpu_avg5, cpu_count)),
-            card(inner_title: "Avg 15 min", value: rup_avg(os_mon.cpu_avg15, cpu_count))
-          ]
-        )
-      ]
-    )
-  end
-
-  defp memory_usage_row(%{os_mon: os_mon, csp_nonces: csp_nonces}) do
-    params = memory_usage_params(os_mon, csp_nonces)
-
-    row(
-      components: [
-        columns(
-          components: [
-            usage_card(params)
-          ]
-        )
-      ]
-    )
-  end
-
-  defp disk_usage_row(%{os_mon: os_mon, csp_nonces: csp_nonces}) do
-    params = disk_usage_params(os_mon, csp_nonces)
-
-    row(
-      title: "Disk",
-      components: [
-        columns(
-          components: [
-            usage_card(params)
-          ]
-        )
-      ]
-    )
-  end
-
-  defp memory_usage_params(os_mon, csp_nonces) do
-    usages = calculate_memory_usage(os_mon.system_mem)
-
-    [title: "Memory", usages: usages, dom_id: "memory", csp_nonces: csp_nonces]
-  end
-
-  defp disk_usage_params(os_mon, csp_nonces) do
-    usages = calculate_disk_usage(os_mon.disk)
-
-    [title: "Disk", usages: usages, dom_id: "disk", csp_nonces: csp_nonces]
+  defp memory_components(assigns) do
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_usage_card
+          title="Memory"
+          dom_id="memory"
+          usages={calculate_memory_usage(@os_mon.system_mem)}
+          csp_nonces={@csp_nonces}
+        />
+      </:col>
+    </.ac_row>
+    """
   end
 
   defp calculate_memory_usage(system_memory) do
@@ -140,6 +99,55 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
         title: key
       }
     end
+  end
+
+  defp cpu_load_row(assigns) do
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_card title="CPU" hint={cpu_hint(@cpu_count)} inner_title="Load 1 min">
+          <%= rup(@os_mon.cpu_avg1) %>
+        </.ac_card>
+      </:col>
+      <:col>
+        <.ac_card inner_title="Load 5 min"> <%= rup(@os_mon.cpu_avg5) %> </.ac_card>
+      </:col>
+      <:col>
+        <.ac_card inner_title="Load 15 min"> <%= rup(@os_mon.cpu_avg15) %> </.ac_card>
+      </:col>
+    </.ac_row>
+    """
+  end
+
+  defp cpu_avg_row(assigns) do
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_card inner_title="Avg 1 min"><%= rup_avg(@os_mon.cpu_avg1, @cpu_count) %></.ac_card>
+      </:col>
+      <:col>
+        <.ac_card inner_title="Avg 5 min"><%= rup_avg(@os_mon.cpu_avg5, @cpu_count) %></.ac_card>
+      </:col>
+      <:col>
+        <.ac_card inner_title="Avg 15 min"><%= rup_avg(@os_mon.cpu_avg15, @cpu_count) %></.ac_card>
+      </:col>
+    </.ac_row>
+    """
+  end
+
+  defp disk_usage_row(assigns) do
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_usage_card
+          title="Disk"
+          usages={calculate_disk_usage(@os_mon.disk)}
+          dom_id="disk"
+          csp_nonces={@csp_nonces}
+        />
+      </:col>
+    </.ac_row>
+    """
   end
 
   defp calculate_disk_usage(system_disk) do
@@ -176,13 +184,18 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
   defp rup_avg(value, count), do: Float.ceil(value / 256 / count, 2)
 
-  defp cpu_hint(assigns) do
-    ~H"""
-    <p>The load panes show the CPU demand in the last 1, 5 and 15 minutes over all cores.</p>
+  defp cpu_hint(_assigns) do
+    # FIXME Allow hint to recieve a slot instead a text
+    # ~H"""
+    # <p>The load panes show the CPU demand in the last 1, 5 and 15 minutes over all cores.</p>
 
-    <%= if @cpu_count > 0 do %>
-        <p>The avg panes show the same values averaged across all cores.</p>
-    <% end %>
+    # <%= if @cpu_count > 0 do %>
+    #     <p>The avg panes show the same values averaged across all cores.</p>
+    # <% end %>
+    # """
+    """
+    <p>The load panes show the CPU demand in the last 1, 5 and 15 minutes over all cores.</p>
+    <p>The avg panes show the same values averaged across all cores.</p>
     """
   end
 

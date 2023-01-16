@@ -927,21 +927,23 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       <.ac_hint :if={@hint} text={@hint}/>
     </h5>
     <div class="card">
-      <div class="card-body card-usage" :for={usage <- @usages}>
-        <.ac_title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} class="py-2" percent={usage.percent} csp_nonces={@csp_nonces} %>
-          <div>
-            <%= usage.title %>
-            <.ac_hint text={usage[:hint]} :if={usage[:hint]}/>
-          </div>
-          <div>
-            <small class="text-muted pr-2">
-              <%= usage.current %> / <%= usage.limit %>
-            </small>
-            <strong :if={usage[:percent]}>
-              <%= usage[:percent] %>%
-            </strong>
-          </div>
-        </.ac_title_bar_component>
+      <div class="card-body card-usage">
+        <%= for usage <- @usages do %>
+          <.ac_title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} class="py-2" percent={usage.percent} csp_nonces={@csp_nonces} >
+            <div>
+              <%= usage.title %>
+              <.ac_hint text={usage[:hint]} :if={usage[:hint]}/>
+            </div>
+            <div>
+              <small class="text-muted pr-2">
+                <%= usage.current %> / <%= usage.limit %>
+              </small>
+              <strong :if={usage[:percent]}>
+                <%= usage[:percent] %>%
+              </strong>
+            </div>
+          </.ac_title_bar_component>
+        <% end %>
       </div>
     </div>
     """
@@ -1042,6 +1044,41 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         </div>
       </section>
     </div>
+    """
+  end
+
+  attr :fields, :list, required: true
+  attr :title, :string, default: nil
+  attr :hint, :string, default: nil
+  attr :inner_title, :string, default: nil
+  attr :inner_hint, :string, default: nil
+
+  def ac_fields_card(assigns) do
+    ~H"""
+    <%= if @fields && not Enum.empty?(@fields) do %>
+      <h5 class="card-title" :if={@title}>
+        <%= @title %>
+        <.ac_hint :if={@hint} text={@hint}/>
+      </h5>
+      <div class="fields-card">
+        <div class="card mb-4">
+          <div class="card-body rounded pt-3">
+            <h6 class="banner-card-title" :if={@inner_title}>
+              <%= @inner_title %>
+              <.ac_hint :if={@inner_hint} text={@inner_hint} />
+            </h6>
+            <dl>
+              <%= for {k, v} <- @fields do %>
+                <dt class="pb-1"><%= k %></dt>
+                <dd>
+                  <textarea class="code-field text-monospace" readonly="readonly" rows="1"><%= v %></textarea>
+                </dd>
+              <% end %>
+            </dl>
+          </div>
+        </div>
+      </div>
+    <% end %>
     """
   end
 

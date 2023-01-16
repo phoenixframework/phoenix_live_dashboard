@@ -79,6 +79,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
           output={elem(@system_usage.io, 1)}
         />
         <.run_queues_row {@system_usage}/>
+        <.environments_row fields={@environment} />
       </:col>
       <:col>
         <.atoms_usage_row
@@ -103,28 +104,6 @@ defmodule Phoenix.LiveDashboard.HomePage do
       </:col>
     </.ac_row>
     """
-
-    # row(
-    #   components: [
-    #     columns(
-    #       components: [
-    #         [
-    #           erlang_info_row(assigns.system_info),
-    #           elixir_info_row(assigns.system_info, assigns.app_title),
-    #           io_info_row(assigns.system_usage),
-    #           run_queues_row(assigns.system_usage),
-    #           environments_row(assigns.environment)
-    #         ],
-    #         [
-    #           atoms_usage_row(assigns),
-    #           ports_usage_row(assigns),
-    #           processes_usage_row(assigns),
-    #           memory_shared_usage_row(assigns)
-    #         ]
-    #       ]
-    #     )
-    #   ]
-    # )
   end
 
   @impl true
@@ -229,19 +208,19 @@ defmodule Phoenix.LiveDashboard.HomePage do
     """
   end
 
-  defp environments_row(environments) do
-    row(
-      components: [
-        columns(
-          components: [
-            fields_card(
-              title: "Environment",
-              fields: environments
-            )
-          ]
-        )
-      ]
-    )
+  attr :fields, :list, required: true
+
+  defp environments_row(assigns) do
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_fields_card
+          title="Environment"
+          fields={@fields}
+        />
+      </:col>
+    </.ac_row>
+    """
   end
 
   attr :system_usage, :any, required: true
