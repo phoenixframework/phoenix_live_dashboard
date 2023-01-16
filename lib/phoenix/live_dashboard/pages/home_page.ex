@@ -96,6 +96,10 @@ defmodule Phoenix.LiveDashboard.HomePage do
           system_limits={@system_limits}
           csp_nonces={@csp_nonces}
         />
+        <.memory_shared_usage_row
+          system_usage={@system_usage}
+          csp_nonces={@csp_nonces}
+        />
       </:col>
     </.ac_row>
     """
@@ -295,20 +299,6 @@ defmodule Phoenix.LiveDashboard.HomePage do
     """
   end
 
-  defp memory_shared_usage_row(assigns) do
-    params = memory_usage_params(assigns)
-
-    row(
-      components: [
-        columns(
-          components: [
-            shared_usage_card(params)
-          ]
-        )
-      ]
-    )
-  end
-
   defp usage_params(type, system_usage, system_limits) do
     [
       %{
@@ -322,21 +312,28 @@ defmodule Phoenix.LiveDashboard.HomePage do
     ]
   end
 
-  defp memory_usage_params(%{system_usage: system_usage} = assigns) do
-    total = system_usage.memory.total
-    memory_usage = calculate_memory_usage(system_usage.memory)
-    usages = [calculate_memory_usage_percent(memory_usage, total)]
+  attr :system_usage, :any, required: true
+  attr :csp_nonces, :any, required: true
 
-    [
-      title: "Memory",
-      usages: usages,
-      total_data: memory_usage,
-      total_legend: "Total usage:",
-      total_usage: format_bytes(system_usage.memory[:total]),
-      total_formatter: &format_bytes(&1),
-      csp_nonces: assigns.csp_nonces,
-      dom_id: "memory"
-    ]
+  defp memory_shared_usage_row(assigns) do
+    memory_usage = calculate_memory_usage(assigns.system_usage.memory)
+    assigns = assign(assigns, :memory_usage, memory_usage)
+
+    ~H"""
+    <.ac_row>
+      <:col>
+        <.ac_shared_usage_card
+          title="Memory"
+          usages={[calculate_memory_usage_percent(@memory_usage, @system_usage.memory.total)]}
+          total_data={@memory_usage}
+          total_legend="Total usage:"
+          total_usage={format_bytes(@system_usage.memory.total)}
+          total_formatter={&format_bytes(&1)}
+          csp_nonces={@csp_nonces}
+        />
+      </:col>
+    </.ac_row>
+    """
   end
 
   defp calculate_memory_usage(memory_usage) do
