@@ -28,6 +28,7 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
 
   @impl true
   def update(assigns, socket) do
+    assigns = Map.new(assigns)
     normalize_params(assigns)
     # Note that the view box can change dynamically based on the size of layers.
     opts = %{
@@ -92,15 +93,8 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
 
   @impl true
   def render(assigns) do
+    # <Phoenix.LiveDashboard.PageBuilder.ac_card_title title={@title} hint={@hint} />
     ~H"""
-    <%= if @title do %>
-      <h5 class="card-title">
-        <%= @title %>
-        <%= if @hint do %>
-          <%= hint(do: @hint) %>
-        <% end %>
-      </h5>
-    <% end %>
     <div class="card layered-graph">
       <div class="card-body">
       <svg
@@ -121,9 +115,7 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
             </pattern>
           </defs>
 
-          <%= if @show_grid? do %>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          <% end %>
+          <rect :if={@show_grid?} width="100%" height="100%" fill="url(#grid)" />
 
           <%= for arrow <- @arrows do %>
             <line x1={arrow.x1} y1={arrow.y1} x2={arrow.x2} y2={arrow.y2} class="connection-line" marker-end="url(#arrow)"/>

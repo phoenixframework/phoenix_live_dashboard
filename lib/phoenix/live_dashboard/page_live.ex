@@ -233,11 +233,14 @@ defmodule Phoenix.LiveDashboard.PageLive do
     module.render(assigns)
   end
 
-  defp render_page(module, assigns) do
-    case module.render_page(assigns) do
-      {component, component_assigns} ->
-        component_assigns = Map.put(component_assigns, :page, assigns.page)
-        live_component(component, component_assigns)
+  defp render_page(module, page_assigns) do
+    case module.render_page(page_assigns) do
+      {component, assigns} ->
+        assigns = Map.merge(assigns, %{page: page_assigns.page, module: component})
+        # live_component(component, component_assigns)
+        ~H"""
+        <.live_component id="__dashboard_page_root" {assigns} />
+        """
 
       %Phoenix.LiveView.Rendered{} = rendered ->
         rendered

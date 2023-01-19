@@ -690,12 +690,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   """
   @spec layered_graph(keyword()) :: component()
   def layered_graph(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> LayeredGraphComponent.normalize_params()
-
-    {LayeredGraphComponent, assigns}
+    ~H"""
+    <.live_component module={LayeredGraphComponent} id="wii" {assigns} />
+    """
   end
 
   ## Helpers
@@ -888,6 +885,18 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     """
   end
 
+  attr :title, :string, default: nil
+  attr :hint, :string, default: nil
+
+  def ac_card_title(assigns) do
+    ~H"""
+    <h5 class="card-title" :if={@title}>
+      <%= @title %>
+      <.ac_hint :if={@hint} text={@hint}/>
+    </h5>
+    """
+  end
+
   attr :class, :string, default: ""
   attr :title, :string, default: nil
   attr :hint, :string, default: nil
@@ -897,10 +906,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   def ac_card(assigns) do
     ~H"""
-    <h5 class="card-title" :if={@title}>
-      <%= @title %>
-      <.ac_hint :if={@hint} text={@hint}/>
-    </h5>
+    <.ac_card_title title={@title} hint={@hint} />
     <div class={"banner-card mt-auto #{@class}"}>
       <h6 class="banner-card-title" :if={@inner_title}>
         <%= @inner_title %>
@@ -922,10 +928,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   def ac_usage_card(assigns) do
     ~H"""
-    <h5 class="card-title" :if={@title}>
-      <%= @title %>
-      <.ac_hint :if={@hint} text={@hint}/>
-    </h5>
+    <.ac_card_title title={@title} hint={@hint} />
     <div class="card">
       <div class="card-body card-usage">
         <%= for usage <- @usages do %>
@@ -964,15 +967,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   def ac_shared_usage_card(assigns) do
     ~H"""
-    <h5 class="card-title" :if={@title}>
-      <%= @title %>
-      <.ac_hint :if={@hint} text={@hint}/>
-    </h5>
+    <.ac_card_title title={@title} hint={@hint} />
     <div class="card">
-      <h5 class="card-title" :if={@inner_title}>
-        <%= @inner_title %>
-        <.ac_hint :if={@inner_hint} text={@inner_hint} />
-      </h5>
+      <.ac_card_title title={@inner_title} hint={@inner_hint} />
       <div class="card-body">
         <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
           <div :for={usage <- @usages} class="flex-grow-1 mb-3">
@@ -1056,10 +1053,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   def ac_fields_card(assigns) do
     ~H"""
     <%= if @fields && not Enum.empty?(@fields) do %>
-      <h5 class="card-title" :if={@title}>
-        <%= @title %>
-        <.ac_hint :if={@hint} text={@hint}/>
-      </h5>
+      <.ac_card_title title={@title} hint={@hint} />
       <div class="fields-card">
         <div class="card mb-4">
           <div class="card-body rounded pt-3">

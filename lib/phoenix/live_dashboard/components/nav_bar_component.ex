@@ -174,11 +174,9 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
       <div class="row">
         <div class="container">
           <ul class={"nav nav-#{@style} mt-n2 mb-4"}>
-            <%= for {id, item} <- @items do %>
-              <li class="nav-item">
-                <%= render_item_link(@socket, @page, item, @current, @nav_param, id, @extra_params) %>
-              </li>
-            <% end %>
+            <li :for={{id, item} <- @items} class="nav-item">
+              <%= render_item_link(@socket, @page, item, @current, @nav_param, id, @extra_params) %>
+            </li>
           </ul>
         </div>
       </div>
