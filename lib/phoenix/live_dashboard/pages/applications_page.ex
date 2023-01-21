@@ -9,6 +9,29 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
 
   @impl true
   def render_page(_assigns) do
+    # ~H"""
+    # <.live_component
+    #   module={Phoenix.LiveDashboard.AcTableComponent}
+    #   id="table"
+    #   title="Applications"
+    #   row_fetcher={&fetch_applications/2}
+    #   row_attrs={&row_attrs/1}
+    # >
+    #   <:col
+    #     field={:name}
+    #     sortable={:asc}
+    #     header_attrs={[class: "pl-4"]}
+    #     cell_attrs={[class: "pl-4"]}
+    #   />
+    #   <:col field={:description} />
+    #   <:col field={:state} sortable={:asc} />
+    #   <:col field={:tree?} header="Sup tree?" cell_attrs={[class: "text-center"]} :let={app}>
+    #     <%= if app.tree?, do: "✓" %>
+    #   </:col>
+    #   <:col field={:version} header_attrs={[class: "px-4"]} cell_attrs={[class: "px-4"]}/>
+    # </.table>
+    # """
+
     table(
       columns: table_columns(),
       id: @table_id,
