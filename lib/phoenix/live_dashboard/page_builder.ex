@@ -595,8 +595,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :inner_title, :string, default: nil, doc: "The title inside the card."
   attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
 
+  # FIXME why there is not a function type?
   attr :total_formatter, :any,
-    default: &__MODULE__.default_total_formatter/1,
+    default: nil,
     doc: ~s<A function that format the `total_usage`. Default: `&("\#{&1} %")`.>
 
   @spec shared_usage_card(assigns :: Phoenix.LiveView.Socket.assigns()) ::
@@ -633,7 +634,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
               <div class="col-lg-6 d-flex align-items-center py-1 flex-grow-0 color-bar-legend-entry" data-name={name}>
                 <div class={"color-bar-legend-color bg-#{color} mr-2"}></div>
                 <span><%= name %><.hint :if={hint} text={hint} /></span>
-                <span class="flex-grow-1 text-right text-muted"><%= @total_formatter.(value) %></span>
+                <span class="flex-grow-1 text-right text-muted">
+                <%= if @total_formatter, do: @total_formatter.(value), else: total_formatter(value) %>
+                </span>
               </div>
               <% end %>
             </div>
@@ -646,6 +649,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     </div>
     """
   end
+
+  defp total_formatter(value), do: "#{value} %"
 
   @doc """
   A component for drawing layered graphs.
@@ -867,8 +872,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       defoverridable init: 1
     end
   end
-
-  defp default_total_formatter(value), do: "#{value} %"
 
   defp maybe_round(num) when is_integer(num), do: num
   defp maybe_round(num), do: Float.ceil(num, 1)
