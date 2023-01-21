@@ -237,7 +237,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
     case module.render_page(page_assigns) do
       {component, assigns} ->
         assigns = Map.merge(assigns, %{page: page_assigns.page, module: component})
-        # live_component(component, component_assigns)
+
         ~H"""
         <.live_component id="__dashboard_page_root" {assigns} />
         """

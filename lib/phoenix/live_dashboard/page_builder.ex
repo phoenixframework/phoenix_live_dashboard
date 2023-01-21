@@ -141,15 +141,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         }
 
   alias Phoenix.LiveDashboard.{
-    CardComponent,
-    ColumnsComponent,
-    FieldsCardComponent,
     LayeredGraphComponent,
     NavBarComponent,
-    RowComponent,
-    SharedUsageCardComponent,
-    TableComponent,
-    UsageCardComponent
+    TableComponent
   }
 
   @doc """
@@ -349,275 +343,308 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   end
 
   @doc """
-  Renders a card component.
+  Hint pop-up text component
+  """
+  attr :text, :string, required: true, doc: "Text to show in the hint"
 
-  It can be rendered in any dashboard page via the `render_page/1` function:
+  @spec hint(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def hint(assigns) do
+    ~H"""
+    <div class="hint">
+      <svg class="hint-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="44" height="44" fill="none"/>
+        <rect x="19" y="10" width="6" height="5.76" rx="1" class="hint-icon-fill"/>
+        <rect x="19" y="20" width="6" height="14" rx="1" class="hint-icon-fill"/>
+        <circle cx="22" cy="22" r="20" class="hint-icon-stroke" stroke-width="4"/>
+      </svg>
+      <div class="hint-text"><%= @text %></div>
+    </div>
+    """
+  end
 
-      def render_page(assigns) do
-        card(
-          title: "Run queues",
-          inner_title: "Total",
-          class: ["additional-class"],
-          value: 1.5
-        )
-      end
+  @doc """
+  Card title component.
+  """
+  attr :title, :string, default: nil, doc: "The title above the card."
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+
+  @spec card_title(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def card_title(assigns) do
+    ~H"""
+    <h5 class="card-title" :if={@title}>
+      <%= @title %>
+      <.hint :if={@hint} text={@hint}/>
+    </h5>
+    """
+  end
+
+  @doc """
+  Card component.
 
   You can see it in use the Home and OS Data pages.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:value` - Required. The value that the card will show.
-
-    * `:title` - The title above the card.
-      Default: `nil`.
-
-    * `:inner_title` - The title inside the card.
-      Default: `nil`.
-
-    * `:hint` - A textual hint to show close to the title.
-      Default: `nil`.
-
-    * `:inner_hint` - A textual hint to show close to the inner title.
-      Default: `nil`.
-
-    * `:class` - A list of additional css classes that will be added along banner-card class.
-      Default: `[]`.
   """
-  @spec card(keyword()) :: component()
-  def card(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> CardComponent.normalize_params()
 
-    {CardComponent, assigns}
+  slot(:inner_block, required: true, doc: "The value that the card will show.")
+  attr :title, :string, default: nil, doc: "The title above the card."
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  attr :inner_title, :string, default: nil, doc: "The title inside the card."
+  attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
+
+  attr :class, :string,
+    default: "",
+    doc: "A with additional css classes that will be added along banner-card class."
+
+  @spec card(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def card(assigns) do
+    ~H"""
+    <.card_title title={@title} hint={@hint} />
+    <div class={"banner-card mt-auto #{@class}"}>
+      <h6 class="banner-card-title" :if={@inner_title}>
+        <%= @inner_title %>
+        <.hint :if={@inner_hint} text={@inner_hint} />
+      </h6>
+      <div class="banner-card-value">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
+    """
   end
 
   @doc """
-  Renders a fields card component.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        fields_card(
-          title: "Run queues",
-          inner_title: "Total",
-          fields: ["USER": "...", "ROOTDIR": "..."]
-        )
-      end
+  Fields card component.
 
   You can see it in use the Home page in the Environment section.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:fields` - Required. A list of key-value elements that will be shown inside the card.
-
-    * `:title` - The title above the card.
-      Default: `nil`.
-
-    * `:inner_title` - The title inside the card.
-      Default: `nil`.
-
-    * `:hint` - A textual hint to show close to the title.
-      Default: `nil`.
-
-    * `:inner_hint` - A textual hint to show close to the inner title.
-      Default: `nil`.
   """
-  @spec fields_card(keyword()) :: component()
+
+  attr :fields, :list,
+    required: true,
+    doc: "A list of key-value elements that will be shown inside the card."
+
+  attr :title, :string, default: nil, doc: "The title above the card."
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  attr :inner_title, :string, default: nil, doc: "The title inside the card."
+  attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
+
   def fields_card(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> FieldsCardComponent.normalize_params()
-
-    {FieldsCardComponent, assigns}
+    ~H"""
+    <%= if @fields && not Enum.empty?(@fields) do %>
+      <.card_title title={@title} hint={@hint} />
+      <div class="fields-card">
+        <div class="card mb-4">
+          <div class="card-body rounded pt-3">
+            <h6 class="card-title" :if={@inner_title}>
+              <%= @inner_title %>
+              <.hint :if={@inner_hint} text={@inner_hint} />
+            </h6>
+            <dl :for={{k, v} <- @fields}>
+              <dt class="pb-1"><%= k %></dt>
+              <dd>
+                <textarea class="code-field text-monospace" readonly="readonly" rows="1"><%= v %></textarea>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    """
   end
 
   @doc """
-  Renders a column component.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        columns(
-          components: [
-            card(...),
-            card_usage(...)
-          ]
-        )
-      end
+  Row component.
 
   You can see it in use the Home page and OS Data pages.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:components` - Required. A list of components.
-      It can receive up to 3 components.
-      Each element will be one column.
   """
-  @spec columns(keyword()) :: component()
-  def columns(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> ColumnsComponent.normalize_params()
+  slot(:col,
+    required: true,
+    doc:
+      "A list of components. It can receive up to 3 components." <>
+        " Each element will be one column."
+  )
 
-    {ColumnsComponent, assigns}
-  end
-
-  @doc """
-  Renders a row component.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        row(
-          components: [
-            card(...),
-            columns(...)
-          ]
-        )
-      end
-
-  You can see it in use the Home page and OS Data pages.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:components` - Required. A list of components.
-      It can receive up to 3 components.
-      Each element will be one column.
-  """
-  @spec row(keyword()) :: component()
+  @spec row(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def row(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> RowComponent.normalize_params()
+    assigns = row_validate_columns_length(assigns)
 
-    {RowComponent, assigns}
+    ~H"""
+    <div class="row">
+      <div :for={col <- @col} class={"col-sm-#{@columns_class} mb-4 flex-column d-flex"}>
+        <%= render_slot(col) %>
+      </div>
+    </div>
+    """
+  end
+
+  defp row_validate_columns_length(assigns) do
+    columns_length = length(assigns[:col] || [])
+
+    if columns_length > 0 and columns_length < 4 do
+      assign(assigns, :columns_class, div(12, columns_length))
+    else
+      raise ArgumentError,
+            "row component must have at least 1 and at most 3 :col, got: " <>
+              inspect(columns_length)
+    end
   end
 
   @doc """
-  Renders a usage card component.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        usage_card(
-          usages: [
-            %{
-              current: 10,
-              limit: 150,
-              dom_sub_id: "1",
-              title: "Memory",
-              percent: "13"
-            }
-          ],
-          dom_id: "memory"
-        )
-      end
+  Usage card component.
 
   You can see it in use the Home page and OS Data pages.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:usages` - Required. A list of `Map` with the following keys:
-      * `:current` - Required. The current value of the usage.
-      * `:limit` - Required. The max value of usage.
-      * `:dom_sub_id` - Required. An unique identifier for the usage that will be concatenated to `dom_id`.
-      * `:percent` - The used percent if the usage. Default: `nil`.
-      * `:title` - Required. The title of the usage.
-      * `:hint` - A textual hint to show close to the usage title. Default: `nil`.
-
-    * `:dom_id` - Required. A unique identifier for all usages in this card.
-    * `:title` - The title of the card. Default: `nil`.
-    * `:hint` - A textual hint to show close to the card title. Default: `nil`.
   """
-  @spec usage_card(keyword()) :: component()
-  def usage_card(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> UsageCardComponent.normalize_params()
+  attr :title, :string, default: nil, doc: "The title above the card."
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  attr :dom_id, :string, required: true, doc: "A unique identifier for all usages in this card."
+  attr :csp_nonces, :any, default: %{img: nil, script: nil, style: nil}, doc: "TODO!!"
 
-    {UsageCardComponent, assigns}
+  attr :usages, :list,
+    required: true,
+    doc: """
+    A list of `Map` with the following keys:
+        * `:current` - Required. The current value of the usage.
+        * `:limit` - Required. The max value of usage.
+        * `:dom_sub_id` - Required. An unique identifier for the usage that will be concatenated to `dom_id`.
+        * `:percent` - The used percent if the usage. Default: `nil`.
+        * `:title` - Required. The title of the usage.
+        * `:hint` - A textual hint to show close to the usage title. Default: `nil`.
+    """
+
+  @spec usage_card(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def usage_card(assigns) do
+    ~H"""
+    <.card_title title={@title} hint={@hint} />
+    <div class="card">
+      <div class="card-body card-usage">
+        <%= for usage <- @usages do %>
+          <.title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} class="py-2" percent={usage.percent} csp_nonces={@csp_nonces} >
+            <div>
+              <%= usage.title %>
+              <.hint text={usage[:hint]} :if={usage[:hint]}/>
+            </div>
+            <div>
+              <small class="text-muted pr-2">
+                <%= usage.current %> / <%= usage.limit %>
+              </small>
+              <strong :if={usage[:percent]}>
+                <%= usage[:percent] %>%
+              </strong>
+            </div>
+          </.title_bar_component>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  @doc false
+  attr :class, :string, default: ""
+  attr :color, :string, default: "blue"
+  attr :dom_id, :string, required: true
+  attr :percent, :float, required: true
+  attr :csp_nonces, :any, required: true
+  slot(:inner_block, required: true)
+
+  # TODO we want to make this public?
+  defp title_bar_component(assigns) do
+    ~H"""
+    <div class={@class}>
+      <section>
+        <div class="d-flex justify-content-between">
+          <%= render_slot @inner_block %>
+        </div>
+        <style nonce={@csp_nonces.style}>#<%= "#{@dom_id}-progress" %>{width:<%= @percent %>%}</style>
+        <div class="progress flex-grow-1 mt-2">
+          <div
+          class={"progress-bar bg-#{@color}"}
+          role="progressbar"
+          aria-valuenow={@percent}
+          aria-valuemin="0"
+          aria-valuemax="100"
+          id={"#{@dom_id}-progress"}
+          >
+          </div>
+        </div>
+      </section>
+    </div>
+    """
   end
 
   @doc """
-  Renders a shared usage card component.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        shared_usage_card(
-          usages: [
-            %{
-              data: [
-                {"Atoms", 1.4, "green", nil},
-                {"Binary", 9.1, "blue", nil},
-                {"Code", 31.5, "purple", nil},
-                {"ETS", 3.6, "yellow", nil},
-                {"Processes", 25.8, "orange", nil},
-                {"Other", 28.5, "dark-gray", nil}
-              ],
-              dom_sub_id: "total"
-            }
-          ],
-          dom_id: "memory",
-          total_data: [
-            {"Atoms", 737513, "green", nil},
-            {"Binary", 4646392, "blue", nil},
-            {"Code", 16060819, "purple", nil},
-            {"ETS", 1845584, "yellow", nil},
-            {"Processes", 13146728, "orange", nil},
-            {"Other", 14559276, "dark-gray", nil}
-          ],
-          total_legend: "Total usage:"
-          total_usage: "47.4 MB"
-        )
-      end
+  Shared usage card component.
 
   You can see it in use the Home page and OS Data pages.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:usages` - Required. A list of `Map` with the following keys:
-      * `:data` - A list of tuples with 4 elements with the following data:
-        `{usage_name, usage_percent, color, hint}`
+  """
+  attr :usages, :list,
+    required: true,
+    doc: """
+    A list of `Map` with the following keys:
+      * `:data` - A list of tuples with 4 elements with the following data: `{usage_name, usage_percent, color, hint}`
       * `:dom_sub_id` - Required. Usage identifier.
       * `:title`- Bar title.
-    * `:total_data` -  Required. A list of tuples with 4 elements with following data:
-        `{usage_name, usage_value, color, hint}`
-    * `:total_legend` - Required. The legent of the total usage.
-    * `:total_usage` - Required. The value of the total usage.
-    * `:dom_id` - Required. A unique identifier for all usages in this card.
-    * `:title` - The title above the card. Default: `nil`.
-    * `:inner_title` - The title inside the card. Default: `nil`.
-    * `:hint` - A textual hint to show close to the title. Default: `nil`.
-    * `:inner_hint` - A textual hint to show close to the inner title. Default: `nil`.
-    * `:total_formatter` - A function that format the `total_usage`. Default: `&("\#{&1} %")`.
-  """
-  @spec shared_usage_card(keyword()) :: component()
-  def shared_usage_card(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> SharedUsageCardComponent.normalize_params()
+    """
 
-    {SharedUsageCardComponent, assigns}
+  attr :total_data, :any,
+    required: true,
+    doc:
+      "A list of tuples with 4 elements with following data: `{usage_name, usage_value, color, hint}`"
+
+  attr :total_legend, :string, required: true, doc: "The legent of the total usage."
+  attr :total_usage, :string, required: true, doc: "The value of the total usage."
+  attr :csp_nonces, :any, default: %{img: nil, script: nil, style: nil}, doc: "TODO!!"
+  attr :title, :string, default: nil, doc: "The title above the card."
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  attr :inner_title, :string, default: nil, doc: "The title inside the card."
+  attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
+
+  attr :total_formatter, :any,
+    default: &__MODULE__.default_total_formatter/1,
+    doc: ~s<A function that format the `total_usage`. Default: `&("\#{&1} %")`.>
+
+  @spec shared_usage_card(assigns :: Phoenix.LiveView.Socket.assigns()) ::
+          Phoenix.LiveView.Rendered.t()
+  def shared_usage_card(assigns) do
+    ~H"""
+    <.card_title title={@title} hint={@hint} />
+    <div class="card">
+      <.card_title title={@inner_title} hint={@inner_hint} />
+      <div class="card-body">
+        <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
+          <div :for={usage <- @usages} class="flex-grow-1 mb-3">
+            <div class="progress color-bar-progress flex-grow-1 mb-3">
+              <span :if={usage[:title]} class="color-bar-progress-title"><%= usage[:title] %></span>
+              <%= for {{name, value, color, _desc}, index} <- Enum.with_index(usage.data) do %>
+                <style nonce={@csp_nonces.style}>#<%= "cpu-#{usage.dom_sub_id}-progress-#{index}" %>{width:<%= value %>%}</style>
+                <div
+                    title={"#{name} - #{Phoenix.LiveDashboard.Helpers.format_percent(value)}"}
+                    class={"progress-bar color-bar-progress-bar bg-gradient-#{color}"}
+                    role="progressbar"
+                    aria-valuenow={maybe_round(value)}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    data-name={name}
+                    data-empty={empty?(value)}
+                    id={"cpu-#{usage.dom_sub_id}-progress-#{index}"}>
+                </div>
+              <% end %>
+            </div>
+          </div>
+          <div class="color-bar-legend">
+            <div class="row">
+            <%= for {name, value, color, hint} <- @total_data do %>
+              <div class="col-lg-6 d-flex align-items-center py-1 flex-grow-0 color-bar-legend-entry" data-name={name}>
+                <div class={"color-bar-legend-color bg-#{color} mr-2"}></div>
+                <span><%= name %><.hint :if={hint} text={hint} /></span>
+                <span class="flex-grow-1 text-right text-muted"><%= @total_formatter.(value) %></span>
+              </div>
+              <% end %>
+            </div>
+          </div>
+          <div class="resource-usage-total text-center py-1 mt-3">
+            <%= @total_legend %> <%= @total_usage %>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
   end
 
   @doc """
@@ -824,7 +851,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   end
 
   defmacro __using__(opts) do
-    quote bind_quoted: [opts: opts] do
+    quote location: :keep, bind_quoted: [opts: opts] do
       import Phoenix.LiveView
       use Phoenix.Component
       import Phoenix.LiveDashboard.PageBuilder
@@ -841,240 +868,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     end
   end
 
-  # attr :page, __MODULE__, required: true
-  slot(:col, required: true)
-
-  def ac_row(assigns) do
-    assigns = ac_row_normalize_assigns(assigns)
-
-    ~H"""
-    <div class="row">
-      <%= for col <- @col do %>
-        <div class={"col-sm-#{@columns_class} mb-4 flex-column d-flex"}>
-          <%= render_slot(col) %>
-        </div>
-      <% end %>
-    </div>
-    """
-  end
-
-  defp ac_row_normalize_assigns(assigns) do
-    columns_length = length(assigns.col)
-
-    if columns_length < 4 do
-      assign(assigns, :columns_class, div(12, columns_length))
-    else
-      raise ArgumentError,
-            "row component should have at most 3 :col, got: " <> inspect(columns_length)
-    end
-  end
-
-  attr :text, :string, required: true
-
-  def ac_hint(assigns) do
-    ~H"""
-    <div class="hint">
-      <svg class="hint-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="44" height="44" fill="none"/>
-        <rect x="19" y="10" width="6" height="5.76" rx="1" class="hint-icon-fill"/>
-        <rect x="19" y="20" width="6" height="14" rx="1" class="hint-icon-fill"/>
-        <circle cx="22" cy="22" r="20" class="hint-icon-stroke" stroke-width="4"/>
-      </svg>
-      <div class="hint-text"><%= @text %></div>
-    </div>
-    """
-  end
-
-  attr :title, :string, default: nil
-  attr :hint, :string, default: nil
-
-  def ac_card_title(assigns) do
-    ~H"""
-    <h5 class="card-title" :if={@title}>
-      <%= @title %>
-      <.ac_hint :if={@hint} text={@hint}/>
-    </h5>
-    """
-  end
-
-  attr :class, :string, default: ""
-  attr :title, :string, default: nil
-  attr :hint, :string, default: nil
-  attr :inner_title, :string, default: nil
-  attr :inner_hint, :string, default: nil
-  slot(:inner_block, required: true)
-
-  def ac_card(assigns) do
-    ~H"""
-    <.ac_card_title title={@title} hint={@hint} />
-    <div class={"banner-card mt-auto #{@class}"}>
-      <h6 class="banner-card-title" :if={@inner_title}>
-        <%= @inner_title %>
-        <.ac_hint :if={@inner_hint} text={@inner_hint} />
-      </h6>
-      <div class="banner-card-value">
-        <%= render_slot(@inner_block) %>
-      </div>
-    </div>
-    """
-  end
-
-  attr :class, :string
-  attr :title, :string, default: nil
-  attr :hint, :string, default: nil
-  attr :dom_id, :string, required: true
-  attr :csp_nonces, :any, default: %{img: nil, script: nil, style: nil}
-  attr :usages, :list, required: true
-
-  def ac_usage_card(assigns) do
-    ~H"""
-    <.ac_card_title title={@title} hint={@hint} />
-    <div class="card">
-      <div class="card-body card-usage">
-        <%= for usage <- @usages do %>
-          <.ac_title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} class="py-2" percent={usage.percent} csp_nonces={@csp_nonces} >
-            <div>
-              <%= usage.title %>
-              <.ac_hint text={usage[:hint]} :if={usage[:hint]}/>
-            </div>
-            <div>
-              <small class="text-muted pr-2">
-                <%= usage.current %> / <%= usage.limit %>
-              </small>
-              <strong :if={usage[:percent]}>
-                <%= usage[:percent] %>%
-              </strong>
-            </div>
-          </.ac_title_bar_component>
-        <% end %>
-      </div>
-    </div>
-    """
-  end
-
   defp default_total_formatter(value), do: "#{value} %"
-
-  attr :title, :string, default: nil
-  attr :hint, :string, default: nil
-  attr :inner_title, :string, default: nil
-  attr :inner_hint, :string, default: nil
-  attr :csp_nonces, :any, default: %{img: nil, script: nil, style: nil}
-  attr :usages, :list, required: true
-  attr :total_formatter, :any, default: &__MODULE__.default_total_formatter/1
-  attr :total_data, :any, required: true
-  attr :total_legend, :string, required: true
-  attr :total_usage, :string, required: true
-
-  def ac_shared_usage_card(assigns) do
-    ~H"""
-    <.ac_card_title title={@title} hint={@hint} />
-    <div class="card">
-      <.ac_card_title title={@inner_title} hint={@inner_hint} />
-      <div class="card-body">
-        <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
-          <div :for={usage <- @usages} class="flex-grow-1 mb-3">
-            <div class="progress color-bar-progress flex-grow-1 mb-3">
-              <%= for {{name, value, color, _desc}, index} <- Enum.with_index(usage.data) do %>
-                <style nonce={@csp_nonces.style}>#<%= "cpu-#{usage.dom_sub_id}-progress-#{index}" %>{width:<%= value %>%}</style>
-                <div
-                    title={"#{name} - #{Phoenix.LiveDashboard.Helpers.format_percent(value)}"}
-                    class={"progress-bar color-bar-progress-bar bg-gradient-#{color}"}
-                    role="progressbar"
-                    aria-valuenow={maybe_round(value)}
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    data-name={name}
-                    data-empty={empty?(value)}
-                    id={"cpu-#{usage.dom_sub_id}-progress-#{index}"}>
-                </div>
-              <% end %>
-            </div>
-          </div>
-          <div class="color-bar-legend">
-            <div class="row">
-            <%= for {name, value, color, hint} <- @total_data do %>
-              <div class="col-lg-6 d-flex align-items-center py-1 flex-grow-0 color-bar-legend-entry" data-name={name}>
-                <div class={"color-bar-legend-color bg-#{color} mr-2"}></div>
-                <span>
-                  <%= name %>
-                  <.ac_hint :if={hint} text={hint} />
-                </span>
-                <span class="flex-grow-1 text-right text-muted"><%= @total_formatter.(value) %></span>
-              </div>
-              <% end %>
-            </div>
-          </div>
-          <div class="resource-usage-total text-center py-1 mt-3">
-            <%= @total_legend %> <%= @total_usage %>
-          </div>
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  attr :class, :string, default: ""
-  attr :color, :string, default: "blue"
-  attr :dom_id, :string, required: true
-  attr :percent, :float, required: true
-  attr :csp_nonces, :any, required: true
-  slot(:inner_block, required: true)
-
-  def ac_title_bar_component(assigns) do
-    ~H"""
-    <div class={@class}>
-      <section>
-        <div class="d-flex justify-content-between">
-          <%= render_slot @inner_block %>
-        </div>
-        <style nonce={@csp_nonces.style}>#<%= "#{@dom_id}-progress" %>{width:<%= @percent %>%}</style>
-        <div class="progress flex-grow-1 mt-2">
-          <div
-          class={"progress-bar bg-#{@color}"}
-          role="progressbar"
-          aria-valuenow={@percent}
-          aria-valuemin="0"
-          aria-valuemax="100"
-          id={"#{@dom_id}-progress"}
-          >
-          </div>
-        </div>
-      </section>
-    </div>
-    """
-  end
-
-  attr :fields, :list, required: true
-  attr :title, :string, default: nil
-  attr :hint, :string, default: nil
-  attr :inner_title, :string, default: nil
-  attr :inner_hint, :string, default: nil
-
-  def ac_fields_card(assigns) do
-    ~H"""
-    <%= if @fields && not Enum.empty?(@fields) do %>
-      <.ac_card_title title={@title} hint={@hint} />
-      <div class="fields-card">
-        <div class="card mb-4">
-          <div class="card-body rounded pt-3">
-            <h6 class="banner-card-title" :if={@inner_title}>
-              <%= @inner_title %>
-              <.ac_hint :if={@inner_hint} text={@inner_hint} />
-            </h6>
-            <dl>
-              <%= for {k, v} <- @fields do %>
-                <dt class="pb-1"><%= k %></dt>
-                <dd>
-                  <textarea class="code-field text-monospace" readonly="readonly" rows="1"><%= v %></textarea>
-                </dd>
-              <% end %>
-            </dl>
-          </div>
-        </div>
-      </div>
-    <% end %>
-    """
-  end
 
   defp maybe_round(num) when is_integer(num), do: num
   defp maybe_round(num), do: Float.ceil(num, 1)

@@ -93,7 +93,7 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
 
   @impl true
   def render(assigns) do
-    # <Phoenix.LiveDashboard.PageBuilder.ac_card_title title={@title} hint={@hint} />
+    # <Phoenix.LiveDashboard.PageBuilder.card_title title={@title} hint={@hint} />
     ~H"""
     <div class="card layered-graph">
       <div class="card-body">

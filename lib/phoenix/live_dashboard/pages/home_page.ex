@@ -69,7 +69,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
   @impl true
   def render_page(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
         <.erlang_info_row {@system_info} />
         <.elixir_info_row {@system_info} app_title={@app_title} />
@@ -102,7 +102,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
           csp_nonces={@csp_nonces}
         />
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
@@ -116,13 +116,13 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp erlang_info_row(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_card title="System information" class="no-title">
+        <.card title="System information" class="no-title">
           <%= "#{@banner} [#{@system_architecture}]" %>
-        </.ac_card>
+        </.card>
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
@@ -133,23 +133,23 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp elixir_info_row(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_card inner_title="Elixir" class="bg-elixir text-white">
+        <.card inner_title="Elixir" class="bg-elixir text-white">
           <%= @elixir_version %>
-        </.ac_card>
+        </.card>
       </:col>
       <:col>
-        <.ac_card inner_title="Phoenix" class="bg-phoenix text-white">
+        <.card inner_title="Phoenix" class="bg-phoenix text-white">
           <%= @phoenix_version %>
-        </.ac_card>
+        </.card>
       </:col>
       <:col>
-        <.ac_card inner_title={@app_title} class="bg-dashboard text-white">
+        <.card inner_title={@app_title} class="bg-dashboard text-white">
           <%= @app_version %>
-        </.ac_card>
+        </.card>
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
@@ -159,23 +159,23 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp io_info_row(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_card inner_title="Uptime">
+        <.card inner_title="Uptime">
           <%= format_uptime(@uptime) %>
-        </.ac_card>
+        </.card>
       </:col>
       <:col>
-        <.ac_card inner_title="Total input" inner_hint={hint_msg(:total_input)}>
+        <.card inner_title="Total input" inner_hint={hint_msg(:total_input)}>
           <%= format_bytes(@input) %>
-        </.ac_card>
+        </.card>
       </:col>
       <:col>
-        <.ac_card inner_title="Total output" inner_hint={hint_msg(:total_output)}>
+        <.card inner_title="Total output" inner_hint={hint_msg(:total_output)}>
           <%= format_bytes(@input) %>
-        </.ac_card>
+        </.card>
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
@@ -184,27 +184,27 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp run_queues_row(assigns) do
     ~H"""
-      <.ac_row>
+      <.row>
         <:col>
-          <.ac_card
+          <.card
               title="Run queues"
               inner_title="Total"
               inner_hint={hint_msg(:total_queues)}
           >
             <%= @total_run_queue %>
-          </.ac_card>
+          </.card>
         </:col>
         <:col>
-          <.ac_card inner_title="CPU">
+          <.card inner_title="CPU">
             <%= @cpu_run_queue %>
-          </.ac_card>
+          </.card>
         </:col>
         <:col>
-          <.ac_card inner_title="IO">
+          <.card inner_title="IO">
             <%= @total_run_queue - @cpu_run_queue %>
-          </.ac_card>
+          </.card>
         </:col>
-      </.ac_row>
+      </.row>
     """
   end
 
@@ -212,14 +212,14 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp environments_row(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_fields_card
+        <.fields_card
           title="Environment"
           fields={@fields}
         />
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
@@ -229,16 +229,16 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp atoms_usage_row(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_usage_card
+        <.usage_card
           usages={usage_params(:atoms, @system_usage, @system_limits)}
           dom_id="atoms"
           title="System limits"
           csp_nonces={@csp_nonces}
         />
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
@@ -248,15 +248,15 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp ports_usage_row(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_usage_card
+        <.usage_card
           usages={usage_params(:ports, @system_usage, @system_limits)}
           dom_id="ports"
           csp_nonces={@csp_nonces}
         />
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
@@ -266,15 +266,15 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp processes_usage_row(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_usage_card
+        <.usage_card
           usages={usage_params(:processes, @system_usage, @system_limits)}
           dom_id="processes"
           csp_nonces={@csp_nonces}
         />
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
@@ -299,9 +299,9 @@ defmodule Phoenix.LiveDashboard.HomePage do
     assigns = assign(assigns, :memory_usage, memory_usage)
 
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_shared_usage_card
+        <.shared_usage_card
           title="Memory"
           usages={[calculate_memory_usage_percent(@memory_usage, @system_usage.memory.total)]}
           total_data={@memory_usage}
@@ -311,7 +311,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
           csp_nonces={@csp_nonces}
         />
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 

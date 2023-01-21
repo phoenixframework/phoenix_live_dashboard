@@ -31,11 +31,10 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
     assert rendered =~ to_string(:erlang.system_info(:system_version))
 
     assert rendered =~
-             ~s|<h6 class="banner-card-title">\n      Dashboard\n      \n    </h6><div class="banner-card-value">| <>
-               ~s|#{Application.spec(:phoenix_live_dashboard, :vsn)}</div>|
+             ~r{<h6 class="banner-card-title">[\r\n\s]*Dashboard[\r\n\s]*</h6><div class="banner-card-value">[\r\n\s]*#{Application.spec(:phoenix_live_dashboard, :vsn)}[\r\n\s]*</div>}
 
     assert rendered =~
-             ~s|<h6 class=\"banner-card-title\">\n      Uptime\n      \n    </h6><div class=\"banner-card-value\">0m</div>|
+             ~r{<h6 class=\"banner-card-title\">[\r\n\s]*Uptime[\r\n\s]*</h6><div class=\"banner-card-value\">[\r\n\s]*0m[\r\n\s]*</div>}
   end
 
   test "shows custom home app" do
@@ -43,20 +42,19 @@ defmodule Phoenix.LiveDashboard.HomePageTest do
     rendered = render(live)
 
     assert rendered =~
-             ~s|<h6 class="banner-card-title">\n      Erlang&#39;s stdlib\n      \n    </h6><div class="banner-card-value">| <>
-               ~s|#{Application.spec(:stdlib, :vsn)}</div>|
+             ~r{<h6 class="banner-card-title">[\r\n\s]*Erlang\&\#39;s stdlib[\r\n\s]*</h6><div class="banner-card-value">[\r\n\s]*#{Application.spec(:stdlib, :vsn)}[\r\n\s]*</div>}
   end
 
   test "shows memory usage information" do
     {:ok, live, _} = live(build_conn(), "/dashboard/home")
     rendered = render(live)
 
-    assert rendered =~ ~r|<span>Atoms </span>|
-    assert rendered =~ ~r|<span>Binary </span>|
-    assert rendered =~ ~r|<span>Code </span>|
-    assert rendered =~ ~r|<span>ETS </span>|
-    assert rendered =~ ~r|<span>Processes </span>|
-    assert rendered =~ ~r|<span>Other </span>|
+    assert rendered =~ ~r|<span>[\r\n\s]*Atoms[\r\n\s]*</span>|
+    assert rendered =~ ~r|<span>[\r\n\s]*Binary[\r\n\s]*</span>|
+    assert rendered =~ ~r|<span>[\r\n\s]*Code[\r\n\s]*</span>|
+    assert rendered =~ ~r|<span>[\r\n\s]*ETS[\r\n\s]*</span>|
+    assert rendered =~ ~r|<span>[\r\n\s]*Processes[\r\n\s]*</span>|
+    assert rendered =~ ~r|<span>[\r\n\s]*Other[\r\n\s]*</span>|
     assert rendered =~ ~r|Total usage: \d+.\d+|
   end
 

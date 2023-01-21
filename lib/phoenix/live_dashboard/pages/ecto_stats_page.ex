@@ -285,10 +285,10 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     do: value
 
   defp render_error(assigns) do
-    error_message =
-      case assigns.error do
-        :no_ecto_repos_available ->
-          ~H"""
+    case assigns.error do
+      :no_ecto_repos_available ->
+        ~H"""
+        <.card>
           <small>
             No Ecto repository was found running on this node.
             Currently only PSQL and MySQL databases are supported.
@@ -297,17 +297,18 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
             Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details.
           </small>
-          """
+        </.card>
+        """
 
-        :cannot_list_running_repos ->
-          ~H"""
+      :cannot_list_running_repos ->
+        ~H"""
+        <.card>
           <small>
             Cannot list running repositories.
             Make sure that Ecto is running with version ~> 3.7.
           </small>
-          """
-      end
-
-    card(value: error_message)
+        </.card>
+        """
+    end
   end
 end

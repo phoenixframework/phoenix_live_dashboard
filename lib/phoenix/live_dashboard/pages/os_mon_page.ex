@@ -36,19 +36,19 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     # bottom_row = [disk_usage_row(row_params)]
 
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
         <.cpu_components {assigns}/>
       </:col>
       <:col>
         <.memory_components {assigns}/>
       </:col>
-    </.ac_row>
-    <.ac_row>
+    </.row>
+    <.row>
       <:col>
         <.disk_usage_row {assigns}/>
       </:col>
-    </.ac_row>
+    </.row>
     """
 
     # row(
@@ -73,16 +73,16 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
   defp memory_components(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_usage_card
+        <.usage_card
           title="Memory"
           dom_id="memory"
           usages={calculate_memory_usage(@os_mon.system_mem)}
           csp_nonces={@csp_nonces}
         />
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
@@ -103,50 +103,50 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
   defp cpu_load_row(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_card title="CPU" hint={cpu_hint(@cpu_count)} inner_title="Load 1 min">
+        <.card title="CPU" hint={cpu_hint(@cpu_count)} inner_title="Load 1 min">
           <%= rup(@os_mon.cpu_avg1) %>
-        </.ac_card>
+        </.card>
       </:col>
       <:col>
-        <.ac_card inner_title="Load 5 min"> <%= rup(@os_mon.cpu_avg5) %> </.ac_card>
+        <.card inner_title="Load 5 min"> <%= rup(@os_mon.cpu_avg5) %> </.card>
       </:col>
       <:col>
-        <.ac_card inner_title="Load 15 min"> <%= rup(@os_mon.cpu_avg15) %> </.ac_card>
+        <.card inner_title="Load 15 min"> <%= rup(@os_mon.cpu_avg15) %> </.card>
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
   defp cpu_avg_row(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_card inner_title="Avg 1 min"><%= rup_avg(@os_mon.cpu_avg1, @cpu_count) %></.ac_card>
+        <.card inner_title="Avg 1 min"><%= rup_avg(@os_mon.cpu_avg1, @cpu_count) %></.card>
       </:col>
       <:col>
-        <.ac_card inner_title="Avg 5 min"><%= rup_avg(@os_mon.cpu_avg5, @cpu_count) %></.ac_card>
+        <.card inner_title="Avg 5 min"><%= rup_avg(@os_mon.cpu_avg5, @cpu_count) %></.card>
       </:col>
       <:col>
-        <.ac_card inner_title="Avg 15 min"><%= rup_avg(@os_mon.cpu_avg15, @cpu_count) %></.ac_card>
+        <.card inner_title="Avg 15 min"><%= rup_avg(@os_mon.cpu_avg15, @cpu_count) %></.card>
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
   defp disk_usage_row(assigns) do
     ~H"""
-    <.ac_row>
+    <.row>
       <:col>
-        <.ac_usage_card
+        <.usage_card
           title="Disk"
           usages={calculate_disk_usage(@os_mon.disk)}
           dom_id="disk"
           csp_nonces={@csp_nonces}
         />
       </:col>
-    </.ac_row>
+    </.row>
     """
   end
 
