@@ -226,77 +226,84 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
                       handle_refresh: 1
 
   @doc """
-  Renders a table component.
+  Table component.
 
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        table(
-          columns: table_columns(),
-          id: @table_id,
-          row_attrs: &row_attrs/1,
-          row_fetcher: &fetch_applications/2,
-          title: "Applications"
-        )
-      end
-
-  You can see it in use the applications, processes, sockets pages and
-  many others.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:id` - Required. Because is a stateful `Phoenix.LiveComponent` an unique id is needed.
-
-    * `:columns` - Required. A `Keyword` list with the following keys:
-      * `:field` - Required. An identifier for the column.
-      * `:sortable` - Required for at least one column. Either `:asc` or
-        `:desc` with the default sorting. When set, the column header is
-        clickable and it fetches again rows with the new order. Default: `nil`.
-      * `:header` - Label to show in the current column. Default value is calculated from `:field`.
-      * `:header_attrs` - A list with HTML attributes for the column header. Default: `[]`.
-      * `:format` - Function which receives the value and returns the cell information.
-        Default is the field value itself.
-      * `:cell_attrs` - A list with HTML attributes for the table cell. Default: `[]`.
-
-    * `:row_fetcher` - Required. A function which receives the params and the node and
-      returns a tuple with the rows and the total number:
-      `(params(), node() -> {list(), integer() | binary()})`.
-      Optionally, if the function needs to keep a state, it can be defined as a tuple
-      where the first element is a function and the second is the initial state.
-      In this case, the function will receive the state as third argument and must return
-      a tuple with the rows, the total number, and the new state for the following call:
-      `{(params(), node(), term() -> {list(), integer() | binary(), term()}), term()}`
-
-    * `:rows_name` - A string to name the representation of the rows.
-      Default is calculated from the current page.
-
-    * `:row_attrs` - A function that return a list with HTML attributes for the table row. It
-      receive the row as argument and return a list of 2 element tuple with HTML attribute name
-      and value. The default function returns an empty list `[]`.
-
-    * `:default_sort_by` - The default column to sort by to.
-      Defaults to the first sortable column.
-
-    * `:title` - Required. The title of the table.
-
-    * `:limit` - A list of integers to limit the number of rows to show.
-      Default: `[50, 100, 500, 1000, 5000]`. May be set to `false` to disable the `limit`.
-
-    * `:search` - A boolean indicating if the search functionality is enabled.
-      Default: `true`.
-
-    * `:hint` - A textual hint to show close to the title. Default: `nil`.
+  You can see it in use the applications, processes, sockets pages and many others.
   """
-  @spec table(keyword()) :: component()
-  def table(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> TableComponent.normalize_params()
+  attr :id, :any,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
 
-    {TableComponent, assigns}
+  attr :page, __MODULE__, required: true, doc: "Dashboard page"
+
+  slot :col, required: true, doc: "Columns for the table" do
+    attr :field, :atom, required: true
+
+    attr :sortable, :atom,
+      values: [:asc, :desc],
+      # default: nil,
+      doc:
+        "When set, the column header is clickable and it fetches again rows with the new order. Required for at least one column."
+
+    attr :header, :string,
+      # default: nil,
+      doc: "Label to show in the current column. Default value is calculated from `:field`."
+
+    attr :header_attrs, :list,
+      # default: [],
+      doc: "A list with HTML attributes for the column header."
+
+    attr :cell_attrs, :list, doc: "A list with HTML attributes for the table cell."
+    # default []
+  end
+
+  attr :row_fetcher, :any,
+    required: true,
+    doc: """
+    A function which receives the params and the node and
+    returns a tuple with the rows and the total number:
+    `(params(), node() -> {list(), integer() | binary()})`.
+    Optionally, if the function needs to keep a state, it can be defined as a tuple
+    where the first element is a function and the second is the initial state.
+    In this case, the function will receive the state as third argument and must return
+    a tuple with the rows, the total number, and the new state for the following call:
+    `{(params(), node(), term() -> {list(), integer() | binary(), term()}), term()}`
+    """
+
+  attr :rows_name, :string,
+    default: nil,
+    doc:
+      "A string to name the representation of the rows. Default is calculated from the current page."
+
+  # FIXME
+  attr :row_attrs, :any,
+    default: nil,
+    doc: """
+    A function that return a list with HTML attributes for the table row. It
+    receive the row as argument and return a list of 2 element tuple with HTML attribute name
+    and value. The default function returns an empty list `[]`.
+    """
+
+  attr :default_sort_by, :any,
+    default: nil,
+    doc: "The default column to sort by to. Defaults to the first sortable column."
+
+  attr :title, :string, required: true, doc: "The title of the table."
+
+  attr :limit, :any,
+    default: [50, 100, 500, 1000, 5000],
+    doc: "May be set to `false` to disable the `limit`."
+
+  attr :search, :boolean,
+    default: true,
+    doc: "A boolean indicating if the search functionality is enabled."
+
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  @spec table(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def table(assigns) do
+    ~H"""
+    <.live_component module={TableComponent} {assigns} />
+    """
   end
 
   @doc """
@@ -341,6 +348,13 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
     {NavBarComponent, assigns}
   end
+
+  # @spec nav_bar(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  # def nav_bar(assigns) do
+  #   ~H"""
+  #   <.live_component module={AcNavBarComponent} {assigns}/>
+  #   """
+  # end
 
   @doc """
   Hint pop-up text component

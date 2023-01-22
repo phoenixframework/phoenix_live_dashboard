@@ -154,6 +154,23 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
         end
 
       nav_bar(items: items, nav_param: :repo, extra_params: [:nav], style: :bar)
+      # ~H"""
+      # <.nav_bar
+      #   nav_param={:repo}
+      #   extra_params={[:nav]}
+      #   style={:bar}
+      # >
+      #   <:item :for={repo <- @repos} name={inspect(repo)}>
+      #     <.render_repo_tab
+      #       repo={repo}
+      #       node={@page.node}
+      #       ecto_options={@ecto_options}
+      #       info_module={info_module_for(@page.node, repo)}
+      #   >
+      #   </:item>
+
+      # </.nav_bar>
+      # """
     end
   end
 

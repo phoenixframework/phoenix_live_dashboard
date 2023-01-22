@@ -231,7 +231,7 @@ defmodule DemoWeb.GraphShowcasePage do
   @impl true
   def render_page(assigns) do
     ~H"""
-    <.live_component module={Phoenix.LiveDashboard.Components.AcNavBarComponent} id="navbar" page={@page}>
+    <.live_component module={Phoenix.LiveDashboard.AcNavBarComponent} id="navbar" page={@page}>
       <:item name="Simple" page={@page}>
         <.simple />
       </:item>

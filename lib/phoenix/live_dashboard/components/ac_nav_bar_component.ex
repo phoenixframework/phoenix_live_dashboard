@@ -1,4 +1,4 @@
-defmodule Phoenix.LiveDashboard.Components.AcNavBarComponent do
+defmodule Phoenix.LiveDashboard.AcNavBarComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
   @impl true
@@ -14,10 +14,10 @@ defmodule Phoenix.LiveDashboard.Components.AcNavBarComponent do
   def normalize_assigns(assigns) do
     case Map.fetch(assigns, :item) do
       :error ->
-        raise ArgumentError, "the :items parameter is expected in nav bar component"
+        raise ArgumentError, "the :item parameter is expected in nav bar component"
 
       {:ok, no_list} when not is_list(no_list) ->
-        msg = ":items parameter must be a list, got: "
+        msg = ":item parameter must be a list, got: "
         raise ArgumentError, msg <> inspect(no_list)
 
       {:ok, items} ->
