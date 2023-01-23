@@ -207,7 +207,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     searchable = for %{type: :string, name: name} <- info.columns, do: name
     default_sort_by = with [{column, _} | _] <- info[:order_by], do: column
 
-    table(
+    live_table(
       id: :table_id,
       hint: info.title,
       limit: false,

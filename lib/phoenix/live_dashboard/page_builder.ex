@@ -127,7 +127,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             tick: 0,
             allow_destructive_actions: false
 
-  @opaque component :: {module, map}
+  # TODO Remove?
+  # @opaque component :: {module, map}
 
   @type session :: map
   @type requirements :: [{:application | :process | :module, atom()}]
@@ -195,7 +196,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @callback mount(unsigned_params(), session(), socket :: Socket.t()) ::
               {:ok, Socket.t()} | {:ok, Socket.t(), keyword()}
 
-  @callback render_page(assigns :: Socket.assigns()) :: component()
+  @callback render_page(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
 
   @callback handle_params(unsigned_params(), uri :: String.t(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
@@ -226,7 +227,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
                       handle_refresh: 1
 
   @doc """
-  Table component.
+  Table live component.
 
   You can see it in use the applications, processes, sockets pages and many others.
   """
@@ -299,8 +300,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     doc: "A boolean indicating if the search functionality is enabled."
 
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
-  @spec table(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
-  def table(assigns) do
+  @spec live_table(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def live_table(assigns) do
     ~H"""
     <.live_component module={TableComponent} {assigns} />
     """
@@ -339,7 +340,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       all params, except the current node if any.
 
   """
-  @spec nav_bar(keyword()) :: component()
+  @spec nav_bar(keyword()) :: term()
   def nav_bar(assigns) do
     assigns =
       assigns
@@ -349,7 +350,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     {NavBarComponent, assigns}
   end
 
-  # @spec nav_bar(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  # @spec nav_bar(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   # def nav_bar(assigns) do
   #   ~H"""
   #   <.live_component module={AcNavBarComponent} {assigns}/>
@@ -361,7 +362,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   """
   attr :text, :string, required: true, doc: "Text to show in the hint"
 
-  @spec hint(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  @spec hint(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def hint(assigns) do
     ~H"""
     <div class="hint">
@@ -382,7 +383,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :title, :string, default: nil, doc: "The title above the card."
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
 
-  @spec card_title(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  @spec card_title(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def card_title(assigns) do
     ~H"""
     <h5 class="card-title" :if={@title}>
@@ -408,7 +409,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     default: "",
     doc: "A with additional css classes that will be added along banner-card class."
 
-  @spec card(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  @spec card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def card(assigns) do
     ~H"""
     <.card_title title={@title} hint={@hint} />
@@ -475,7 +476,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         " Each element will be one column."
   )
 
-  @spec row(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  @spec row(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def row(assigns) do
     assigns = row_validate_columns_length(assigns)
 
@@ -522,7 +523,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         * `:hint` - A textual hint to show close to the usage title. Default: `nil`.
     """
 
-  @spec usage_card(assigns :: Phoenix.LiveView.Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  @spec usage_card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def usage_card(assigns) do
     ~H"""
     <.card_title title={@title} hint={@hint} />
@@ -614,8 +615,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     default: nil,
     doc: ~s<A function that format the `total_usage`. Default: `&("\#{&1} %")`.>
 
-  @spec shared_usage_card(assigns :: Phoenix.LiveView.Socket.assigns()) ::
-          Phoenix.LiveView.Rendered.t()
+  @spec shared_usage_card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def shared_usage_card(assigns) do
     ~H"""
     <.card_title title={@title} hint={@hint} />
@@ -666,6 +666,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   defp total_formatter(value), do: "#{value} %"
 
+  # TODO slot & attrs
   @doc """
   A component for drawing layered graphs.
 
@@ -734,7 +735,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       ...> ]
       iex> layered_graph(layers: layers, title: "My Graph", hint: "A simple graph")
   """
-  @spec layered_graph(keyword()) :: component()
+  @spec layered_graph(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def layered_graph(assigns) do
     ~H"""
     <.live_component module={LayeredGraphComponent} id="wii" {assigns} />

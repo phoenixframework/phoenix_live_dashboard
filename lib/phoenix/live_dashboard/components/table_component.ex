@@ -242,8 +242,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp sort_link(assigns) do
-    field = assigns.column.field
-
     if assigns.table_params.sort_by == assigns.column.field do
       ~H"""
       <.link patch={PageBuilder.live_dashboard_path(@socket, @page, reverse_sort_dir(@table_params))} >

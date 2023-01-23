@@ -10,7 +10,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
   @impl true
   def render_page(assigns) do
     ~H"""
-    <.table
+    <.live_table
       id="table"
       page={@page}
       row_fetcher={{&fetch_processes/3, nil}}
@@ -63,7 +63,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       >
         <%= format_call(process[:current_function]) %>
       </:col>
-    </.table>
+    </.live_table>
     """
   end
 

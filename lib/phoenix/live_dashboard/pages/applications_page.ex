@@ -9,7 +9,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
   @impl true
   def render_page(assigns) do
     ~H"""
-    <.table
+    <.live_table
       id="table"
       page={@page}
       title="Applications"
@@ -28,7 +28,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
         <%= if app[:tree?], do: "✓" %>
       </:col>
       <:col field={:version} header_attrs={[class: "px-4"]} cell_attrs={[class: "px-4"]}/>
-    </.table>
+    </.live_table>
     """
   end
 
