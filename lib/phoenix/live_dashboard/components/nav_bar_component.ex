@@ -22,6 +22,7 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
 
       {:ok, items} ->
         nav_param = normalize_nav_param(assigns)
+        items = normalize_items(items)
         current = normalize_current(assigns.page.params, items, nav_param)
 
         %{
@@ -98,6 +99,47 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
     end
 
     style
+  end
+
+  defp normalize_items(items) do
+    Enum.map(items, &normalize_item/1)
+  end
+
+  defp normalize_item(item) do
+    item
+    |> validate_item_name()
+    |> normalize_item_method()
+  end
+
+  defp validate_item_name(item) do
+    case Map.fetch(item, :name) do
+      :error ->
+        msg = ":name parameter must be in item: #{inspect(item)}"
+        raise ArgumentError, msg
+
+      {:ok, string} when is_binary(string) ->
+        item
+
+      {:ok, _invalid} ->
+        msg = ":name parameter must be a string, got: #{inspect(item)}"
+        raise ArgumentError, msg
+    end
+  end
+
+  defp normalize_item_method(item) do
+    case Map.fetch(item, :method) do
+      :error ->
+        Map.put(item, :method, "patch")
+
+      {:ok, method} when method in ~w(patch navigate href redirect) ->
+        item
+
+      {:ok, method} ->
+        msg =
+          ":method parameter in item must contain one value of `~w(patch navigate href redirect)`, got: "
+
+        raise ArgumentError, msg <> inspect(method)
+    end
   end
 
   @impl true

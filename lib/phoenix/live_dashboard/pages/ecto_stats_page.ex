@@ -137,7 +137,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     else
       ~H"""
       <.live_nav_bar id="repos_nav_bar" page={@page} nav_param="repo" style={:bar} extra_params={["nav"]} >
-        <:item :for={repo <- @repos} name={inspect(repo)}>
+        <:item :for={repo <- @repos} name={inspect(repo)} label={inspect(repo)}>
           <.render_repo_tab
             page={@page}
             repo={repo}
@@ -181,7 +181,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     info_module.queries({repo, node})
     |> Enum.reject(fn {table_name, _table_module} -> table_name in @forbidden_tables end)
     |> Enum.map(fn {table_name, table_module} -> {table_name, table_module.info()} end)
-    |> Enum.sort(fn {_, a_info}, {_, b_info} -> a_info.index < b_info.index end)
+    |> Enum.sort(fn {_, a_info}, {_, b_info} -> a_info[:index] < b_info[:index] end)
     |> Enum.map(fn {table_name, info} -> {table_name, normalize_info(info)} end)
   end
 
