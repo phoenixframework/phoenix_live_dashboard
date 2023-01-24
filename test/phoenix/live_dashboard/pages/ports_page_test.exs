@@ -55,6 +55,7 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
 
     {:ok, live, _} = live(build_conn(), ports_path(50, "", :output, :asc))
     rendered = render(live)
+    IO.puts(rendered)
     assert rendered =~ ~r/forker.*sleep/s
     assert rendered =~ ports_href(50, "", :output, :desc)
     refute rendered =~ ports_href(50, "", :output, :asc)
