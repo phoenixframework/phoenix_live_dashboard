@@ -31,7 +31,7 @@ defmodule Phoenix.LiveDashboard.PortsPage do
         cell_attrs={[class: "w-50"]}
         :let={data}
       >
-        <%= format_path(data[:path]) %>
+        <%= format_path(data[:name]) %>
       </:col>
       <:col
         field={:os_pid}
