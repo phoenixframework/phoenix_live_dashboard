@@ -231,23 +231,23 @@ defmodule DemoWeb.GraphShowcasePage do
   @impl true
   def render_page(assigns) do
     ~H"""
-    <.live_component module={Phoenix.LiveDashboard.AcNavBarComponent} id="navbar" page={@page}>
-      <:item name="Simple" page={@page}>
+    <.live_nav_bar id="navbar" page={@page}>
+      <:item name="Simple">
         <.simple />
       </:item>
-      <:item name="Double" page={@page}>
+      <:item name="Double">
         <.two_groups />
       </:item>
-      <:item name="Groups with intercalation" page={@page}>
+      <:item name="Groups with intercalation">
         <.two_groups_intercalation />
       </:item>
-      <:item name="Broadway graph" page={@page}>
+      <:item name="Broadway graph">
         <.broadway_graph />
       </:item>
-      <:item name="Wider graph" page={@page}>
+      <:item name="Wider graph">
         <.wider_graph />
       </:item>
-    </.live_component>
+    </.live_nav_bar>
     """
   end
 

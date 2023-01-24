@@ -135,89 +135,63 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     if assigns[:error] do
       render_error(assigns)
     else
-      current_node = assigns.page.node
+      ~H"""
+      <.live_nav_bar id="repos_nav_bar" page={@page} nav_param="repo" style={:bar} extra_params={["nav"]} >
+        <:item :for={repo <- @repos} name={inspect(repo)}>
+          <.render_repo_tab
+            page={@page}
+            repo={repo}
+            ecto_options={@ecto_options}
+            info_module={info_module_for(@page.node, repo)}
+        />
+        </:item>
 
-      items =
-        for repo <- assigns.repos do
-          info_module = info_module_for(current_node, repo)
-
-          {repo,
-           name: inspect(repo),
-           render: fn ->
-             render_repo_tab(%{
-               repo: repo,
-               node: current_node,
-               info_module: info_module,
-               ecto_options: assigns.ecto_options
-             })
-           end}
-        end
-
-      nav_bar(items: items, nav_param: :repo, extra_params: [:nav], style: :bar)
-      # ~H"""
-      # <.nav_bar
-      #   nav_param={:repo}
-      #   extra_params={[:nav]}
-      #   style={:bar}
-      # >
-      #   <:item :for={repo <- @repos} name={inspect(repo)}>
-      #     <.render_repo_tab
-      #       repo={repo}
-      #       node={@page.node}
-      #       ecto_options={@ecto_options}
-      #       info_module={info_module_for(@page.node, repo)}
-      #   >
-      #   </:item>
-
-      # </.nav_bar>
-      # """
+      </.live_nav_bar>
+      """
     end
   end
 
   defp render_repo_tab(assigns) do
-    nav_bar(items: items(assigns), extra_params: [:repo])
+    ~H"""
+    <.live_nav_bar id="queries_nav_bar" page={@page} extra_params={["repo"]} >
+      <:item :for={{table_name, info} <- queries(@page.node, @repo, @info_module)} name={to_string(table_name)}>
+        <.live_table
+          id={"table_#{table_name}"}
+          page={@page}
+          title={Phoenix.Naming.humanize(table_name)}
+          hint={info.title}
+          limit={false}
+          search={info.searchable != []}
+          default_sort_by={info.default_sort_by}
+          rows_name="entries"
+          row_fetcher={&row_fetcher(@repo, @info_module, table_name, info.searchable, @ecto_options, &1, &2)}
+        >
+          <:col :for={col <- info.columns} field={col.name} sortable={sortable(col.type)} :let={row}>
+            <.render_value type={col.type} value={row[col.name]} />
+          </:col>
+        </.live_table>
+      </:item>
+    </.live_nav_bar>
+    """
   end
 
   @forbidden_tables [:kill_all, :mandelbrot]
 
-  defp items(%{repo: repo, info_module: info_module, ecto_options: ecto_options, node: node}) do
-    sorted_queries =
-      Enum.sort(info_module.queries({repo, node}), fn a, b ->
-        elem(a, 1).info[:index] < elem(b, 1).info[:index]
-      end)
-
-    for {table_name, table_module} <- sorted_queries,
-        table_name not in @forbidden_tables do
-      {table_name,
-       name: Phoenix.Naming.humanize(table_name),
-       render: fn ->
-         render_table(repo, info_module, table_name, table_module, ecto_options)
-       end}
-    end
+  defp queries(node, repo, info_module) do
+    info_module.queries({repo, node})
+    |> Enum.reject(fn {table_name, _table_module} -> table_name in @forbidden_tables end)
+    |> Enum.map(fn {table_name, table_module} -> {table_name, table_module.info()} end)
+    |> Enum.sort(fn {_, a_info}, {_, b_info} -> a_info.index < b_info.index end)
+    |> Enum.map(fn {table_name, info} -> {table_name, normalize_info(info)} end)
   end
 
-  defp render_table(repo, info_module, table_name, table_module, ecto_options) do
-    info = table_module.info()
-
-    columns =
-      for %{name: name, type: type} <- info.columns do
-        %{field: name, sortable: sortable(type), format: &format(type, &1)}
-      end
-
+  defp normalize_info(info) do
     searchable = for %{type: :string, name: name} <- info.columns, do: name
-    default_sort_by = with [{column, _} | _] <- info[:order_by], do: column
+    default_sort_by = with [{column, _} | _] <- info[:order_by], do: to_string(column)
 
-    live_table(
-      id: :table_id,
-      hint: info.title,
-      limit: false,
-      default_sort_by: default_sort_by,
-      search: searchable != [],
-      columns: columns,
-      rows_name: "entries",
-      row_fetcher: &row_fetcher(repo, info_module, table_name, searchable, ecto_options, &1, &2),
-      title: Phoenix.Naming.humanize(table_name)
-    )
+    info
+    |> Map.put(:searchable, searchable)
+    |> Map.put(:default_sort_by, default_sort_by)
   end
 
   defp sortable(:string), do: :asc
@@ -289,17 +263,29 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     {sorted, length(rows)}
   end
 
-  defp format(_, %struct{} = value) when struct in [Decimal, Postgrex.Interval],
-    do: struct.to_string(value)
+  defp render_value(%{value: %struct{}} = assigns) when struct in [Decimal, Postgrex.Interval] do
+    ~H"""
+    <%= @value.__struct__.to_string(@value) %>
+    """
+  end
 
-  defp format(:bytes, value) when is_integer(value),
-    do: format_bytes(value)
+  defp render_value(%{type: :bytes, value: value} = assigns) when is_integer(value) do
+    ~H"""
+    <%= format_bytes(@value) %>
+    """
+  end
 
-  defp format(:percent, value) when is_number(value),
-    do: value |> Kernel.*(100.0) |> Float.round(1) |> Float.to_string()
+  defp render_value(%{type: :percent, value: value} = assigns) when is_number(value) do
+    ~H"""
+    <%= @value |> Kernel.*(100.0) |> Float.round(1) |> Float.to_string() %>
+    """
+  end
 
-  defp format(_type, value),
-    do: value
+  defp render_value(assigns) do
+    ~H"""
+    <%= @value %>
+    """
+  end
 
   defp render_error(assigns) do
     case assigns.error do

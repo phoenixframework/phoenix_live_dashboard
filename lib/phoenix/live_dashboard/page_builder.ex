@@ -106,7 +106,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   A page can only have the components listed with this page.
 
   We currently support `card/1`, `columns/1`, `fields_card/1`,
-  `layered_graph/1`, `nav_bar/1`, `row/1`, `shared_usage_card/1`, `table/1`,
+  `live_layered_graph/1`, `live_nav_bar/1`, `row/1`, `shared_usage_card/1`, `live_table/1`,
   and `usage_card/1`.
 
   ## Helpers
@@ -308,54 +308,48 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   end
 
   @doc """
-  Renders a nav bar.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        nav_bar(
-          items: [
-            phoenix_metrics: [
-              name: "Phoenix Metrics",
-              render: fn -> table(...) end
-            ],
-
-            vm_metrics: [
-              name: "VM Metrics",
-              render: fn -> table(...expensive_parameters) end
-            ]
-          ]
-        )
-      end
+  Nav bar live component.
 
   You can see it in use the Metrics and Ecto info pages.
-
-  ## Options
-
-    * `nav_param` - An atom that configures the navigation parameter.
-      It is useful when two nav bars are present in the same page.
-
-    * `extra_params` - A list of strings representing the parameters
-      that should stay when a tab is clicked. By default the nav ignores
-      all params, except the current node if any.
-
   """
-  @spec nav_bar(keyword()) :: term()
-  def nav_bar(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> NavBarComponent.normalize_params()
+  attr :id, :any,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
 
-    {NavBarComponent, assigns}
+  attr :page, __MODULE__, required: true, doc: "Dashboard page"
+
+  attr :nav_param, :string,
+    default: "nav",
+    doc: """
+    An atom that configures the navigation parameter.
+    It is useful when two nav bars are present in the same page.
+    """
+
+  attr :extra_params, :list,
+    default: [],
+    doc: """
+    A list of strings representing the parameters
+    that should stay when a tab is clicked. By default the nav ignores
+    all params, except the current node if any.
+    """
+
+  attr :style, :atom, values: [:pills, :bar], doc: "Style for the nav bar"
+
+  slot :item, required: true, doc: "HTML to be rendered when the tab is selected" do
+    attr :name, :string, required: true, doc: "Value used in the URL when the tab is selected"
+
+    attr :label, :string,
+      doc: "Title of the tab. If it is not present, it will be calculated from `name`"
+
+    attr :method, :string, values: ~w(patch navigate href redirect), doc: "Method used to update"
   end
 
-  # @spec nav_bar(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
-  # def nav_bar(assigns) do
-  #   ~H"""
-  #   <.live_component module={AcNavBarComponent} {assigns}/>
-  #   """
-  # end
+  @spec live_nav_bar(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def live_nav_bar(assigns) do
+    ~H"""
+    <.live_component module={NavBarComponent} {assigns}/>
+    """
+  end
 
   @doc """
   Hint pop-up text component

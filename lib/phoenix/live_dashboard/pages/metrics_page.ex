@@ -11,6 +11,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     all_metrics = apply(mod, fun, [])
     metrics_per_nav = Enum.group_by(all_metrics, &nav_name/1)
 
+    IO.inspect(Map.keys(metrics_per_nav))
     nav = params["nav"]
     metrics = metrics_per_nav[nav]
     {first_nav, _} = Enum.at(metrics_per_nav, 0, {nil, nil})
@@ -32,7 +33,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
         {:ok, push_redirect(socket, to: to)}
 
       true ->
-        {:ok, assign(socket, metrics: nil)}
+        {:ok, assign(socket, metrics: nil, nav: nav)}
     end
   end
 
@@ -58,32 +59,28 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
 
   @impl true
   def render_page(assigns) do
-    items =
-      for name <- assigns.items do
-        {String.to_atom(name),
-         name: format_nav_name(name), render: render_metrics(assigns), method: :redirect}
-      end
-
-    nav_bar(items: items)
+    ~H"""
+    <.live_nav_bar id="metrics_nav_bar" page={@page} >
+      <:item :for={item <- @items} name={item} label={format_nav_name(item)} method="redirect">
+        <.render_metrics metrics={@metrics} nav={@nav} />
+      </:item>
+    </.live_nav_bar>
+    """
   end
 
-  def render_metrics(assigns) do
-    fn ->
-      ~H"""
-      <%= if @metrics do %>
-        <div class="phx-dashboard-metrics-grid row">
-        <%= for {metric, id} <- @metrics do %>
-          <%= live_component ChartComponent, id: id(id, @nav), metric: metric %>
-        <% end %>
-        </div>
+  defp render_metrics(assigns) do
+    ~H"""
+    <div :if={@metrics} class="phx-dashboard-metrics-grid row">
+      <%= for {metric, id} <- @metrics do %>
+        <%= live_component ChartComponent, id: id(id, @nav), metric: metric %>
       <% end %>
-      """
-    end
+    </div>
+    """
   end
 
   defp send_updates_for_entries(entries, nav) do
     for {id, label, measurement, time} <- entries do
-      data = [{label, measurement, time}]
+      data = {label, measurement, time}
       send_update(ChartComponent, id: id(id, nav), data: data)
     end
   end
