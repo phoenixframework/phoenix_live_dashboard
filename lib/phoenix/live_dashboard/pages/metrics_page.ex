@@ -79,7 +79,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
 
   defp send_updates_for_entries(entries, nav) do
     for {id, label, measurement, time} <- entries do
-      data = {label, measurement, time}
+      data = [{label, measurement, time}]
       send_update(ChartComponent, id: id(id, nav), data: data)
     end
   end
