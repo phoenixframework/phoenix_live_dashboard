@@ -11,7 +11,6 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     all_metrics = apply(mod, fun, [])
     metrics_per_nav = Enum.group_by(all_metrics, &nav_name/1)
 
-    IO.inspect(Map.keys(metrics_per_nav))
     nav = params["nav"]
     metrics = metrics_per_nav[nav]
     {first_nav, _} = Enum.at(metrics_per_nav, 0, {nil, nil})

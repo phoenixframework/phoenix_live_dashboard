@@ -18,8 +18,14 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {:ok, socket}
   end
 
-  def normalize_params(params) do
-    params
+  @impl true
+  def update(assigns, socket) do
+    assigns = normalize_update(assigns)
+    apply_update(socket, assigns)
+  end
+
+  defp normalize_update(assigns) do
+    assigns
     |> normalize_columns()
     |> validate_required_one_sortable_column()
     |> Map.put_new(:search, true)
@@ -28,16 +34,12 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     |> Map.put_new(:hint, nil)
     |> Map.update(:default_sort_by, nil, &(&1 && to_string(&1)))
     |> Map.put_new_lazy(:rows_name, fn ->
-      Phoenix.Naming.humanize(params.title) |> String.downcase()
+      Phoenix.Naming.humanize(assigns.title) |> String.downcase()
     end)
   end
 
-  defp normalize_columns(%{columns: columns} = params) when is_list(columns) do
-    %{params | columns: Enum.map(columns, &normalize_column/1)}
-  end
-
-  defp normalize_columns(%{columns: columns}) do
-    raise ArgumentError, ":columns must be a list, got: #{inspect(columns)}"
+  defp normalize_columns(%{col: columns} = params) when is_list(columns) do
+    %{params | col: Enum.map(columns, &normalize_column/1)}
   end
 
   defp normalize_column(column) do
@@ -51,7 +53,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         |> Map.new()
         |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
         |> Map.put_new(:header_attrs, [])
-        |> Map.put_new(:format, & &1)
         |> Map.put_new(:cell_attrs, [])
         |> Map.put_new(:sortable, nil)
 
@@ -65,18 +66,15 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     end
   end
 
-  defp validate_required_one_sortable_column(%{columns: columns} = params) do
-    sortable_columns = sortable_columns(columns)
-
-    if sortable_columns == [] do
+  defp validate_required_one_sortable_column(%{col: columns} = params) do
+    if sortable_columns(columns) == [] do
       raise ArgumentError, "must have at least one column with :sortable parameter"
     else
       params
     end
   end
 
-  @impl true
-  def update(assigns, socket) do
+  defp apply_update(socket, assigns) do
     assigns = normalize_table_params(assigns)
 
     %{
@@ -122,8 +120,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         all_params
         |> get_in_or_first("limit", Enum.map(assigns.limit, &to_string/1))
         |> String.to_integer()
-      else
-        nil
       end
 
     search = all_params["search"]
@@ -133,7 +129,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
     assigns
     |> Map.put(:table_params, table_params)
-    |> Map.delete(:column)
+    |> Map.delete(:col)
     |> Map.put(:columns, columns)
   end
 

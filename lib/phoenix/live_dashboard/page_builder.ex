@@ -238,24 +238,33 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :page, __MODULE__, required: true, doc: "Dashboard page"
 
   slot :col, required: true, doc: "Columns for the table" do
-    attr :field, :atom, required: true
+    attr :field, :atom, required: true, doc: "Identifier for the column"
 
     attr :sortable, :atom,
       values: [:asc, :desc],
-      # default: nil,
-      doc:
-        "When set, the column header is clickable and it fetches again rows with the new order. Required for at least one column."
+      doc: """
+      When set, the column header is clickable and it fetches again rows with the new order.
+      Required for at least one column.
+      """
 
     attr :header, :string,
-      # default: nil,
       doc: "Label to show in the current column. Default value is calculated from `:field`."
 
-    attr :header_attrs, :list,
-      # default: [],
-      doc: "A list with HTML attributes for the column header."
+    attr :header_attrs, :any,
+      doc: """
+      A list with HTML attributes for the column header.
+      It can be also a function that receive the column as argument
+      and returns a list of 2 element tuple with HTML attribute name
+      and value. Default to `[]`.
+      """
 
-    attr :cell_attrs, :list, doc: "A list with HTML attributes for the table cell."
-    # default []
+    attr :cell_attrs, :any,
+      doc: """
+      A list with HTML attributes for the table cell.
+      It can be also a function that receive the row as argument
+      and returns a list of 2 element tuple with HTML attribute name
+      and value. Default to `[]`.
+      """
   end
 
   attr :row_fetcher, :any,
@@ -272,7 +281,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     """
 
   attr :rows_name, :string,
-    default: nil,
     doc:
       "A string to name the representation of the rows. Default is calculated from the current page."
 
@@ -280,9 +288,10 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :row_attrs, :any,
     default: nil,
     doc: """
-    A function that return a list with HTML attributes for the table row. It
-    receive the row as argument and return a list of 2 element tuple with HTML attribute name
-    and value. The default function returns an empty list `[]`.
+    A list with the HTML attributes for the table row.
+    It can be also a function that receive the row as argument
+    and returns a list of 2 element tuple with HTML attribute name
+    and value.
     """
 
   attr :default_sort_by, :any,
