@@ -227,24 +227,13 @@ defmodule Phoenix.LiveDashboard.PageLive do
     """
   end
 
-  # Those pages are handled especially outside of the component tree.
   defp render_page(module, assigns)
        when module in [Phoenix.LiveDashboard.RequestLoggerPage] do
     module.render(assigns)
   end
 
   defp render_page(module, page_assigns) do
-    case module.render_page(page_assigns) do
-      {component, assigns} ->
-        assigns = Map.merge(assigns, %{page: page_assigns.page, module: component})
-
-        ~H"""
-        <.live_component id="__dashboard_page_root" {assigns} />
-        """
-
-      %Phoenix.LiveView.Rendered{} = rendered ->
-        rendered
-    end
+    module.render_page(page_assigns)
   end
 
   defp live_info(_, %{info: nil}), do: nil

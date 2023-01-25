@@ -4,8 +4,6 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
   import Phoenix.Component
   import Phoenix.LiveDashboard.PageBuilder
 
-  # @endpoint Phoenix.LiveDashboardTest.Endpoint
-
   test "card/1" do
     assigns = %{}
 

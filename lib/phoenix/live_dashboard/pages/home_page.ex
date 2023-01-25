@@ -333,7 +333,6 @@ defmodule Phoenix.LiveDashboard.HomePage do
     }
   end
 
-  # TODO rename to hint after remove Helpers.hint
   defp hint_msg(key), do: @hints[key]
 
   @impl true

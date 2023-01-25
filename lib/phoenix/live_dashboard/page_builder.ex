@@ -127,9 +127,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             tick: 0,
             allow_destructive_actions: false
 
-  # TODO Remove?
-  # @opaque component :: {module, map}
-
   @type session :: map
   @type requirements :: [{:application | :process | :module, atom()}]
   @type unsigned_params :: map
@@ -284,7 +281,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     doc:
       "A string to name the representation of the rows. Default is calculated from the current page."
 
-  # FIXME
   attr :row_attrs, :any,
     default: nil,
     doc: """
@@ -613,7 +609,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :inner_title, :string, default: nil, doc: "The title inside the card."
   attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
 
-  # FIXME why there is not a function type?
   attr :total_formatter, :any,
     default: nil,
     doc: ~s<A function that format the `total_usage`. Default: `&("\#{&1} %")`.>

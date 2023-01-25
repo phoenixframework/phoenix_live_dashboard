@@ -50,7 +50,6 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponentTest do
       |> Floki.text(sep: " | ")
     end
 
-    @tag skip: "Skip for the moment"
     test "renders a basic broadway pipeline" do
       title = "my pipeline"
       hint = "a Broadway pipeline represented as a graph"

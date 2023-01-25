@@ -30,10 +30,6 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
     os_mon = SystemInfo.fetch_os_mon_info(assigns.page.node)
     cpu_count = length(os_mon.cpu_per_core)
     assigns = assign(assigns, os_mon: os_mon, cpu_count: cpu_count)
-    # row_params = %{os_mon: os_mon, cpu_count: cpu_count, csp_nonces: assigns.csp_nonces}
-
-    # top_row = cpu_components(row_params) ++ memory_components(row_params)
-    # bottom_row = [disk_usage_row(row_params)]
 
     ~H"""
     <.row>
@@ -50,13 +46,6 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
       </:col>
     </.row>
     """
-
-    # row(
-    #   components: [
-    #     columns(components: top_row),
-    #     columns(components: bottom_row)
-    #   ]
-    # )
   end
 
   defp cpu_components(%{os_mon: %{cpu_avg1: num1, cpu_avg5: num5, cpu_avg15: num15}} = assigns)
@@ -185,18 +174,10 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   defp rup_avg(value, count), do: Float.ceil(value / 256 / count, 2)
 
   defp cpu_hint(_assigns) do
-    # FIXME Allow hint to recieve a slot instead a text
-    # ~H"""
-    # <p>The load panes show the CPU demand in the last 1, 5 and 15 minutes over all cores.</p>
-
-    # <%= if @cpu_count > 0 do %>
-    #     <p>The avg panes show the same values averaged across all cores.</p>
-    # <% end %>
-    # """
-    """
+    Phoenix.HTML.raw("""
     <p>The load panes show the CPU demand in the last 1, 5 and 15 minutes over all cores.</p>
     <p>The avg panes show the same values averaged across all cores.</p>
-    """
+    """)
   end
 
   @impl true
