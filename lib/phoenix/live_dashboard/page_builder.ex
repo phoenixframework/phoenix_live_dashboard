@@ -557,7 +557,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :csp_nonces, :any, required: true
   slot(:inner_block, required: true)
 
-  # TODO we want to make this public?
   defp title_bar_component(assigns) do
     ~H"""
     <div class={@class}>
@@ -664,7 +663,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   defp total_formatter(value), do: "#{value} %"
 
-  # TODO slot & attrs
   @doc """
   A component for drawing layered graphs.
 
@@ -676,39 +674,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   The calculation of layers and positions is done automatically
   based on options.
 
-  ## Options
-
-    * `:title` - The title of the component. Default: `nil`.
-
-    * `:hint` - A textual hint to show close to the title. Default: `nil`.
-
-    * `:layers` - A graph of layers with nodes. They represent
-      our graph structure (see example). Each layer is a list
-      of nodes, where each node has the following fields:
-
-      - `:id` - The ID of the given node.
-      - `:children` - The IDs of children nodes.
-      - `:data` - A string or a map. If it's a map, the required fields
-        are `detail` and `label`.
-
-    * `:show_grid?` - Enable or disable the display of a grid. This
-      is useful for development. Default: `false`.
-
-    * `:y_label_offset` - The "y" offset of label position relative to the
-      center of its circle. Default: `5`.
-
-    * `:y_detail_offset` - The "y" offset of detail position relative to the
-      center of its circle. Default: `18`.
-
-    * `:background` - A function that calculates the background for a
-      node based on it's data. Default: `fn _node_data -> "gray" end`.
-
-    * `:format_label` - A function that formats the label. Defaults
-      to a function that returns the label or data if data is binary.
-
-    * `:format_detail` - A function that formats the detail field.
-      This is only going to be called if data is a map.
-      Default: `fn node_data -> node_data.detail end`.
+  [INSERT LVATTRDOCS]
 
   ## Examples
 
@@ -731,12 +697,63 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       ...>      }
       ...>    ]
       ...> ]
-      iex> layered_graph(layers: layers, title: "My Graph", hint: "A simple graph")
   """
-  @spec layered_graph(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
-  def layered_graph(assigns) do
+  attr :id, :any,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
+
+  attr :title, :string, default: nil, doc: "The title of the component."
+
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+
+  attr :layers, :list,
+    required: true,
+    doc: """
+    A graph of layers with nodes. They represent
+    our graph structure (see example). Each layer is a list
+    of nodes, where each node has the following fields:
+
+      - `:id` - The ID of the given node.
+      - `:children` - The IDs of children nodes.
+      - `:data` - A string or a map. If it's a map, the required fields
+        are `detail` and `label`.
+    """
+
+  attr :show_grid?, :boolean,
+    default: false,
+    doc: "Enable or disable the display of a grid. This is useful for development."
+
+  attr :y_label_offset, :integer,
+    default: 5,
+    doc: "The \"y\" offset of label position relative to the center of its circle."
+
+  attr :y_detail_offset, :integer,
+    default: 18,
+    doc: "The \"y\" offset of detail position relative to the center of its circle."
+
+  attr :background, :any,
+    doc: """
+    A function that calculates the background for a
+    node based on it's data. Default: `fn _node_data -> \"gray\" end`."
+    """
+
+  attr :format_label, :any,
+    doc: """
+    A function that formats the label. Defaults
+    to a function that returns the label or data if data is binary.
+    """
+
+  attr :format_detail, :any,
+    doc: """
+    A function that formats the detail field.
+    This is only going to be called if data is a map.
+    Default: `fn node_data -> node_data.detail end`.
+    """
+
+  @spec live_layered_graph(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def live_layered_graph(assigns) do
     ~H"""
-    <.live_component module={LayeredGraphComponent} id="wii" {assigns} />
+    <.live_component module={LayeredGraphComponent} id={@id} {assigns} />
     """
   end
 

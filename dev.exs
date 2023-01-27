@@ -255,6 +255,7 @@ defmodule DemoWeb.GraphShowcasePage do
     assigns =
       assigns
       |> assign(:title, "Simple graph")
+      |> assign(:id, "simple")
       |> assign(:layers, [
         [%{id: "a1", data: "a1", children: ["b1", "b2"]}],
         [%{id: "b1", data: "b1", children: ["c1"]}, %{id: "b2", data: "b2", children: ["c1"]}],
@@ -262,7 +263,7 @@ defmodule DemoWeb.GraphShowcasePage do
       ])
 
     ~H"""
-    <.layered_graph {assigns} />
+    <.live_layered_graph {assigns} />
     """
   end
 
@@ -289,9 +290,10 @@ defmodule DemoWeb.GraphShowcasePage do
       ])
       |> assign(:title, "Two groups")
       |> assign(:hint, "This chart shows that we can have groups based on parent nodes.")
+      |> assign(:id, "two_groups")
 
     ~H"""
-    <.layered_graph {assigns} />
+    <.live_layered_graph {assigns} />
     """
   end
 
@@ -301,6 +303,7 @@ defmodule DemoWeb.GraphShowcasePage do
       |> assign(:format_label, &String.upcase/1)
       |> assign(:title, "Two groups with intercalation")
       |> assign(:hint, "This chart shows that intercalation of children is correctly displayed.")
+      |> assign(:id, "two_groups_intercalation")
       |> assign(:layers, [
         [
           %{id: "a1", data: "a1", children: ["b1", "b3", "b5"]},
@@ -317,7 +320,7 @@ defmodule DemoWeb.GraphShowcasePage do
       ])
 
     ~H"""
-    <.layered_graph {assigns} />
+    <.live_layered_graph {assigns} />
     """
   end
 
@@ -339,6 +342,7 @@ defmodule DemoWeb.GraphShowcasePage do
       |> assign(:background, background)
       |> assign(:format_detail, fn data -> "#{data.detail}%" end)
       |> assign(:title, "Broadway graph")
+      |> assign(:id, "broadway_graph")
       |> assign(:layers, [
         [
           %{
@@ -411,7 +415,7 @@ defmodule DemoWeb.GraphShowcasePage do
       ])
 
     ~H"""
-    <.layered_graph {assigns} />
+    <.live_layered_graph {assigns} />
     """
   end
 
@@ -421,13 +425,14 @@ defmodule DemoWeb.GraphShowcasePage do
     assigns =
       assigns
       |> assign(:title, "Simple graph")
+      |> assign(:id, "wider_graph")
       |> assign(:layers, [
         [%{id: "a1", data: "a1", children: Enum.map(1..20, &"b#{&1}")}],
         bottom_layer
       ])
 
     ~H"""
-    <.layered_graph {assigns} />
+    <.live_layered_graph {assigns} />
     """
   end
 end

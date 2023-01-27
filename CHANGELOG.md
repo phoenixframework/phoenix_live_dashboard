@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Dev
+
+* Use the new Phoenix.Component
+
 ## v0.7.2 (2022-10-26)
 
 * Support Phoenix.LiveView 0.18.3
