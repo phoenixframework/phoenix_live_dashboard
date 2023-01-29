@@ -12,28 +12,18 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   end
 
   def normalize_assigns(assigns) do
-    case Map.fetch(assigns, :item) do
-      :error ->
-        raise ArgumentError, "the :item parameter is expected in nav bar component"
+    nav_param = normalize_nav_param(assigns)
+    items = normalize_items(assigns.item)
+    current = normalize_current(assigns.page.params, items, nav_param)
 
-      {:ok, no_list} when not is_list(no_list) ->
-        msg = ":item parameter must be a list, got: "
-        raise ArgumentError, msg <> inspect(no_list)
-
-      {:ok, items} ->
-        nav_param = normalize_nav_param(assigns)
-        items = normalize_items(items)
-        current = normalize_current(assigns.page.params, items, nav_param)
-
-        %{
-          page: assigns.page,
-          current: current,
-          items: items,
-          nav_param: nav_param,
-          extra_params: normalize_extra_params(assigns, nav_param),
-          style: normalize_style(assigns)
-        }
-    end
+    %{
+      page: assigns.page,
+      current: current,
+      items: items,
+      nav_param: nav_param,
+      extra_params: normalize_extra_params(assigns, nav_param),
+      style: normalize_style(assigns)
+    }
   end
 
   defp normalize_current(url_params, items, nav_param) do
@@ -177,12 +167,11 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         [{nav_param, item.name} | params_to_keep]
       )
 
-    case Map.fetch(item, :method) do
-      :error -> [patch: path]
-      {:ok, "patch"} -> [patch: path]
-      {:ok, "navigate"} -> [navigate: path]
-      {:ok, "href"} -> [href: path]
-      {:ok, "redirect"} -> [href: path]
+    case Map.get(item, :method, "patch") do
+      "patch" -> [patch: path]
+      "navigate" -> [navigate: path]
+      "href" -> [href: path]
+      "redirect" -> [href: path]
     end
   end
 

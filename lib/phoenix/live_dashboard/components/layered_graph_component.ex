@@ -28,8 +28,7 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
 
   @impl true
   def update(assigns, socket) do
-    assigns = Map.new(assigns)
-    normalize_params(assigns)
+    validate_params(assigns)
     # Note that the view box can change dynamically based on the size of layers.
     opts = %{
       view_box_width: 1000,
@@ -62,7 +61,7 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
      )}
   end
 
-  def normalize_params(params) do
+  def validate_params(params) do
     case Map.fetch(params, :layers) do
       :error ->
         raise ArgumentError, "the :layers parameter is expected in layered graph component"

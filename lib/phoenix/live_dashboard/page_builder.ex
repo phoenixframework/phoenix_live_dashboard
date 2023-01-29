@@ -508,7 +508,10 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :title, :string, default: nil, doc: "The title above the card."
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
   attr :dom_id, :string, required: true, doc: "A unique identifier for all usages in this card."
-  attr :csp_nonces, :any, default: %{img: nil, script: nil, style: nil}, doc: "TODO!!"
+
+  attr :csp_nonces, :any,
+    default: %{img: nil, script: nil, style: nil},
+    doc: "A copy of CSP nonces (`@csp_nonces`) used to render the page safely"
 
   attr :usages, :list,
     required: true,
@@ -602,7 +605,11 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   attr :total_legend, :string, required: true, doc: "The legent of the total usage."
   attr :total_usage, :string, required: true, doc: "The value of the total usage."
-  attr :csp_nonces, :any, default: %{img: nil, script: nil, style: nil}, doc: "TODO!!"
+
+  attr :csp_nonces, :any,
+    default: %{img: nil, script: nil, style: nil},
+    doc: "A copy of CSP nonces (`@csp_nonces`) used to render the page safely"
+
   attr :title, :string, default: nil, doc: "The title above the card."
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
   attr :inner_title, :string, default: nil, doc: "The title inside the card."

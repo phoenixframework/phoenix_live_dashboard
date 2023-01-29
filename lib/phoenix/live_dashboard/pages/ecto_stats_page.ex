@@ -167,7 +167,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
           row_fetcher={&row_fetcher(@repo, @info_module, table_name, info.searchable, @ecto_options, &1, &2)}
         >
           <:col :for={col <- info.columns} field={col.name} sortable={sortable(col.type)} :let={row}>
-            <.render_value type={col.type} value={row[col.name]} />
+            <%= format(col.type, row[col.name]) %>
           </:col>
         </.live_table>
       </:item>
@@ -263,29 +263,17 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     {sorted, length(rows)}
   end
 
-  defp render_value(%{value: %struct{}} = assigns) when struct in [Decimal, Postgrex.Interval] do
-    ~H"""
-    <%= @value.__struct__.to_string(@value) %>
-    """
-  end
+  defp format(_, %struct{} = value) when struct in [Decimal, Postgrex.Interval],
+    do: struct.to_string(value)
 
-  defp render_value(%{type: :bytes, value: value} = assigns) when is_integer(value) do
-    ~H"""
-    <%= format_bytes(@value) %>
-    """
-  end
+  defp format(:bytes, value) when is_integer(value),
+    do: format_bytes(value)
 
-  defp render_value(%{type: :percent, value: value} = assigns) when is_number(value) do
-    ~H"""
-    <%= @value |> Kernel.*(100.0) |> Float.round(1) |> Float.to_string() %>
-    """
-  end
+  defp format(:percent, value) when is_number(value),
+    do: value |> Kernel.*(100.0) |> Float.round(1) |> Float.to_string()
 
-  defp render_value(assigns) do
-    ~H"""
-    <%= @value %>
-    """
-  end
+  defp format(_type, value),
+    do: value
 
   defp render_error(assigns) do
     case assigns.error do
