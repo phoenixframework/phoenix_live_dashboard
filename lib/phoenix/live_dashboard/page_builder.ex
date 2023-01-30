@@ -406,7 +406,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   attr :class, :string,
     default: "",
-    doc: "A with additional css classes that will be added along banner-card class."
+    doc: "Additional css classes that will be added along banner-card class."
 
   @spec card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def card(assigns) do
@@ -510,7 +510,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :dom_id, :string, required: true, doc: "A unique identifier for all usages in this card."
 
   attr :csp_nonces, :any,
-    default: %{img: nil, script: nil, style: nil},
+    required: true,
     doc: "A copy of CSP nonces (`@csp_nonces`) used to render the page safely"
 
   attr :usages, :list,
@@ -607,7 +607,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :total_usage, :string, required: true, doc: "The value of the total usage."
 
   attr :csp_nonces, :any,
-    default: %{img: nil, script: nil, style: nil},
+    required: true,
     doc: "A copy of CSP nonces (`@csp_nonces`) used to render the page safely"
 
   attr :title, :string, default: nil, doc: "The title above the card."
