@@ -142,21 +142,20 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
     result =
       rendered_to_string(~H"""
         <.usage_card
-          usages={[
-            %{
-              current: 10,
-              limit: 150,
-              dom_sub_id: "test-dom-sub-id",
-              title: "test-usage-title",
-              hint: "test-usage-hint",
-              percent: 13
-            }
-          ]}
           dom_id="test-dom-id"
           title="test-title"
           hint="test-hint"
           csp_nonces={%{img: "img_nonce", style: "style_nonce", script: "script_nonce"}}
-        />
+        >
+          <:usage
+              current={10}
+              limit={150}
+              dom_sub_id="test-dom-sub-id"
+              title="test-usage-title"
+              hint="test-usage-hint"
+              percent={13}
+          />
+        </.usage_card>
       """)
 
     assert result =~ ~r|<h5 class=\"card-title\">[\r\n\s]*test-title[\r\n\s]*|

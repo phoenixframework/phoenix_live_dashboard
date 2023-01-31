@@ -231,12 +231,9 @@ defmodule Phoenix.LiveDashboard.HomePage do
     ~H"""
     <.row>
       <:col>
-        <.usage_card
-          usages={usage_params(:atoms, @system_usage, @system_limits)}
-          dom_id="atoms"
-          title="System limits"
-          csp_nonces={@csp_nonces}
-        />
+        <.usage_card dom_id="atoms" csp_nonces={@csp_nonces} title="System limits">
+          <:usage {usage_params(:atoms, @system_usage, @system_limits)} />
+        </.usage_card>
       </:col>
     </.row>
     """
@@ -250,11 +247,9 @@ defmodule Phoenix.LiveDashboard.HomePage do
     ~H"""
     <.row>
       <:col>
-        <.usage_card
-          usages={usage_params(:ports, @system_usage, @system_limits)}
-          dom_id="ports"
-          csp_nonces={@csp_nonces}
-        />
+        <.usage_card dom_id="ports" csp_nonces={@csp_nonces} >
+          <:usage {usage_params(:ports, @system_usage, @system_limits)} />
+        </.usage_card>
       </:col>
     </.row>
     """
@@ -268,27 +263,23 @@ defmodule Phoenix.LiveDashboard.HomePage do
     ~H"""
     <.row>
       <:col>
-        <.usage_card
-          usages={usage_params(:processes, @system_usage, @system_limits)}
-          dom_id="processes"
-          csp_nonces={@csp_nonces}
-        />
+        <.usage_card dom_id="processes" csp_nonces={@csp_nonces}>
+          <:usage {usage_params(:processes, @system_usage, @system_limits)} />
+        </.usage_card>
       </:col>
     </.row>
     """
   end
 
   defp usage_params(type, system_usage, system_limits) do
-    [
-      %{
-        current: system_usage[type],
-        limit: system_limits[type],
-        percent: percentage(system_usage[type], system_limits[type]),
-        dom_sub_id: "total",
-        hint: raw(@hints[type]),
-        title: Phoenix.Naming.humanize(type)
-      }
-    ]
+    %{
+      current: system_usage[type],
+      limit: system_limits[type],
+      percent: percentage(system_usage[type], system_limits[type]),
+      dom_sub_id: "total",
+      hint: raw(@hints[type]),
+      title: Phoenix.Naming.humanize(type)
+    }
   end
 
   attr :system_usage, :any, required: true

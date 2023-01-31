@@ -513,17 +513,18 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     required: true,
     doc: "A copy of CSP nonces (`@csp_nonces`) used to render the page safely"
 
-  attr :usages, :list,
-    required: true,
-    doc: """
-    A list of `Map` with the following keys:
-        * `:current` - Required. The current value of the usage.
-        * `:limit` - Required. The max value of usage.
-        * `:dom_sub_id` - Required. An unique identifier for the usage that will be concatenated to `dom_id`.
-        * `:percent` - The used percent if the usage. Default: `nil`.
-        * `:title` - Required. The title of the usage.
-        * `:hint` - A textual hint to show close to the usage title. Default: `nil`.
-    """
+  slot :usage, required: true, doc: "List of usages to show" do
+    attr :current, :integer, required: true, doc: "The current value of the usage."
+    attr :limit, :integer, required: true, doc: "The max value of usage."
+
+    attr :dom_sub_id, :string,
+      required: true,
+      doc: "An unique identifier for the usage that will be concatenated to `dom_id`."
+
+    attr :percent, :string, doc: "The used percent of the usage."
+    attr :title, :string, doc: "The title of the usage."
+    attr :hint, :string, doc: "A textual hint to show close to the usage title."
+  end
 
   @spec usage_card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def usage_card(assigns) do
@@ -531,7 +532,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     <.card_title title={@title} hint={@hint} />
     <div class="card">
       <div class="card-body card-usage">
-        <%= for usage <- @usages do %>
+        <%= for usage <- @usage do %>
           <.title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} class="py-2" percent={usage.percent} csp_nonces={@csp_nonces} >
             <div>
               <%= usage.title %>
