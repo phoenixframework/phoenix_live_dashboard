@@ -28,7 +28,7 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
 
   @impl true
   def update(assigns, socket) do
-    validate_params(assigns)
+    assigns = normalize_params(assigns)
     # Note that the view box can change dynamically based on the size of layers.
     opts = %{
       view_box_width: 1000,
@@ -61,32 +61,24 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponent do
      )}
   end
 
-  def validate_params(params) do
-    case Map.fetch(params, :layers) do
-      :error ->
-        raise ArgumentError, "the :layers parameter is expected in layered graph component"
+  def normalize_params(params) do
+    all_nodes_validation =
+      for layer <- params.layer,
+          node <- layer.nodes,
+          do:
+            match?(
+              %{id: _, children: children, data: data}
+              when is_list(children) and (is_binary(data) or is_map(data)),
+              node
+            )
 
-      {:ok, no_list} when not is_list(no_list) ->
-        msg = ":layers parameter must be a list, got: "
-        raise ArgumentError, msg <> inspect(no_list)
-
-      {:ok, layers} ->
-        all_nodes_validation =
-          for layer <- layers,
-              node <- layer,
-              do:
-                match?(
-                  %{id: _, children: children, data: data}
-                  when is_list(children) and (is_binary(data) or is_map(data)),
-                  node
-                )
-
-        if Enum.all?(all_nodes_validation) do
-          params
-        else
-          msg = ":layers parameter must be a list of lists that contain nodes, got: "
-          raise ArgumentError, msg <> inspect(layers)
-        end
+    if Enum.all?(all_nodes_validation) do
+      params
+      |> Map.delete(:layer)
+      |> Map.put(:layers, Enum.map(params.layer, & &1.nodes))
+    else
+      msg = ":layer slot must receive a list of nodes, got: "
+      raise ArgumentError, msg <> inspect(params.layer)
     end
   end
 

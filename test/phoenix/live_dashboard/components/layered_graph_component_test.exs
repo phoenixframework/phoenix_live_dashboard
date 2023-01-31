@@ -1,34 +1,31 @@
 defmodule Phoenix.LiveDashboard.LayeredGraphComponentTest do
   use ExUnit.Case, async: true
 
+  use Phoenix.Component
   import Phoenix.LiveViewTest
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   alias Phoenix.LiveDashboard.LayeredGraphComponent
 
-  describe "validate_params/1" do
-    test "validate layers" do
-      assert %{layers: _} = LayeredGraphComponent.validate_params(%{layers: []})
+  describe "normalize_params/1" do
+    test "normalize layers" do
+      assert %{layers: _} = LayeredGraphComponent.normalize_params(%{layer: []})
 
       assert %{layers: _} =
-               LayeredGraphComponent.validate_params(%{
-                 layers: [
-                   [%{id: 0, children: [1, 2], data: "0"}],
-                   [%{id: 1, children: [], data: "1"}, %{id: 2, children: [], data: "2"}]
+               LayeredGraphComponent.normalize_params(%{
+                 layer: [
+                   %{nodes: [%{id: 0, children: [1, 2], data: "0"}]},
+                   %{
+                     nodes: [%{id: 1, children: [], data: "1"}, %{id: 2, children: [], data: "2"}]
+                   }
                  ]
                })
 
-      assert_raise(ArgumentError, ~r/layers parameter is expected/, fn ->
-        LayeredGraphComponent.validate_params(%{})
-      end)
-
-      assert_raise(ArgumentError, ~r/layers parameter must be a list, got/, fn ->
-        LayeredGraphComponent.validate_params(%{layers: "foo"})
-      end)
-
-      assert_raise(ArgumentError, ~r/parameter must be a list of lists that contain nodes/, fn ->
+      assert_raise(ArgumentError, ~r/:layer slot must receive a list of nodes, got:/, fn ->
         # Without ID
-        LayeredGraphComponent.validate_params(%{layers: [[%{data: "0", children: [1, 2]}]]})
+        LayeredGraphComponent.normalize_params(%{
+          layer: [%{nodes: [%{data: "0", children: [1, 2]}]}]
+        })
       end)
     end
   end
@@ -86,11 +83,17 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponentTest do
       end
 
       content =
-        render_component(LayeredGraphComponent,
-          layers: layers,
-          hint: hint,
-          title: title,
-          format_detail: format_detail
+        render_component(
+          fn assigns ->
+            ~H"""
+            <.live_component
+                module={LayeredGraphComponent}
+                id="id" title={@title} hint={@hint} format_detail={@format_detail}>
+              <:layer :for={nodes <- @layers} nodes={nodes} />
+            </.live_component>
+            """
+          end,
+          %{layers: layers, format_detail: format_detail, hint: hint, title: title}
         )
 
       assert content =~ hint
@@ -125,10 +128,15 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponentTest do
       ]
 
       content =
-        render_component(LayeredGraphComponent,
-          layers: layers,
-          hint: "don't overlap",
-          title: "a graph"
+        render_component(
+          fn assigns ->
+            ~H"""
+            <.live_component module={LayeredGraphComponent} id="id" title="a graph" hint= "don't overlap">
+              <:layer :for={nodes <- @layers} nodes={nodes} />
+            </.live_component>
+            """
+          end,
+          %{layers: layers}
         )
 
       assert content =~ "a1"
@@ -150,18 +158,29 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponentTest do
       ]
 
       content =
-        render_component(LayeredGraphComponent,
-          layers: layers,
-          title: "with a grid"
+        render_component(
+          fn assigns ->
+            ~H"""
+            <.live_component module={LayeredGraphComponent} id="id" title="with a grid">
+              <:layer :for={nodes <- @layers} nodes={nodes} />
+            </.live_component>
+            """
+          end,
+          %{layers: layers}
         )
 
       refute content =~ ~s[fill="url(#grid)"]
 
       content =
-        render_component(LayeredGraphComponent,
-          layers: layers,
-          show_grid?: true,
-          title: "with a grid"
+        render_component(
+          fn assigns ->
+            ~H"""
+            <.live_component module={LayeredGraphComponent} show_grid?={true} id="id" title="with a grid">
+              <:layer :for={nodes <- @layers} nodes={nodes} />
+            </.live_component>
+            """
+          end,
+          %{layers: layers}
         )
 
       assert content =~ ~s[fill="url(#grid)"]

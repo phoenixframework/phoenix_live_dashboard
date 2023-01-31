@@ -683,29 +683,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   based on options.
 
   [INSERT LVATTRDOCS]
-
-  ## Examples
-
-      iex> layers = [
-      ...>   [
-      ...>     %{
-      ...>       id: "a1",
-      ...>       data: "a1",
-      ...>       children: ["b1"]
-      ...>     }
-      ...>   ],
-      ...>   [
-      ...>     %{
-      ...>       id: "b1"
-      ...>       data: %{
-      ...>         detail: 0,
-      ...>         label: "b1"
-      ...>       },
-      ...>       children: []
-      ...>      }
-      ...>    ]
-      ...> ]
   """
+
   attr :id, :any,
     required: true,
     doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
@@ -713,19 +692,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :title, :string, default: nil, doc: "The title of the component."
 
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
-
-  attr :layers, :list,
-    required: true,
-    doc: """
-    A graph of layers with nodes. They represent
-    our graph structure (see example). Each layer is a list
-    of nodes, where each node has the following fields:
-
-      - `:id` - The ID of the given node.
-      - `:children` - The IDs of children nodes.
-      - `:data` - A string or a map. If it's a map, the required fields
-        are `detail` and `label`.
-    """
 
   attr :show_grid?, :boolean,
     default: false,
@@ -757,6 +723,18 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     This is only going to be called if data is a map.
     Default: `fn node_data -> node_data.detail end`.
     """
+
+  slot :layer, required: true, doc: "List of nodes" do
+    attr :nodes, :list,
+      required: true,
+      doc: """
+      A list of map with the following fields:
+        - `:id` - The ID of the given node. Required.
+        - `:children` - A list with the IDs of children nodes. Required.
+        - `:data` - A string or a map. If it's a map, the required
+        fields are `detail` and `label`. Required.
+      """
+  end
 
   @spec live_layered_graph(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def live_layered_graph(assigns) do
