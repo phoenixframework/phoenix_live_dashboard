@@ -89,7 +89,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   ## Options for the use macro
 
-  The following options can be given when `use`ing the `PageBuilder` module:
+  The following options can be given when using the `PageBuilder` module:
 
   * `refresher?` - Boolean to enable or disable the automatic refresh in the page.
 
