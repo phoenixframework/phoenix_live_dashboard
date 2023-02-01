@@ -109,7 +109,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   end
 
   @impl true
-  def render_page(assigns) do
+  def render(assigns) do
     ~H"""
     <.row>
       <:col>

@@ -7,7 +7,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
   @menu_text "Applications"
 
   @impl true
-  def render_page(assigns) do
+  def render(assigns) do
     ~H"""
     <.live_table
       id="table"

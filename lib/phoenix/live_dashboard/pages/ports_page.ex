@@ -8,7 +8,7 @@ defmodule Phoenix.LiveDashboard.PortsPage do
   @menu_text "Ports"
 
   @impl true
-  def render_page(assigns) do
+  def render(assigns) do
     ~H"""
     <.live_table
       id="table"
