@@ -253,17 +253,16 @@ defmodule DemoWeb.GraphShowcasePage do
 
   defp simple(assigns) do
     assigns =
-      assigns
-      |> assign(:title, "Simple graph")
-      |> assign(:id, "simple")
-      |> assign(:layers, [
+      assign(assigns, :layers, [
         [%{id: "a1", data: "a1", children: ["b1", "b2"]}],
         [%{id: "b1", data: "b1", children: ["c1"]}, %{id: "b2", data: "b2", children: ["c1"]}],
         [%{id: "c1", data: "c1", children: []}]
       ])
 
     ~H"""
-    <.live_layered_graph {assigns} />
+    <.live_layered_graph id="simple" title="Simple graph" >
+      <:layer :for={nodes <- @layers} nodes={nodes} />
+    </.live_layered_graph>
     """
   end
 
@@ -288,23 +287,22 @@ defmodule DemoWeb.GraphShowcasePage do
           %{id: "b4", data: "b4", children: []}
         ]
       ])
-      |> assign(:title, "Two groups")
-      |> assign(:hint, "This chart shows that we can have groups based on parent nodes.")
-      |> assign(:id, "two_groups")
 
     ~H"""
-    <.live_layered_graph {assigns} />
+    <.live_layered_graph
+      background={@background}
+      title="Two groups"
+      hint="This chart shows that we can have groups based on parent nodes."
+      id="two_groups"
+    >
+      <:layer :for={nodes <- @layers} nodes={nodes} />
+    </.live_layered_graph>
     """
   end
 
   defp two_groups_intercalation(assigns) do
     assigns =
-      assigns
-      |> assign(:format_label, &String.upcase/1)
-      |> assign(:title, "Two groups with intercalation")
-      |> assign(:hint, "This chart shows that intercalation of children is correctly displayed.")
-      |> assign(:id, "two_groups_intercalation")
-      |> assign(:layers, [
+      assign(assigns, :layers, [
         [
           %{id: "a1", data: "a1", children: ["b1", "b3", "b5"]},
           %{id: "a2", data: "a2", children: ["b2", "b4", "b6"]}
@@ -320,7 +318,14 @@ defmodule DemoWeb.GraphShowcasePage do
       ])
 
     ~H"""
-    <.live_layered_graph {assigns} />
+    <.live_layered_graph
+      format_label={&String.upcase/1}
+      title="Two groups with intercalation"
+      hint="This chart shows that intercalation of children is correctly displayed."
+      id="two_groups_intercalation"
+    >
+      <:layer :for={nodes <- @layers} nodes={nodes} />
+    </.live_layered_graph>
     """
   end
 
@@ -341,8 +346,6 @@ defmodule DemoWeb.GraphShowcasePage do
       assigns
       |> assign(:background, background)
       |> assign(:format_detail, fn data -> "#{data.detail}%" end)
-      |> assign(:title, "Broadway graph")
-      |> assign(:id, "broadway_graph")
       |> assign(:layers, [
         [
           %{
@@ -415,7 +418,14 @@ defmodule DemoWeb.GraphShowcasePage do
       ])
 
     ~H"""
-    <.live_layered_graph {assigns} />
+    <.live_layered_graph
+      background={@background}
+      format_detail={@format_detail}
+      title="Broadway graph"
+      id="broadway_graph"
+    >
+      <:layer :for={nodes <- @layers} nodes={nodes} />
+    </.live_layered_graph>
     """
   end
 
@@ -423,16 +433,19 @@ defmodule DemoWeb.GraphShowcasePage do
     bottom_layer = for i <- 1..20, do: %{id: "b#{i}", data: "b#{i}", children: []}
 
     assigns =
-      assigns
-      |> assign(:title, "Simple graph")
-      |> assign(:id, "wider_graph")
-      |> assign(:layers, [
+      assign(assigns, :layers, [
         [%{id: "a1", data: "a1", children: Enum.map(1..20, &"b#{&1}")}],
         bottom_layer
       ])
 
     ~H"""
-    <.live_layered_graph {assigns} />
+    <.live_layered_graph
+      title="Simple graph"
+      id="wider_graph"
+    >
+      <:layer :for={nodes <- @layers} nodes={nodes} />
+    </.live_layered_graph>
+
     """
   end
 end
