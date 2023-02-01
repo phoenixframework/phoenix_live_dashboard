@@ -59,11 +59,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
               {@metric_attrs}>
           </div>
         </div>
-        <%= if @description do %>
-          <%= hint do %>
-            <%= @description %>
-          <% end %>
-        <% end %>
+        <Phoenix.LiveDashboard.PageBuilder.hint :if={@description} text={@description} />
       </div>
     </div>
     """

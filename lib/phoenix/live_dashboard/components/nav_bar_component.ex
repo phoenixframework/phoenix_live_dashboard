@@ -7,46 +7,38 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   end
 
   @impl true
-  def update(%{page: page, items: items, nav_param: nav_param} = assigns, socket) do
-    socket = assign(socket, assigns)
-    current = current_item(page.params, items, nav_param)
-    {:ok, assign(socket, :current, current)}
+  def update(assigns, socket) do
+    {:ok, assign(socket, normalize_assigns(assigns))}
   end
 
-  defp current_item(params, items, nav_param) do
-    with %{^nav_param => item} <- params,
-         true <- List.keymember?(items, item, 0) do
-      item
+  def normalize_assigns(assigns) do
+    nav_param = normalize_nav_param(assigns)
+    items = normalize_items(assigns.item)
+    current = normalize_current(assigns.page.params, items, nav_param)
+
+    %{
+      page: assigns.page,
+      current: current,
+      items: items,
+      nav_param: nav_param,
+      extra_params: normalize_extra_params(assigns, nav_param),
+      style: normalize_style(assigns)
+    }
+  end
+
+  defp normalize_current(url_params, items, nav_param) do
+    with %{^nav_param => item_name} <- url_params,
+         current when not is_nil(current) <- Enum.find(items, &(&1.name == item_name)) do
+      current
     else
-      _ -> default_item(items)
+      _ -> default_current(items)
     end
   end
 
-  defp default_item([{id, _} | _]), do: id
+  defp default_current([first | _]), do: first
 
-  def normalize_params(params) do
-    case Map.fetch(params, :items) do
-      :error ->
-        raise ArgumentError, "the :items parameter is expected in nav bar component"
-
-      {:ok, no_list} when not is_list(no_list) ->
-        msg = ":items parameter must be a list, got: "
-        raise ArgumentError, msg <> inspect(no_list)
-
-      {:ok, items} ->
-        nav_param = normalize_nav_param(params)
-
-        %{
-          items: normalize_items(items),
-          nav_param: nav_param,
-          extra_params: normalize_extra_params(params, nav_param),
-          style: normalize_style(params)
-        }
-    end
-  end
-
-  defp normalize_extra_params(params, nav_param) do
-    case Map.fetch(params, :extra_params) do
+  defp normalize_extra_params(assigns, nav_param) do
+    case Map.fetch(assigns, :extra_params) do
       :error ->
         []
 
@@ -72,8 +64,8 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
     end
   end
 
-  defp normalize_nav_param(params) do
-    case Map.fetch(params, :nav_param) do
+  defp normalize_nav_param(assigns) do
+    case Map.fetch(assigns, :nav_param) do
       :error ->
         "nav"
 
@@ -89,8 +81,8 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
     end
   end
 
-  defp normalize_style(params) do
-    style = Map.get(params, :style, :pills)
+  defp normalize_style(assigns) do
+    style = Map.get(assigns, :style, :pills)
 
     unless style in [:pills, :bar] do
       raise ArgumentError, ":style must be either :pills or :bar"
@@ -99,47 +91,18 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
     style
   end
 
-  def normalize_items(items) do
+  defp normalize_items(items) do
     Enum.map(items, &normalize_item/1)
   end
 
-  defp normalize_item({id, item}) when is_atom(id) and is_list(item) do
-    normalize_item({Atom.to_string(id), item})
-  end
-
-  defp normalize_item({id, item}) when is_binary(id) and is_list(item) do
-    {id,
-     item
-     |> validate_item_render()
-     |> validate_item_name()
-     |> normalize_item_method()}
-  end
-
-  defp normalize_item(invalid_item) do
-    msg = ":items must be [{string() | atom(), [name: string(), render: fun()], got: "
-
-    raise ArgumentError, msg <> inspect(invalid_item)
-  end
-
-  defp validate_item_render(item) do
-    case Keyword.fetch(item, :render) do
-      :error ->
-        msg = ":render parameter must be in item: #{inspect(item)}"
-        raise ArgumentError, msg
-
-      {:ok, render} when is_function(render, 0) ->
-        item
-
-      {:ok, _invalid} ->
-        msg =
-          ":render parameter in item must be a function that returns a component, got: #{inspect(item)}"
-
-        raise ArgumentError, msg
-    end
+  defp normalize_item(item) do
+    item
+    |> validate_item_name()
+    |> normalize_item_method()
   end
 
   defp validate_item_name(item) do
-    case Keyword.fetch(item, :name) do
+    case Map.fetch(item, :name) do
       :error ->
         msg = ":name parameter must be in item: #{inspect(item)}"
         raise ArgumentError, msg
@@ -154,15 +117,17 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
   end
 
   defp normalize_item_method(item) do
-    case Keyword.fetch(item, :method) do
+    case Map.fetch(item, :method) do
       :error ->
-        [method: :patch] ++ item
+        Map.put(item, :method, "patch")
 
-      {:ok, method} when method in [:patch, :redirect] ->
+      {:ok, method} when method in ~w(patch navigate href redirect) ->
         item
 
       {:ok, method} ->
-        msg = ":method parameter in item must contain value of :patch or :redirect, got: "
+        msg =
+          ":method parameter in item must contain one value of `~w(patch navigate href redirect)`, got: "
+
         raise ArgumentError, msg <> inspect(method)
     end
   end
@@ -174,20 +139,23 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
       <div class="row">
         <div class="container">
           <ul class={"nav nav-#{@style} mt-n2 mb-4"}>
-            <%= for {id, item} <- @items do %>
-              <li class="nav-item">
-                <%= render_item_link(@socket, @page, item, @current, @nav_param, id, @extra_params) %>
-              </li>
-            <% end %>
+            <li :for={item <- @items} class="nav-item">
+              <.link {item_link_href(@socket, @page, item, @nav_param, @extra_params)} class={item_link_class(item, @current)}>
+                <%= item_label(item) %>
+              </.link>
+            </li>
           </ul>
         </div>
       </div>
-      <%= render_item_content(@page, @items, @current) %>
+      <%= render_slot(@current) %>
     </div>
     """
   end
 
-  defp render_item_link(socket, page, item, current, nav_param, id, extra_params) do
+  defp item_label(%{label: label}), do: label
+  defp item_label(%{name: value}), do: Phoenix.Naming.humanize(value)
+
+  defp item_link_href(socket, page, item, nav_param, extra_params) do
     params_to_keep = for {key, value} <- page.params, key in extra_params, do: {key, value}
 
     path =
@@ -196,33 +164,17 @@ defmodule Phoenix.LiveDashboard.NavBarComponent do
         page.route,
         page.node,
         page.params,
-        [{nav_param, id} | params_to_keep]
+        [{nav_param, item.name} | params_to_keep]
       )
 
-    class = "nav-link#{if current == id, do: " active"}"
-
-    case item[:method] do
-      :patch -> live_patch(item[:name], to: path, class: class)
-      :redirect -> live_redirect(item[:name], to: path, class: class)
+    case Map.get(item, :method, "patch") do
+      "patch" -> [patch: path]
+      "navigate" -> [navigate: path]
+      "href" -> [href: path]
+      "redirect" -> [href: path]
     end
   end
 
-  defp render_item_content(page, items, id) do
-    {_, opts} = List.keyfind(items, id, 0)
-    render_content(page, opts[:render])
-  end
-
-  defp render_content(page, component_or_fun) do
-    case component_or_fun do
-      {component, component_assigns} ->
-        live_component(component, Map.put(component_assigns, :page, page))
-
-      fun when is_function(fun, 0) ->
-        render_content(page, fun.())
-
-      # TODO: Remove me once we port metrics
-      %Phoenix.LiveView.Rendered{} = other ->
-        other
-    end
-  end
+  defp item_link_class(current, current), do: "nav-link active"
+  defp item_link_class(_, _), do: "nav-link"
 end

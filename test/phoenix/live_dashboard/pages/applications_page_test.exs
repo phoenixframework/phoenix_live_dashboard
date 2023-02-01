@@ -45,19 +45,21 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
     assert rendered =~ ~s|<tr id="app-stdlib">|
     refute rendered =~ ~s|<tr id="app-ssh"|
 
-    Application.load(:ssh)
+    assert :ok = Application.load(:ssh)
+
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
     assert rendered =~ ~s|<tr class="text-muted" id="app-ssh"|
 
-    Application.start(:ssh)
+    assert :ok = Application.start(:ssh)
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
 
     assert rendered =~
              ~s|tr phx-click="show_info" phx-value-info="App&lt;ssh&gt;" phx-page-loading="phx-page-loading" id="app-ssh">|
 
-    Application.unload(:ssh)
+    assert :ok = Application.stop(:ssh)
+    assert :ok = Application.unload(:ssh)
   end
 
   test "shows the application supervision tree" do
