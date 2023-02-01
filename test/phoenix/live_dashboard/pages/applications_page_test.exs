@@ -39,9 +39,6 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
   end
 
   test "not started applications have different status in table" do
-    Application.stop(:ssh)
-    Application.unload(:ssh)
-
     {:ok, live, _} = live(build_conn(), applications_path(50, "", :version, :asc))
     rendered = render(live)
 
