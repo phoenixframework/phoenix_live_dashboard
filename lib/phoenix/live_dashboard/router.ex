@@ -278,6 +278,22 @@ defmodule Phoenix.LiveDashboard.Router do
           args
       end
 
+    ecto_sqlite3_extras_options =
+      case options[:ecto_sqlite3_extras_options] do
+        nil ->
+          []
+
+        args ->
+          unless Keyword.keyword?(args) and
+                   args |> Keyword.values() |> Enum.all?(&Keyword.keyword?/1) do
+            raise ArgumentError,
+                  ":ecto_sqlite3_extras_options must be a keyword where each value is a keyword, got: " <>
+                    inspect(args)
+          end
+
+          args
+      end
+
     csp_nonce_assign_key =
       case options[:csp_nonce_assign_key] do
         nil -> nil
@@ -298,6 +314,7 @@ defmodule Phoenix.LiveDashboard.Router do
       ecto_repos,
       ecto_psql_extras_options,
       ecto_mysql_extras_options,
+      ecto_sqlite3_extras_options,
       csp_nonce_assign_key
     ]
 
@@ -345,12 +362,14 @@ defmodule Phoenix.LiveDashboard.Router do
         ecto_repos,
         ecto_psql_extras_options,
         ecto_mysql_extras_options,
+        ecto_sqlite3_extras_options,
         csp_nonce_assign_key
       ) do
     ecto_session = %{
       repos: ecto_repos(ecto_repos),
       ecto_psql_extras_options: ecto_psql_extras_options,
-      ecto_mysql_extras_options: ecto_mysql_extras_options
+      ecto_mysql_extras_options: ecto_mysql_extras_options,
+      ecto_sqlite3_extras_options: ecto_sqlite3_extras_options
     }
 
     {pages, requirements} =

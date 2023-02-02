@@ -49,6 +49,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:telemetry_metrics, "~> 0.6 or ~> 1.0"},
       {:ecto_psql_extras, "~> 0.7", optional: true},
       {:ecto_mysql_extras, "~> 0.5", optional: true},
+      {:ecto_sqlite3_extras, "~> 1.1.5", optional: true},
       {:ecto, "~> 3.6.2 or ~> 3.7", optional: true},
 
       # Dev and test

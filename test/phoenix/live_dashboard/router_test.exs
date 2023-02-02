@@ -261,6 +261,34 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     end
   end
 
+  test "configures ecto_mysql_extras" do
+    assert session_opts(ecto_sqlite3_extras_options: nil)[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]}
+
+    assert session_opts(ecto_sqlite3_extras_options: [])[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]}
+
+    ecto_args = [long_running_queries: [threshold: 200]]
+
+    assert session_opts(ecto_sqlite3_extras_options: ecto_args)[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], ecto_args, nil]}
+
+    assert_raise ArgumentError, fn ->
+      session_opts(ecto_sqlite3_extras_options: :not_a_list)
+    end
+
+    assert_raise ArgumentError, fn ->
+      session_opts(ecto_sqlite3_extras_options: [long_running_queries: :not_a_list])
+    end
+
+    assert_raise ArgumentError, fn ->
+      session_opts(ecto_mysql_extras_options: [long_running_queries: [:not_a_keyword]])
+    end
+  end
+
   describe "__session__" do
     defp csp_session(conn, csp_session \\ nil) do
       Phoenix.LiveDashboard.Router.__session__(
