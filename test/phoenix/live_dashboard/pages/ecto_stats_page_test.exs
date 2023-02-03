@@ -191,7 +191,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   end
 
   defp ecto_stats_path(nav, search, repo) do
-    "#{ecto_stats_path()}?nav=#{nav}&search=#{search}&repo=#{repo}"
+    "#{ecto_stats_path()}?nav=#{nav}&search=#{search}&repo=#{inspect(repo)}"
   end
 
   defp start_main_repo! do

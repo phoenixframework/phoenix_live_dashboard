@@ -6,20 +6,12 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponentTest do
 
   alias Phoenix.LiveDashboard.LayeredGraphComponent
 
-  setup_all do
-    # TODO: remove this after updating live view with fix:
-    # https://github.com/phoenixframework/phoenix_live_view/commit/c3dbe6bc0f78da95a24051ad5713c9a4f669c476
-    Code.ensure_loaded(LayeredGraphComponent)
-
-    :ok
-  end
-
-  describe "normalize_params/1" do
+  describe "validate_params/1" do
     test "validate layers" do
-      assert %{layers: _} = LayeredGraphComponent.normalize_params(%{layers: []})
+      assert %{layers: _} = LayeredGraphComponent.validate_params(%{layers: []})
 
       assert %{layers: _} =
-               LayeredGraphComponent.normalize_params(%{
+               LayeredGraphComponent.validate_params(%{
                  layers: [
                    [%{id: 0, children: [1, 2], data: "0"}],
                    [%{id: 1, children: [], data: "1"}, %{id: 2, children: [], data: "2"}]
@@ -27,16 +19,16 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponentTest do
                })
 
       assert_raise(ArgumentError, ~r/layers parameter is expected/, fn ->
-        LayeredGraphComponent.normalize_params(%{})
+        LayeredGraphComponent.validate_params(%{})
       end)
 
       assert_raise(ArgumentError, ~r/layers parameter must be a list, got/, fn ->
-        LayeredGraphComponent.normalize_params(%{layers: "foo"})
+        LayeredGraphComponent.validate_params(%{layers: "foo"})
       end)
 
       assert_raise(ArgumentError, ~r/parameter must be a list of lists that contain nodes/, fn ->
         # Without ID
-        LayeredGraphComponent.normalize_params(%{layers: [[%{data: "0", children: [1, 2]}]]})
+        LayeredGraphComponent.validate_params(%{layers: [[%{data: "0", children: [1, 2]}]]})
       end)
     end
   end

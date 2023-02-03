@@ -137,6 +137,8 @@ defmodule Phoenix.LiveDashboardTest.Endpoint do
   plug Phoenix.LiveDashboardTest.Router
 end
 
+Application.stop(:ssh)
+Application.unload(:ssh)
 Application.ensure_all_started(:os_mon)
 
 Supervisor.start_link(

@@ -18,9 +18,14 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {:ok, socket}
   end
 
-  def normalize_params(params) do
-    params
-    |> validate_required([:columns, :id, :row_fetcher, :title])
+  @impl true
+  def update(assigns, socket) do
+    assigns = normalize_update(assigns)
+    apply_update(socket, assigns)
+  end
+
+  defp normalize_update(assigns) do
+    assigns
     |> normalize_columns()
     |> validate_required_one_sortable_column()
     |> Map.put_new(:search, true)
@@ -29,25 +34,12 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     |> Map.put_new(:hint, nil)
     |> Map.update(:default_sort_by, nil, &(&1 && to_string(&1)))
     |> Map.put_new_lazy(:rows_name, fn ->
-      Phoenix.Naming.humanize(params.title) |> String.downcase()
+      Phoenix.Naming.humanize(assigns.title) |> String.downcase()
     end)
   end
 
-  defp validate_required(params, list) do
-    case Enum.find(list, &(not Map.has_key?(params, &1))) do
-      nil -> :ok
-      key -> raise ArgumentError, "the #{inspect(key)} parameter is expected in table component"
-    end
-
-    params
-  end
-
-  defp normalize_columns(%{columns: columns} = params) when is_list(columns) do
-    %{params | columns: Enum.map(columns, &normalize_column/1)}
-  end
-
-  defp normalize_columns(%{columns: columns}) do
-    raise ArgumentError, ":columns must be a list, got: #{inspect(columns)}"
+  defp normalize_columns(%{col: columns} = params) when is_list(columns) do
+    %{params | col: Enum.map(columns, &normalize_column/1)}
   end
 
   defp normalize_column(column) do
@@ -61,7 +53,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         |> Map.new()
         |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
         |> Map.put_new(:header_attrs, [])
-        |> Map.put_new(:format, & &1)
         |> Map.put_new(:cell_attrs, [])
         |> Map.put_new(:sortable, nil)
 
@@ -75,18 +66,15 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     end
   end
 
-  defp validate_required_one_sortable_column(%{columns: columns} = params) do
-    sortable_columns = sortable_columns(columns)
-
-    if sortable_columns == [] do
+  defp validate_required_one_sortable_column(%{col: columns} = params) do
+    if sortable_columns(columns) == [] do
       raise ArgumentError, "must have at least one column with :sortable parameter"
     else
       params
     end
   end
 
-  @impl true
-  def update(assigns, socket) do
+  defp apply_update(socket, assigns) do
     assigns = normalize_table_params(assigns)
 
     %{
@@ -114,7 +102,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp normalize_table_params(assigns) do
-    %{columns: columns, page: %{params: all_params}, default_sort_by: sort_by} = assigns
+    %{col: columns, page: %{params: all_params}, default_sort_by: sort_by} = assigns
     sortable_columns = sortable_columns(columns)
 
     sort_by =
@@ -132,19 +120,21 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         all_params
         |> get_in_or_first("limit", Enum.map(assigns.limit, &to_string/1))
         |> String.to_integer()
-      else
-        nil
       end
 
     search = all_params["search"]
     search = if search == "", do: nil, else: search
 
     table_params = %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search}
-    Map.put(assigns, :table_params, table_params)
+
+    assigns
+    |> Map.put(:table_params, table_params)
+    |> Map.delete(:col)
+    |> Map.put(:columns, columns)
   end
 
   defp sortable_columns(columns) do
-    for column <- columns, column.sortable, do: to_string(column.field)
+    for column <- columns, column[:sortable], do: to_string(column.field)
   end
 
   defp sortable_dirs(columns, field) do
@@ -163,19 +153,16 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   def render(assigns) do
     ~H"""
     <div class="tabular">
-      <h5 class="card-title"><%= @title %> <%= @hint && hint(do: @hint) %></h5>
-
-      <%= if @search do %>
-        <div class="tabular-search">
-          <form phx-change="search" phx-submit="search" phx-target={@myself} class="form-inline">
-            <div class="form-row align-items-center">
-              <div class="col-auto">
-                <input type="search" name="search" class="form-control form-control-sm" value={@table_params.search} placeholder="Search" phx-debounce="300">
-              </div>
+      <Phoenix.LiveDashboard.PageBuilder.card_title title={@title} hint={@hint} />
+      <div :if={@search} class="tabular-search">
+        <form phx-change="search" phx-submit="search" phx-target={@myself} class="form-inline">
+          <div class="form-row align-items-center">
+            <div class="col-auto">
+              <input type="search" name="search" class="form-control form-control-sm" value={@table_params.search} placeholder="Search" phx-debounce="300">
             </div>
-          </form>
-        </div>
-      <% end %>
+          </div>
+        </form>
+      </div>
 
       <form phx-change="select_limit" phx-target={@myself} class="form-inline">
         <div class="form-row align-items-center">
@@ -205,27 +192,25 @@ defmodule Phoenix.LiveDashboard.TableComponent do
             <table class="table table-hover mt-0 dash-table">
               <thead>
                 <tr>
-                  <%= for column <- @columns do %>
-                    <th {calc_attrs(column.header_attrs, [column])}>
-                      <%= if direction = column.sortable do %>
-                        <%= sort_link(@socket, @page, @table_params, column, direction) %>
-                      <% else %>
-                        <%= column.header %>
-                      <% end %>
-                    </th>
-                  <% end %>
+                  <th :for={column <- @columns} {calc_attrs(column[:header_attrs], [column])}>
+                    <%= if column[:sortable] do %>
+                      <.sort_link socket={@socket} page={@page} table_params={@table_params} column={column}/>
+                    <% else %>
+                      <%= column[:header] || column[:field] %>
+                    <% end %>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                <%= for row <- @rows do %>
-                  <tr {calc_attrs(@row_attrs, [row])}>
-                    <%= for column <- @columns do %>
-                      <td {calc_attrs(column.cell_attrs, [row])}>
-                        <%= column.format.(row[column.field]) %>
-                      </td>
-                    <% end %>
-                  </tr>
-                <% end %>
+                <tr :for={row <- @rows} {calc_attrs(@row_attrs, [row])}>
+                  <td :for={column <- @columns} {calc_attrs(column[:cell_attrs], [row])}>
+                    <%= if column[:inner_block] do %>
+                      <%= render_slot(column, row) %>
+                    <% else %>
+                      <%= row[column.field] |> to_string() %>
+                  <% end %>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -238,10 +223,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   defp calc_attrs(falsy, _) when falsy in [nil, false], do: []
   defp calc_attrs(list, _) when is_list(list), do: list
   defp calc_attrs(fun, args) when is_function(fun), do: apply(fun, args)
-
-  defp column_header(column) do
-    column.header || column.field |> to_string() |> String.capitalize()
-  end
 
   @impl true
   def handle_event("search", %{"search" => search}, socket) do
@@ -256,50 +237,39 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {:noreply, push_patch(socket, to: to)}
   end
 
-  defp sort_link(socket, page, table_params, column, direction) do
-    field = column.field
-
-    case table_params do
-      %{sort_by: ^field, sort_dir: sort_dir} ->
-        table_params = %{table_params | sort_dir: opposite_sort_dir(table_params), sort_by: field}
-
-        column
-        |> column_header()
-        |> sort_link_body(sort_dir)
-        |> live_patch(to: PageBuilder.live_dashboard_path(socket, page, table_params))
-
-      %{} ->
-        table_params = %{table_params | sort_dir: direction, sort_by: field}
-
-        column
-        |> column_header()
-        |> sort_link_body()
-        |> live_patch(to: PageBuilder.live_dashboard_path(socket, page, table_params))
+  defp sort_link(assigns) do
+    if assigns.table_params.sort_by == assigns.column.field do
+      ~H"""
+      <.link patch={PageBuilder.live_dashboard_path(@socket, @page, reverse_sort_dir(@table_params))} >
+        <%= column_header(@column) %>
+        <.sort_link_icon dir={@table_params.sort_dir} />
+      </.link>
+      """
+    else
+      ~H"""
+      <.link patch={PageBuilder.live_dashboard_path(@socket, @page, replace_sort_dir(@table_params, @column))} >
+        <%= column_header(@column) %>
+      </.link>
+      """
     end
   end
 
-  defp sort_link_body(link_name), do: link_name
-
-  defp sort_link_body(link_name, sort_dir) do
-    [link_name | sort_link_icon(sort_dir)]
+  defp column_header(column) do
+    column[:header] || column.field |> to_string() |> String.capitalize()
   end
 
-  defp sort_link_icon(:desc) do
-    raw("""
+  defp sort_link_icon(assigns) do
+    ~H"""
     <div class="dash-table-icon">
-      <span class="icon-sort icon-desc"></span>
+      <span class={"icon-sort icon-#{@dir}"}></span>
     </div>
-    """)
+    """
   end
 
-  defp sort_link_icon(:asc) do
-    raw("""
-    <div class="dash-table-icon">
-      <span class="icon-sort icon-asc"></span>
-    </div>
-    """)
-  end
+  defp opposite_sort_dir(:desc), do: :asc
+  defp opposite_sort_dir(:asc), do: :desc
+  defp reverse_sort_dir(params), do: %{params | sort_dir: opposite_sort_dir(params.sort_dir)}
 
-  defp opposite_sort_dir(%{sort_dir: :desc}), do: :asc
-  defp opposite_sort_dir(_), do: :desc
+  defp replace_sort_dir(params, %{sortable: direction, field: field}),
+    do: %{params | sort_dir: direction, sort_by: field}
 end
