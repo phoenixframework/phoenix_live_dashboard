@@ -7,6 +7,8 @@
 #
 #   * --mysql - starts the Demo.MyXQL repo
 #
+#   * --sqlite - starts the Demo.SQLite repo
+#
 # Usage:
 #
 # $ iex -S mix dev [flags]
@@ -14,8 +16,12 @@
 Logger.configure(level: :debug)
 
 argv = System.argv()
-{opts, _, _} = OptionParser.parse(argv, strict: [mysql: :boolean, postgres: :boolean])
-%{mysql: mysql?, postgres: postgres?} = Map.merge(%{mysql: false, postgres: false}, Map.new(opts))
+
+{opts, _, _} =
+  OptionParser.parse(argv, strict: [mysql: :boolean, postgres: :boolean, sqlite: :boolean])
+
+%{mysql: mysql?, postgres: postgres?, sqlite: sqlite?} =
+  Map.merge(%{mysql: false, postgres: false, sqlite: false}, Map.new(opts))
 
 if postgres? do
   pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
@@ -39,6 +45,17 @@ if mysql? do
   end
 
   _ = Ecto.Adapters.MyXQL.storage_up(Demo.MyXQL.config())
+end
+
+if sqlite? do
+  sqlite_db = System.get_env("SQLITE_DB") || "dev.db"
+  Application.put_env(:phoenix_live_dashboard, Demo.SQLite, database: sqlite_db)
+
+  defmodule Demo.SQLite do
+    use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.SQLite3
+  end
+
+  _ = Ecto.Adapters.SQLite3.storage_up(Demo.SQLite.config())
 end
 
 # Configures the endpoint
@@ -496,6 +513,7 @@ Task.async(fn ->
   children = []
   children = if postgres?, do: [Demo.Postgres | children], else: children
   children = if mysql?, do: [Demo.MyXQL | children], else: children
+  children = if sqlite?, do: [Demo.SQLite | children], else: children
 
   children =
     children ++
