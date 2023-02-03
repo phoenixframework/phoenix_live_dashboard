@@ -164,6 +164,10 @@ Additionally, you may pass some options to enable Ecto testing. For example, to 
 
     $ mix dev --mysql
 
+...and to enable the SQLite repo:
+
+    $ mix dev --sqlite
+
 Alternatively, run `iex -S mix dev [flags]` if you also want a shell.
 
 Before submitting a pull request, discard any changes that were made to the `dist` directory.
