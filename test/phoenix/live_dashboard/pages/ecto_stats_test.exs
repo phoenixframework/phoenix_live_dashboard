@@ -9,6 +9,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   alias Phoenix.LiveDashboardTest.Repo
   alias Phoenix.LiveDashboardTest.PGRepo
   alias Phoenix.LiveDashboardTest.MySQLRepo
+  alias Phoenix.LiveDashboardTest.SQLiteRepo
 
   test "menu_link/2" do
     assert :skip = EctoStatsPage.menu_link(%{repos: []}, %{})
@@ -29,6 +30,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
     refute rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
     refute rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
+    refute rendered =~ "Phoenix.LiveDashboardTest.SQLiteRepo"
     assert rendered =~ ~r"Showing \d+ entries"
 
     start_pg_repo!()
@@ -47,6 +49,16 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
     assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
     assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
+
+    start_sqlite_repo!()
+
+    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+    rendered = render(live)
+
+    assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.SQLiteRepo"
   end
 
   test "renders error without running repos" do
@@ -145,6 +157,25 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Status"
     refute rendered =~ "PERFORMANCE_SCHEMA"
     assert rendered =~ "InnoDB"
+
+    start_sqlite_repo!()
+
+    {:ok, live, _} = live(build_conn(), ecto_stats_path(:plugins, "", SQLiteRepo))
+
+    rendered = render(live)
+    assert rendered =~ "page_size"
+    assert rendered =~ "unused_size"
+    assert rendered =~ "pages"
+    assert rendered =~ "cells"
+
+    {:ok, live, _} =
+      live(
+        build_conn(),
+        ecto_stats_path(:plugins, "page_size", SQLiteRepo)
+      )
+
+    rendered = render(live)
+    assert rendered =~ "page_size"
   end
 
   defp ecto_stats_path() do
@@ -173,5 +204,9 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
   defp start_mysql_repo! do
     start_supervised!(MySQLRepo)
+  end
+
+  defp start_sqlite_repo! do
+    start_supervised!(SQLiteRepo)
   end
 end

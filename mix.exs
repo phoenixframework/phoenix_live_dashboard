@@ -60,6 +60,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:jason, "~> 1.0", only: [:dev, :test, :docs]},
       {:floki, "~> 0.27.0", only: :test},
       {:stream_data, "~> 0.1", only: :test},
+      {:ecto_sqlite3, "~> 0.9.1", only: :test},
       {:ex_doc, "~> 0.21", only: :docs},
       {:esbuild, "~> 0.5", only: :dev},
       {:dart_sass, "~> 0.5", only: :dev}
