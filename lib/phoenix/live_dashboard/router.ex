@@ -28,10 +28,10 @@ defmodule Phoenix.LiveDashboard.Router do
       type `%{optional(:img) => atom(), optional(:script) => atom(), optional(:style) => atom()}`
 
     * `:ecto_repos` - the repositories to show database information.
-      Currently only PSQL databases are supported. If you don't specify
-      but your app is running Ecto, we will try to auto-discover the
-      available repositories. You can disable this behavior by setting
-      `[]` to this option.
+      Currently only PostgreSQL, MySQL, and SQLite databases are supported.
+      If you don't specify but your app is running Ecto, we will try to
+      auto-discover the available repositories. You can disable this behavior
+      by setting `[]` to this option.
 
     * `:env_keys` - Configures environment variables to display.
       It is defined as a list of string keys. If not set, the environment

@@ -295,7 +295,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
           ~H"""
           <small>
             No Ecto repository was found running on this node.
-            Currently only PostgreSQL, MySQL, and SQLite databases are supported.
+            Currently, only PostgreSQL, MySQL, and SQLite databases are supported.
 
             Depending on the database, ecto_psql_extras, ecto_mysql_extras, or ecto_sqlite3_extras should be installed.
 
