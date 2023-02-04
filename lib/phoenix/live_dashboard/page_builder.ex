@@ -3,10 +3,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   Page builder is the default mechanism for building custom dashboard pages.
 
   Each dashboard page is a LiveView with additional callbacks for
-  customizing the menu appearance. One notable difference, however,
-  is that a page implements a `render_page/1` callback, which must
-  return one or more page builder components, instead of a `render/1`
-  callback that returns `~H` or `~L` (deprecated).
+  customizing the menu appearance and the automatic refresh.
 
   A simple and straight-forward example of a custom page is the
   `Phoenix.LiveDashboard.EtsPage` that ships with the dashboard:
@@ -21,15 +18,33 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         end
 
         @impl true
-        def render_page(_assigns) do
-          table(
-            columns: table_columns(),
-            id: :ets_table,
-            row_attrs: &row_attrs/1,
-            row_fetcher: &fetch_ets/2,
-            rows_name: "tables",
-            title: "ETS"
-          )
+        def render(assigns) do
+          ~H\"""
+          <.live_table
+            id="table"
+            page={@page}
+            title="ETS"
+            row_fetcher={&fetch_ets/2}
+            row_attrs={&row_attrs/1}
+            rows_name="tables"
+          >
+            <:col
+              field={:name}
+              header="Name or module"
+              header_attrs={[class: "pl-4"]}
+              cell_attrs={[class: "pl-4"]}
+            />
+            <:col field={:protection} />
+            <:col field={:type} />
+            <:col field={:size} cell_attrs={[class: "text-right"]} sortable={:desc} />
+            <:col field={:memory} cell_attrs={[class: "tabular-column-bytes"]} sortable={:desc} :let={ets}>
+              <%= format_words(ets[:memory]) %>
+            </:col>
+            <:col field={:owner} :let={ets} >
+              <%= encode_pid(ets[:owner]) %>
+            </:col>
+          </.live_table>
+          \"""
         end
 
         defp fetch_ets(params, node) do
@@ -42,35 +57,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           # the current entries (up to limit) and an integer with the
           # total amount of entries.
           # ...
-        end
-
-        defp table_columns() do
-          [
-            %{
-              field: :name,
-              header: "Name or module",
-            },
-            %{
-              field: :protection
-            },
-            %{
-              field: :type
-            },
-            %{
-              field: :size,
-              cell_attrs: [class: "text-right"],
-              sortable: :desc
-            },
-            %{
-              field: :memory,
-              format: &format_words/1,
-              sortable: :desc
-            },
-            %{
-              field: :owner,
-              format: &encode_pid/1
-            }
-          ]
         end
 
         defp row_attrs(table) do
@@ -101,13 +87,21 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   callback. If not tuple is given, `c:init/1` will receive an empty
   list.
 
+  ## Options for the use macro
+
+  The following options can be given when using the `PageBuilder` module:
+
+  * `refresher?` - Boolean to enable or disable the automatic refresh in the page.
+
   ## Components
 
-  A page can only have the components listed with this page.
+  A page can return any valid HEEx template in the `render/1` callback,
+  and it can use the components listed with this page too.
 
-  We currently support `card/1`, `columns/1`, `fields_card/1`,
-  `live_layered_graph/1`, `live_nav_bar/1`, `row/1`, `shared_usage_card/1`, `live_table/1`,
-  and `usage_card/1`.
+  We currently support `card/1`, `fields_card/1`, `row/1`,
+  `shared_usage_card/1`, and `usage_card/1`;
+  and the live components `live_layered_graph/1`, `live_nav_bar/1`, 
+  and `live_table/1`.
 
   ## Helpers
 
@@ -193,7 +187,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @callback mount(unsigned_params(), session(), socket :: Socket.t()) ::
               {:ok, Socket.t()} | {:ok, Socket.t(), keyword()}
 
-  @callback render_page(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  @callback render(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
 
   @callback handle_params(unsigned_params(), uri :: String.t(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
@@ -214,6 +208,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @callback handle_info(msg :: term, socket :: Socket.t()) ::
               {:noreply, Socket.t()}
 
+  @doc """
+  Callback invoked when the automatic refresh is enabled.
+  """
   @callback handle_refresh(socket :: Socket.t()) ::
               {:noreply, Socket.t()}
 

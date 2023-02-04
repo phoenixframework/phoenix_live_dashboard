@@ -8,7 +8,7 @@ defmodule Phoenix.LiveDashboard.SocketsPage do
   @menu_text "Sockets"
 
   @impl true
-  def render_page(assigns) do
+  def render(assigns) do
     ~H"""
     <.live_table
       id="table"

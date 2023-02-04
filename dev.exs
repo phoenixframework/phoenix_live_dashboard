@@ -229,7 +229,7 @@ defmodule DemoWeb.GraphShowcasePage do
   end
 
   @impl true
-  def render_page(assigns) do
+  def render(assigns) do
     ~H"""
     <.live_nav_bar id="navbar" page={@page}>
       <:item name="Simple">

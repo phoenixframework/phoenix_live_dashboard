@@ -227,13 +227,8 @@ defmodule Phoenix.LiveDashboard.PageLive do
     """
   end
 
-  defp render_page(module, assigns)
-       when module in [Phoenix.LiveDashboard.RequestLoggerPage] do
+  defp render_page(module, assigns) do
     module.render(assigns)
-  end
-
-  defp render_page(module, page_assigns) do
-    module.render_page(page_assigns)
   end
 
   defp live_info(_, %{info: nil}), do: nil

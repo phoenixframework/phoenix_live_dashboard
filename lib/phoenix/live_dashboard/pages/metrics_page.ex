@@ -57,7 +57,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   end
 
   @impl true
-  def render_page(assigns) do
+  def render(assigns) do
     ~H"""
     <.live_nav_bar id="metrics_nav_bar" page={@page} >
       <:item :for={item <- @items} name={item} label={format_nav_name(item)} method="redirect">

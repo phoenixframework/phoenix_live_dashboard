@@ -131,7 +131,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   end
 
   @impl true
-  def render_page(assigns) do
+  def render(assigns) do
     if assigns[:error] do
       render_error(assigns)
     else
