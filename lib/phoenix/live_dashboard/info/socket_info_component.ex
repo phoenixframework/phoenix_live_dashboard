@@ -18,18 +18,16 @@ defmodule Phoenix.LiveDashboard.SocketInfoComponent do
     ~H"""
     <div class="tabular-info">
       <%= if @alive do %>
-        <table class="table table-hover tabular-info-table">
-          <tbody>
-            <tr><td class="border-top-0">Module</td><td class="border-top-0"><pre><%= @module %></pre></td></tr>
-            <tr><td>Sent</td><td><%= @send_oct %></td></tr>
-            <tr><td>Received</td><td><%= @recv_oct %></td></tr>
-            <tr><td>Local Address</td><td><%= @local_address %></td></tr>
-            <tr><td>Foreign Address</td><td><%= @foreign_address %></td></tr>
-            <tr><td>State</td><td><%= @state %></td></tr>
-            <tr><td>Type</td><td><%= @type %></td></tr>
-            <tr><td>Owner</td><td><pre><%= @connected %></pre></td></tr>
-          </tbody>
-        </table>
+        <Phoenix.LiveDashboard.PageBuilder.label_value_list>
+          <:elem label="Module"><%= @module %></:elem>
+          <:elem label="Sent"><%= @send_oct %></:elem>
+          <:elem label="Received"><%= @recv_oct %></:elem>
+          <:elem label="Local Address"><%= @local_address %></:elem>
+          <:elem label="Foreign Address"><%= @foreign_address %></:elem>
+          <:elem label="State"><%= @state %></:elem>
+          <:elem label="Type"><%= @type %></:elem>
+          <:elem label="Owner"><%= @connected %></:elem>
+        </Phoenix.LiveDashboard.PageBuilder.label_value_list>
       <% else %>
         <div class="tabular-info-exits mt-1 mb-3">Port was closed or does not exist.</div>
       <% end %>

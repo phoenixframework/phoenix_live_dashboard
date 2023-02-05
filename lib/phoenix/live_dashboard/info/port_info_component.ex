@@ -18,17 +18,15 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
     ~H"""
     <div class="tabular-info">
       <%= if @alive do %>
-        <table class="table table-hover tabular-info-table">
-          <tbody>
-            <tr><td class="border-top-0">Port Name</td><td class="border-top-0"><pre><%= @name %></pre></td></tr>
-            <tr><td>Id</td><td><pre><%= @id %></pre></td></tr>
-            <tr><td>Connected</td><td><pre><%= @connected %></pre></td></tr>
-            <tr><td>Input</td><td><pre><%= format_bytes(@input) %></pre></td></tr>
-            <tr><td>Output</td><td><pre><%= format_bytes(@output) %></pre></td></tr>
-            <tr><td>OS pid</td><td><pre><%= @os_pid %></pre></td></tr>
-            <tr><td>Links</td><td><pre><.info links={@links} /></pre></td></tr>
-          </tbody>
-        </table>
+        <Phoenix.LiveDashboard.PageBuilder.label_value_list>
+          <:elem label="Port Name"><%= @name %></:elem>
+          <:elem label="Id"><%= @id %></:elem>
+          <:elem label="Connected"><%= @connected %></:elem>
+          <:elem label="Input"><%= format_bytes(@input) %></:elem>
+          <:elem label="Output"><%= format_bytes(@output) %></:elem>
+          <:elem label="OS pid"><%= @os_pid %></:elem>
+          <:elem label="Links"><.info links={@links} /></:elem>
+        </Phoenix.LiveDashboard.PageBuilder.label_value_list>
       <% else %>
         <div class="tabular-info-exits mt-1 mb-3">Port was closed or does not exist.</div>
       <% end %>
@@ -44,7 +42,7 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
   @impl true
   def update(%{id: "Port" <> _ = port, path: path}, socket) do
     port = :erlang.list_to_port(String.to_charlist("#" <> port))
-    {:ok, socket |> assign(:port, port) |> assign(:path, path) |> assign_info()}
+    {:ok, socket |> assign(port: port, path: path) |> assign_info()}
   end
 
   defp assign_info(%{assigns: assigns} = socket) do

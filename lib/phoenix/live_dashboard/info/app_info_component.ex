@@ -33,9 +33,9 @@ defmodule Phoenix.LiveDashboard.AppInfoComponent do
   end
 
   @impl true
-  def update(%{id: "App<" <> app, path: path, node: node}, socket) do
+  def update(%{id: "App<" <> app, page: page}, socket) do
     app = app |> String.replace_suffix(">", "") |> String.to_existing_atom()
-    {:ok, socket |> assign(app: app, path: path, node: node) |> assign_tree()}
+    {:ok, socket |> assign(app: app, node: page.node) |> assign_tree()}
   end
 
   defp assign_tree(%{assigns: assigns} = socket) do
