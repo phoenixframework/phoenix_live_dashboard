@@ -26,9 +26,12 @@ defmodule Phoenix.LiveDashboard.MixProject do
   def application do
     [
       mod: {Phoenix.LiveDashboard.Application, []},
-      extra_applications: [:logger]
+      extra_applications: extra_applications(Mix.env())
     ]
   end
+
+  defp extra_applications(:test), do: [:ssh, :os_mon, :runtime_tools, :logger]
+  defp extra_applications(_), do: [:logger]
 
   defp aliases do
     [
