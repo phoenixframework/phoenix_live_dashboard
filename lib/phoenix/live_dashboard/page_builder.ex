@@ -762,6 +762,58 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     """
   end
 
+  @doc """
+  List of label value.
+
+  You can see it in use in the modal in Ports or Processes page.
+  """
+  slot :elem, required: true, doc: "Value for each element of the list" do
+    attr :label, :string, required: true, doc: "Label for the elem"
+  end
+
+  def label_value_list(assigns) do
+    ~H"""
+    <table class="table table-hover tabular-info-table">
+      <tbody>
+        <tr :for={{elem, index} <- Enum.with_index(@elem)}>
+          <td class={first_elem_class(index)}><%= elem.label %></td>
+          <td class={first_elem_class(index)}><pre><%= render_slot(elem) %></pre></td>
+        </tr>
+      </tbody>
+    </table>
+    """
+  end
+
+  defp first_elem_class(0), do: "border-top-0"
+  defp first_elem_class(_), do: nil
+
+  @doc """
+  Modal component
+
+  You can see it in use in the modal in Ports or Processes page
+  """
+  attr :id, :string,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
+
+  attr :title, :string, required: true, doc: "Title of the modal"
+
+  attr :return_to, :string, required: true, doc: "Path to return when closing the modal"
+  slot(:inner_block, required: true, doc: "Content to show in the modal")
+
+  def live_modal(assigns) do
+    ~H"""
+    <.live_component
+      module={Phoenix.LiveDashboard.ModalComponent}
+      id={@id}
+      title={@title}
+      return_to={@return_to}
+    >
+      <%= render_slot @inner_block %>
+    </.live_component>
+    """
+  end
+
   ## Helpers
 
   @doc """

@@ -220,7 +220,20 @@ defmodule Phoenix.LiveDashboard.PageLive do
         </nav>
       </div>
     </header>
-    <%= live_info(@socket, @page) %>
+    <PageBuilder.live_modal
+      :if={@page.info}
+      id="modal"
+      title={@page.info}
+      return_to={modal_return_to(@socket, @page).(@page.node, [])}
+    >
+      <.live_component
+        id={@page.info}
+        module={extract_info_component(@page.info)}
+        path={modal_return_to(@socket, @page)}
+        return_to={modal_return_to(@socket, @page).(@page.node, [])}
+        page={@page}
+      />
+    </PageBuilder.live_modal>
     <section id="main" role="main" class="container">
       <%= render_page(@page.module, assigns) %>
     </section>
@@ -231,31 +244,9 @@ defmodule Phoenix.LiveDashboard.PageLive do
     module.render(assigns)
   end
 
-  defp live_info(_, %{info: nil}), do: nil
-
-  defp live_info(socket, %{info: title, node: node, params: params} = page) do
-    if component = extract_info_component(title) do
-      params = Map.delete(params, "info")
-
-      path =
-        &PageBuilder.live_dashboard_path(socket, page.route, &1, params, Enum.into(&2, params))
-
-      live_modal(component,
-        id: title,
-        return_to: path.(node, []),
-        title: title,
-        path: path,
-        page: page,
-        node: node
-      )
-    end
-  end
-
-  defp live_modal(component, opts) do
-    path = Keyword.fetch!(opts, :return_to)
-    title = Keyword.fetch!(opts, :title)
-    modal_opts = [id: :modal, return_to: path, component: component, opts: opts, title: title]
-    live_component(Phoenix.LiveDashboard.ModalComponent, modal_opts)
+  defp modal_return_to(socket, %{route: route, params: params}) do
+    params = Map.delete(params, "info")
+    &PageBuilder.live_dashboard_path(socket, route, &1, params, Enum.into(&2, params))
   end
 
   defp extract_info_component("PID<" <> _), do: Phoenix.LiveDashboard.ProcessInfoComponent
