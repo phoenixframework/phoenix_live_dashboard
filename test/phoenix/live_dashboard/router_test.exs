@@ -18,7 +18,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     assert session_opts([]) == [
              session:
                {Phoenix.LiveDashboard.Router, :__session__,
-                [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]},
+                [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]},
              root_layout: {Phoenix.LiveDashboard.LayoutView, :dash}
            ]
   end
@@ -68,15 +68,15 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures metrics" do
     assert session_opts(metrics: Foo)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, {Foo, :metrics}, nil, [], {true, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, {Foo, :metrics}, nil, [], {true, nil}, nil, [], [], [], nil]}
 
     assert session_opts(metrics: {Foo, :bar})[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, {Foo, :bar}, nil, [], {true, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, {Foo, :bar}, nil, [], {true, nil}, nil, [], [], [], nil]}
 
     assert session_opts(metrics: false)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, :skip, nil, [], {true, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, :skip, nil, [], {true, nil}, nil, [], [], [], nil]}
 
     assert_raise ArgumentError, fn ->
       session_opts(metrics: [])
@@ -86,7 +86,20 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures env_keys" do
     assert session_opts(env_keys: ["USER", "ROOTDIR"])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [["USER", "ROOTDIR"], @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]}
+              [
+                ["USER", "ROOTDIR"],
+                @home_app,
+                false,
+                nil,
+                nil,
+                [],
+                {true, nil},
+                nil,
+                [],
+                [],
+                [],
+                nil
+              ]}
 
     assert_raise ArgumentError, fn ->
       session_opts(env_keys: "FOO")
@@ -107,6 +120,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                 nil,
                 [],
                 [],
+                [],
                 nil
               ]}
 
@@ -122,7 +136,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures additional_pages" do
     assert session_opts(additional_pages: [])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]}
 
     assert session_opts(additional_pages: [custom: CustomPage])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
@@ -135,6 +149,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                 [custom: {CustomPage, []}],
                 {true, nil},
                 nil,
+                [],
                 [],
                 [],
                 nil
@@ -151,6 +166,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                 [custom: {CustomPage, [1]}],
                 {true, nil},
                 nil,
+                [],
                 [],
                 [],
                 nil
@@ -172,15 +188,15 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures cookie_domain" do
     assert session_opts(request_logger_cookie_domain: nil)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]}
 
     assert session_opts(request_logger_cookie_domain: ".acme.com")[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, ".acme.com"}, nil, [], [], nil]}
+              [nil, @home_app, false, nil, nil, [], {true, ".acme.com"}, nil, [], [], [], nil]}
 
     assert session_opts(request_logger_cookie_domain: :parent)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, :parent}, nil, [], [], nil]}
+              [nil, @home_app, false, nil, nil, [], {true, :parent}, nil, [], [], [], nil]}
 
     assert_raise ArgumentError, fn ->
       session_opts(request_logger_cookie_domain: :unknown_atom)
@@ -194,11 +210,11 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures request logger" do
     assert session_opts(request_logger: false)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {false, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, nil, nil, [], {false, nil}, nil, [], [], [], nil]}
 
     assert session_opts(request_logger: true)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]}
 
     assert_raise ArgumentError, fn ->
       session_opts(request_logger: :something_else)
@@ -208,17 +224,17 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures ecto_psql_extras" do
     assert session_opts(ecto_psql_extras_options: nil)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]}
 
     assert session_opts(ecto_psql_extras_options: [])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]}
 
     ecto_args = [long_running_queries: [threshold: 200]]
 
     assert session_opts(ecto_psql_extras_options: ecto_args)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, ecto_args, [], nil]}
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, ecto_args, [], [], nil]}
 
     assert_raise ArgumentError, fn ->
       session_opts(ecto_psql_extras_options: :not_a_list)
@@ -236,17 +252,17 @@ defmodule Phoenix.LiveDashboard.RouterTest do
   test "configures ecto_mysql_extras" do
     assert session_opts(ecto_mysql_extras_options: nil)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]}
 
     assert session_opts(ecto_mysql_extras_options: [])[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], nil]}
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]}
 
     ecto_args = [long_running_queries: [threshold: 200]]
 
     assert session_opts(ecto_mysql_extras_options: ecto_args)[:session] ==
              {Phoenix.LiveDashboard.Router, :__session__,
-              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], ecto_args, nil]}
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], ecto_args, [], nil]}
 
     assert_raise ArgumentError, fn ->
       session_opts(ecto_mysql_extras_options: :not_a_list)
@@ -258,6 +274,34 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
     assert_raise ArgumentError, fn ->
       session_opts(ecto_mysql_extras_options: [long_running_queries: [:not_a_keyword]])
+    end
+  end
+
+  test "configures ecto_sqlite3_extras" do
+    assert session_opts(ecto_sqlite3_extras_options: nil)[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]}
+
+    assert session_opts(ecto_sqlite3_extras_options: [])[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]}
+
+    ecto_args = [long_running_queries: [threshold: 200]]
+
+    assert session_opts(ecto_sqlite3_extras_options: ecto_args)[:session] ==
+             {Phoenix.LiveDashboard.Router, :__session__,
+              [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], ecto_args, nil]}
+
+    assert_raise ArgumentError, fn ->
+      session_opts(ecto_sqlite3_extras_options: :not_a_list)
+    end
+
+    assert_raise ArgumentError, fn ->
+      session_opts(ecto_sqlite3_extras_options: [long_running_queries: :not_a_list])
+    end
+
+    assert_raise ArgumentError, fn ->
+      session_opts(ecto_sqlite3_extras_options: [long_running_queries: [:not_a_keyword]])
     end
   end
 
@@ -273,6 +317,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
         [],
         {true, nil},
         nil,
+        [],
         [],
         [],
         csp_session
@@ -301,7 +346,8 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                       repos: :auto_discover,
                       ecto_options: [
                         {:ecto_psql_extras_options, []},
-                        {:ecto_mysql_extras_options, []}
+                        {:ecto_mysql_extras_options, []},
+                        {:ecto_sqlite3_extras_options, []}
                       ]
                     }}
                ],

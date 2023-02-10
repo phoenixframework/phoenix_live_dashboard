@@ -11,7 +11,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   def init(%{
         repos: repos,
         ecto_psql_extras_options: ecto_psql_extras_options,
-        ecto_mysql_extras_options: ecto_mysql_extras_options
+        ecto_mysql_extras_options: ecto_mysql_extras_options,
+        ecto_sqlite3_extras_options: ecto_sqlite3_extras_options
       }) do
     capabilities = for repo <- List.wrap(repos), do: {:process, repo}
     repos = repos || :auto_discover
@@ -21,7 +22,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
        repos: repos,
        ecto_options: [
          ecto_psql_extras_options: ecto_psql_extras_options,
-         ecto_mysql_extras_options: ecto_mysql_extras_options
+         ecto_mysql_extras_options: ecto_mysql_extras_options,
+         ecto_sqlite3_extras_options: ecto_sqlite3_extras_options
        ]
      }, capabilities}
   end
@@ -126,6 +128,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     case :rpc.call(node, repo, :__adapter__, []) do
       Ecto.Adapters.Postgres -> EctoPSQLExtras
       Ecto.Adapters.MyXQL -> EctoMySQLExtras
+      Ecto.Adapters.SQLite3 -> EctoSQLite3Extras
       _ -> nil
     end
   end
@@ -202,6 +205,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       case info_module do
         EctoPSQLExtras -> Keyword.fetch!(ecto_options, :ecto_psql_extras_options)
         EctoMySQLExtras -> Keyword.fetch!(ecto_options, :ecto_mysql_extras_options)
+        EctoSQLite3Extras -> Keyword.fetch!(ecto_options, :ecto_sqlite3_extras_options)
         _ -> []
       end
 
@@ -282,9 +286,9 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
         <.card>
           <small>
             No Ecto repository was found running on this node.
-            Currently only PSQL and MySQL databases are supported.
+            Currently, only PostgreSQL, MySQL, and SQLite databases are supported.
 
-            Depending on the database Ecto PSQL Extras or Ecto MySQL Extras should be installed.
+            Depending on the database, ecto_psql_extras, ecto_mysql_extras, or ecto_sqlite3_extras should be installed.
 
             Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details.
           </small>

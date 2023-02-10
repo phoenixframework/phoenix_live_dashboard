@@ -28,10 +28,10 @@ defmodule Phoenix.LiveDashboard.Router do
       type `%{optional(:img) => atom(), optional(:script) => atom(), optional(:style) => atom()}`
 
     * `:ecto_repos` - the repositories to show database information.
-      Currently only PSQL databases are supported. If you don't specify
-      but your app is running Ecto, we will try to auto-discover the
-      available repositories. You can disable this behavior by setting
-      `[]` to this option.
+      Currently only PostgreSQL, MySQL, and SQLite databases are supported.
+      If you don't specify but your app is running Ecto, we will try to
+      auto-discover the available repositories. You can disable this behavior
+      by setting `[]` to this option.
 
     * `:env_keys` - Configures environment variables to display.
       It is defined as a list of string keys. If not set, the environment
@@ -278,6 +278,22 @@ defmodule Phoenix.LiveDashboard.Router do
           args
       end
 
+    ecto_sqlite3_extras_options =
+      case options[:ecto_sqlite3_extras_options] do
+        nil ->
+          []
+
+        args ->
+          unless Keyword.keyword?(args) and
+                   args |> Keyword.values() |> Enum.all?(&Keyword.keyword?/1) do
+            raise ArgumentError,
+                  ":ecto_sqlite3_extras_options must be a keyword where each value is a keyword, got: " <>
+                    inspect(args)
+          end
+
+          args
+      end
+
     csp_nonce_assign_key =
       case options[:csp_nonce_assign_key] do
         nil -> nil
@@ -298,6 +314,7 @@ defmodule Phoenix.LiveDashboard.Router do
       ecto_repos,
       ecto_psql_extras_options,
       ecto_mysql_extras_options,
+      ecto_sqlite3_extras_options,
       csp_nonce_assign_key
     ]
 
@@ -345,12 +362,14 @@ defmodule Phoenix.LiveDashboard.Router do
         ecto_repos,
         ecto_psql_extras_options,
         ecto_mysql_extras_options,
+        ecto_sqlite3_extras_options,
         csp_nonce_assign_key
       ) do
     ecto_session = %{
       repos: ecto_repos(ecto_repos),
       ecto_psql_extras_options: ecto_psql_extras_options,
-      ecto_mysql_extras_options: ecto_mysql_extras_options
+      ecto_mysql_extras_options: ecto_mysql_extras_options,
+      ecto_sqlite3_extras_options: ecto_sqlite3_extras_options
     }
 
     {pages, requirements} =
