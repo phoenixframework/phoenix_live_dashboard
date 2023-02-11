@@ -33,14 +33,41 @@ defmodule Phoenix.LiveDashboard.Assets do
   def init(asset) when asset in [:css, :js], do: asset
 
   def call(conn, asset) do
-    Plug.Conn.send_resp(
-      conn,
-      200,
+    case put_cache_header(conn, asset) do
+      {:stale, conn} ->
+        Plug.Conn.send_resp(
+          conn,
+          200,
+          case asset do
+            :css -> @app_css
+            :js -> @app_js
+          end
+        )
+
+      {:fresh, conn} ->
+        conn
+        |> Plug.Conn.send_resp(304, "")
+        |> Plug.Conn.halt()
+    end
+  end
+
+  defp put_cache_header(conn, asset) do
+    etag =
       case asset do
-        :css -> @app_css
-        :js -> @app_js
+        :css -> @app_css_hash
+        :js -> @app_js_hash
       end
-    )
+
+    conn =
+      conn
+      |> Plug.Conn.put_resp_header("cache-control", "public")
+      |> Plug.Conn.put_resp_header("etag", etag)
+
+    if etag in Plug.Conn.get_req_header(conn, "if-none-match") do
+      {:fresh, conn}
+    else
+      {:stale, conn}
+    end
   end
 
   # TODO: Remove this and the conditional on Phoenix v1.7+
