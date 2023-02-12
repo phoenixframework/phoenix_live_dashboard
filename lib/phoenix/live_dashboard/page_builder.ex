@@ -21,23 +21,19 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         def render(assigns) do
           ~H\"""
           <.live_table
-            id="table"
+            id="ets-table"
+            dom_id="ets-table"
             page={@page}
             title="ETS"
             row_fetcher={&fetch_ets/2}
             row_attrs={&row_attrs/1}
             rows_name="tables"
           >
-            <:col
-              field={:name}
-              header="Name or module"
-              header_attrs={[class: "pl-4"]}
-              cell_attrs={[class: "pl-4"]}
-            />
+            <:col field={:name} header="Name or module" />
             <:col field={:protection} />
             <:col field={:type} />
-            <:col field={:size} cell_attrs={[class: "text-right"]} sortable={:desc} />
-            <:col field={:memory} cell_attrs={[class: "tabular-column-bytes"]} sortable={:desc} :let={ets}>
+            <:col field={:size} text_align="right" sortable={:desc} />
+            <:col field={:memory} text_align="right" sortable={:desc} :let={ets}>
               <%= format_words(ets[:memory]) %>
             </:col>
             <:col field={:owner} :let={ets} >
@@ -244,21 +240,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     attr :header, :string,
       doc: "Label to show in the current column. Default value is calculated from `:field`."
 
-    attr :header_attrs, :any,
-      doc: """
-      A list with HTML attributes for the column header.
-      It can be also a function that receive the column as argument
-      and returns a list of 2 element tuple with HTML attribute name
-      and value. Default to `[]`.
-      """
-
-    attr :cell_attrs, :any,
-      doc: """
-      A list with HTML attributes for the table cell.
-      It can be also a function that receive the row as argument
-      and returns a list of 2 element tuple with HTML attribute name
-      and value. Default to `[]`.
-      """
+    attr :text_align, :string,
+      values: ~w[left center right justify],
+      doc: "Text align for text in the column. Default: `nil`."
   end
 
   attr :row_fetcher, :any,
@@ -302,6 +286,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     doc: "A boolean indicating if the search functionality is enabled."
 
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  attr :dom_id, :string, default: nil, doc: "id attribute for the HTML the main tag."
   @spec live_table(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def live_table(assigns) do
     ~H"""
@@ -400,16 +385,13 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
   attr :inner_title, :string, default: nil, doc: "The title inside the card."
   attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
-
-  attr :class, :string,
-    default: "",
-    doc: "Additional css classes that will be added along banner-card class."
+  attr :dom_id, :string, default: nil, doc: "id attribute for the HTML the main tag."
 
   @spec card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def card(assigns) do
     ~H"""
     <.card_title title={@title} hint={@hint} />
-    <div class={"banner-card mt-auto #{@class}"}>
+    <div id={@dom_id} class="banner-card mt-auto">
       <h6 class="banner-card-title" :if={@inner_title}>
         <%= @inner_title %>
         <.hint :if={@inner_hint} text={@inner_hint} />
@@ -530,7 +512,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     <div class="card">
       <div class="card-body card-usage">
         <%= for usage <- @usage do %>
-          <.title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} class="py-2" percent={usage.percent} csp_nonces={@csp_nonces} >
+          <.title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} percent={usage.percent} csp_nonces={@csp_nonces} >
             <div>
               <%= usage.title %>
               <.hint text={usage[:hint]} :if={usage[:hint]}/>
@@ -551,7 +533,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   end
 
   @doc false
-  attr :class, :string, default: ""
   attr :color, :string, default: "blue"
   attr :dom_id, :string, required: true
   attr :percent, :float, required: true
@@ -560,7 +541,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   defp title_bar_component(assigns) do
     ~H"""
-    <div class={@class}>
+    <div class="py-2">
       <section>
         <div class="d-flex justify-content-between">
           <%= render_slot @inner_block %>

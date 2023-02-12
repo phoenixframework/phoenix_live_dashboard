@@ -10,24 +10,20 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
   def render(assigns) do
     ~H"""
     <.live_table
-      id="table"
+      id="apps-table"
+      dom_id="apps-table"
       page={@page}
       title="Applications"
       row_fetcher={&fetch_applications/2}
       row_attrs={&row_attrs/1}
     >
-      <:col
-        field={:name}
-        sortable={:asc}
-        header_attrs={[class: "pl-4"]}
-        cell_attrs={[class: "pl-4"]}
-      />
+      <:col field={:name} sortable={:asc} />
       <:col field={:description} />
       <:col field={:state} sortable={:asc} />
-      <:col field={:tree?} header="Sup tree?" cell_attrs={[class: "text-center"]} :let={app}>
+      <:col field={:tree?} header="Sup tree?" text_align="center" :let={app}>
         <%= if app[:tree?], do: "✓" %>
       </:col>
-      <:col field={:version} header_attrs={[class: "px-4"]} cell_attrs={[class: "px-4"]}/>
+      <:col field={:version} />
     </.live_table>
     """
   end

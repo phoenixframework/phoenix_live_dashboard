@@ -12,7 +12,6 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
       <.card
         title="test-title"
         hint="test-hint"
-        class="test-class-1 test-class-2"
         inner_title="test-inner-title"
         inner_hint="test-inner-hint"
       >test-value</.card>
@@ -20,7 +19,7 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
 
     assert result =~ ~r|<h5 class=\"card-title\">[\r\n\s]*test-title[\r\n\s]*|
     assert result =~ ~S|<div class="hint-text">test-hint</div>|
-    assert result =~ ~S|<div class="banner-card mt-auto test-class-1 test-class-2">|
+    assert result =~ ~S|<div class="banner-card mt-auto">|
     assert result =~ ~r|<h6 class=\"banner-card-title\">[\r\n\s]*test-inner-title[\r\n\s]*|
     assert result =~ ~S|<div class="hint-text">test-inner-hint</div>|
     assert result =~ ~r|<div class="banner-card-value">[\r\n\s]*test-value[\r\n\s]*</div>|

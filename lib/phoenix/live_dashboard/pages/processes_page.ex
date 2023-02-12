@@ -11,56 +11,23 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
   def render(assigns) do
     ~H"""
     <.live_table
-      id="table"
+      id="processes-table"
+      dom_id="processes-table"
       page={@page}
       row_fetcher={{&fetch_processes/3, nil}}
       row_attrs={&row_attrs/1}
       title="Processes"
     >
-      <:col
-        field={:pid}
-        header="PID"
-        header_attrs={[class: "pl-4"]}
-        cell_attrs={[class: "tabular-column-id pl-4"]}
-        :let={process}
-      >
+      <:col field={:pid} header="PID" :let={process} >
         <%= process[:pid] |> encode_pid() |> String.replace_prefix("PID", "") %>
       </:col>
-      <:col
-        field={:name_or_initial_call}
-        header="Name or initial call"
-        cell_attrs={[class: "tabular-column-name"]}
-      />
-      <:col
-        field={:memory}
-        header="Memory"
-        header_attrs={[class: "text-right"]}
-        cell_attrs={[class: "text-right"]}
-        sortable={:desc}
-        :let={process}
-      >
+      <:col field={:name_or_initial_call} header="Name or initial call"/>
+      <:col field={:memory} header="Memory" text_align="right" sortable={:desc} :let={process}>
         <%= format_bytes(process[:memory]) %>
       </:col>
-      <:col
-        field={:reductions_diff}
-        header={"Reductions"}
-        header_attrs={[class: "text-right"]}
-        cell_attrs={[class: "text-right"]}
-        sortable={:desc}
-      />
-      <:col
-        field={:message_queue_len}
-        header={"MsgQ"}
-        header_attrs={[class: "text-right"]}
-        cell_attrs={[class: "text-right"]}
-        sortable={:desc}
-        />
-      <:col
-        field={:current_function}
-        header={"Current function"}
-        cell_attrs={[class: "tabular-column-current"]}
-        :let={process}
-      >
+      <:col field={:reductions_diff} header="Reductions" text_align="right" sortable={:desc}/>
+      <:col field={:message_queue_len} header="MsgQ" text_align="right" sortable={:desc}/>
+      <:col field={:current_function} header="Current function" :let={process}>
         <%= format_call(process[:current_function]) %>
       </:col>
     </.live_table>

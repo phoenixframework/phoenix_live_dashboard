@@ -32,6 +32,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     |> Map.put_new(:limit, @limit)
     |> Map.put_new(:row_attrs, [])
     |> Map.put_new(:hint, nil)
+    |> Map.put_new(:dom_id, nil)
     |> Map.update(:default_sort_by, nil, &(&1 && to_string(&1)))
     |> Map.put_new_lazy(:rows_name, fn ->
       Phoenix.Naming.humanize(assigns.title) |> String.downcase()
@@ -52,9 +53,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         column
         |> Map.new()
         |> Map.put_new_lazy(:header, fn -> Phoenix.Naming.humanize(field) end)
-        |> Map.put_new(:header_attrs, [])
-        |> Map.put_new(:cell_attrs, [])
         |> Map.put_new(:sortable, nil)
+        |> Map.put_new(:text_align, nil)
 
       {:ok, _} ->
         msg = ":field parameter must be an atom or a string, got: "
@@ -152,7 +152,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="tabular">
+    <div id={@dom_id} class="tabular">
       <Phoenix.LiveDashboard.PageBuilder.card_title title={@title} hint={@hint} />
       <div :if={@search} class="tabular-search">
         <form phx-change="search" phx-submit="search" phx-target={@myself} class="form-inline">
@@ -192,7 +192,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
             <table class="table table-hover mt-0 dash-table">
               <thead>
                 <tr>
-                  <th :for={column <- @columns} {calc_attrs(column[:header_attrs], [column])}>
+                  <th :for={column <- @columns} class={col_class(@dom_id, column)}>
                     <%= if column[:sortable] do %>
                       <.sort_link socket={@socket} page={@page} table_params={@table_params} column={column}/>
                     <% else %>
@@ -203,7 +203,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
               </thead>
               <tbody>
                 <tr :for={row <- @rows} {calc_attrs(@row_attrs, [row])}>
-                  <td :for={column <- @columns} {calc_attrs(column[:cell_attrs], [row])}>
+                  <td :for={column <- @columns} class={col_class(@dom_id, column)}>
                     <%= if column[:inner_block] do %>
                       <%= render_slot(column, row) %>
                     <% else %>
@@ -219,6 +219,18 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     </div>
     """
   end
+
+  def col_class(dom_id, col) do
+    [col_custom_class(dom_id, col), class_text_align(col[:text_align])]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" ")
+  end
+
+  defp col_custom_class(nil, _), do: nil
+  defp col_custom_class(dom_id, col), do: "#{dom_id}-#{col[:field]}"
+
+  defp class_text_align(nil), do: nil
+  defp class_text_align(align), do: "text-#{align}"
 
   defp calc_attrs(falsy, _) when falsy in [nil, false], do: []
   defp calc_attrs(list, _) when is_list(list), do: list
