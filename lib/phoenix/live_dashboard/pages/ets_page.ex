@@ -11,23 +11,19 @@ defmodule Phoenix.LiveDashboard.EtsPage do
   def render(assigns) do
     ~H"""
     <.live_table
-      id="table"
+      id="ets-table"
+      dom_id="ets-table"
       page={@page}
       title="ETS"
       row_fetcher={&fetch_ets/2}
       row_attrs={&row_attrs/1}
       rows_name="tables"
     >
-      <:col
-        field={:name}
-        header="Name or module"
-        header_attrs={[class: "pl-4"]}
-        cell_attrs={[class: "pl-4"]}
-      />
+      <:col field={:name} header="Name or module" />
       <:col field={:protection} />
       <:col field={:type} />
-      <:col field={:size} cell_attrs={[class: "text-right"]} sortable={:desc} />
-      <:col field={:memory} cell_attrs={[class: "tabular-column-bytes"]} sortable={:desc} :let={ets}>
+      <:col field={:size} text_align="right" sortable={:desc} />
+      <:col field={:memory} text_align="right" sortable={:desc} :let={ets}>
         <%= format_words(ets[:memory]) %>
       </:col>
       <:col field={:owner} :let={ets} >

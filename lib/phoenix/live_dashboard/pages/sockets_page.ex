@@ -11,39 +11,21 @@ defmodule Phoenix.LiveDashboard.SocketsPage do
   def render(assigns) do
     ~H"""
     <.live_table
-      id="table"
+      id="sockets-table"
+      dom_id="sockets-table"
       page={@page}
       title="Sockets"
       row_fetcher={&fetch_sockets/2}
       row_attrs={&row_attrs/1}
     >
-      <:col
-        field={:port}
-        header_attrs={[class: "pl-4"]}
-        cell_attrs={[class: "tabular-column-name tabular-column-id pl-4"]}
-        :let={socket}
-      >
+      <:col field={:port} :let={socket}>
         <%= socket[:port] |> encode_socket() |> String.trim_leading("Socket") %>
       </:col>
       <:col field={:module} sortable={:asc} />
-      <:col
-        field={:send_oct}
-        header={"Sent"}
-        header_attrs={[class: "text-right pr-4"]}
-        cell_attrs={[class: "tabular-column-bytes pr-4"]}
-        sortable={:desc}
-        :let={socket}
-      >
+      <:col field={:send_oct} header="Sent" text_align="right" sortable={:desc} :let={socket}>
         <%= format_bytes(socket[:send_oct]) %>
       </:col>
-      <:col
-        field={:recv_oct}
-        header={"Received"}
-        header_attrs={[class: "text-right pr-4"]}
-        cell_attrs={[class: "tabular-column-bytes pr-4"]}
-        sortable={:desc}
-        :let={socket}
-      >
+      <:col field={:recv_oct} header="Received" text_align="right" sortable={:desc} :let={socket}>
         <%= format_bytes(socket[:recv_oct]) %>
       </:col>
       <:col field={:local_address} header="Local Address" sortable={:asc} />

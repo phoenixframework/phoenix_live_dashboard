@@ -118,7 +118,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     ~H"""
     <.row>
       <:col>
-        <.card title="System information" class="no-title">
+        <.card dom_id="system-info-card" title="System information">
           <%= "#{@banner} [#{@system_architecture}]" %>
         </.card>
       </:col>
@@ -135,17 +135,17 @@ defmodule Phoenix.LiveDashboard.HomePage do
     ~H"""
     <.row>
       <:col>
-        <.card inner_title="Elixir" class="bg-elixir text-white">
+        <.card dom_id="elixir-card" inner_title="Elixir">
           <%= @elixir_version %>
         </.card>
       </:col>
       <:col>
-        <.card inner_title="Phoenix" class="bg-phoenix text-white">
+        <.card dom_id="phoenix-card" inner_title="Phoenix">
           <%= @phoenix_version %>
         </.card>
       </:col>
       <:col>
-        <.card inner_title={@app_title} class="bg-dashboard text-white">
+        <.card dom_id="app-card" inner_title={@app_title}>
           <%= @app_version %>
         </.card>
       </:col>

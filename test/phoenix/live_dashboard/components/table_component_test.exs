@@ -36,6 +36,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     Map.merge(
       %{
         id: :component_id,
+        dom_id: :component_id,
         page: page,
         row_fetcher: &row_fetcher/2,
         title: "Title"
@@ -102,37 +103,36 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
               <:col 
                 field={:foo}
                 header="Foo header"
-                header_attrs={[class: "header-foo-class"]}
                 sortable={:desc}
-                cell_attrs={fn _ -> [class: "cell-foo-class"] end}
                 :let={row}
               >
                 <%= "foo-format-#{row[:foo]}" %>
               </:col>
-              <:col field={:bar} cell_attrs={[class: "cell-bar-class"]} />
-              <:col field={:baz} />
+              <:col field={:bar} text_align="right"/>
+              <:col field={:baz}/>
             </.live_component>
             """
           end,
-          default_assigns(),
+          default_assigns(dom_id: "qux"),
           router: Router
         )
 
       assert result =~ "Foo header"
       assert result =~ "Bar"
       assert result =~ "Baz"
-      assert result =~ ~r|<th>[\r\n\s]*Baz[\r\n\s]*</th>|
 
-      assert result =~ ~s|<th class=\"header-foo-class\">|
+      assert result =~ ~s|<th class="qux-foo">|
+      assert result =~ ~s|<th class="qux-bar text-right">|
+      assert result =~ ~r|<th class="qux-baz">[\r\n\s]*Baz[\r\n\s]*</th>|
 
-      assert result =~ ~r|<td class=\"cell-foo-class\">[\r\n\s]*foo-format-1[\r\n\s]*</td>|
-      assert result =~ ~r|<td class=\"cell-foo-class\">[\r\n\s]*foo-format-4[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-foo">[\r\n\s]*foo-format-1[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-foo">[\r\n\s]*foo-format-4[\r\n\s]*</td>|
 
-      assert result =~ ~r|<td class=\"cell-bar-class\">[\r\n\s]*2[\r\n\s]*</td>|
-      assert result =~ ~r|<td class=\"cell-bar-class\">[\r\n\s]*5[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-bar text-right">[\r\n\s]*2[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-bar text-right">[\r\n\s]*5[\r\n\s]*</td>|
 
-      assert result =~ ~r|<td>[\r\n\s]*3[\r\n\s]*</td>|
-      assert result =~ ~r|<td>[\r\n\s]*6[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-baz">[\r\n\s]*3[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-baz">[\r\n\s]*6[\r\n\s]*</td>|
     end
 
     test "renders title" do

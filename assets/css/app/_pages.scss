@@ -1,0 +1,51 @@
+/* Apps */
+.apps-table-version {
+  @extend .px-4;
+}
+
+/* ETS */
+.ets-table-memory {
+  @extend .tabular-column-bytes;
+}
+
+/* Ports */
+.ports-table-port {
+  @extend .tabular-column-id;
+}
+
+.ports-table-name {
+  @extend .w-50;
+}
+
+td.ports-table-input {
+  @extend .tabular-column-bytes;
+}
+
+.ports-table-output {
+  @extend .tabular-column-bytes;
+  @extend .pr-4;
+}
+
+/* Processes */
+.processes-table-name_or_initial_call {
+  @extend .tabular-column-name;
+}
+
+.processes-table-current_function {
+  @extend .tabular-column-name;
+}
+
+
+/* Sockets */
+td.sockets-table-port {
+  @extend .tabular-column-name;
+  @extend .tabular-column-id;
+}
+
+.sockets-table-send_oct, .sockets-table-recv_oct {
+  @extend .pr-4;
+}
+
+td.sockets-table-send_oct, td.sockets-table-recv_oct {
+  @extend .tabular-column-bytes;
+}
