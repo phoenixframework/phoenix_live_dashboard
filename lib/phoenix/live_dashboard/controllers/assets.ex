@@ -2,33 +2,28 @@ defmodule Phoenix.LiveDashboard.Assets do
   # Plug to serve dependency-specific assets for the dashboard.
   @moduledoc false
 
-  phoenix_path = Application.app_dir(:phoenix, ["priv", "static", "phoenix.js"])
+  phoenix_js_paths =
+    for app <- [:phoenix, :phoenix_html, :phoenix_live_view] do
+      path = Application.app_dir(app, ["priv", "static", "#{app}.js"])
+      Module.put_attribute(__MODULE__, :external_resource, path)
+      path
+    end
 
-  phoenix_html_path = Application.app_dir(:phoenix_html, ["priv", "static", "phoenix_html.js"])
-
-  phoenix_live_view_path =
-    Application.app_dir(:phoenix_live_view, ["priv", "static", "phoenix_live_view.js"])
-
-  js_path = Path.join(__DIR__, "../../../../dist/js/app.js")
   css_path = Path.join(__DIR__, "../../../../dist/css/app.css")
-
-  @external_resource phoenix_path
-  @external_resource phoenix_html_path
-  @external_resource phoenix_live_view_path
-  @external_resource js_path
   @external_resource css_path
 
   @app_css File.read!(css_path)
+  @app_css_hash Base.encode16(:crypto.hash(:md5, @app_css), case: :lower)
+
+  js_path = Path.join(__DIR__, "../../../../dist/js/app.js")
+  @external_resource js_path
 
   @app_js """
-  #{File.read!(phoenix_html_path) |> String.replace("//# sourceMappingURL=", "// ")}
-  #{File.read!(phoenix_path) |> String.replace("//# sourceMappingURL=", "// ")}
-  #{File.read!(phoenix_live_view_path) |> String.replace("//# sourceMappingURL=", "// ")}
+  #{for path <- phoenix_js_paths, do: path |> File.read!() |> String.replace("//# sourceMappingURL=", "// ")}
   #{File.read!(js_path)}
   """
 
-  @app_css_hash Base.encode16(:crypto.hash(:md5, @app_css), case: :lower)
-  @app_js_hash Base.encode16(:crypto.hash(:md5, @app_css), case: :lower)
+  @app_js_hash Base.encode16(:crypto.hash(:md5, @app_js), case: :lower)
 
   def init(asset) when asset in [:css, :js], do: asset
 
@@ -58,10 +53,7 @@ defmodule Phoenix.LiveDashboard.Assets do
         :js -> @app_js_hash
       end
 
-    conn =
-      conn
-      |> Plug.Conn.put_resp_header("cache-control", "public")
-      |> Plug.Conn.put_resp_header("etag", etag)
+    conn = Plug.Conn.put_resp_header(conn, "etag", etag)
 
     if etag in Plug.Conn.get_req_header(conn, "if-none-match") do
       {:fresh, conn}
