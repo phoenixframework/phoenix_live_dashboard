@@ -12,28 +12,25 @@ defmodule Phoenix.LiveDashboard.Assets do
 
   css_path = Path.join(__DIR__, "../../../../dist/css/app.css")
   @external_resource css_path
-
-  @app_css File.read!(css_path)
-  @app_css_hash Base.encode16(:crypto.hash(:md5, @app_css), case: :lower)
+  @css File.read!(css_path)
 
   js_path = Path.join(__DIR__, "../../../../dist/js/app.js")
   @external_resource js_path
 
-  @app_js """
+  @js """
   #{for path <- phoenix_js_paths, do: path |> File.read!() |> String.replace("//# sourceMappingURL=", "// ")}
   #{File.read!(js_path)}
   """
 
-  @app_js_hash Base.encode16(:crypto.hash(:md5, @app_js), case: :lower)
+  @hashes %{
+    :css => Base.encode16(:crypto.hash(:md5, @css), case: :lower),
+    :js => Base.encode16(:crypto.hash(:md5, @js), case: :lower)
+  }
 
   def init(asset) when asset in [:css, :js], do: asset
 
   def call(conn, asset) do
-    {contents, content_type} =
-      case asset do
-        :css -> {@app_css, "text/css"}
-        :js -> {@app_js, "text/javascript"}
-      end
+    {contents, content_type} = contents_and_type(asset)
 
     conn
     |> put_resp_header("content-type", content_type)
@@ -42,33 +39,32 @@ defmodule Phoenix.LiveDashboard.Assets do
     |> halt()
   end
 
+  defp contents_and_type(:css), do: {@css, "text/css"}
+  defp contents_and_type(:js), do: {@js, "text/javascript"}
+
   # TODO: Remove this and the conditional on Phoenix v1.7+
   @compile {:no_warn_undefined, Phoenix.VerifiedRoutes}
 
   @doc """
   Returns a hashed path to a static asset.
   """
-  def hashed_path(conn, asset) when asset in ["app.css", "app.js"] do
+  def hashed_path(conn, asset) when asset in [:css, :js] do
+    hash = Map.fetch!(@hashes, asset)
+
     if function_exported?(conn.private.phoenix_router, :__live_dashboard_prefix__, 0) do
       prefix = conn.private.phoenix_router.__live_dashboard_prefix__()
 
       Phoenix.VerifiedRoutes.unverified_path(
         conn,
         conn.private.phoenix_router,
-        "#{prefix}/#{asset}-#{asset_hash(asset)}"
+        "#{prefix}/#{asset}-#{hash}"
       )
     else
       apply(
         conn.private.phoenix_router.__helpers__(),
         :live_dashboard_asset_path,
-        [conn, asset_action(asset), asset_hash(asset)]
+        [conn, asset, hash]
       )
     end
   end
-
-  defp asset_action("app.css"), do: :css
-  defp asset_action("app.js"), do: :js
-
-  defp asset_hash("app.css"), do: @app_css_hash
-  defp asset_hash("app.js"), do: @app_js_hash
 end
