@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no, user-scalable=no"/>
     <meta name="csrf-token" content={Phoenix.Controller.get_csrf_token()} />
     <title><%= assigns[:page_title] || "Phoenix LiveDashboard" %></title>
-    <link rel="stylesheet" nonce={csp_nonce(@conn, :style)} href={Phoenix.LiveDashboard.Assets.hashed_path(@conn, :css)}>
-    <script nonce={csp_nonce(@conn, :script)} src={Phoenix.LiveDashboard.Assets.hashed_path(@conn, :js)} defer></script>
+    <link rel="stylesheet" nonce={csp_nonce(@conn, :style)} href={asset_path(@conn, :css)}>
+    <script nonce={csp_nonce(@conn, :script)} src={asset_path(@conn, :js)} defer></script>
   </head>
   <body>
     <div class="d-flex flex-column align-items-stretch layout-wrapper">

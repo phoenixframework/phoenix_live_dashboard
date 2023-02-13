@@ -42,29 +42,9 @@ defmodule Phoenix.LiveDashboard.Assets do
   defp contents_and_type(:css), do: {@css, "text/css"}
   defp contents_and_type(:js), do: {@js, "text/javascript"}
 
-  # TODO: Remove this and the conditional on Phoenix v1.7+
-  @compile {:no_warn_undefined, Phoenix.VerifiedRoutes}
-
   @doc """
-  Returns a hashed path to a static asset.
+  Returns the current hash for the given `asset`.
   """
-  def hashed_path(conn, asset) when asset in [:css, :js] do
-    hash = Map.fetch!(@hashes, asset)
-
-    if function_exported?(conn.private.phoenix_router, :__live_dashboard_prefix__, 0) do
-      prefix = conn.private.phoenix_router.__live_dashboard_prefix__()
-
-      Phoenix.VerifiedRoutes.unverified_path(
-        conn,
-        conn.private.phoenix_router,
-        "#{prefix}/#{asset}-#{hash}"
-      )
-    else
-      apply(
-        conn.private.phoenix_router.__helpers__(),
-        :live_dashboard_asset_path,
-        [conn, asset, hash]
-      )
-    end
-  end
+  def current_hash(:css), do: @hashes.css
+  def current_hash(:js), do: @hashes.js
 end
