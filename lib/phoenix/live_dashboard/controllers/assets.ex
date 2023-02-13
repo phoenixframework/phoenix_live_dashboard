@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.Assets do
   # Plug to serve dependency-specific assets for the dashboard.
   @moduledoc false
+  import Plug.Conn
 
   phoenix_js_paths =
     for app <- [:phoenix, :phoenix_html, :phoenix_live_view] do
@@ -28,38 +29,17 @@ defmodule Phoenix.LiveDashboard.Assets do
   def init(asset) when asset in [:css, :js], do: asset
 
   def call(conn, asset) do
-    case put_cache_header(conn, asset) do
-      {:stale, conn} ->
-        Plug.Conn.send_resp(
-          conn,
-          200,
-          case asset do
-            :css -> @app_css
-            :js -> @app_js
-          end
-        )
-
-      {:fresh, conn} ->
-        conn
-        |> Plug.Conn.send_resp(304, "")
-        |> Plug.Conn.halt()
-    end
-  end
-
-  defp put_cache_header(conn, asset) do
-    etag =
+    {contents, content_type} =
       case asset do
-        :css -> @app_css_hash
-        :js -> @app_js_hash
+        :css -> {@app_css, "text/css"}
+        :js -> {@app_js, "text/javascript"}
       end
 
-    conn = Plug.Conn.put_resp_header(conn, "etag", etag)
-
-    if etag in Plug.Conn.get_req_header(conn, "if-none-match") do
-      {:fresh, conn}
-    else
-      {:stale, conn}
-    end
+    conn
+    |> put_resp_header("content-type", content_type)
+    |> put_resp_header("cache-control", "public, max-age=31536000")
+    |> send_resp(200, contents)
+    |> halt()
   end
 
   # TODO: Remove this and the conditional on Phoenix v1.7+
