@@ -108,8 +108,8 @@ defmodule Phoenix.LiveDashboard.Router do
 
           live_session session_name, session_opts do
             # LiveDashboard assets
-            get "/app.css-:md5", Phoenix.LiveDashboard.Assets, :css, as: :live_dashboard_asset
-            get "/app.js-:md5", Phoenix.LiveDashboard.Assets, :js, as: :live_dashboard_asset
+            get "/css-:md5", Phoenix.LiveDashboard.Assets, :css, as: :live_dashboard_asset
+            get "/js-:md5", Phoenix.LiveDashboard.Assets, :js, as: :live_dashboard_asset
 
             # All helpers are public contracts and cannot be changed
             live "/", Phoenix.LiveDashboard.PageLive, :home, route_opts
