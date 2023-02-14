@@ -460,7 +460,8 @@ defmodule DemoWeb.Router do
 
   pipeline :browser do
     plug :fetch_session
-    # plug :put_csp
+    plug :protect_from_forgery
+    plug :put_csp
   end
 
   scope "/" do
@@ -503,7 +504,7 @@ defmodule DemoWeb.Router do
     |> assign(:script_csp_nonce, script_nonce)
     |> put_resp_header(
       "content-security-policy",
-      "default-src; script-src 'nonce-#{script_nonce}'; style-src 'nonce-#{style_nonce}'; " <>
+      "default-src; script-src 'nonce-#{script_nonce}'; style-src-elem 'nonce-#{style_nonce}'; " <>
         "img-src 'nonce-#{img_nonce}' data: ; font-src data: ; connect-src 'self'; frame-src 'self' ;"
     )
   end
@@ -512,7 +513,14 @@ end
 defmodule DemoWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :phoenix_live_dashboard
 
-  socket "/live", Phoenix.LiveView.Socket
+  @session_options [
+    store: :cookie,
+    key: "_live_view_key",
+    signing_salt: "/VEDsdfsffMnp5",
+    same_site: "Lax"
+  ]
+
+  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
   socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
 
   plug Phoenix.LiveReloader
@@ -522,10 +530,7 @@ defmodule DemoWeb.Endpoint do
     param_key: "request_logger",
     cookie_key: "request_logger"
 
-  plug Plug.Session,
-    store: :cookie,
-    key: "_live_view_key",
-    signing_salt: "/VEDsdfsffMnp5"
+  plug Plug.Session, @session_options
 
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
