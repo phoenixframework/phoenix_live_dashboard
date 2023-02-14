@@ -1,5 +1,5 @@
 // Note: Phoenix JS dependencies are loaded
-// from their Application directories by the LayoutView
+// from their Application directories by the Assets module
 import NProgress from "nprogress"
 import PhxChartComponent from "./metrics_live"
 import PhxRequestLoggerCookie from "./request_logger_cookie"

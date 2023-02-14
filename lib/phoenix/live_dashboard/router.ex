@@ -103,9 +103,14 @@ defmodule Phoenix.LiveDashboard.Router do
           {session_name, session_opts, route_opts} =
             Phoenix.LiveDashboard.Router.__options__(opts)
 
+          import Phoenix.Router, only: [get: 4]
           import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
 
           live_session session_name, session_opts do
+            # LiveDashboard assets
+            get "/css-:md5", Phoenix.LiveDashboard.Assets, :css, as: :live_dashboard_asset
+            get "/js-:md5", Phoenix.LiveDashboard.Assets, :js, as: :live_dashboard_asset
+
             # All helpers are public contracts and cannot be changed
             live "/", Phoenix.LiveDashboard.PageLive, :home, route_opts
             live "/:page", Phoenix.LiveDashboard.PageLive, :page, route_opts
