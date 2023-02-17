@@ -44,10 +44,11 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Fetchers
 
-  def fetch_processes(node, search, sort_by, sort_dir, limit, prev_reductions \\ nil) do
+  def fetch_processes(node, process_filter, search, sort_by, sort_dir, limit, prev_reductions \\ nil) do
     search = search && String.downcase(search)
 
     :rpc.call(node, __MODULE__, :processes_callback, [
+      process_filter,
       search,
       sort_by,
       sort_dir,
@@ -205,11 +206,11 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ]
 
   @doc false
-  def processes_callback(search, sort_by, sort_dir, limit, prev_reductions) do
+  def processes_callback(process_filter, search, sort_by, sort_dir, limit, prev_reductions) do
     multiplier = sort_dir_multipler(sort_dir)
 
-    processes =
-      for pid <- Process.list(),
+     processes =
+      for pid <- process_list(process_filter),
           info = process_info(pid, prev_reductions[pid]),
           show_process?(info, search) do
         sorter = info[sort_by] * multiplier
@@ -753,5 +754,17 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       end
 
     %PortDetails{port: port, description: description}
+  end
+
+
+  def process_list(nil) do
+    Process.list()
+  end
+
+  def process_list(filter) do
+    case Application.get_env(:phoenix_live_dashboard, :process_filter) do
+      nil -> process_list(nil)
+      filter_impl -> filter_impl.filter(filter)
+    end
   end
 end

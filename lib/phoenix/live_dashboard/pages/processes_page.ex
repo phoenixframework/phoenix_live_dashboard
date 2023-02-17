@@ -15,7 +15,8 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       id: @table_id,
       row_attrs: &row_attrs/1,
       row_fetcher: {&fetch_processes/3, nil},
-      title: "Processes"
+      title: "Processes",
+      filter: get_filter_list()
     )
   end
 
@@ -23,7 +24,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
 
     {processes, count, state} =
-      SystemInfo.fetch_processes(node, search, sort_by, sort_dir, limit, state)
+      SystemInfo.fetch_processes(node, params.filter, search, sort_by, sort_dir, limit, state)
 
     {processes, count, state}
   end
@@ -79,6 +80,13 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       {"phx-value-info", encode_pid(process[:pid])},
       {"phx-page-loading", true}
     ]
+  end
+
+  defp get_filter_list() do
+    case Application.get_env(:phoenix_live_dashboard, :process_filter) do
+      nil -> nil
+      process_filter_module -> process_filter_module.list()
+    end
   end
 
   @impl true

@@ -25,6 +25,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     |> validate_required_one_sortable_column()
     |> Map.put_new(:search, true)
     |> Map.put_new(:limit, @limit)
+    |> Map.put_new(:filter, nil)
     |> Map.put_new(:row_attrs, [])
     |> Map.put_new(:hint, nil)
     |> Map.update(:default_sort_by, nil, &(&1 && to_string(&1)))
@@ -139,7 +140,15 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     search = all_params["search"]
     search = if search == "", do: nil, else: search
 
-    table_params = %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search}
+    filter =
+      if assigns.filter do
+        all_params
+        |> get_in_or_first("filter", Enum.map(assigns.filter, &to_string/1))
+      else
+        nil
+      end
+
+    table_params = %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search, filter: filter}
     Map.put(assigns, :table_params, table_params)
   end
 
@@ -199,6 +208,21 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         </div>
       </form>
 
+    <%= if @filter do %>
+      <form phx-change="select_filter" phx-target={@myself} class="form-inline">
+        <div class="form-row align-items-center">
+            <div class="col-auto">Filter</div>
+            <div class="col-auto">
+              <div class="input-group input-group-sm">
+                <select name="filter" class="custom-select" id="filter-select">
+                  <%= options_for_select(@filter, @table_params.filter) %>
+                </select>
+              </div>
+            </div>
+        </div>
+      </form>
+     <% end %>
+
       <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
@@ -252,6 +276,12 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   def handle_event("select_limit", %{"limit" => limit}, socket) do
     table_params = %{socket.assigns.table_params | limit: limit}
+    to = PageBuilder.live_dashboard_path(socket, socket.assigns.page, table_params)
+    {:noreply, push_patch(socket, to: to)}
+  end
+
+  def handle_event("select_filter", %{"filter" => filter}, socket) do
+    table_params = %{socket.assigns.table_params | filter: filter}
     to = PageBuilder.live_dashboard_path(socket, socket.assigns.page, table_params)
     {:noreply, push_patch(socket, to: to)}
   end
