@@ -1,9 +1,16 @@
 defmodule Phoenix.LiveDashboard.AppInfoComponent do
-  use Phoenix.LiveDashboard.Web, :live_component
+  use Phoenix.LiveDashboard.Modal
 
   alias Phoenix.LiveDashboard.{PageBuilder, SystemInfo, ReingoldTilford}
 
-  @impl true
+  @impl Phoenix.LiveDashboard.Modal
+  def decode_params("App<" <> app) do
+    {:ok, app |> String.replace_suffix(">", "") |> String.to_existing_atom()}
+  end
+
+  def decode_params(_), do: :error
+
+  @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
     <div class="app-info">
@@ -27,14 +34,8 @@ defmodule Phoenix.LiveDashboard.AppInfoComponent do
     """
   end
 
-  @impl true
-  def mount(socket) do
-    {:ok, socket}
-  end
-
-  @impl true
-  def update(%{id: "App<" <> app, page: page}, socket) do
-    app = app |> String.replace_suffix(">", "") |> String.to_existing_atom()
+  @impl Phoenix.LiveComponent
+  def update(%{value: app, page: page}, socket) do
     {:ok, socket |> assign(app: app, node: page.node) |> assign_tree()}
   end
 

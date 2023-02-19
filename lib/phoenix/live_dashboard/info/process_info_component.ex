@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
-  use Phoenix.LiveDashboard.Web, :live_component
+  use Phoenix.LiveDashboard.Modal
 
   alias Phoenix.LiveDashboard.SystemInfo
 
@@ -25,12 +25,18 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
     :current_stacktrace
   ]
 
-  @impl true
+  @impl Phoenix.LiveDashboard.Modal
+  def decode_params("PID" <> pid) do
+    {:ok, :erlang.list_to_pid(String.to_charlist(pid))}
+  end
+
+  def decode_params(_), do: :error
+  @impl Phoenix.LiveComponent
   def mount(socket) do
     {:ok, Enum.reduce(@info_keys, socket, &assign(&2, &1, nil))}
   end
 
-  @impl true
+  @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
     <div class="tabular-info">
@@ -70,10 +76,8 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
     """
   end
 
-  @impl true
-  def update(%{id: "PID" <> pid, path: path, return_to: return_to, page: page}, socket) do
-    pid = :erlang.list_to_pid(String.to_charlist(pid))
-
+  @impl Phoenix.LiveComponent
+  def update(%{value: pid, path: path, return_to: return_to, page: page}, socket) do
     {:ok,
      socket |> assign(pid: pid, path: path, page: page, return_to: return_to) |> assign_info()}
   end

@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.PortInfoComponent do
-  use Phoenix.LiveDashboard.Web, :live_component
+  use Phoenix.LiveDashboard.Modal
 
   alias Phoenix.LiveDashboard.SystemInfo
 
@@ -13,7 +13,14 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
     :os_pid
   ]
 
-  @impl true
+  @impl Phoenix.LiveDashboard.Modal
+  def decode_params("Port" <> _ = port) do
+    {:ok, :erlang.list_to_port(String.to_charlist("#" <> port))}
+  end
+
+  def decode_params(_), do: :error
+
+  @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
     <div class="tabular-info">
@@ -34,14 +41,13 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
     """
   end
 
-  @impl true
+  @impl Phoenix.LiveComponent
   def mount(socket) do
     {:ok, Enum.reduce(@info_keys, socket, &assign(&2, &1, nil))}
   end
 
-  @impl true
-  def update(%{id: "Port" <> _ = port, path: path}, socket) do
-    port = :erlang.list_to_port(String.to_charlist("#" <> port))
+  @impl Phoenix.LiveComponent
+  def update(%{value: port, path: path}, socket) do
     {:ok, socket |> assign(port: port, path: path) |> assign_info()}
   end
 

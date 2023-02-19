@@ -40,13 +40,14 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   defp assign_mount(socket, module, pages, page_session, params, session) do
     %{
+      "modals" => modals,
       "requirements" => requirements,
       "allow_destructive_actions" => allow_destructive_actions,
       "csp_nonces" => csp_nonces
     } = session
 
     page = %PageBuilder{module: module, allow_destructive_actions: allow_destructive_actions}
-    socket = assign(socket, page: page, menu: %PageLive{}, csp_nonces: csp_nonces)
+    socket = assign(socket, modals: modals, page: page, menu: %PageLive{}, csp_nonces: csp_nonces)
 
     with %Socket{redirected: nil} = socket <- assign_params(socket, params),
          %Socket{redirected: nil} = socket <- assign_node(socket, params),
@@ -220,24 +221,50 @@ defmodule Phoenix.LiveDashboard.PageLive do
         </nav>
       </div>
     </header>
-    <PageBuilder.live_modal
-      :if={@page.info}
-      id="modal"
-      title={@page.info}
-      return_to={modal_return_to(@socket, @page).(@page.node, [])}
-    >
-      <.live_component
-        id={@page.info}
-        module={extract_info_component(@page.info)}
-        path={modal_return_to(@socket, @page)}
-        return_to={modal_return_to(@socket, @page).(@page.node, [])}
-        page={@page}
-      />
-    </PageBuilder.live_modal>
+    <%= maybe_modal(@page, @modals, @socket) %>
     <section id="main" role="main" class="container">
       <%= render_page(@page.module, assigns) %>
     </section>
     """
+  end
+
+  defp maybe_modal(page, modals, socket) do
+    case find_modal(page.info, modals) do
+      {modal, decoded_param} ->
+        assigns = %{
+          page: page,
+          modal: modal,
+          value: decoded_param,
+          socket: socket
+        }
+
+        ~H"""
+        <PageBuilder.live_modal id="modal" page={@page} title={@modal.title(@page.info, @value)} >
+          <.live_component
+            id={@page.info}
+            value={@value}
+            module={@modal}
+            path={modal_return_to(@socket, @page)}
+            return_to={modal_return_to(@socket, @page).(@page.node, [])}
+            page={@page}
+          />
+        </PageBuilder.live_modal>
+        """
+
+      nil ->
+        nil
+    end
+  end
+
+  defp find_modal(nil, _), do: nil
+
+  defp find_modal(param, modals) do
+    Enum.find_value(modals, fn modal ->
+      case modal.decode_params(param) do
+        {:ok, value} -> {modal, value}
+        :error -> nil
+      end
+    end)
   end
 
   defp render_page(module, assigns) do
@@ -248,13 +275,6 @@ defmodule Phoenix.LiveDashboard.PageLive do
     params = Map.delete(params, "info")
     &PageBuilder.live_dashboard_path(socket, route, &1, params, Enum.into(&2, params))
   end
-
-  defp extract_info_component("PID<" <> _), do: Phoenix.LiveDashboard.ProcessInfoComponent
-  defp extract_info_component("Port<" <> _), do: Phoenix.LiveDashboard.PortInfoComponent
-  defp extract_info_component("Socket<" <> _), do: Phoenix.LiveDashboard.SocketInfoComponent
-  defp extract_info_component("ETS<" <> _), do: Phoenix.LiveDashboard.EtsInfoComponent
-  defp extract_info_component("App<" <> _), do: Phoenix.LiveDashboard.AppInfoComponent
-  defp extract_info_component(_), do: nil
 
   @impl true
   def handle_info({:nodeup, _, _}, socket) do

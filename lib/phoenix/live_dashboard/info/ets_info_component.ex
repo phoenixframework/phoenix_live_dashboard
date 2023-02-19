@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.EtsInfoComponent do
-  use Phoenix.LiveDashboard.Web, :live_component
+  use Phoenix.LiveDashboard.Modal
 
   alias Phoenix.LiveDashboard.SystemInfo
 
@@ -20,7 +20,14 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
     :protection
   ]
 
-  @impl true
+  @impl Phoenix.LiveDashboard.Modal
+  def decode_params("ETS" <> ref) do
+    {:ok, :erlang.list_to_ref(String.to_charlist("#Ref" <> ref))}
+  end
+
+  def decode_params(_), do: :error
+
+  @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
     <div class="tabular-info">
@@ -48,15 +55,13 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
     """
   end
 
-  @impl true
+  @impl Phoenix.LiveComponent
   def mount(socket) do
     {:ok, Enum.reduce(@info_keys, socket, &assign(&2, &1, nil))}
   end
 
-  @impl true
-  def update(%{id: "ETS" <> ref, path: path, page: page}, socket) do
-    ref = :erlang.list_to_ref(String.to_charlist("#Ref" <> ref))
-
+  @impl Phoenix.LiveComponent
+  def update(%{value: ref, path: path, page: page}, socket) do
     {:ok, socket |> assign(ref: ref, path: path, node: page.node) |> assign_info()}
   end
 

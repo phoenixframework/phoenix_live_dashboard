@@ -72,6 +72,8 @@ defmodule Phoenix.LiveDashboard.Router do
 
     * `:additional_pages` - A keyword list of additional pages
 
+    * `:additional_modals` - A list of additional `Phoenix.LiveDashboard.Modal`
+
   ## Examples
 
       defmodule MyAppWeb.Router do
@@ -217,6 +219,13 @@ defmodule Phoenix.LiveDashboard.Router do
           raise ArgumentError, ":additional_pages must be a keyword, got: " <> inspect(other)
       end
 
+    additional_modals =
+      case options[:additional_modals] do
+        nil -> []
+        modals when is_list(modals) -> modals
+        other -> raise ArgumentError, ":additional_modals must be a list, got: " <> inspect(other)
+      end
+
     request_logger_cookie_domain =
       case options[:request_logger_cookie_domain] do
         nil ->
@@ -315,6 +324,7 @@ defmodule Phoenix.LiveDashboard.Router do
       metrics,
       metrics_history,
       additional_pages,
+      additional_modals,
       request_logger,
       ecto_repos,
       ecto_psql_extras_options,
@@ -363,6 +373,7 @@ defmodule Phoenix.LiveDashboard.Router do
         metrics,
         metrics_history,
         additional_pages,
+        additional_modals,
         request_logger,
         ecto_repos,
         ecto_psql_extras_options,
@@ -399,8 +410,19 @@ defmodule Phoenix.LiveDashboard.Router do
       end)
       |> Enum.unzip()
 
+    modals =
+      additional_modals ++
+        [
+          Phoenix.LiveDashboard.AppInfoComponent,
+          Phoenix.LiveDashboard.ProcessInfoComponent,
+          Phoenix.LiveDashboard.PortInfoComponent,
+          Phoenix.LiveDashboard.SocketInfoComponent,
+          Phoenix.LiveDashboard.EtsInfoComponent
+        ]
+
     %{
       "pages" => pages,
+      "modals" => modals,
       "allow_destructive_actions" => allow_destructive_actions,
       "requirements" => requirements |> Enum.concat() |> Enum.uniq(),
       "csp_nonces" => %{

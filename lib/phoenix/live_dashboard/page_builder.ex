@@ -778,18 +778,13 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
 
   attr :title, :string, required: true, doc: "Title of the modal"
+  attr :page, __MODULE__, required: true, doc: "Dashboard page"
 
-  attr :return_to, :string, required: true, doc: "Path to return when closing the modal"
   slot(:inner_block, required: true, doc: "Content to show in the modal")
 
   def live_modal(assigns) do
     ~H"""
-    <.live_component
-      module={Phoenix.LiveDashboard.ModalComponent}
-      id={@id}
-      title={@title}
-      return_to={@return_to}
-    >
+    <.live_component module={Phoenix.LiveDashboard.ModalComponent} id={@id} title={@title} page={@page}>
       <%= render_slot @inner_block %>
     </.live_component>
     """
@@ -921,6 +916,21 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         end
       )
     end
+  end
+
+  @doc """
+  Close current modal
+  """
+  def close_modal(socket, %__MODULE__{} = page) do
+    Phoenix.LiveView.push_patch(socket, to: close_modal_path(socket, page))
+  end
+
+  @doc """
+  Path to close the current modal
+  """
+  def close_modal_path(socket, %__MODULE__{} = page) do
+    new_params = Map.delete(page.params, "info")
+    live_dashboard_path(socket, page.route, page.node, page.params, new_params)
   end
 
   defmacro __using__(opts) do
