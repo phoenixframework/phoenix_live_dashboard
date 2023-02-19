@@ -2,8 +2,8 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder, refresher?: false
 
-  alias Phoenix.LiveDashboard.ChartComponent
-
+  @default_prune_threshold 1_000
+  @default_bucket_size 20
   @menu_text "Metrics"
 
   @impl true
@@ -63,7 +63,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
       <:item :for={item <- @items} name={item} label={format_nav_name(item)} method="redirect">
         <div :if={@metrics} class="phx-dashboard-metrics-grid row">
           <%= for {metric, id} <- @metrics do %>
-            <%= live_component ChartComponent, id: id(id, @nav), metric: metric %>
+            <%= metric_chart(id, @nav, metric) %>
           <% end %>
         </div>
       </:item>
@@ -71,10 +71,89 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     """
   end
 
+  defp metric_chart(id, nav, metric) do
+    kind = chart_kind(metric.__struct__)
+
+    assigns = %{
+      id: id(id, nav),
+      title: chart_title(metric),
+      hint: metric.description,
+      kind: kind,
+      label: chart_label(metric),
+      tags: Enum.join(metric.tags, "-"),
+      prune_threshold: prune_threshold(metric),
+      unit: chart_unit(metric.unit),
+      bucket_size: bucket_size(kind, metric)
+    }
+
+    ~H"""
+    <.live_chart {assigns} />
+    """
+  end
+
+  defp chart_title(metric) do
+    "#{Enum.join(metric.name, ".")}#{chart_tags(metric.tags)}"
+  end
+
+  defp chart_label(%{} = metric) do
+    metric.name
+    |> List.last()
+    |> Phoenix.Naming.humanize()
+  end
+
+  defp chart_tags([]), do: ""
+  defp chart_tags(tags), do: " (#{Enum.join(tags, "-")})"
+
+  defp chart_kind(Telemetry.Metrics.Counter), do: :counter
+  defp chart_kind(Telemetry.Metrics.LastValue), do: :last_value
+  defp chart_kind(Telemetry.Metrics.Sum), do: :sum
+  defp chart_kind(Telemetry.Metrics.Summary), do: :summary
+  defp chart_kind(Telemetry.Metrics.Distribution), do: :distribution
+
+  defp chart_unit(:byte), do: "bytes"
+  defp chart_unit(:kilobyte), do: "KB"
+  defp chart_unit(:megabyte), do: "MB"
+  defp chart_unit(:nanosecond), do: "ns"
+  defp chart_unit(:microsecond), do: "µs"
+  defp chart_unit(:millisecond), do: "ms"
+  defp chart_unit(:second), do: "s"
+  defp chart_unit(:unit), do: ""
+  defp chart_unit(unit) when is_atom(unit), do: unit
+
+  defp prune_threshold(metric) do
+    prune_threshold =
+      metric.reporter_options[:prune_threshold]
+      |> validate_positive_integer_or_nil!(:prune_threshold)
+
+    to_string(prune_threshold || @default_prune_threshold)
+  end
+
+  defp validate_positive_integer_or_nil!(nil, _field), do: nil
+
+  defp validate_positive_integer_or_nil!(value, field) do
+    unless is_integer(value) and value > 0 do
+      raise ArgumentError,
+            "#{inspect(field)} must be a positive integer, got: #{inspect(value)}"
+    end
+
+    value
+  end
+
+  defp bucket_size(:distribution, metric), do: normalize_bucket_size(metric)
+  defp bucket_size(_kind, _metric), do: nil
+
+  defp normalize_bucket_size(metric) do
+    bucket_size =
+      metric.reporter_options[:bucket_size]
+      |> validate_positive_integer_or_nil!(:bucket_size)
+
+    bucket_size || @default_bucket_size
+  end
+
   defp send_updates_for_entries(entries, nav) do
     for {id, label, measurement, time} <- entries do
       data = [{label, measurement, time}]
-      send_update(ChartComponent, id: id(id, nav), data: data)
+      send_data_to_chart(id(id, nav), data)
     end
   end
 
@@ -82,17 +161,15 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     ## Batch historical data up into chunks of 500 to reduce the number
     ## of messages sent over the wire, but keep them small enough that
     ## the client still feels responsive.
-    Enum.group_by(
-      entries,
+    entries
+    |> Enum.group_by(
       fn {id, _, _, _} -> id end,
       fn {_, label, measurement, time} -> {label, measurement, time} end
     )
     |> Enum.each(fn {id, data} ->
       data
       |> Enum.chunk_every(500)
-      |> Enum.each(fn chunk ->
-        send_update(ChartComponent, id: id(id, nav), data: chunk)
-      end)
+      |> Enum.each(fn chunk -> send_data_to_chart(id(id, nav), chunk) end)
     end)
   end
 

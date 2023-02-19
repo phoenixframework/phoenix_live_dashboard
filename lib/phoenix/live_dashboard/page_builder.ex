@@ -129,6 +129,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         }
 
   alias Phoenix.LiveDashboard.{
+    ChartComponent,
     LayeredGraphComponent,
     NavBarComponent,
     TableComponent
@@ -793,6 +794,65 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       <%= render_slot @inner_block %>
     </.live_component>
     """
+  end
+
+  @doc """
+  Chart component
+
+  You can see it in use in Metrics page.
+  """
+
+  attr :id, :string,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
+
+  attr :data, :list,
+    default: [],
+    doc: """
+    Temporary list of points to show in the chart.
+    Each element should be the format `{optional_label, x, y}`.
+    New points can be added using the function `send_data_to_chart/2` in real time.
+    """
+
+  attr :title, :string, required: true, doc: "Title of the chart"
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+
+  attr :kind, :atom,
+    values: [:counter, :last_value, :sum, :summary, :distribution],
+    doc: "Kind of chart to use."
+
+  attr :label, :string, required: true, doc: "Default label to use in the chart."
+  attr :tags, :list, default: [], doc: "Optional list of tags."
+  attr :prune_threshold, :integer, default: 1_000, doc: "Number of points to keep before pruning."
+  attr :unit, :string, default: "", doc: "The unit that represent the chart."
+
+  attr :bucket_size, :integer,
+    doc: "Bucket size for histogram. Default: 20 when `kind = :histogram`, otherwise `nil`."
+
+  def live_chart(assigns) do
+    assigns =
+      assign_new(assigns, :bucket_size, fn ->
+        if assigns.kind == :histogram, do: 20, else: nil
+      end)
+
+    ~H"""
+    <.live_component
+      module={ChartComponent}
+      id={@id}
+      title={@title}
+      hint={@hint}
+      kind={@kind}
+      label={@label}
+      tags={@tags}
+      prune_threshold={@prune_threshold}
+      unit={@unit}
+      bucket_size={@bucket_size}
+    />
+    """
+  end
+
+  def send_data_to_chart(id, data) do
+    Phoenix.LiveView.send_update(ChartComponent, id: id, data: data)
   end
 
   ## Helpers
