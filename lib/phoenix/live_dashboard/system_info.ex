@@ -219,7 +219,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     next_state = for {_sorter, info} <- processes, into: %{}, do: {info[:pid], info[:reductions]}
 
-    count = if search, do: length(processes), else: :erlang.system_info(:process_count)
+    count = if search || process_filter, do: length(processes), else: :erlang.system_info(:process_count)
     processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
 
     {processes, count, next_state}
