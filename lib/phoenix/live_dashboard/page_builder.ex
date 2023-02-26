@@ -812,13 +812,15 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     values: [:counter, :last_value, :sum, :summary, :distribution],
     doc: "Kind of chart to use."
 
-  attr :label, :string, required: true, doc: "Default label to use in the chart."
+  attr :label, :string, default: nil, doc: "Default label to use in the chart."
   attr :tags, :list, default: [], doc: "Optional list of tags."
   attr :prune_threshold, :integer, default: 1_000, doc: "Number of points to keep before pruning."
   attr :unit, :string, default: "", doc: "The unit that represent the chart."
 
   attr :bucket_size, :integer,
     doc: "Bucket size for histogram. Default: 20 when `kind = :histogram`, otherwise `nil`."
+
+  attr :full_width, :boolean, default: false, doc: "Size of the chart"
 
   def live_chart(assigns) do
     assigns =
@@ -838,6 +840,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       prune_threshold={@prune_threshold}
       unit={@unit}
       bucket_size={@bucket_size}
+      full_width={@full_width}
     />
     """
   end

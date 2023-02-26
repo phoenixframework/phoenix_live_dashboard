@@ -9,7 +9,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="col-xl-6 col-xxl-4 col-xxxl-3 charts-col">
+    <div class={chart_size(@full_width)}>
       <div id={"chart-#{@id}"} class="card">
         <div class="card-body">
           <div phx-hook="PhxChartComponent" id={"chart-#{@id}-datasets"} hidden>
@@ -33,6 +33,9 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
     </div>
     """
   end
+
+  defp chart_size(_full_width = true), do: "col-12 charts-col"
+  defp chart_size(_full_width = false), do: "col-xl-6 col-xxl-4 col-xxxl-3 charts-col"
 
   defp bucket_size(nil), do: %{}
   defp bucket_size(integer) when is_integer(integer), do: %{data_bucket_size: to_string(integer)}

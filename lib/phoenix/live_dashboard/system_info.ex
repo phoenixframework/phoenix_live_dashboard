@@ -202,22 +202,19 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   def memory_allocators_callback() do
     allocs = :erlang.system_info(:alloc_util_allocators)
 
-    x =
-      :erlang.system_info({:allocator_sizes, allocs})
-      |> Enum.map(fn {type, allocator_sizes} ->
-        {type, calc_allocator_sizes(allocator_sizes)}
-      end)
-      |> prepend_total()
-      |> Enum.map(fn {type, {block, current_cs, max_cs}} ->
-        [
-          name: type,
-          block_size: block,
-          current_carrier_size: current_cs,
-          max_carrier_size: max_cs
-        ]
-      end)
-
-    {x, length(x)}
+    :erlang.system_info({:allocator_sizes, allocs})
+    |> Enum.map(fn {type, allocator_sizes} ->
+      {type, calc_allocator_sizes(allocator_sizes)}
+    end)
+    |> prepend_total()
+    |> Enum.map(fn {type, {block, current_cs, max_cs}} ->
+      [
+        name: type,
+        block_size: block,
+        carrier_size: current_cs,
+        max_carrier_size: max_cs
+      ]
+    end)
   end
 
   defp calc_allocator_sizes(allocator_sizes) do
