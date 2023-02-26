@@ -769,11 +769,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   defp first_elem_class(0), do: "border-top-0"
   defp first_elem_class(_), do: nil
 
-  @doc """
-  Modal component
-
-  You can see it in use in the modal in Ports or Processes page
-  """
+  @doc false
   attr :id, :string,
     required: true,
     doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
@@ -796,12 +792,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     """
   end
 
-  @doc """
-  Chart component
-
-  You can see it in use in Metrics page.
-  """
-
+  @doc false
   attr :id, :string,
     required: true,
     doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."

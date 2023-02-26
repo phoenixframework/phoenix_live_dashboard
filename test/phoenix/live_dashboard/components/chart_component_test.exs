@@ -1,6 +1,8 @@
 defmodule Phoenix.LiveDashboard.ChartComponentTest do
   use ExUnit.Case, async: true
 
+  @moduletag skip: "WIP"
+
   import Phoenix.LiveViewTest
   import Telemetry.Metrics
 

@@ -111,6 +111,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :app_tree_callback, [application])
   end
 
+  def fetch_memory_allocators(node) do
+    :rpc.call(node, __MODULE__, :memory_allocators_callback, [])
+  end
+
   ## System callbacks
 
   @doc false
@@ -193,6 +197,70 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       ets: ets,
       other: total - process - atom - binary - code - ets
     }
+  end
+
+  def memory_allocators_callback() do
+    allocs = :erlang.system_info(:alloc_util_allocators)
+
+    x =
+      :erlang.system_info({:allocator_sizes, allocs})
+      |> Enum.map(fn {type, allocator_sizes} ->
+        {type, calc_allocator_sizes(allocator_sizes)}
+      end)
+      |> prepend_total()
+      |> Enum.map(fn {type, {block, current_cs, max_cs}} ->
+        [
+          name: type,
+          block_size: block,
+          current_carrier_size: current_cs,
+          max_carrier_size: max_cs
+        ]
+      end)
+
+    {x, length(x)}
+  end
+
+  defp calc_allocator_sizes(allocator_sizes) do
+    Enum.reduce(allocator_sizes, {0, 0, 0}, fn instance_sizes, {block_size, current_cs, max_cs} ->
+      {ins_block_size, ins_current_cs, ins_max_cs} = calc_instance_sizes(instance_sizes)
+      {block_size + ins_block_size, current_cs + ins_current_cs, max_cs + ins_max_cs}
+    end)
+  end
+
+  defp calc_instance_sizes({:instance, _, sizes}) do
+    {block_size_1, current_cs_1, max_cs_1} = calc_block_and_carrier_sizes(sizes[:mbcs])
+    {block_size_2, current_cs_2, max_cs_2} = calc_block_and_carrier_sizes(sizes[:sbcs])
+    {block_size_1 + block_size_2, current_cs_1 + current_cs_2, max_cs_1 + max_cs_2}
+  end
+
+  defp calc_instance_sizes(_), do: {0, 0, 0}
+
+  defp calc_block_and_carrier_sizes(sizes) when is_list(sizes) do
+    block_size = List.keyfind(sizes, :blocks, 0) |> calc_block_size()
+    {current, max} = List.keyfind(sizes, :carriers_size, 0) |> calc_carrier_size()
+    {block_size, current, max}
+  end
+
+  defp calc_block_and_carrier_sizes(_), do: {0, 0, 0}
+
+  defp calc_block_size({:blocks, [{_, [{:size, current, _, _}]}]}), do: current
+  defp calc_block_size({:blocks, [{_, [{:size, current}]}]}), do: current
+  defp calc_block_size(_), do: 0
+
+  defp calc_carrier_size({:carriers_size, current, _local, max}), do: {current, max}
+  defp calc_carrier_size({:carriers_size, int}) when is_integer(int), do: {int, 0}
+  defp calc_carrier_size(_), do: {0, 0}
+
+  defp prepend_total(allocator_sizes) do
+    total =
+      {:total,
+       Enum.reduce(allocator_sizes, {0, 0, 0}, fn {_type, sizes}, acc ->
+         {block_cs, current_cs, max_cs} = sizes
+         {acc_block_cs, acc_current_cs, acc_max_cs} = acc
+         {acc_block_cs + block_cs, acc_current_cs + current_cs, acc_max_cs + max_cs}
+       end)}
+
+    [total | allocator_sizes]
   end
 
   ## Process Callbacks
