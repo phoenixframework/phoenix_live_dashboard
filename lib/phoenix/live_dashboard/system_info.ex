@@ -211,7 +211,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
      processes =
       for pid <- process_list(process_filter),
-          info = process_info(pid, prev_reductions[pid]),
+          info = process_info(pid, prev_reductions),
           show_process?(info, search) do
         sorter = info[sort_by] * multiplier
         {sorter, info}
@@ -225,11 +225,12 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     {processes, count, next_state}
   end
 
-  defp process_info(pid, prev_reductions) do
+  defp process_info(pid_info, prev_reductions) do
+    pid = is_pid(pid_info) && pid_info || pid_info.pid
     if info = Process.info(pid, @processes_keys) do
-      diff = info[:reductions] - (prev_reductions || 0)
+      diff = info[:reductions] - (prev_reductions[pid] || 0)
 
-      details = to_process_details(pid)
+      details = to_process_details(pid_info)
 
       [
         pid: pid,
@@ -717,6 +718,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   defp pid_or_port_details(name) when is_atom(name), do: to_process_details(name)
   defp pid_or_port_details(port) when is_port(port), do: to_port_details(port)
   defp pid_or_port_details(reference) when is_reference(reference), do: reference
+
+  def to_process_details(detail_map) when is_map(detail_map) do
+    struct(ProcessDetails, detail_map)
+  end
 
   def to_process_details(pid) when is_pid(pid) and node(pid) == node() do
     {name, initial_call} =
