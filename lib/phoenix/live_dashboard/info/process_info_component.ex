@@ -2,8 +2,8 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
   alias Phoenix.LiveDashboard.SystemInfo
-
   @info_keys [
+    :pid,
     :initial_call,
     :registered_name,
     :current_function,
@@ -32,11 +32,24 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
   @impl true
   def render(assigns) do
+
+    if process_filter_mod = Application.get_env(:phoenix_live_dashboard, :process_filter, nil) do
+      filter = assigns.page.params["filter"]
+      filter && process_filter_mod.render(Map.put(assigns, :filter, filter)) || default_render(assigns)
+    else
+      default_render(assigns)
+    end
+
+  end
+
+
+  defp default_render(assigns) do
     ~H"""
     <div class="tabular-info">
       <%= if @alive do %>
         <table class="table table-hover tabular-info-table">
           <tbody>
+
             <tr><td class="border-top-0">Registered name</td><td class="border-top-0"><pre><%= @registered_name %></pre></td></tr>
             <tr><td>Current function</td><td><pre><%= @current_function %></pre></td></tr>
             <tr><td>Initial call</td><td><pre><%= @initial_call %></pre></td></tr>
