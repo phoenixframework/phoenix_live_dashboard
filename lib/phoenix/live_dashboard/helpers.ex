@@ -3,15 +3,16 @@ defmodule Phoenix.LiveDashboard.Helpers do
 
   alias Phoenix.LiveDashboard.{PageBuilder, SystemInfo}
   use Phoenix.Component
+
+  alias SystemInfo.{ProcessDetails, PortDetails}
   @format_limit 100
 
   @doc """
   Formats any value.
   """
-  def format_value(
-        %SystemInfo.ProcessDetails{pid: pid, name_or_initial_call: name_or_initial_call},
-        live_dashboard_path
-      ) do
+  def format_value(%ProcessDetails{} = info, live_dashboard_path) do
+    %{pid: pid, name_or_initial_call: name_or_initial_call} = info
+
     text =
       if name_or_initial_call do
         "#{inspect(pid)} (#{name_or_initial_call})"
@@ -19,30 +20,43 @@ defmodule Phoenix.LiveDashboard.Helpers do
         inspect(pid)
       end
 
-    live_patch(text, to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid)))
+    assigns = %{
+      to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid)),
+      text: text
+    }
+
+    ~H|<.link patch={@to}><%= @text %></.link>|
   end
 
-  def format_value(
-        %SystemInfo.PortDetails{port: port, description: description},
-        live_dashboard_path
-      ) do
-    live_patch("#{inspect(port)} (#{description})",
-      to: live_dashboard_path.(node(port), info: PageBuilder.encode_port(port))
-    )
+  def format_value(%PortDetails{} = info, live_dashboard_path) do
+    %{port: port, description: description} = info
+
+    assigns = %{
+      to: live_dashboard_path.(node(port), info: PageBuilder.encode_port(port)),
+      text: "#{inspect(port)} (#{description})"
+    }
+
+    ~H|<.link patch={@to}><%= @text %></.link>|
   end
 
   # Not used in `phoenix_live_dashboard` code, but available for custom pages
   def format_value(port, live_dashboard_path) when is_port(port) do
-    live_patch(inspect(port),
-      to: live_dashboard_path.(node(port), info: PageBuilder.encode_port(port))
-    )
+    assigns = %{
+      to: live_dashboard_path.(node(port), info: PageBuilder.encode_port(port)),
+      text: inspect(port)
+    }
+
+    ~H|<.link patch={@to}><%= @text %></.link>|
   end
 
   # Not used in `phoenix_live_dashboard` code, but available for custom pages
   def format_value(pid, live_dashboard_path) when is_pid(pid) do
-    live_patch(inspect(pid),
-      to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid))
-    )
+    assigns = %{
+      to: live_dashboard_path.(node(pid), info: PageBuilder.encode_pid(pid)),
+      text: inspect(pid)
+    }
+
+    ~H|<.link patch={@to}><%= @text %></.link>|
   end
 
   def format_value([_ | _] = list, live_dashboard_path) do
@@ -158,25 +172,6 @@ defmodule Phoenix.LiveDashboard.Helpers do
   def percentage(_value, 0, _rounds), do: 0
   def percentage(nil, _total, _rounds), do: 0
   def percentage(value, total, rounds), do: Float.round(value / total * 100, rounds)
-
-  @doc """
-  Shows a hint.
-  """
-  def hint(do: block) do
-    assigns = %{block: block}
-
-    ~H"""
-    <div class="hint">
-      <svg class="hint-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="44" height="44" fill="none"/>
-        <rect x="19" y="10" width="6" height="5.76" rx="1" class="hint-icon-fill"/>
-        <rect x="19" y="20" width="6" height="14" rx="1" class="hint-icon-fill"/>
-        <circle cx="22" cy="22" r="20" class="hint-icon-stroke" stroke-width="4"/>
-      </svg>
-      <div class="hint-text"><%= @block %></div>
-    </div>
-    """
-  end
 
   @doc """
   All connected nodes (including the current node).

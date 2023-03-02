@@ -32,7 +32,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
         {:ok, push_redirect(socket, to: to)}
 
       true ->
-        {:ok, assign(socket, metrics: nil)}
+        {:ok, assign(socket, metrics: nil, nav: nav)}
     end
   end
 
@@ -57,28 +57,18 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   end
 
   @impl true
-  def render_page(assigns) do
-    items =
-      for name <- assigns.items do
-        {String.to_atom(name),
-         name: format_nav_name(name), render: render_metrics(assigns), method: :redirect}
-      end
-
-    nav_bar(items: items)
-  end
-
-  def render_metrics(assigns) do
-    fn ->
-      ~H"""
-      <%= if @metrics do %>
-        <div class="phx-dashboard-metrics-grid row">
-        <%= for {metric, id} <- @metrics do %>
-          <%= live_component ChartComponent, id: id(id, @nav), metric: metric %>
-        <% end %>
+  def render(assigns) do
+    ~H"""
+    <.live_nav_bar id="metrics_nav_bar" page={@page} >
+      <:item :for={item <- @items} name={item} label={format_nav_name(item)} method="redirect">
+        <div :if={@metrics} class="phx-dashboard-metrics-grid row">
+          <%= for {metric, id} <- @metrics do %>
+            <%= live_component ChartComponent, id: id(id, @nav), metric: metric %>
+          <% end %>
         </div>
-      <% end %>
-      """
-    end
+      </:item>
+    </.live_nav_bar>
+    """
   end
 
   defp send_updates_for_entries(entries, nav) do

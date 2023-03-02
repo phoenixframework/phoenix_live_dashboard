@@ -7,6 +7,8 @@
 #
 #   * --mysql - starts the Demo.MyXQL repo
 #
+#   * --sqlite - starts the Demo.SQLite repo
+#
 # Usage:
 #
 # $ iex -S mix dev [flags]
@@ -14,8 +16,12 @@
 Logger.configure(level: :debug)
 
 argv = System.argv()
-{opts, _, _} = OptionParser.parse(argv, strict: [mysql: :boolean, postgres: :boolean])
-%{mysql: mysql?, postgres: postgres?} = Map.merge(%{mysql: false, postgres: false}, Map.new(opts))
+
+{opts, _, _} =
+  OptionParser.parse(argv, strict: [mysql: :boolean, postgres: :boolean, sqlite: :boolean])
+
+%{mysql: mysql?, postgres: postgres?, sqlite: sqlite?} =
+  Map.merge(%{mysql: false, postgres: false, sqlite: false}, Map.new(opts))
 
 if postgres? do
   pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
@@ -39,6 +45,17 @@ if mysql? do
   end
 
   _ = Ecto.Adapters.MyXQL.storage_up(Demo.MyXQL.config())
+end
+
+if sqlite? do
+  sqlite_db = System.get_env("SQLITE_DB") || "dev.db"
+  Application.put_env(:phoenix_live_dashboard, Demo.SQLite, database: sqlite_db)
+
+  defmodule Demo.SQLite do
+    use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.SQLite3
+  end
+
+  _ = Ecto.Adapters.SQLite3.storage_up(Demo.SQLite.config())
 end
 
 # Configures the endpoint
@@ -229,40 +246,51 @@ defmodule DemoWeb.GraphShowcasePage do
   end
 
   @impl true
-  def render_page(_assigns) do
-    items = [
-      simple_graph: [name: "Simple", render: &simple/0],
-      groups_graph: [name: "Groups", render: &two_groups/0],
-      groups_with_intercalation_graph: [
-        name: "Groups with intercalation",
-        render: &two_groups_intercalation/0
-      ],
-      broadway_graph: [name: "Broadway graph", render: &broadway_graph/0],
-      wider_graph: [name: "Wider graph", render: &wider_graph/0]
-    ]
-
-    nav_bar(items: items)
+  def render(assigns) do
+    ~H"""
+    <.live_nav_bar id="navbar" page={@page}>
+      <:item name="Simple">
+        <.simple />
+      </:item>
+      <:item name="Double">
+        <.two_groups />
+      </:item>
+      <:item name="Groups with intercalation">
+        <.two_groups_intercalation />
+      </:item>
+      <:item name="Broadway graph">
+        <.broadway_graph />
+      </:item>
+      <:item name="Wider graph">
+        <.wider_graph />
+      </:item>
+    </.live_nav_bar>
+    """
   end
 
-  defp simple do
-    layered_graph(
-      title: "Simple graph",
-      layers: [
+  defp simple(assigns) do
+    assigns =
+      assigns
+      |> assign(:title, "Simple graph")
+      |> assign(:id, "simple")
+      |> assign(:layers, [
         [%{id: "a1", data: "a1", children: ["b1", "b2"]}],
         [%{id: "b1", data: "b1", children: ["c1"]}, %{id: "b2", data: "b2", children: ["c1"]}],
         [%{id: "c1", data: "c1", children: []}]
-      ]
-    )
+      ])
+
+    ~H"""
+    <.live_layered_graph {assigns} />
+    """
   end
 
-  defp two_groups do
-    background = fn data -> if String.starts_with?(data, "a"), do: "#5d89c7", else: "#555" end
-
-    layered_graph(
-      title: "Two groups",
-      background: background,
-      hint: "This chart shows that we can have groups based on parent nodes.",
-      layers: [
+  defp two_groups(assigns) do
+    assigns =
+      assigns
+      |> assign(:background, fn data ->
+        if String.starts_with?(data, "a"), do: "#5d89c7", else: "#555"
+      end)
+      |> assign(:layers, [
         [
           %{id: "a1", data: "a1", children: ["b1", "b2"]},
           %{id: "a2", data: "a2", children: ["b3", "b4"]},
@@ -276,18 +304,24 @@ defmodule DemoWeb.GraphShowcasePage do
           %{id: "b3", data: "b3", children: []},
           %{id: "b4", data: "b4", children: []}
         ]
-      ]
-    )
+      ])
+      |> assign(:title, "Two groups")
+      |> assign(:hint, "This chart shows that we can have groups based on parent nodes.")
+      |> assign(:id, "two_groups")
+
+    ~H"""
+    <.live_layered_graph {assigns} />
+    """
   end
 
-  defp two_groups_intercalation do
-    format_label = &String.upcase/1
-
-    layered_graph(
-      title: "Two groups with intercalation",
-      hint: "This chart shows that intercalation of children is correctly displayed.",
-      format_label: format_label,
-      layers: [
+  defp two_groups_intercalation(assigns) do
+    assigns =
+      assigns
+      |> assign(:format_label, &String.upcase/1)
+      |> assign(:title, "Two groups with intercalation")
+      |> assign(:hint, "This chart shows that intercalation of children is correctly displayed.")
+      |> assign(:id, "two_groups_intercalation")
+      |> assign(:layers, [
         [
           %{id: "a1", data: "a1", children: ["b1", "b3", "b5"]},
           %{id: "a2", data: "a2", children: ["b2", "b4", "b6"]}
@@ -300,11 +334,14 @@ defmodule DemoWeb.GraphShowcasePage do
           %{id: "b5", data: "b5", children: []},
           %{id: "b6", data: "b6", children: []}
         ]
-      ]
-    )
+      ])
+
+    ~H"""
+    <.live_layered_graph {assigns} />
+    """
   end
 
-  defp broadway_graph do
+  defp broadway_graph(assigns) do
     background = fn data ->
       case data do
         %{detail: perc} ->
@@ -317,97 +354,103 @@ defmodule DemoWeb.GraphShowcasePage do
       end
     end
 
-    format_detail = fn data -> "#{data.detail}%" end
+    assigns =
+      assigns
+      |> assign(:background, background)
+      |> assign(:format_detail, fn data -> "#{data.detail}%" end)
+      |> assign(:title, "Broadway graph")
+      |> assign(:id, "broadway_graph")
+      |> assign(:layers, [
+        [
+          %{
+            children: [
+              Demo.Pipeline.Broadway.Processor_default_0,
+              Demo.Pipeline.Broadway.Processor_default_1,
+              Demo.Pipeline.Broadway.Processor_default_2,
+              Demo.Pipeline.Broadway.Processor_default_3,
+              Demo.Pipeline.Broadway.Processor_default_4
+            ],
+            data: "prod_0",
+            id: Demo.Pipeline.Broadway.Producer_0
+          }
+        ],
+        [
+          %{
+            children: [Demo.Pipeline.Broadway.Batcher_default],
+            data: %{detail: 84, label: "proc_0"},
+            id: Demo.Pipeline.Broadway.Processor_default_0
+          },
+          %{
+            children: [Demo.Pipeline.Broadway.Batcher_default],
+            data: %{detail: 13, label: "proc_1"},
+            id: Demo.Pipeline.Broadway.Processor_default_1
+          },
+          %{
+            children: [Demo.Pipeline.Broadway.Batcher_default],
+            data: %{detail: 80, label: "proc_2"},
+            id: Demo.Pipeline.Broadway.Processor_default_2
+          },
+          %{
+            children: [Demo.Pipeline.Broadway.Batcher_default],
+            data: %{detail: 82, label: "proc_3"},
+            id: Demo.Pipeline.Broadway.Processor_default_3
+          },
+          %{
+            children: [Demo.Pipeline.Broadway.Batcher_default],
+            data: %{detail: 40, label: "proc_4"},
+            id: Demo.Pipeline.Broadway.Processor_default_4
+          }
+        ],
+        [
+          %{
+            children: [
+              Demo.Pipeline.Broadway.BatchProcessor_default_0,
+              Demo.Pipeline.Broadway.BatchProcessor_default_1,
+              Demo.Pipeline.Broadway.BatchProcessor_default_2
+            ],
+            data: %{detail: 33, label: "default"},
+            id: Demo.Pipeline.Broadway.Batcher_default
+          }
+        ],
+        [
+          %{
+            children: [],
+            data: %{detail: 61, label: "proc_0"},
+            id: Demo.Pipeline.Broadway.BatchProcessor_default_0
+          },
+          %{
+            children: [],
+            data: %{detail: 61, label: "proc_1"},
+            id: Demo.Pipeline.Broadway.BatchProcessor_default_1
+          },
+          %{
+            children: [],
+            data: %{detail: 53, label: "proc_2"},
+            id: Demo.Pipeline.Broadway.BatchProcessor_default_2
+          }
+        ]
+      ])
 
-    layers = [
-      [
-        %{
-          children: [
-            Demo.Pipeline.Broadway.Processor_default_0,
-            Demo.Pipeline.Broadway.Processor_default_1,
-            Demo.Pipeline.Broadway.Processor_default_2,
-            Demo.Pipeline.Broadway.Processor_default_3,
-            Demo.Pipeline.Broadway.Processor_default_4
-          ],
-          data: "prod_0",
-          id: Demo.Pipeline.Broadway.Producer_0
-        }
-      ],
-      [
-        %{
-          children: [Demo.Pipeline.Broadway.Batcher_default],
-          data: %{detail: 84, label: "proc_0"},
-          id: Demo.Pipeline.Broadway.Processor_default_0
-        },
-        %{
-          children: [Demo.Pipeline.Broadway.Batcher_default],
-          data: %{detail: 13, label: "proc_1"},
-          id: Demo.Pipeline.Broadway.Processor_default_1
-        },
-        %{
-          children: [Demo.Pipeline.Broadway.Batcher_default],
-          data: %{detail: 80, label: "proc_2"},
-          id: Demo.Pipeline.Broadway.Processor_default_2
-        },
-        %{
-          children: [Demo.Pipeline.Broadway.Batcher_default],
-          data: %{detail: 82, label: "proc_3"},
-          id: Demo.Pipeline.Broadway.Processor_default_3
-        },
-        %{
-          children: [Demo.Pipeline.Broadway.Batcher_default],
-          data: %{detail: 40, label: "proc_4"},
-          id: Demo.Pipeline.Broadway.Processor_default_4
-        }
-      ],
-      [
-        %{
-          children: [
-            Demo.Pipeline.Broadway.BatchProcessor_default_0,
-            Demo.Pipeline.Broadway.BatchProcessor_default_1,
-            Demo.Pipeline.Broadway.BatchProcessor_default_2
-          ],
-          data: %{detail: 33, label: "default"},
-          id: Demo.Pipeline.Broadway.Batcher_default
-        }
-      ],
-      [
-        %{
-          children: [],
-          data: %{detail: 61, label: "proc_0"},
-          id: Demo.Pipeline.Broadway.BatchProcessor_default_0
-        },
-        %{
-          children: [],
-          data: %{detail: 61, label: "proc_1"},
-          id: Demo.Pipeline.Broadway.BatchProcessor_default_1
-        },
-        %{
-          children: [],
-          data: %{detail: 53, label: "proc_2"},
-          id: Demo.Pipeline.Broadway.BatchProcessor_default_2
-        }
-      ]
-    ]
-
-    layered_graph(
-      layers: layers,
-      background: background,
-      format_detail: format_detail,
-      title: "Broadway graph"
-    )
+    ~H"""
+    <.live_layered_graph {assigns} />
+    """
   end
 
-  defp wider_graph do
+  defp wider_graph(assigns) do
     bottom_layer = for i <- 1..20, do: %{id: "b#{i}", data: "b#{i}", children: []}
 
-    layered_graph(
-      title: "Simple graph",
-      layers: [
+    assigns =
+      assigns
+      |> assign(:title, "Simple graph")
+      |> assign(:id, "wider_graph")
+      |> assign(:layers, [
         [%{id: "a1", data: "a1", children: Enum.map(1..20, &"b#{&1}")}],
         bottom_layer
-      ]
-    )
+      ])
+
+    ~H"""
+    <.live_layered_graph {assigns} />
+    """
   end
 end
 
@@ -417,7 +460,8 @@ defmodule DemoWeb.Router do
 
   pipeline :browser do
     plug :fetch_session
-    # plug :put_csp
+    plug :protect_from_forgery
+    plug :put_csp
   end
 
   scope "/" do
@@ -460,7 +504,7 @@ defmodule DemoWeb.Router do
     |> assign(:script_csp_nonce, script_nonce)
     |> put_resp_header(
       "content-security-policy",
-      "default-src; script-src 'nonce-#{script_nonce}'; style-src 'nonce-#{style_nonce}'; " <>
+      "default-src; script-src 'nonce-#{script_nonce}'; style-src-elem 'nonce-#{style_nonce}'; " <>
         "img-src 'nonce-#{img_nonce}' data: ; font-src data: ; connect-src 'self'; frame-src 'self' ;"
     )
   end
@@ -469,7 +513,14 @@ end
 defmodule DemoWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :phoenix_live_dashboard
 
-  socket "/live", Phoenix.LiveView.Socket
+  @session_options [
+    store: :cookie,
+    key: "_live_view_key",
+    signing_salt: "/VEDsdfsffMnp5",
+    same_site: "Lax"
+  ]
+
+  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
   socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
 
   plug Phoenix.LiveReloader
@@ -479,10 +530,7 @@ defmodule DemoWeb.Endpoint do
     param_key: "request_logger",
     cookie_key: "request_logger"
 
-  plug Plug.Session,
-    store: :cookie,
-    key: "_live_view_key",
-    signing_salt: "/VEDsdfsffMnp5"
+  plug Plug.Session, @session_options
 
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
@@ -496,6 +544,7 @@ Task.async(fn ->
   children = []
   children = if postgres?, do: [Demo.Postgres | children], else: children
   children = if mysql?, do: [Demo.MyXQL | children], else: children
+  children = if sqlite?, do: [Demo.SQLite | children], else: children
 
   children =
     children ++

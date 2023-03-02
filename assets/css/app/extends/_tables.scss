@@ -2,6 +2,10 @@ tr[phx-click]{
   cursor: pointer;
 }
 
+tr>:first-child {
+  @extend .pl-4;
+}
+
 table.table-hover tbody tr:hover {
   background-color: $color-gray-100;
 }

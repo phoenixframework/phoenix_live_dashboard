@@ -1,14 +1,17 @@
 // Colorful backgrounds that can be used across the app
-.bg-elixir {
+#elixir-card {
   background: linear-gradient(40deg, $color-elixir, $color-elixir-accent);
+  color: #fff;
 }
 
-.bg-phoenix {
+#phoenix-card {
   background: linear-gradient(40deg, $color-phoenix, $color-phoenix-accent);
+  color: #fff;
 }
 
-.bg-dashboard {
+#app-card {
   background: linear-gradient(40deg, $color-dashboard, $color-dashboard-accent);
+  color: #fff;
 }
 
 .bg-green {

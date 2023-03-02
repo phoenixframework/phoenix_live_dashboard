@@ -25,24 +25,22 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
     ~H"""
     <div class="tabular-info">
       <%= if @alive do %>
-        <table class="table tabular-table-info-table">
-          <tbody>
-            <tr><td class="border-top-0">ID</td><td class="border-top-0"><pre><%= @id %></pre></td></tr>
-            <tr><td>Name</td><td><pre><%= @name %></pre></td></tr>
-            <tr><td>Size</td><td><pre><%= @size %></pre></td></tr>
-            <tr><td>Node</td><td><pre><%= @node %></pre></td></tr>
-            <tr><td>Named table</td><td><pre><%= @named_table %></pre></td></tr>
-            <tr><td>Read concurrency</td><td><pre><%= @read_concurrency %></pre></td></tr>
-            <tr><td>Write concurrency</td><td><pre><%= @write_concurrency %></pre></td></tr>
-            <tr><td>Compressed</td><td><pre><%= @compressed %></pre></td></tr>
-            <tr><td>Memory</td><td><pre><%= @memory %></pre></td></tr>
-            <tr><td>Owner</td><td><pre><%= @owner %></pre></td></tr>
-            <tr><td>Heir</td><td><pre><%= @heir %></pre></td></tr>
-            <tr><td>Type</td><td><pre><%= @type %></pre></td></tr>
-            <tr><td>Keypos</td><td><pre><%= @keypos %></pre></td></tr>
-            <tr><td>Protection</td><td><pre><%= @protection %></pre></td></tr>
-          </tbody>
-        </table>
+        <Phoenix.LiveDashboard.PageBuilder.label_value_list>
+          <:elem label="ID"><%= @id %></:elem>
+          <:elem label="Name"><%= @name %></:elem>
+          <:elem label="Size"><%= @size %></:elem>
+          <:elem label="Node"><%= @node %></:elem>
+          <:elem label="Named table"><%= @named_table %></:elem>
+          <:elem label="Read concurrency"><%= @read_concurrency %></:elem>
+          <:elem label="Write concurrency"><%= @write_concurrency %></:elem>
+          <:elem label="Compressed"><%= @compressed %></:elem>
+          <:elem label="Memory"><%= @memory %></:elem>
+          <:elem label="Owner"><%= @owner %></:elem>
+          <:elem label="Heir"><%= @heir %></:elem>
+          <:elem label="Type"><%= @type %></:elem>
+          <:elem label="Keypos"><%= @keypos %></:elem>
+          <:elem label="Protection"><%= @protection %></:elem>
+        </Phoenix.LiveDashboard.PageBuilder.label_value_list>
       <% else %>
         <div class="tabular-info-not-exists mt-1 mb-3">ETS does not exist.</div>
       <% end %>
@@ -56,10 +54,10 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
   end
 
   @impl true
-  def update(%{id: "ETS" <> ref, path: path, node: node}, socket) do
+  def update(%{id: "ETS" <> ref, path: path, page: page}, socket) do
     ref = :erlang.list_to_ref(String.to_charlist("#Ref" <> ref))
 
-    {:ok, socket |> assign(ref: ref, path: path, node: node) |> assign_info()}
+    {:ok, socket |> assign(ref: ref, path: path, node: page.node) |> assign_info()}
   end
 
   defp assign_info(%{assigns: assigns} = socket) do

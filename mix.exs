@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.7.1"
+  @version "0.7.2"
 
   def project do
     [
@@ -26,9 +26,12 @@ defmodule Phoenix.LiveDashboard.MixProject do
   def application do
     [
       mod: {Phoenix.LiveDashboard.Application, []},
-      extra_applications: [:logger]
+      extra_applications: extra_applications(Mix.env())
     ]
   end
+
+  defp extra_applications(:test), do: [:ssh, :os_mon, :runtime_tools, :logger]
+  defp extra_applications(_), do: [:logger]
 
   defp aliases do
     [
@@ -45,10 +48,11 @@ defmodule Phoenix.LiveDashboard.MixProject do
     [
       # Actual deps
       {:mime, "~> 1.6 or ~> 2.0"},
-      {:phoenix_live_view, "~> 0.18.0", phoenix_live_view_opts()},
+      {:phoenix_live_view, "~> 0.18.3", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.6 or ~> 1.0"},
       {:ecto_psql_extras, "~> 0.7", optional: true},
       {:ecto_mysql_extras, "~> 0.5", optional: true},
+      {:ecto_sqlite3_extras, "~> 1.1.7", optional: true},
       {:ecto, "~> 3.6.2 or ~> 3.7", optional: true},
 
       # Dev and test
@@ -59,6 +63,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:jason, "~> 1.0", only: [:dev, :test, :docs]},
       {:floki, "~> 0.27.0", only: :test},
       {:stream_data, "~> 0.1", only: :test},
+      {:ecto_sqlite3, "~> 0.9.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.21", only: :docs},
       {:esbuild, "~> 0.5", only: :dev},
       {:dart_sass, "~> 0.5", only: :dev}

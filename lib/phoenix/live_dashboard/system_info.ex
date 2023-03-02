@@ -361,11 +361,11 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
         case get_ancestor(child) do
           nil ->
-            {{:master, master, []}, [to_node(:supervisor, child, children)]}
+            {{:master, master, []}, to_wrapped_node(:supervisor, child, children)}
 
           ancestor ->
             {{:master, master, []},
-             [{{:ancestor, ancestor, []}, [to_node(:supervisor, child, children)]}]}
+             [{{:ancestor, ancestor, []}, to_wrapped_node(:supervisor, child, children)}]}
         end
     end
   end
@@ -400,12 +400,12 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp links_tree(nodes, master, seen) do
-    Enum.map_reduce(nodes, seen, fn {type, pid, children}, seen ->
+    Enum.flat_map_reduce(nodes, seen, fn {type, pid, children}, seen ->
       {children, seen} =
         if children == [], do: links_children(type, pid, master, seen), else: {children, seen}
 
       {children, seen} = links_tree(children, master, seen)
-      {to_node(type, pid, children), seen}
+      {to_wrapped_node(type, pid, children), seen}
     end)
   end
 
@@ -432,9 +432,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
-  defp to_node(type, pid, children) do
-    {:registered_name, registered_name} = Process.info(pid, :registered_name)
-    {{type, pid, registered_name}, children}
+  defp to_wrapped_node(type, pid, children) do
+    case Process.info(pid, :registered_name) do
+      {:registered_name, registered_name} ->
+        [{{type, pid, registered_name}, children}]
+
+      _ ->
+        []
+    end
   end
 
   defp has_child?(seen, child), do: Map.has_key?(seen, child)

@@ -9,6 +9,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   alias Phoenix.LiveDashboardTest.Repo
   alias Phoenix.LiveDashboardTest.PGRepo
   alias Phoenix.LiveDashboardTest.MySQLRepo
+  alias Phoenix.LiveDashboardTest.SQLiteRepo
 
   test "menu_link/2" do
     assert :skip = EctoStatsPage.menu_link(%{repos: []}, %{})
@@ -29,6 +30,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
     refute rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
     refute rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
+    refute rendered =~ "Phoenix.LiveDashboardTest.SQLiteRepo"
     assert rendered =~ ~r"Showing \d+ entries"
 
     start_pg_repo!()
@@ -47,6 +49,16 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
     assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
     assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
+
+    start_sqlite_repo!()
+
+    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+    rendered = render(live)
+
+    assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.SQLiteRepo"
   end
 
   test "renders error without running repos" do
@@ -58,10 +70,10 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~
              "No Ecto repository was found running on this node."
 
-    assert rendered =~ "Currently only PSQL and MySQL databases are supported."
+    assert rendered =~ "Currently, only PostgreSQL, MySQL, and SQLite databases are supported."
 
     assert rendered =~
-             "Depending on the database Ecto PSQL Extras or Ecto MySQL Extras should be installed."
+             "Depending on the database, ecto_psql_extras, ecto_mysql_extras, or ecto_sqlite3_extras should be installed."
 
     assert rendered =~
              ~s|Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details|
@@ -145,6 +157,25 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Status"
     refute rendered =~ "PERFORMANCE_SCHEMA"
     assert rendered =~ "InnoDB"
+
+    start_sqlite_repo!()
+
+    {:ok, live, _} = live(build_conn(), ecto_stats_path(:plugins, "", SQLiteRepo))
+
+    rendered = render(live)
+    assert rendered =~ "page_size"
+    assert rendered =~ "unused_size"
+    assert rendered =~ "pages"
+    assert rendered =~ "cells"
+
+    {:ok, live, _} =
+      live(
+        build_conn(),
+        ecto_stats_path(:plugins, "page_size", SQLiteRepo)
+      )
+
+    rendered = render(live)
+    assert rendered =~ "page_size"
   end
 
   defp ecto_stats_path() do
@@ -160,7 +191,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   end
 
   defp ecto_stats_path(nav, search, repo) do
-    "#{ecto_stats_path()}?nav=#{nav}&search=#{search}&repo=#{repo}"
+    "#{ecto_stats_path()}?nav=#{nav}&search=#{search}&repo=#{inspect(repo)}"
   end
 
   defp start_main_repo! do
@@ -173,5 +204,9 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
   defp start_mysql_repo! do
     start_supervised!(MySQLRepo)
+  end
+
+  defp start_sqlite_repo! do
+    start_supervised!(SQLiteRepo)
   end
 end

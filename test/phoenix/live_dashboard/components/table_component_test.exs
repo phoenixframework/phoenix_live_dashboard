@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.TableComponentTest do
   use ExUnit.Case, async: true
 
+  use Phoenix.Component
   import Phoenix.LiveViewTest
 
   alias Phoenix.LiveDashboard.TableComponent
@@ -25,29 +26,41 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     {[[foo: 1, bar: 2, baz: 3], [foo: 4, bar: 5, baz: 6]], 2, state + 1}
   end
 
-  defp render_table(opts) do
-    columns = [%{field: :foo, sortable: :desc}, %{field: :bar, sortable: :desc}, %{field: :baz}]
-
+  defp default_assigns(assigns \\ []) do
     page = %{
-      node: Keyword.get(opts, :node, node()),
-      route: Keyword.get(opts, :route, :foobaz),
-      params: Keyword.get(opts, :params, %{})
+      node: Keyword.get(assigns, :node, node()),
+      route: Keyword.get(assigns, :route, :foobaz),
+      params: Keyword.get(assigns, :params, %{})
     }
 
-    opts =
-      Map.merge(
-        %{
-          columns: columns,
-          id: :component_id,
-          page: page,
-          row_fetcher: &row_fetcher/2,
-          title: "Title"
-        },
-        Map.new(opts)
-      )
-      |> TableComponent.normalize_params()
+    Map.merge(
+      %{
+        id: :component_id,
+        dom_id: :component_id,
+        page: page,
+        row_fetcher: &row_fetcher/2,
+        title: "Title"
+      },
+      Map.new(assigns)
+    )
+  end
 
-    render_component(TableComponent, opts, router: Router)
+  defp render_table(assigns) do
+    assigns = default_assigns(assigns)
+
+    render_component(
+      fn assigns ->
+        ~H"""
+        <.live_component module={TableComponent} {assigns} >
+          <:col field={:foo} sortable={:desc} />
+          <:col field={:bar} sortable={:desc} />
+          <:col field={:baz} />
+        </.live_component>
+        """
+      end,
+      assigns,
+      router: Router
+    )
   end
 
   describe "rendering" do
@@ -82,36 +95,44 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     end
 
     test "renders columns" do
-      columns = [
-        %{
-          field: :foo,
-          header: "Foo header",
-          header_attrs: [class: "header-foo-class"],
-          format: &"foo-format-#{&1}",
-          cell_attrs: [class: "cell-foo-class"],
-          sortable: :desc
-        },
-        %{field: :bar, cell_attrs: [class: "cell-bar-class"]},
-        %{field: :baz}
-      ]
-
-      result = render_table(columns: columns)
+      result =
+        render_component(
+          fn assigns ->
+            ~H"""
+            <.live_component module={TableComponent} {assigns} >
+              <:col 
+                field={:foo}
+                header="Foo header"
+                sortable={:desc}
+                :let={row}
+              >
+                <%= "foo-format-#{row[:foo]}" %>
+              </:col>
+              <:col field={:bar} text_align="right"/>
+              <:col field={:baz}/>
+            </.live_component>
+            """
+          end,
+          default_assigns(dom_id: "qux"),
+          router: Router
+        )
 
       assert result =~ "Foo header"
       assert result =~ "Bar"
       assert result =~ "Baz"
-      assert result =~ ~r|<th>[\r\n\s]*Baz[\r\n\s]*</th>|
 
-      assert result =~ ~s|<th class=\"header-foo-class\">|
+      assert result =~ ~s|<th class="qux-foo">|
+      assert result =~ ~s|<th class="qux-bar text-right">|
+      assert result =~ ~r|<th class="qux-baz">[\r\n\s]*Baz[\r\n\s]*</th>|
 
-      assert result =~ ~r|<td class=\"cell-foo-class\">[\r\n\s]*foo-format-1[\r\n\s]*</td>|
-      assert result =~ ~r|<td class=\"cell-foo-class\">[\r\n\s]*foo-format-4[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-foo">[\r\n\s]*foo-format-1[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-foo">[\r\n\s]*foo-format-4[\r\n\s]*</td>|
 
-      assert result =~ ~r|<td class=\"cell-bar-class\">[\r\n\s]*2[\r\n\s]*</td>|
-      assert result =~ ~r|<td class=\"cell-bar-class\">[\r\n\s]*5[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-bar text-right">[\r\n\s]*2[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-bar text-right">[\r\n\s]*5[\r\n\s]*</td>|
 
-      assert result =~ ~r|<td>[\r\n\s]*3[\r\n\s]*</td>|
-      assert result =~ ~r|<td>[\r\n\s]*6[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-baz">[\r\n\s]*3[\r\n\s]*</td>|
+      assert result =~ ~r|<td class="qux-baz">[\r\n\s]*6[\r\n\s]*</td>|
     end
 
     test "renders title" do
@@ -172,144 +193,73 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     end
   end
 
-  describe "normalize_params/1" do
-    test "validates required params" do
-      msg = "the :columns parameter is expected in table component"
-
-      assert_raise ArgumentError, msg, fn ->
-        TableComponent.normalize_params(%{})
-      end
-
-      msg = "the :id parameter is expected in table component"
-
-      assert_raise ArgumentError, msg, fn ->
-        TableComponent.normalize_params(%{columns: []})
-      end
-
-      msg = "the :row_fetcher parameter is expected in table component"
-
-      assert_raise ArgumentError, msg, fn ->
-        TableComponent.normalize_params(%{id: "id", columns: []})
-      end
-
-      msg = "the :title parameter is expected in table component"
-
-      assert_raise ArgumentError, msg, fn ->
-        TableComponent.normalize_params(%{
-          row_fetcher: &row_fetcher/2,
-          id: "id",
-          columns: []
-        })
-      end
-    end
-
+  describe "validate params" do
     test "normalizes columns" do
-      msg = "the :field parameter is expected, got: []"
+      msg = "the :field parameter is expected, got: %{__slot__: :col, inner_block: nil}"
 
       assert_raise ArgumentError, msg, fn ->
-        TableComponent.normalize_params(%{
-          title: "title",
-          row_fetcher: &row_fetcher/2,
-          id: "id",
-          columns: [[]]
-        })
+        render_component(
+          fn assigns ->
+            ~H"""
+            <.live_component module={TableComponent} {assigns} >
+              <:col/>
+            </.live_component>
+            """
+          end,
+          default_assigns(),
+          router: Router
+        )
       end
 
-      msg = ":field parameter must not be nil, got: [field: nil]"
+      msg =
+        ":field parameter must not be nil, got: %{__slot__: :col, field: nil, inner_block: nil}"
 
       assert_raise ArgumentError, msg, fn ->
-        TableComponent.normalize_params(%{
-          title: "title",
-          row_fetcher: &row_fetcher/2,
-          id: "id",
-          columns: [[field: nil]]
-        })
+        render_component(
+          fn assigns ->
+            ~H"""
+            <.live_component module={TableComponent} {assigns} >
+              <:col field={nil} />
+            </.live_component>
+            """
+          end,
+          default_assigns(),
+          router: Router
+        )
       end
 
-      msg = ":field parameter must be an atom or a string, got: [field: 7]"
+      msg =
+        ":field parameter must be an atom or a string, got: %{__slot__: :col, field: 7, inner_block: nil}"
 
       assert_raise ArgumentError, msg, fn ->
-        TableComponent.normalize_params(%{
-          title: "title",
-          row_fetcher: &row_fetcher/2,
-          id: "id",
-          columns: [[field: 7]]
-        })
+        render_component(
+          fn assigns ->
+            ~H"""
+            <.live_component module={TableComponent} {assigns} >
+              <:col field={7} />
+            </.live_component>
+            """
+          end,
+          default_assigns(),
+          router: Router
+        )
       end
 
       msg = "must have at least one column with :sortable parameter"
 
       assert_raise ArgumentError, msg, fn ->
-        TableComponent.normalize_params(%{
-          title: "title",
-          row_fetcher: &row_fetcher/2,
-          id: "id",
-          columns: [[field: "id"]]
-        })
+        render_component(
+          fn assigns ->
+            ~H"""
+            <.live_component module={TableComponent} {assigns} >
+              <:col field={:id} />
+            </.live_component>
+            """
+          end,
+          default_assigns(),
+          router: Router
+        )
       end
-
-      msg = ":columns must be a list, got: nil"
-
-      assert_raise ArgumentError, msg, fn ->
-        TableComponent.normalize_params(%{
-          title: "title",
-          row_fetcher: &row_fetcher/2,
-          id: "id",
-          columns: nil
-        })
-      end
-
-      assert params =
-               TableComponent.normalize_params(%{
-                 title: "title",
-                 row_fetcher: &row_fetcher/2,
-                 id: "id",
-                 columns: [[field: "id", sortable: "asc"], [field: "id2"]]
-               })
-
-      assert [
-               %{
-                 cell_attrs: [],
-                 field: "id",
-                 format: format_fun,
-                 header: "Id",
-                 header_attrs: [],
-                 sortable: "asc"
-               },
-               %{
-                 cell_attrs: [],
-                 field: "id2",
-                 format: format_fun,
-                 header: "Id2",
-                 header_attrs: [],
-                 sortable: nil
-               }
-             ] = params.columns
-
-      assert "id" = format_fun.("id")
-      assert "id2" = format_fun.("id2")
-    end
-
-    test "adds default values" do
-      assert %{
-               columns: [_],
-               id: "id",
-               limit: [50, 100, 500, 1000, 5000],
-               row_attrs: [],
-               row_fetcher: fun,
-               rows_name: "title",
-               title: "title",
-               search: true,
-               hint: nil
-             } =
-               TableComponent.normalize_params(%{
-                 title: "title",
-                 row_fetcher: &row_fetcher/2,
-                 id: "id",
-                 columns: [[field: :id, sortable: "asc"]]
-               })
-
-      assert is_function(fun, 2)
     end
   end
 end

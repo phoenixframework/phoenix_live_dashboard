@@ -2,6 +2,7 @@ System.put_env("PHX_DASHBOARD_TEST", "PHX_DASHBOARD_ENV_VALUE")
 
 pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
 mysql_url = System.get_env("MYSQL_URL") || "root@127.0.0.1"
+sqlite_db = System.get_env("SQLITE_DB") || "test.db"
 
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Repo,
   url: "ecto://#{pg_url}/phx_dashboard_test"
@@ -33,6 +34,16 @@ end
 
 _ = Ecto.Adapters.MyXQL.storage_up(Phoenix.LiveDashboardTest.MySQLRepo.config())
 
+Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.SQLiteRepo,
+  database: sqlite_db
+)
+
+defmodule Phoenix.LiveDashboardTest.SQLiteRepo do
+  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.SQLite3
+end
+
+_ = Ecto.Adapters.SQLite3.storage_up(Phoenix.LiveDashboardTest.SQLiteRepo.config())
+
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Endpoint,
   url: [host: "localhost", port: 4000],
   secret_key_base: "Hu4qQN3iKzTV4fJxhorPQlA/osH9fAMtbtjVS58PFgfw3ja5Z18Q/WSNR9wP4OfW",
@@ -43,9 +54,7 @@ Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Endpoint,
 )
 
 defmodule Phoenix.LiveDashboardTest.ErrorView do
-  use Phoenix.View, root: "test/templates"
-
-  def template_not_found(template, _assigns) do
+  def render(template, _assigns) do
     Phoenix.Controller.status_message_from_template(template)
   end
 end
@@ -128,6 +137,8 @@ defmodule Phoenix.LiveDashboardTest.Endpoint do
   plug Phoenix.LiveDashboardTest.Router
 end
 
+Application.stop(:ssh)
+Application.unload(:ssh)
 Application.ensure_all_started(:os_mon)
 
 Supervisor.start_link(

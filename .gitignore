@@ -19,8 +19,16 @@ erl_crash.dump
 # Also ignore archive artifacts (built via "mix archive.build").
 *.ez
 
+# Ignore temporary files, for example, from tests.
+/tmp/
+
 # Ignore package tarball (built via "mix hex.build").
 phoenix_live_dashboard-*.tar
 
-node_modules
-tmp
+# In case you use Node.js/npm, you want to ignore these.
+npm-debug.log
+/assets/node_modules/
+
+# Ignore SQLite database files
+*.db
+*.db-*

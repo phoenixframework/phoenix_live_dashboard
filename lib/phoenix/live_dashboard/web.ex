@@ -2,13 +2,10 @@ defmodule Phoenix.LiveDashboard.Web do
   @moduledoc false
 
   @doc false
-  def view do
+  def html do
     quote do
       @moduledoc false
-
-      use Phoenix.View,
-        namespace: Phoenix.LiveDashboard,
-        root: "lib/phoenix/live_dashboard/templates"
+      use Phoenix.Component
 
       unquote(view_helpers())
     end

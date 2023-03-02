@@ -3,10 +3,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   Page builder is the default mechanism for building custom dashboard pages.
 
   Each dashboard page is a LiveView with additional callbacks for
-  customizing the menu appearance. One notable difference, however,
-  is that a page implements a `render_page/1` callback, which must
-  return one or more page builder components, instead of a `render/1`
-  callback that returns `~H` or `~L` (deprecated).
+  customizing the menu appearance and the automatic refresh.
 
   A simple and straight-forward example of a custom page is the
   `Phoenix.LiveDashboard.EtsPage` that ships with the dashboard:
@@ -21,15 +18,29 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         end
 
         @impl true
-        def render_page(_assigns) do
-          table(
-            columns: table_columns(),
-            id: :ets_table,
-            row_attrs: &row_attrs/1,
-            row_fetcher: &fetch_ets/2,
-            rows_name: "tables",
-            title: "ETS"
-          )
+        def render(assigns) do
+          ~H\"""
+          <.live_table
+            id="ets-table"
+            dom_id="ets-table"
+            page={@page}
+            title="ETS"
+            row_fetcher={&fetch_ets/2}
+            row_attrs={&row_attrs/1}
+            rows_name="tables"
+          >
+            <:col field={:name} header="Name or module" />
+            <:col field={:protection} />
+            <:col field={:type} />
+            <:col field={:size} text_align="right" sortable={:desc} />
+            <:col field={:memory} text_align="right" sortable={:desc} :let={ets}>
+              <%= format_words(ets[:memory]) %>
+            </:col>
+            <:col field={:owner} :let={ets} >
+              <%= encode_pid(ets[:owner]) %>
+            </:col>
+          </.live_table>
+          \"""
         end
 
         defp fetch_ets(params, node) do
@@ -42,35 +53,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           # the current entries (up to limit) and an integer with the
           # total amount of entries.
           # ...
-        end
-
-        defp table_columns() do
-          [
-            %{
-              field: :name,
-              header: "Name or module",
-            },
-            %{
-              field: :protection
-            },
-            %{
-              field: :type
-            },
-            %{
-              field: :size,
-              cell_attrs: [class: "text-right"],
-              sortable: :desc
-            },
-            %{
-              field: :memory,
-              format: &format_words/1,
-              sortable: :desc
-            },
-            %{
-              field: :owner,
-              format: &encode_pid/1
-            }
-          ]
         end
 
         defp row_attrs(table) do
@@ -101,13 +83,21 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   callback. If not tuple is given, `c:init/1` will receive an empty
   list.
 
+  ## Options for the use macro
+
+  The following options can be given when using the `PageBuilder` module:
+
+  * `refresher?` - Boolean to enable or disable the automatic refresh in the page.
+
   ## Components
 
-  A page can only have the components listed with this page.
+  A page can return any valid HEEx template in the `render/1` callback,
+  and it can use the components listed with this page too.
 
-  We currently support `card/1`, `columns/1`, `fields_card/1`,
-  `layered_graph/1`, `nav_bar/1`, `row/1`, `shared_usage_card/1`, `table/1`,
-  and `usage_card/1`.
+  We currently support `card/1`, `fields_card/1`, `row/1`,
+  `shared_usage_card/1`, and `usage_card/1`;
+  and the live components `live_layered_graph/1`, `live_nav_bar/1`, 
+  and `live_table/1`.
 
   ## Helpers
 
@@ -117,6 +107,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   and `encode_socket/1`.
   """
 
+  use Phoenix.Component
+
   defstruct info: nil,
             module: nil,
             node: nil,
@@ -124,8 +116,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             route: nil,
             tick: 0,
             allow_destructive_actions: false
-
-  @opaque component :: {module, map}
 
   @type session :: map
   @type requirements :: [{:application | :process | :module, atom()}]
@@ -139,15 +129,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         }
 
   alias Phoenix.LiveDashboard.{
-    CardComponent,
-    ColumnsComponent,
-    FieldsCardComponent,
     LayeredGraphComponent,
     NavBarComponent,
-    RowComponent,
-    SharedUsageCardComponent,
-    TableComponent,
-    UsageCardComponent
+    TableComponent
   }
 
   @doc """
@@ -199,7 +183,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @callback mount(unsigned_params(), session(), socket :: Socket.t()) ::
               {:ok, Socket.t()} | {:ok, Socket.t(), keyword()}
 
-  @callback render_page(assigns :: Socket.assigns()) :: component()
+  @callback render(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
 
   @callback handle_params(unsigned_params(), uri :: String.t(), socket :: Socket.t()) ::
               {:noreply, Socket.t()}
@@ -220,6 +204,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @callback handle_info(msg :: term, socket :: Socket.t()) ::
               {:noreply, Socket.t()}
 
+  @doc """
+  Callback invoked when the automatic refresh is enabled.
+  """
   @callback handle_refresh(socket :: Socket.t()) ::
               {:noreply, Socket.t()}
 
@@ -230,393 +217,437 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
                       handle_refresh: 1
 
   @doc """
-  Renders a table component.
+  Table live component.
 
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        table(
-          columns: table_columns(),
-          id: @table_id,
-          row_attrs: &row_attrs/1,
-          row_fetcher: &fetch_applications/2,
-          title: "Applications"
-        )
-      end
-
-  You can see it in use the applications, processes, sockets pages and
-  many others.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:id` - Required. Because is a stateful `Phoenix.LiveComponent` an unique id is needed.
-
-    * `:columns` - Required. A `Keyword` list with the following keys:
-      * `:field` - Required. An identifier for the column.
-      * `:sortable` - Required for at least one column. Either `:asc` or
-        `:desc` with the default sorting. When set, the column header is
-        clickable and it fetches again rows with the new order. Default: `nil`.
-      * `:header` - Label to show in the current column. Default value is calculated from `:field`.
-      * `:header_attrs` - A list with HTML attributes for the column header. Default: `[]`.
-      * `:format` - Function which receives the value and returns the cell information.
-        Default is the field value itself.
-      * `:cell_attrs` - A list with HTML attributes for the table cell. Default: `[]`.
-
-    * `:row_fetcher` - Required. A function which receives the params and the node and
-      returns a tuple with the rows and the total number:
-      `(params(), node() -> {list(), integer() | binary()})`.
-      Optionally, if the function needs to keep a state, it can be defined as a tuple
-      where the first element is a function and the second is the initial state.
-      In this case, the function will receive the state as third argument and must return
-      a tuple with the rows, the total number, and the new state for the following call:
-      `{(params(), node(), term() -> {list(), integer() | binary(), term()}), term()}`
-
-    * `:rows_name` - A string to name the representation of the rows.
-      Default is calculated from the current page.
-
-    * `:row_attrs` - A function that return a list with HTML attributes for the table row. It
-      receive the row as argument and return a list of 2 element tuple with HTML attribute name
-      and value. The default function returns an empty list `[]`.
-
-    * `:default_sort_by` - The default columnt to sort by to.
-      Defaults to the first sortable column.
-
-    * `:title` - Required. The title of the table.
-
-    * `:limit` - A list of integers to limit the number of rows to show.
-      Default: `[50, 100, 500, 1000, 5000]`. May be set to `false` to disable the `limit`.
-
-    * `:search` - A boolean indicating if the search functionality is enabled.
-      Default: `true`.
-
-    * `:hint` - A textual hint to show close to the title. Default: `nil`.
+  You can see it in use the applications, processes, sockets pages and many others.
   """
-  @spec table(keyword()) :: component()
-  def table(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> TableComponent.normalize_params()
+  attr :id, :any,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
 
-    {TableComponent, assigns}
+  attr :page, __MODULE__, required: true, doc: "Dashboard page"
+
+  slot :col, required: true, doc: "Columns for the table" do
+    attr :field, :atom, required: true, doc: "Identifier for the column"
+
+    attr :sortable, :atom,
+      values: [:asc, :desc],
+      doc: """
+      When set, the column header is clickable and it fetches again rows with the new order.
+      Required for at least one column.
+      """
+
+    attr :header, :string,
+      doc: "Label to show in the current column. Default value is calculated from `:field`."
+
+    attr :text_align, :string,
+      values: ~w[left center right justify],
+      doc: "Text align for text in the column. Default: `nil`."
+  end
+
+  attr :row_fetcher, :any,
+    required: true,
+    doc: """
+    A function which receives the params and the node and
+    returns a tuple with the rows and the total number:
+    `(params(), node() -> {list(), integer() | binary()})`.
+    Optionally, if the function needs to keep a state, it can be defined as a tuple
+    where the first element is a function and the second is the initial state.
+    In this case, the function will receive the state as third argument and must return
+    a tuple with the rows, the total number, and the new state for the following call:
+    `{(params(), node(), term() -> {list(), integer() | binary(), term()}), term()}`
+    """
+
+  attr :rows_name, :string,
+    doc:
+      "A string to name the representation of the rows. Default is calculated from the current page."
+
+  attr :row_attrs, :any,
+    default: nil,
+    doc: """
+    A list with the HTML attributes for the table row.
+    It can be also a function that receive the row as argument
+    and returns a list of 2 element tuple with HTML attribute name
+    and value.
+    """
+
+  attr :default_sort_by, :any,
+    default: nil,
+    doc: "The default column to sort by to. Defaults to the first sortable column."
+
+  attr :title, :string, required: true, doc: "The title of the table."
+
+  attr :limit, :any,
+    default: [50, 100, 500, 1000, 5000],
+    doc: "May be set to `false` to disable the `limit`."
+
+  attr :search, :boolean,
+    default: true,
+    doc: "A boolean indicating if the search functionality is enabled."
+
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  attr :dom_id, :string, default: nil, doc: "id attribute for the HTML the main tag."
+  @spec live_table(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def live_table(assigns) do
+    ~H"""
+    <.live_component module={TableComponent} {assigns} />
+    """
   end
 
   @doc """
-  Renders a nav bar.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        nav_bar(
-          items: [
-            phoenix_metrics: [
-              name: "Phoenix Metrics",
-              render: fn -> table(...) end
-            ],
-
-            vm_metrics: [
-              name: "VM Metrics",
-              render: fn -> table(...expensive_parameters) end
-            ]
-          ]
-        )
-      end
+  Nav bar live component.
 
   You can see it in use the Metrics and Ecto info pages.
-
-  ## Options
-
-    * `nav_param` - An atom that configures the navigation parameter.
-      It is useful when two nav bars are present in the same page.
-
-    * `extra_params` - A list of strings representing the parameters
-      that should stay when a tab is clicked. By default the nav ignores
-      all params, except the current node if any.
-
   """
-  @spec nav_bar(keyword()) :: component()
-  def nav_bar(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> NavBarComponent.normalize_params()
+  attr :id, :any,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
 
-    {NavBarComponent, assigns}
+  attr :page, __MODULE__, required: true, doc: "Dashboard page"
+
+  attr :nav_param, :string,
+    default: "nav",
+    doc: """
+    An atom that configures the navigation parameter.
+    It is useful when two nav bars are present in the same page.
+    """
+
+  attr :extra_params, :list,
+    default: [],
+    doc: """
+    A list of strings representing the parameters
+    that should stay when a tab is clicked. By default the nav ignores
+    all params, except the current node if any.
+    """
+
+  attr :style, :atom, values: [:pills, :bar], doc: "Style for the nav bar"
+
+  slot :item, required: true, doc: "HTML to be rendered when the tab is selected" do
+    attr :name, :string, required: true, doc: "Value used in the URL when the tab is selected"
+
+    attr :label, :string,
+      doc: "Title of the tab. If it is not present, it will be calculated from `name`"
+
+    attr :method, :string, values: ~w(patch navigate href redirect), doc: "Method used to update"
+  end
+
+  @spec live_nav_bar(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def live_nav_bar(assigns) do
+    ~H"""
+    <.live_component module={NavBarComponent} {assigns}/>
+    """
   end
 
   @doc """
-  Renders a card component.
+  Hint pop-up text component
+  """
+  attr :text, :string, required: true, doc: "Text to show in the hint"
 
-  It can be rendered in any dashboard page via the `render_page/1` function:
+  @spec hint(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def hint(assigns) do
+    ~H"""
+    <div class="hint">
+      <svg class="hint-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="44" height="44" fill="none"/>
+        <rect x="19" y="10" width="6" height="5.76" rx="1" class="hint-icon-fill"/>
+        <rect x="19" y="20" width="6" height="14" rx="1" class="hint-icon-fill"/>
+        <circle cx="22" cy="22" r="20" class="hint-icon-stroke" stroke-width="4"/>
+      </svg>
+      <div class="hint-text"><%= @text %></div>
+    </div>
+    """
+  end
 
-      def render_page(assigns) do
-        card(
-          title: "Run queues",
-          inner_title: "Total",
-          class: ["additional-class"],
-          value: 1.5
-        )
-      end
+  @doc """
+  Card title component.
+  """
+  attr :title, :string, default: nil, doc: "The title above the card."
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+
+  @spec card_title(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def card_title(assigns) do
+    ~H"""
+    <h5 class="card-title" :if={@title}>
+      <%= @title %>
+      <.hint :if={@hint} text={@hint}/>
+    </h5>
+    """
+  end
+
+  @doc """
+  Card component.
 
   You can see it in use the Home and OS Data pages.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:value` - Required. The value that the card will show.
-
-    * `:title` - The title above the card.
-      Default: `nil`.
-
-    * `:inner_title` - The title inside the card.
-      Default: `nil`.
-
-    * `:hint` - A textual hint to show close to the title.
-      Default: `nil`.
-
-    * `:inner_hint` - A textual hint to show close to the inner title.
-      Default: `nil`.
-
-    * `:class` - A list of additional css classes that will be added along banner-card class.
-      Default: `[]`.
   """
-  @spec card(keyword()) :: component()
-  def card(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> CardComponent.normalize_params()
 
-    {CardComponent, assigns}
+  slot(:inner_block, required: true, doc: "The value that the card will show.")
+  attr :title, :string, default: nil, doc: "The title above the card."
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  attr :inner_title, :string, default: nil, doc: "The title inside the card."
+  attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
+  attr :dom_id, :string, default: nil, doc: "id attribute for the HTML the main tag."
+
+  @spec card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def card(assigns) do
+    ~H"""
+    <.card_title title={@title} hint={@hint} />
+    <div id={@dom_id} class="banner-card mt-auto">
+      <h6 class="banner-card-title" :if={@inner_title}>
+        <%= @inner_title %>
+        <.hint :if={@inner_hint} text={@inner_hint} />
+      </h6>
+      <div class="banner-card-value">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
+    """
   end
 
   @doc """
-  Renders a fields card component.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        fields_card(
-          title: "Run queues",
-          inner_title: "Total",
-          fields: ["USER": "...", "ROOTDIR": "..."]
-        )
-      end
+  Fields card component.
 
   You can see it in use the Home page in the Environment section.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:fields` - Required. A list of key-value elements that will be shown inside the card.
-
-    * `:title` - The title above the card.
-      Default: `nil`.
-
-    * `:inner_title` - The title inside the card.
-      Default: `nil`.
-
-    * `:hint` - A textual hint to show close to the title.
-      Default: `nil`.
-
-    * `:inner_hint` - A textual hint to show close to the inner title.
-      Default: `nil`.
   """
-  @spec fields_card(keyword()) :: component()
+
+  attr :fields, :list,
+    required: true,
+    doc: "A list of key-value elements that will be shown inside the card."
+
+  attr :title, :string, default: nil, doc: "The title above the card."
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  attr :inner_title, :string, default: nil, doc: "The title inside the card."
+  attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
+
   def fields_card(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> FieldsCardComponent.normalize_params()
-
-    {FieldsCardComponent, assigns}
+    ~H"""
+    <%= if @fields && not Enum.empty?(@fields) do %>
+      <.card_title title={@title} hint={@hint} />
+      <div class="fields-card">
+        <div class="card mb-4">
+          <div class="card-body rounded pt-3">
+            <h6 class="card-title" :if={@inner_title}>
+              <%= @inner_title %>
+              <.hint :if={@inner_hint} text={@inner_hint} />
+            </h6>
+            <dl :for={{k, v} <- @fields}>
+              <dt class="pb-1"><%= k %></dt>
+              <dd>
+                <textarea class="code-field text-monospace" readonly="readonly" rows="1"><%= v %></textarea>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    """
   end
 
   @doc """
-  Renders a column component.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        columns(
-          components: [
-            card(...),
-            card_usage(...)
-          ]
-        )
-      end
+  Row component.
 
   You can see it in use the Home page and OS Data pages.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:components` - Required. A list of components.
-      It can receive up to 3 components.
-      Each element will be one column.
   """
-  @spec columns(keyword()) :: component()
-  def columns(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> ColumnsComponent.normalize_params()
+  slot(:col,
+    required: true,
+    doc:
+      "A list of components. It can receive up to 3 components." <>
+        " Each element will be one column."
+  )
 
-    {ColumnsComponent, assigns}
-  end
-
-  @doc """
-  Renders a row component.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        row(
-          components: [
-            card(...),
-            columns(...)
-          ]
-        )
-      end
-
-  You can see it in use the Home page and OS Data pages.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:components` - Required. A list of components.
-      It can receive up to 3 components.
-      Each element will be one column.
-  """
-  @spec row(keyword()) :: component()
+  @spec row(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def row(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> RowComponent.normalize_params()
+    assigns = row_validate_columns_length(assigns)
 
-    {RowComponent, assigns}
+    ~H"""
+    <div class="row">
+      <div :for={col <- @col} class={"col-sm-#{@columns_class} mb-4 flex-column d-flex"}>
+        <%= render_slot(col) %>
+      </div>
+    </div>
+    """
+  end
+
+  defp row_validate_columns_length(assigns) do
+    columns_length = length(assigns[:col] || [])
+
+    if columns_length > 0 and columns_length < 4 do
+      assign(assigns, :columns_class, div(12, columns_length))
+    else
+      raise ArgumentError,
+            "row component must have at least 1 and at most 3 :col, got: " <>
+              inspect(columns_length)
+    end
   end
 
   @doc """
-  Renders a usage card component.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        usage_card(
-          usages: [
-            %{
-              current: 10,
-              limit: 150,
-              dom_sub_id: "1",
-              title: "Memory",
-              percent: "13"
-            }
-          ],
-          dom_id: "memory"
-        )
-      end
+  Usage card component.
 
   You can see it in use the Home page and OS Data pages.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:usages` - Required. A list of `Map` with the following keys:
-      * `:current` - Required. The current value of the usage.
-      * `:limit` - Required. The max value of usage.
-      * `:dom_sub_id` - Required. An unique identifier for the usage that will be concatenated to `dom_id`.
-      * `:percent` - The used percent if the usage. Default: `nil`.
-      * `:title` - Required. The title of the usage.
-      * `:hint` - A textual hint to show close to the usage title. Default: `nil`.
-
-    * `:dom_id` - Required. A unique identifier for all usages in this card.
-    * `:title` - The title of the card. Default: `nil`.
-    * `:hint` - A textual hint to show close to the card title. Default: `nil`.
   """
-  @spec usage_card(keyword()) :: component()
-  def usage_card(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> UsageCardComponent.normalize_params()
+  attr :title, :string, default: nil, doc: "The title above the card."
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  attr :dom_id, :string, required: true, doc: "A unique identifier for all usages in this card."
 
-    {UsageCardComponent, assigns}
+  attr :csp_nonces, :any,
+    required: true,
+    doc: "A copy of CSP nonces (`@csp_nonces`) used to render the page safely"
+
+  slot :usage, required: true, doc: "List of usages to show" do
+    attr :current, :integer, required: true, doc: "The current value of the usage."
+    attr :limit, :integer, required: true, doc: "The max value of usage."
+
+    attr :dom_sub_id, :string,
+      required: true,
+      doc: "An unique identifier for the usage that will be concatenated to `dom_id`."
+
+    attr :percent, :string, doc: "The used percent of the usage."
+    attr :title, :string, doc: "The title of the usage."
+    attr :hint, :string, doc: "A textual hint to show close to the usage title."
+  end
+
+  @spec usage_card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def usage_card(assigns) do
+    ~H"""
+    <.card_title title={@title} hint={@hint} />
+    <div class="card">
+      <div class="card-body card-usage">
+        <%= for usage <- @usage do %>
+          <.title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} percent={usage.percent} csp_nonces={@csp_nonces} >
+            <div>
+              <%= usage.title %>
+              <.hint text={usage[:hint]} :if={usage[:hint]}/>
+            </div>
+            <div>
+              <small class="text-muted pr-2">
+                <%= usage.current %> / <%= usage.limit %>
+              </small>
+              <strong :if={usage[:percent]}>
+                <%= usage[:percent] %>%
+              </strong>
+            </div>
+          </.title_bar_component>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  @doc false
+  attr :color, :string, default: "blue"
+  attr :dom_id, :string, required: true
+  attr :percent, :float, required: true
+  attr :csp_nonces, :any, required: true
+  slot(:inner_block, required: true)
+
+  defp title_bar_component(assigns) do
+    ~H"""
+    <div class="py-2">
+      <section>
+        <div class="d-flex justify-content-between">
+          <%= render_slot @inner_block %>
+        </div>
+        <style nonce={@csp_nonces.style}>#<%= "#{@dom_id}-progress" %>{width:<%= @percent %>%}</style>
+        <div class="progress flex-grow-1 mt-2">
+          <div
+          class={"progress-bar bg-#{@color}"}
+          role="progressbar"
+          aria-valuenow={@percent}
+          aria-valuemin="0"
+          aria-valuemax="100"
+          id={"#{@dom_id}-progress"}
+          >
+          </div>
+        </div>
+      </section>
+    </div>
+    """
   end
 
   @doc """
-  Renders a shared usage card component.
-
-  It can be rendered in any dashboard page via the `render_page/1` function:
-
-      def render_page(assigns) do
-        shared_usage_card(
-          usages: [
-            %{
-              data: [
-                {"Atoms", 1.4, "green", nil},
-                {"Binary", 9.1, "blue", nil},
-                {"Code", 31.5, "purple", nil},
-                {"ETS", 3.6, "yellow", nil},
-                {"Processes", 25.8, "orange", nil},
-                {"Other", 28.5, "dark-gray", nil}
-              ],
-              dom_sub_id: "total"
-            }
-          ],
-          dom_id: "memory",
-          total_data: [
-            {"Atoms", 737513, "green", nil},
-            {"Binary", 4646392, "blue", nil},
-            {"Code", 16060819, "purple", nil},
-            {"ETS", 1845584, "yellow", nil},
-            {"Processes", 13146728, "orange", nil},
-            {"Other", 14559276, "dark-gray", nil}
-          ],
-          total_legend: "Total usage:"
-          total_usage: "47.4 MB"
-        )
-      end
+  Shared usage card component.
 
   You can see it in use the Home page and OS Data pages.
-
-  # Options
-
-  These are the options supported by the component:
-
-    * `:usages` - Required. A list of `Map` with the following keys:
-      * `:data` - A list of tuples with 4 elements with the following data:
-        `{usage_name, usage_percent, color, hint}`
+  """
+  attr :usages, :list,
+    required: true,
+    doc: """
+    A list of `Map` with the following keys:
+      * `:data` - A list of tuples with 4 elements with the following data: `{usage_name, usage_percent, color, hint}`
       * `:dom_sub_id` - Required. Usage identifier.
       * `:title`- Bar title.
-    * `:total_data` -  Required. A list of tuples with 4 elements with following data:
-        `{usage_name, usage_value, color, hint}`
-    * `:total_legend` - Required. The legent of the total usage.
-    * `:total_usage` - Required. The value of the total usage.
-    * `:dom_id` - Required. A unique identifier for all usages in this card.
-    * `:title` - The title above the card. Default: `nil`.
-    * `:inner_title` - The title inside the card. Default: `nil`.
-    * `:hint` - A textual hint to show close to the title. Default: `nil`.
-    * `:inner_hint` - A textual hint to show close to the inner title. Default: `nil`.
-    * `:total_formatter` - A function that format the `total_usage`. Default: `&("\#{&1} %")`.
-  """
-  @spec shared_usage_card(keyword()) :: component()
-  def shared_usage_card(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> SharedUsageCardComponent.normalize_params()
+    """
 
-    {SharedUsageCardComponent, assigns}
+  attr :total_data, :any,
+    required: true,
+    doc:
+      "A list of tuples with 4 elements with following data: `{usage_name, usage_value, color, hint}`"
+
+  attr :total_legend, :string, required: true, doc: "The legent of the total usage."
+  attr :total_usage, :string, required: true, doc: "The value of the total usage."
+
+  attr :csp_nonces, :any,
+    required: true,
+    doc: "A copy of CSP nonces (`@csp_nonces`) used to render the page safely"
+
+  attr :title, :string, default: nil, doc: "The title above the card."
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+  attr :inner_title, :string, default: nil, doc: "The title inside the card."
+  attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
+
+  attr :total_formatter, :any,
+    default: nil,
+    doc: ~s<A function that format the `total_usage`. Default: `&("\#{&1} %")`.>
+
+  @spec shared_usage_card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def shared_usage_card(assigns) do
+    ~H"""
+    <.card_title title={@title} hint={@hint} />
+    <div class="card">
+      <.card_title title={@inner_title} hint={@inner_hint} />
+      <div class="card-body">
+        <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
+          <div :for={usage <- @usages} class="flex-grow-1 mb-3">
+            <div class="progress color-bar-progress flex-grow-1 mb-3">
+              <span :if={usage[:title]} class="color-bar-progress-title"><%= usage[:title] %></span>
+              <%= for {{name, value, color, _desc}, index} <- Enum.with_index(usage.data) do %>
+                <style nonce={@csp_nonces.style}>#<%= "cpu-#{usage.dom_sub_id}-progress-#{index}" %>{width:<%= value %>%}</style>
+                <div
+                    title={"#{name} - #{Phoenix.LiveDashboard.Helpers.format_percent(value)}"}
+                    class={"progress-bar color-bar-progress-bar bg-gradient-#{color}"}
+                    role="progressbar"
+                    aria-valuenow={maybe_round(value)}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    data-name={name}
+                    data-empty={empty?(value)}
+                    id={"cpu-#{usage.dom_sub_id}-progress-#{index}"}>
+                </div>
+              <% end %>
+            </div>
+          </div>
+          <div class="color-bar-legend">
+            <div class="row">
+            <%= for {name, value, color, hint} <- @total_data do %>
+              <div class="col-lg-6 d-flex align-items-center py-1 flex-grow-0 color-bar-legend-entry" data-name={name}>
+                <div class={"color-bar-legend-color bg-#{color} mr-2"}></div>
+                <span><%= name %><.hint :if={hint} text={hint} /></span>
+                <span class="flex-grow-1 text-right text-muted">
+                <%= if @total_formatter, do: @total_formatter.(value), else: total_formatter(value) %>
+                </span>
+              </div>
+              <% end %>
+            </div>
+          </div>
+          <div class="resource-usage-total text-center py-1 mt-3">
+            <%= @total_legend %> <%= @total_usage %>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
   end
+
+  defp total_formatter(value), do: "#{value} %"
 
   @doc """
   A component for drawing layered graphs.
@@ -629,39 +660,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   The calculation of layers and positions is done automatically
   based on options.
 
-  ## Options
-
-    * `:title` - The title of the component. Default: `nil`.
-
-    * `:hint` - A textual hint to show close to the title. Default: `nil`.
-
-    * `:layers` - A graph of layers with nodes. They represent
-      our graph structure (see example). Each layer is a list
-      of nodes, where each node has the following fields:
-
-      - `:id` - The ID of the given node.
-      - `:children` - The IDs of children nodes.
-      - `:data` - A string or a map. If it's a map, the required fields
-        are `detail` and `label`.
-
-    * `:show_grid?` - Enable or disable the display of a grid. This
-      is useful for development. Default: `false`.
-
-    * `:y_label_offset` - The "y" offset of label position relative to the
-      center of its circle. Default: `5`.
-
-    * `:y_detail_offset` - The "y" offset of detail position relative to the
-      center of its circle. Default: `18`.
-
-    * `:background` - A function that calculates the background for a
-      node based on it's data. Default: `fn _node_data -> "gray" end`.
-
-    * `:format_label` - A function that formats the label. Defaults
-      to a function that returns the label or data if data is binary.
-
-    * `:format_detail` - A function that formats the detail field.
-      This is only going to be called if data is a map.
-      Default: `fn node_data -> node_data.detail end`.
+  [INSERT LVATTRDOCS]
 
   ## Examples
 
@@ -684,16 +683,116 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       ...>      }
       ...>    ]
       ...> ]
-      iex> layered_graph(layers: layers, title: "My Graph", hint: "A simple graph")
   """
-  @spec layered_graph(keyword()) :: component()
-  def layered_graph(assigns) do
-    assigns =
-      assigns
-      |> Map.new()
-      |> LayeredGraphComponent.normalize_params()
+  attr :id, :any,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
 
-    {LayeredGraphComponent, assigns}
+  attr :title, :string, default: nil, doc: "The title of the component."
+
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+
+  attr :layers, :list,
+    required: true,
+    doc: """
+    A graph of layers with nodes. They represent
+    our graph structure (see example). Each layer is a list
+    of nodes, where each node has the following fields:
+
+      - `:id` - The ID of the given node.
+      - `:children` - The IDs of children nodes.
+      - `:data` - A string or a map. If it's a map, the required fields
+        are `detail` and `label`.
+    """
+
+  attr :show_grid?, :boolean,
+    default: false,
+    doc: "Enable or disable the display of a grid. This is useful for development."
+
+  attr :y_label_offset, :integer,
+    default: 5,
+    doc: "The \"y\" offset of label position relative to the center of its circle."
+
+  attr :y_detail_offset, :integer,
+    default: 18,
+    doc: "The \"y\" offset of detail position relative to the center of its circle."
+
+  attr :background, :any,
+    doc: """
+    A function that calculates the background for a
+    node based on it's data. Default: `fn _node_data -> \"gray\" end`."
+    """
+
+  attr :format_label, :any,
+    doc: """
+    A function that formats the label. Defaults
+    to a function that returns the label or data if data is binary.
+    """
+
+  attr :format_detail, :any,
+    doc: """
+    A function that formats the detail field.
+    This is only going to be called if data is a map.
+    Default: `fn node_data -> node_data.detail end`.
+    """
+
+  @spec live_layered_graph(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
+  def live_layered_graph(assigns) do
+    ~H"""
+    <.live_component module={LayeredGraphComponent} id={@id} {assigns} />
+    """
+  end
+
+  @doc """
+  List of label value.
+
+  You can see it in use in the modal in Ports or Processes page.
+  """
+  slot :elem, required: true, doc: "Value for each element of the list" do
+    attr :label, :string, required: true, doc: "Label for the elem"
+  end
+
+  def label_value_list(assigns) do
+    ~H"""
+    <table class="table table-hover tabular-info-table">
+      <tbody>
+        <tr :for={{elem, index} <- Enum.with_index(@elem)}>
+          <td class={first_elem_class(index)}><%= elem.label %></td>
+          <td class={first_elem_class(index)}><pre><%= render_slot(elem) %></pre></td>
+        </tr>
+      </tbody>
+    </table>
+    """
+  end
+
+  defp first_elem_class(0), do: "border-top-0"
+  defp first_elem_class(_), do: nil
+
+  @doc """
+  Modal component
+
+  You can see it in use in the modal in Ports or Processes page
+  """
+  attr :id, :string,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
+
+  attr :title, :string, required: true, doc: "Title of the modal"
+
+  attr :return_to, :string, required: true, doc: "Path to return when closing the modal"
+  slot(:inner_block, required: true, doc: "Content to show in the modal")
+
+  def live_modal(assigns) do
+    ~H"""
+    <.live_component
+      module={Phoenix.LiveDashboard.ModalComponent}
+      id={@id}
+      title={@title}
+      return_to={@return_to}
+    >
+      <%= render_slot @inner_block %>
+    </.live_component>
+    """
   end
 
   ## Helpers
@@ -825,7 +924,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   end
 
   defmacro __using__(opts) do
-    quote bind_quoted: [opts: opts] do
+    quote location: :keep, bind_quoted: [opts: opts] do
       import Phoenix.LiveView
       use Phoenix.Component
       import Phoenix.LiveDashboard.PageBuilder
@@ -841,4 +940,10 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       defoverridable init: 1
     end
   end
+
+  defp maybe_round(num) when is_integer(num), do: num
+  defp maybe_round(num), do: Float.ceil(num, 1)
+
+  defp empty?(value) when is_number(value) and value > 0, do: false
+  defp empty?(_), do: true
 end

@@ -5,7 +5,6 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
 
   alias Phoenix.LiveDashboard.SystemInfo
 
-  @table_id :table
   @menu_text "Processes"
 
   @impl true
@@ -18,6 +17,31 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       title: "Processes",
       filter: get_filter_list()
     )
+
+  def render(assigns) do
+    ~H"""
+    <.live_table
+      id="processes-table"
+      dom_id="processes-table"
+      page={@page}
+      row_fetcher={{&fetch_processes/3, nil}}
+      row_attrs={&row_attrs/1}
+      title="Processes"
+    >
+      <:col field={:pid} header="PID" :let={process} >
+        <%= process[:pid] |> encode_pid() |> String.replace_prefix("PID", "") %>
+      </:col>
+      <:col field={:name_or_initial_call} header="Name or initial call"/>
+      <:col field={:memory} header="Memory" text_align="right" sortable={:desc} :let={process}>
+        <%= format_bytes(process[:memory]) %>
+      </:col>
+      <:col field={:reductions_diff} header="Reductions" text_align="right" sortable={:desc}/>
+      <:col field={:message_queue_len} header="MsgQ" text_align="right" sortable={:desc}/>
+      <:col field={:current_function} header="Current function" :let={process}>
+        <%= format_call(process[:current_function]) %>
+      </:col>
+    </.live_table>
+    """
   end
 
   defp fetch_processes(params, node, state) do
@@ -27,51 +51,6 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       SystemInfo.fetch_processes(node, params.filter, search, sort_by, sort_dir, limit, state)
 
     {processes, count, state}
-  end
-
-  defp table_columns() do
-    [
-      %{
-        field: :pid,
-        header: "PID",
-        header_attrs: [class: "pl-4"],
-        cell_attrs: [class: "tabular-column-id pl-4"],
-        format: &(&1 |> encode_pid() |> String.replace_prefix("PID", ""))
-      },
-      %{
-        field: :name_or_initial_call,
-        header: "Name or initial call",
-        cell_attrs: [class: "tabular-column-name"]
-      },
-      %{
-        field: :memory,
-        header: "Memory",
-        header_attrs: [class: "text-right"],
-        cell_attrs: [class: "text-right"],
-        sortable: :desc,
-        format: &format_bytes/1
-      },
-      %{
-        field: :reductions_diff,
-        header: "Reductions",
-        header_attrs: [class: "text-right"],
-        cell_attrs: [class: "text-right"],
-        sortable: :desc
-      },
-      %{
-        field: :message_queue_len,
-        header: "MsgQ",
-        header_attrs: [class: "text-right"],
-        cell_attrs: [class: "text-right"],
-        sortable: :desc
-      },
-      %{
-        field: :current_function,
-        header: "Current function",
-        cell_attrs: [class: "tabular-column-current"],
-        format: &format_call/1
-      }
-    ]
   end
 
   defp row_attrs(process) do

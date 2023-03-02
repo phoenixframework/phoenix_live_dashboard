@@ -36,6 +36,21 @@ In your `mix.exs`, add the following to your `deps`:
   {:ecto_mysql_extras, "~> 0.3"},
 ```
 
+### SQLite
+
+To enable the "Ecto Stats" functionality for SQLite in your dashboard, you will need to do the three steps below:
+
+  1. Add the [`ecto_sqlite3_extras`](https://hexdocs.pm/ecto_sqlite3_extras) dependency
+  2. (optional) Configure the dashboard
+
+#### Add the `ecto_sqlite3_extras` dependency
+
+In your `mix.exs`, add the following to your `deps`:
+
+```elixir
+  {:ecto_sqlite3_extras, "~> 1.0.0"},
+```
+
 ### Configure the dashboard
 
 This step is **only needed if you want to restrict the repositories** listed in your dashboard, because
@@ -53,6 +68,7 @@ If you want to disable the "Ecto Stats" option altogether, set `ecto_repos: []`.
 
 Some queries such as `long_running_queries` can be configured by passing an extra `ecto_psql_extras_options` for PostgreSQL or `ecto_mysql_extras_options` for MySQL/MariaDB,
 which is a keyword where:
+
 - each key is the name of the query
 - each value is itself a keyword to be passed as `args`
 
@@ -77,6 +93,16 @@ live_dashboard "/dashboard",
 ```
 
 See the [`ecto_mysql_extras` documentation](https://hexdocs.pm/ecto_mysql_extras/readme.html#usage) for available options.
+
+#### SQLite example
+
+```elixir
+live_dashboard "/dashboard",
+  ecto_repos: [MyApp.Repo],
+  ecto_sqlite3_extras_options: []
+```
+
+See the [`ecto_sqlite3_extras` documentation](https://github.com/orsinium-labs/ecto_sqlite3_extras) for available options.
 
 ### Install custom PostgreSQL extensions
 

@@ -5,77 +5,44 @@ defmodule Phoenix.LiveDashboard.SocketsPage do
   alias Phoenix.LiveDashboard.SystemInfo
   import Phoenix.LiveDashboard.Helpers
 
-  @table_id :table
   @menu_text "Sockets"
 
   @impl true
-  def render_page(_assigns) do
-    table(
-      columns: table_columns(),
-      id: @table_id,
-      row_attrs: &row_attrs/1,
-      row_fetcher: &fetch_sockets/2,
-      title: "Sockets"
-    )
+  def render(assigns) do
+    ~H"""
+    <.live_table
+      id="sockets-table"
+      dom_id="sockets-table"
+      page={@page}
+      title="Sockets"
+      row_fetcher={&fetch_sockets/2}
+      row_attrs={&row_attrs/1}
+    >
+      <:col field={:port} :let={socket}>
+        <%= socket[:port] |> encode_socket() |> String.trim_leading("Socket") %>
+      </:col>
+      <:col field={:module} sortable={:asc} />
+      <:col field={:send_oct} header="Sent" text_align="right" sortable={:desc} :let={socket}>
+        <%= format_bytes(socket[:send_oct]) %>
+      </:col>
+      <:col field={:recv_oct} header="Received" text_align="right" sortable={:desc} :let={socket}>
+        <%= format_bytes(socket[:recv_oct]) %>
+      </:col>
+      <:col field={:local_address} header="Local Address" sortable={:asc} />
+      <:col field={:foreign_address} sortable={:asc} />
+      <:col field={:state} sortable={:asc} />
+      <:col field={:type} sortable={:asc} />
+      <:col field={:connected} header="Owner" :let={socket}>
+        <%= encode_pid(socket[:connected]) %>
+      </:col>
+    </.live_table>
+    """
   end
 
   defp fetch_sockets(params, node) do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
 
     SystemInfo.fetch_sockets(node, search, sort_by, sort_dir, limit)
-  end
-
-  defp table_columns() do
-    [
-      %{
-        field: :port,
-        header_attrs: [class: "pl-4"],
-        format: &(&1 |> encode_socket() |> String.trim_leading("Socket")),
-        cell_attrs: [class: "tabular-column-name tabular-column-id pl-4"]
-      },
-      %{
-        field: :module,
-        sortable: :asc
-      },
-      %{
-        field: :send_oct,
-        header: "Sent",
-        header_attrs: [class: "text-right pr-4"],
-        format: &format_bytes/1,
-        cell_attrs: [class: "tabular-column-bytes pr-4"],
-        sortable: :desc
-      },
-      %{
-        field: :recv_oct,
-        header: "Received",
-        header_attrs: [class: "text-right pr-4"],
-        format: &format_bytes/1,
-        cell_attrs: [class: "tabular-column-bytes pr-4"],
-        sortable: :desc
-      },
-      %{
-        field: :local_address,
-        header: "Local Address",
-        sortable: :asc
-      },
-      %{
-        field: :foreign_address,
-        sortable: :asc
-      },
-      %{
-        field: :state,
-        sortable: :asc
-      },
-      %{
-        field: :type,
-        sortable: :asc
-      },
-      %{
-        field: :connected,
-        header: "Owner",
-        format: &encode_pid/1
-      }
-    ]
   end
 
   defp row_attrs(socket) do

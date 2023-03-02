@@ -5,57 +5,38 @@ defmodule Phoenix.LiveDashboard.EtsPage do
   alias Phoenix.LiveDashboard.SystemInfo
   import Phoenix.LiveDashboard.Helpers
 
-  @table_id :table
   @menu_text "ETS"
 
   @impl true
-  def render_page(_assigns) do
-    table(
-      columns: table_columns(),
-      id: @table_id,
-      row_attrs: &row_attrs/1,
-      row_fetcher: &fetch_ets/2,
-      rows_name: "tables",
-      title: "ETS"
-    )
+  def render(assigns) do
+    ~H"""
+    <.live_table
+      id="ets-table"
+      dom_id="ets-table"
+      page={@page}
+      title="ETS"
+      row_fetcher={&fetch_ets/2}
+      row_attrs={&row_attrs/1}
+      rows_name="tables"
+    >
+      <:col field={:name} header="Name or module" />
+      <:col field={:protection} />
+      <:col field={:type} />
+      <:col field={:size} text_align="right" sortable={:desc} />
+      <:col field={:memory} text_align="right" sortable={:desc} :let={ets}>
+        <%= format_words(ets[:memory]) %>
+      </:col>
+      <:col field={:owner} :let={ets} >
+        <%= encode_pid(ets[:owner]) %>
+      </:col>
+    </.live_table>
+    """
   end
 
   defp fetch_ets(params, node) do
     %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
 
     SystemInfo.fetch_ets(node, search, sort_by, sort_dir, limit)
-  end
-
-  defp table_columns() do
-    [
-      %{
-        field: :name,
-        header: "Name or module",
-        header_attrs: [class: "pl-4"],
-        cell_attrs: [class: "tabular-column-name pl-4"]
-      },
-      %{
-        field: :protection
-      },
-      %{
-        field: :type
-      },
-      %{
-        field: :size,
-        cell_attrs: [class: "text-right"],
-        sortable: :desc
-      },
-      %{
-        field: :memory,
-        cell_attrs: [class: "tabular-column-bytes"],
-        format: &format_words/1,
-        sortable: :desc
-      },
-      %{
-        field: :owner,
-        format: &encode_pid/1
-      }
-    ]
   end
 
   defp row_attrs(table) do
