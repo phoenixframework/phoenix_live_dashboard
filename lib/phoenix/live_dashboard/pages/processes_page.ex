@@ -8,15 +8,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
   @menu_text "Processes"
 
   @impl true
-  def render_page(_assigns) do
-    table(
-      columns: table_columns(),
-      id: @table_id,
-      row_attrs: &row_attrs/1,
-      row_fetcher: {&fetch_processes/3, nil},
-      title: "Processes",
-      filter: get_filter_list()
-    )
+
 
   def render(assigns) do
     ~H"""
@@ -27,6 +19,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       row_fetcher={{&fetch_processes/3, nil}}
       row_attrs={&row_attrs/1}
       title="Processes"
+      filter={get_filter_list()}
     >
       <:col field={:pid} header="PID" :let={process} >
         <%= process[:pid] |> encode_pid() |> String.replace_prefix("PID", "") %>
