@@ -35,7 +35,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
 
     if process_filter_mod = Application.get_env(:phoenix_live_dashboard, :process_filter, nil) do
       filter = assigns.page.params["filter"]
-      filter && process_filter_mod.render(Map.put(assigns, :filter, filter)) || default_render(assigns)
+      filter && process_filter_mod.render_process_info(assigns, filter) || default_render(assigns)
     else
       default_render(assigns)
     end
