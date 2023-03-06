@@ -63,10 +63,10 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
 
     test "renders data" do
       result = render_chart(data: [{"x", "y", "z"}])
-      assert result =~ ~s|<span data-x="x" data-y="y" data-z="z">|
+      assert result =~ ~s|<span data-x="x" data-y="y" data-z="z" id="x-y-z">|
 
       result = render_chart(label: "Count", data: [{nil, "y", "z"}])
-      assert result =~ ~s|<span data-x="Count" data-y="y" data-z="z">|
+      assert result =~ ~s|<span data-x="Count" data-y="y" data-z="z" id="Count-y-z">|
     end
 
     test "renders a description hint" do
