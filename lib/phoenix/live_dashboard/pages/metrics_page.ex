@@ -2,8 +2,6 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder, refresher?: false
 
-  @default_prune_threshold 1_000
-  @default_bucket_size 20
   @menu_text "Metrics"
 
   @impl true
@@ -63,7 +61,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
       <:item :for={item <- @items} name={item} label={format_nav_name(item)} method="redirect">
         <div :if={@metrics} class="phx-dashboard-metrics-grid row">
           <%= for {metric, id} <- @metrics do %>
-            <%= metric_chart(id, @nav, metric) %>
+            <.live_metric_chart id={id(id, @nav)} metric={metric} />
           <% end %>
         </div>
       </:item>
@@ -71,38 +69,49 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
     """
   end
 
-  defp metric_chart(id, nav, metric) do
+  @doc false
+  attr :id, :string,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
+
+  attr :metric, :any, required: true, doc: "Metric to be represented in the chart"
+
+  def live_metric_chart(%{id: id, metric: metric}) do
+    assigns = assigns_from_metric(id, metric)
+
+    ~H"""
+    <Phoenix.LiveDashboard.PageBuilder.live_chart {assigns} />
+    """
+  end
+
+  def assigns_from_metric(id, metric) do
     kind = chart_kind(metric.__struct__)
 
-    assigns = %{
-      id: id(id, nav),
+    %{
+      id: id,
       title: chart_title(metric),
       hint: metric.description,
       kind: kind,
       label: chart_label(metric),
-      tags: Enum.join(metric.tags, "-"),
+      tags: metric.tags,
       prune_threshold: prune_threshold(metric),
       unit: chart_unit(metric.unit),
       bucket_size: bucket_size(kind, metric)
     }
-
-    ~H"""
-    <.live_chart {assigns} />
-    """
   end
 
   defp chart_title(metric) do
-    "#{Enum.join(metric.name, ".")}#{chart_tags(metric.tags)}"
+    "#{Enum.join(metric.name, ".")}#{chart_title_tags(metric.tags)}"
   end
+
+  defp chart_title_tags([]), do: ""
+  defp chart_title_tags(tags), do: " (#{Enum.join(tags, "-")})"
 
   defp chart_label(%{} = metric) do
     metric.name
     |> List.last()
     |> Phoenix.Naming.humanize()
   end
-
-  defp chart_tags([]), do: ""
-  defp chart_tags(tags), do: " (#{Enum.join(tags, "-")})"
 
   defp chart_kind(Telemetry.Metrics.Counter), do: :counter
   defp chart_kind(Telemetry.Metrics.LastValue), do: :last_value
@@ -118,36 +127,19 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   defp chart_unit(:millisecond), do: "ms"
   defp chart_unit(:second), do: "s"
   defp chart_unit(:unit), do: ""
-  defp chart_unit(unit) when is_atom(unit), do: unit
+  defp chart_unit(unit) when is_atom(unit), do: Atom.to_string(unit)
 
+  @default_prune_threshold 1_000
   defp prune_threshold(metric) do
-    prune_threshold =
-      metric.reporter_options[:prune_threshold]
-      |> validate_positive_integer_or_nil!(:prune_threshold)
-
-    to_string(prune_threshold || @default_prune_threshold)
-  end
-
-  defp validate_positive_integer_or_nil!(nil, _field), do: nil
-
-  defp validate_positive_integer_or_nil!(value, field) do
-    unless is_integer(value) and value > 0 do
-      raise ArgumentError,
-            "#{inspect(field)} must be a positive integer, got: #{inspect(value)}"
-    end
-
-    value
+    metric.reporter_options[:prune_threshold] || @default_prune_threshold
   end
 
   defp bucket_size(:distribution, metric), do: normalize_bucket_size(metric)
   defp bucket_size(_kind, _metric), do: nil
 
+  @default_bucket_size 20
   defp normalize_bucket_size(metric) do
-    bucket_size =
-      metric.reporter_options[:bucket_size]
-      |> validate_positive_integer_or_nil!(:bucket_size)
-
-    bucket_size || @default_bucket_size
+    metric.reporter_options[:bucket_size] || @default_bucket_size
   end
 
   defp send_updates_for_entries(entries, nav) do

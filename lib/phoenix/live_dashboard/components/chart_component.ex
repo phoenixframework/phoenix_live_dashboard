@@ -7,13 +7,37 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   end
 
   @impl true
+  def update(assigns, socket) do
+    socket = assign(socket, assigns)
+    validate_assigns!(socket.assigns)
+    {:ok, socket}
+  end
+
+  defp validate_assigns!(assigns) do
+    validate_positive_integer_or_nil!(assigns[:bucket_size], :bucket_size)
+    validate_positive_integer_or_nil!(assigns[:prune_threshold], :prune_threshold)
+    :ok
+  end
+
+  defp validate_positive_integer_or_nil!(nil, _field), do: nil
+
+  defp validate_positive_integer_or_nil!(value, field) do
+    unless is_integer(value) and value > 0 do
+      raise ArgumentError,
+            "#{inspect(field)} must be a positive integer, got: #{inspect(value)}"
+    end
+
+    value
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class={chart_size(@full_width)}>
       <div id={"chart-#{@id}"} class="card">
         <div class="card-body">
           <div phx-hook="PhxChartComponent" id={"chart-#{@id}-datasets"} hidden>
-          <span :for={{x, y, z} <- @data} data-x={x || @label} data-y={y} data-z={z}></span>
+            <span :for={{x, y, z} <- @data} data-x={x || @label} data-y={y} data-z={z}></span>
           </div>
           <div class="chart"
               id={"chart-ignore-#{@id}"}
@@ -21,7 +45,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
               data-label={@label}
               data-metric={@kind}
               data-title={@title}
-              data-tags={@tags}
+              data-tags={Enum.join(@tags, "-")}
               data-unit={@unit}
               data-prune-threshold={@prune_threshold}
               {bucket_size(@bucket_size)}

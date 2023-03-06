@@ -74,4 +74,70 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
     assert render(live) =~ data1
     assert render(live) =~ data2
   end
+
+  describe "assigns_from_metric" do
+    import Telemetry.Metrics
+
+    defp subject(metric), do: Phoenix.LiveDashboard.MetricsPage.assigns_from_metric("123", metric)
+
+    test "counter metric" do
+      assert %{
+               label: "Duration",
+               kind: :counter,
+               title: "a.b.c.duration",
+               bucket_size: nil
+             } = subject(counter([:a, :b, :c, :duration]))
+    end
+
+    test "summary metric" do
+      assert %{
+               label: "Count",
+               kind: :summary,
+               title: "a.b.c.count",
+               bucket_size: nil
+             } = subject(summary([:a, :b, :c, :count]))
+    end
+
+    test "last_value metric" do
+      assert %{
+               label: "Count",
+               kind: :last_value,
+               title: "a.b.c.count",
+               bucket_size: nil
+             } = subject(last_value([:a, :b, :c, :count]))
+    end
+
+    test "distribution metric" do
+      assert %{
+               label: "Count",
+               kind: :distribution,
+               title: "a.b.c.count",
+               bucket_size: 20
+             } = subject(distribution([:a, :b, :c, :count]))
+    end
+
+    test "adds tags to title" do
+      assert %{
+               title: "a.b.c.count (foo-bar)",
+               tags: [:foo, :bar]
+             } = subject(last_value([:a, :b, :c, :count], tags: [:foo, :bar]))
+    end
+
+    test "transforms unit" do
+      assert %{unit: "MB"} = subject(last_value([:a, :b, :c, :size], unit: :megabyte))
+      assert %{unit: "whatever"} = subject(last_value([:a, :b, :c, :size], unit: :whatever))
+    end
+
+    test "adds hint from description" do
+      description = "test description"
+
+      assert %{hint: ^description} =
+               subject(last_value([:a, :b, :c, :size], description: description))
+    end
+
+    test "adds prune_threshold from report_options" do
+      opts = [reporter_options: [prune_threshold: 5]]
+      assert %{prune_threshold: 5} = subject(last_value([:a, :b, :c, :size], opts))
+    end
+  end
 end

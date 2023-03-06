@@ -1,148 +1,119 @@
 defmodule Phoenix.LiveDashboard.ChartComponentTest do
   use ExUnit.Case, async: true
 
-  @moduletag skip: "WIP"
-
   import Phoenix.LiveViewTest
-  import Telemetry.Metrics
 
   alias Phoenix.LiveDashboard.ChartComponent
-  @endpoint Phoenix.LiveDashboardTest.Endpoint
 
-  defp render_chart(opts) do
-    render_component(ChartComponent, [id: 123] ++ opts)
+  defp render_chart(assigns) do
+    defaults = %{
+      id: "123",
+      full_width: false,
+      title: "Default title",
+      hint: "Default hint",
+      data: [],
+      kind: :last_value,
+      label: "Default label",
+      tags: [],
+      unit: "",
+      prune_threshold: 1_000,
+      bucket_size: 20
+    }
+
+    assigns = Map.merge(defaults, Map.new(assigns))
+    render_component(ChartComponent, assigns)
   end
 
   describe "rendering" do
-    test "counter metric" do
-      result = render_chart(metric: counter([:a, :b, :c, :duration]))
-      assert result =~ ~s|data-label="Duration"|
-      assert result =~ ~s|data-metric="counter"|
-      assert result =~ ~s|data-title="a.b.c.duration"|
+    test "renders full_width" do
+      result = render_chart(full_width: true)
+      assert result =~ ~s|<div class="col-12 charts-col">|
+
+      result = render_chart(full_width: false)
+      assert result =~ ~s|<div class="col-xl-6 col-xxl-4 col-xxxl-3 charts-col">|
     end
 
-    test "summary metric" do
-      result = render_chart(metric: summary([:a, :b, :c, :count]))
-      assert result =~ ~s|data-label="Count"|
-      assert result =~ ~s|data-metric="summary"|
-      assert result =~ ~s|data-title="a.b.c.count"|
+    test "renders title" do
+      result = render_chart(title: "Test title")
+      assert result =~ ~s|data-title="Test title"|
     end
 
-    test "last_value metric" do
-      result = render_chart(metric: last_value([:a, :b, :c, :count]))
-      assert result =~ ~s|data-label="Count"|
+    test "renders kind" do
+      result = render_chart(kind: "last_value")
       assert result =~ ~s|data-metric="last_value"|
-      assert result =~ ~s|data-title="a.b.c.count"|
     end
 
-    test "distribution metric" do
-      result = render_chart(metric: distribution([:a, :b, :c, :count]))
-      assert result =~ ~s|data-label="Count"|
-      assert result =~ ~s|data-metric="distribution"|
-      assert result =~ ~s|data-title="a.b.c.count"|
-      assert result =~ ~s|data-bucket-size="20"|
-    end
+    test "renders unit" do
+      result = render_chart(unit: "megabyte")
+      assert result =~ ~s|data-unit="megabyte"|
 
-    test "reporter_options: bucket_size only applies to distribution" do
-      result = render_chart(metric: last_value([:a, :b, :c, :count]))
-      refute result =~ ~s|data-bucket-size="20"|
-
-      result = render_chart(metric: summary([:a, :b, :c, :count]))
-      refute result =~ ~s|data-bucket-size="20"|
-
-      result = render_chart(metric: counter([:a, :b, :c, :duration]))
-      refute result =~ ~s|data-bucket-size="20"|
-    end
-
-    test "reporter_options: bucket_size must be a positive integer" do
-      assert_raise ArgumentError, fn ->
-        render_chart(
-          metric: distribution([:a, :b, :c, :size], reporter_options: [bucket_size: -1])
-        )
-      end
-
-      assert_raise ArgumentError, fn ->
-        render_chart(
-          metric: distribution([:a, :b, :c, :size], reporter_options: [bucket_size: 0])
-        )
-      end
-
-      assert_raise ArgumentError, fn ->
-        render_chart(
-          metric: distribution([:a, :b, :c, :size], reporter_options: [bucket_size: :an_atom])
-        )
-      end
-
-      assert_raise ArgumentError, fn ->
-        render_chart(
-          metric: distribution([:a, :b, :c, :size], reporter_options: [bucket_size: MyModule])
-        )
-      end
-
-      result =
-        render_chart(
-          metric: distribution([:a, :b, :c, :size], reporter_options: [bucket_size: 500])
-        )
-
-      assert result =~ ~s|data-bucket-size="500"|
-    end
-
-    test "adds units" do
-      result = render_chart(metric: last_value([:a, :b, :c, :size], unit: :megabyte))
-      assert result =~ ~s|data-unit="MB"|
-
-      result = render_chart(metric: last_value([:a, :b, :c, :size], unit: :whatever))
+      result = render_chart(unit: "whatever")
       assert result =~ ~s|data-unit="whatever"|
     end
 
-    test "adds tags to data and title" do
-      result = render_chart(metric: last_value([:a, :b, :c, :size], tags: [:foo, :bar]))
-      assert result =~ ~s|data-title="a.b.c.size (foo-bar)"|
+    test "renders tags" do
+      result = render_chart(tags: ["foo", "bar"])
       assert result =~ ~s|data-tags="foo-bar"|
     end
 
-    test "adds max number of events" do
-      result =
-        render_chart(
-          metric: last_value([:a, :b, :c, :size], reporter_options: [prune_threshold: 5])
-        )
-
+    test "renders max number of events" do
+      result = render_chart(prune_threshold: 5)
       assert result =~ ~s|data-prune-threshold="5"|
-
-      assert_raise ArgumentError, fn ->
-        render_chart(
-          metric: last_value([:a, :b, :c, :size], reporter_options: [prune_threshold: -1])
-        )
-      end
-
-      assert_raise ArgumentError, fn ->
-        render_chart(
-          metric: last_value([:a, :b, :c, :size], reporter_options: [prune_threshold: :infinity])
-        )
-      end
     end
 
     test "renders data" do
-      result = render_chart(metric: last_value([:a, :b, :c, :count]), data: [{"x", "y", "z"}])
+      result = render_chart(data: [{"x", "y", "z"}])
       assert result =~ ~s|<span data-x="x" data-y="y" data-z="z">|
 
-      result = render_chart(metric: last_value([:a, :b, :c, :count]), data: [{nil, "y", "z"}])
+      result = render_chart(label: "Count", data: [{nil, "y", "z"}])
       assert result =~ ~s|<span data-x="Count" data-y="y" data-z="z">|
     end
 
-    test "renders a description hint when a description is provided" do
+    test "renders a description hint" do
       description = "test description"
-
-      result =
-        render_chart(
-          metric: last_value([:a, :b, :c, :count], description: description),
-          data: [{"x", "y", "z"}]
-        )
-
+      result = render_chart(hint: description, data: [{"x", "y", "z"}])
       assert result =~ description
 
-      result = render_chart(metric: last_value([:a, :b, :c, :count]), data: [{"x", "y", "z"}])
+      result = render_chart(data: [{"x", "y", "z"}])
       refute result =~ description
+    end
+
+    test "renders bucket size" do
+      result = render_chart(bucket_size: nil)
+      refute result =~ ~s|data-bucket-size=|
+
+      result = render_chart(bucket_size: 50)
+      assert result =~ ~s|data-bucket-size="50"|
+    end
+  end
+
+  describe "validates" do
+    test "bucket_size" do
+      msg = ":bucket_size must be a positive integer, got: -1"
+
+      assert_raise ArgumentError, msg, fn ->
+        render_chart(bucket_size: -1)
+      end
+
+      msg = ":bucket_size must be a positive integer, got: true"
+
+      assert_raise ArgumentError, msg, fn ->
+        render_chart(bucket_size: true)
+      end
+    end
+
+    test "prune_threshold" do
+      msg = ":prune_threshold must be a positive integer, got: -1"
+
+      assert_raise ArgumentError, msg, fn ->
+        render_chart(prune_threshold: -1)
+      end
+
+      msg = ":prune_threshold must be a positive integer, got: true"
+
+      assert_raise ArgumentError, msg, fn ->
+        render_chart(prune_threshold: true)
+      end
     end
   end
 end
