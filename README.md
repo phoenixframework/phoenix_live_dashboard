@@ -30,7 +30,7 @@ LiveDashboard provides real-time performance monitoring and debugging tools for 
 
 The dashboard also works across nodes. If your nodes are connected via Distributed Erlang, then you can access information from node B while accessing the dashboard on node A.
 
-![screenshot](https://github.com/phoenixframework/phoenix_live_dashboard/raw/master/screenshot.png)
+![screenshot](https://github.com/phoenixframework/phoenix_live_dashboard/raw/main/screenshot.png)
 
 ## Installation
 

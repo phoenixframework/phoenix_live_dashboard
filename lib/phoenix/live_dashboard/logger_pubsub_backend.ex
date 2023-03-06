@@ -1,6 +1,15 @@
 defmodule Phoenix.LiveDashboard.LoggerPubSubBackend do
   @moduledoc false
 
+  # Erlang/OTP log handler
+  def log(%{meta: metadata, level: level} = event, config) do
+    with {pubsub, topic} <- metadata[:logger_pubsub_backend] do
+      %{formatter: {formatter_mod, formatter_config}} = config
+      chardata = formatter_mod.format(event, formatter_config)
+      Phoenix.PubSub.broadcast(pubsub, topic, {:logger, level, chardata})
+    end
+  end
+
   @behaviour :gen_event
 
   @impl true
