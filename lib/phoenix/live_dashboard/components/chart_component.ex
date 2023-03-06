@@ -49,12 +49,12 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
     <div class={chart_size(@full_width)}>
       <div id={"chart-#{@id}"} class="card">
         <div class="card-body">
-          <div phx-hook="PhxChartComponent" id={"chart-#{@id}-datasets"} hidden>
+          <div phx-hook="PhxChartComponent" id={"chart-#{@id}-datasets"} phx-update="stream" hidden>
             <span :for={{id, {x, y, z}} <- @streams.data} data-x={x} data-y={y} data-z={z} id={id}></span>
           </div>
           <div class="chart"
               id={"chart-ignore-#{@id}"}
-              phx-update="stream"
+              phx-update="ignore"
               data-label={@label}
               data-metric={@kind}
               data-title={@title}
