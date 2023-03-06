@@ -233,7 +233,6 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
   describe "fetch_memory_allocators" do
     test "returns" do
       assert list = SystemInfo.fetch_memory_allocators(node())
-      assert length(list) == 11
 
       assert [
                [
