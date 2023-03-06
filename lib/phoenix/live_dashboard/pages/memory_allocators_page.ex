@@ -47,7 +47,7 @@ defmodule Phoenix.LiveDashboard.MemoryAllocatorsPage do
     """
   end
 
-  defp chart_id(), do: "memory-allocators-table"
+  defp chart_id(), do: "memory-allocators-chart"
 
   defp fetch_memory_allocators(params, node) do
     %{sort_by: sort_by, sort_dir: sort_dir} = params

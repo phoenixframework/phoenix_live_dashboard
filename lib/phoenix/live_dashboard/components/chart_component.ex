@@ -54,7 +54,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
           </div>
           <div class="chart"
               id={"chart-ignore-#{@id}"}
-              phx-update="ignore"
+              phx-update="stream"
               data-label={@label}
               data-metric={@kind}
               data-title={@title}
