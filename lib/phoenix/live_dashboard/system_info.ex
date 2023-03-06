@@ -309,7 +309,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   defp show_process?(info, search) do
     pid = info[:pid] |> :erlang.pid_to_list() |> List.to_string()
-    name_or_call = info[:name_or_initial_call]
+    name_or_call = info[:name_or_initial_call] || ""
     pid =~ search or String.downcase(name_or_call) =~ search
   end
 
