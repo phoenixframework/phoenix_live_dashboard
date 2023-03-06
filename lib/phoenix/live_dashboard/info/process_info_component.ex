@@ -1,7 +1,9 @@
 defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_component
 
+  alias Phoenix.LiveDashboard.PageFilter
   alias Phoenix.LiveDashboard.SystemInfo
+
   @info_keys [
     :pid,
     :initial_call,
@@ -36,7 +38,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
     ~H"""
     <div class="tabular-info">
       <%= if @alive do %>
-        <%=process_info_content(assigns) %>
+        <%=render_info_content(assigns) %>
 
         <%= if @page.allow_destructive_actions do %>
           <div class="modal-footer">
@@ -50,10 +52,13 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
     """
   end
 
-  defp process_info_content(assigns) do
-    if process_filter_mod = Application.get_env(:phoenix_live_dashboard, :process_filter, nil) do
+  defp render_info_content(assigns) do
+    if filter_mod = Application.get_env(:phoenix_live_dashboard, :process_filter, nil) do
       filter = assigns.page.params["filter"]
-      filter && process_filter_mod.info_content(assigns, filter) || default_process_info_content(assigns)
+
+      (filter &&
+         PageFilter.render_info_page(assigns, filter, filter_mod)) ||
+        default_process_info_content(assigns)
     else
       default_process_info_content(assigns)
     end

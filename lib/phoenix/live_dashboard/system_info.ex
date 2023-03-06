@@ -209,7 +209,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   def processes_callback(process_filter, search, sort_by, sort_dir, limit, prev_reductions) do
     multiplier = sort_dir_multipler(sort_dir)
 
-     processes =
+    processes =
       for pid <- process_list(process_filter),
           info = process_info(pid, prev_reductions),
           show_process?(info, search) do
@@ -219,14 +219,19 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     next_state = for {_sorter, info} <- processes, into: %{}, do: {info[:pid], info[:reductions]}
 
-    count = if search || process_filter, do: length(processes), else: :erlang.system_info(:process_count)
+    count =
+      if search || process_filter,
+        do: length(processes),
+        else: :erlang.system_info(:process_count)
+
     processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
 
     {processes, count, next_state}
   end
 
   defp process_info(pid_info, prev_reductions) do
-    pid = is_pid(pid_info) && pid_info || pid_info.pid
+    pid = (is_pid(pid_info) && pid_info) || pid_info.pid
+
     if info = Process.info(pid, @processes_keys) do
       diff = info[:reductions] - (prev_reductions[pid] || 0)
 
@@ -765,7 +770,6 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     %PortDetails{port: port, description: description}
   end
-
 
   def process_list(nil) do
     Process.list()
