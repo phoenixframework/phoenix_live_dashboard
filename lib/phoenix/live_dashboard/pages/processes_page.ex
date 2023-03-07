@@ -8,7 +8,6 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
   @menu_text "Processes"
 
   @impl true
-
   def render(assigns) do
     ~H"""
     <.live_table
