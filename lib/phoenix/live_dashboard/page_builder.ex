@@ -845,6 +845,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     """
   end
 
+  @doc false
   def send_data_to_chart(id, data) do
     Phoenix.LiveView.send_update(ChartComponent, id: id, data: data)
   end
