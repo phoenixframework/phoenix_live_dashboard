@@ -33,11 +33,31 @@ defmodule Phoenix.LiveDashboard.Pages.MemoryAllocatorsPageTest do
     |> Enum.each(fn name -> assert table =~ render_row(name) end)
   end
 
+  test "sortable" do
+    {:ok, live, _} = live(build_conn(), path(:max_carrier_size, :desc))
+
+    assert live
+           |> element("th.memory-allocators-table-max_carrier_size")
+           |> render() =~ ~s|<span class="icon-sort icon-desc"></span>|
+
+    render_patch(live, path(:carrier_size, :asc))
+
+    assert live
+           |> element("th.memory-allocators-table-carrier_size")
+           |> render() =~ ~s|<span class="icon-sort icon-asc"></span>|
+
+    render_patch(live, path(:block_size, :asc))
+
+    assert live
+           |> element("th.memory-allocators-table-block_size")
+           |> render() =~ ~s|<span class="icon-sort icon-asc"></span>|
+  end
+
   defp render_row(name) do
     ~r|<td class="memory-allocators-table-name">[\r\n\s]*#{name}[\r\n\s]*</td>|
   end
 
   defp path(sort_by \\ :block_size, sort_dir \\ :desc) do
-    "/dashboard/memory_allocators?sort_by=#{sort_by}&sort_dir#{sort_dir}"
+    "/dashboard/memory_allocators?sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end
