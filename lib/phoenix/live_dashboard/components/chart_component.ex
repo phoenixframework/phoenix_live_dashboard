@@ -3,14 +3,17 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
 
   @impl true
   def mount(socket) do
-    {:ok, stream(socket, :data, [], dom_id: &data_dom_id/1)}
+    {:ok, stream(socket, :data, [], dom_id: data_dom_id())}
   end
 
-  defp data_dom_id({x, y, z}), do: "#{x}-#{y}-#{z}"
+  defp data_dom_id() do
+    uniq = :erlang.unique_integer([:positive])
+    fn {x, y, z} -> "#{uniq}-#{x}-#{y}-#{z}" end
+  end
 
   @impl true
   def update(assigns, socket) do
-    {data, assigns} = Map.pop(assigns, :data)
+    {data, assigns} = Map.pop(assigns, :data, [])
     socket = assign(socket, assigns) |> normalize_assigns!(data)
     {:ok, socket}
   end
@@ -32,8 +35,6 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
 
     value
   end
-
-  defp normalize_data(socket, nil), do: socket
 
   defp normalize_data(socket, data) do
     label = socket.assigns.label
