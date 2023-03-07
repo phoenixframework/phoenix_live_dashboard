@@ -130,8 +130,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
       if assigns.filter do
         all_params
         |> get_in_or_first("filter", Enum.map(assigns.filter, &to_string/1))
-      else
-        nil
       end
 
     table_params = %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search, filter: filter}
