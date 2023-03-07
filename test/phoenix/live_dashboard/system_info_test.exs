@@ -229,4 +229,86 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
                SystemInfo.fetch_app_tree(node(), :kernel)
     end
   end
+
+  describe "fetch_memory_allocators" do
+    test "returns" do
+      assert list = SystemInfo.fetch_memory_allocators(node())
+
+      assert [
+               [
+                 name: :total,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ],
+               [
+                 name: :temp_alloc,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ],
+               [
+                 name: :sl_alloc,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ],
+               [
+                 name: :std_alloc,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ],
+               [
+                 name: :ll_alloc,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ],
+               [
+                 name: :eheap_alloc,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ],
+               [
+                 name: :ets_alloc,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ],
+               [
+                 name: :fix_alloc,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ],
+               [
+                 name: :literal_alloc,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ],
+               [
+                 name: :binary_alloc,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ],
+               [
+                 name: :driver_alloc,
+                 block_size: _,
+                 carrier_size: _,
+                 max_carrier_size: _
+               ]
+             ] = list
+
+      for alloc <- list do
+        assert is_atom(alloc[:name])
+        assert is_integer(alloc[:block_size])
+        assert is_integer(alloc[:carrier_size])
+        assert is_integer(alloc[:max_carrier_size])
+      end
+    end
+  end
 end
