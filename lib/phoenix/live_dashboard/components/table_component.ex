@@ -137,7 +137,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     |> Map.put(:table_params, table_params)
     |> Map.delete(:col)
     |> Map.put(:columns, columns)
-
   end
 
   defp sortable_columns(columns) do
