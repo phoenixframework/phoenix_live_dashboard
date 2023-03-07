@@ -28,8 +28,7 @@ defmodule Phoenix.LiveDashboard.PageFilter do
     ~H"""
     <table class="table table-hover tabular-info-table">
       <tbody>
-      <%= for elem <- @info_content do %>
-        <tr>
+      <tr :for={elem <- @info_content}>
           <td class="border-top-0"><%= elem.label %></td>
           <td class="border-top-0"><pre><%= elem.value %></pre></td>
         </tr>
