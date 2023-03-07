@@ -67,26 +67,26 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   def default_process_info_content(assigns) do
     ~H"""
     <Phoenix.LiveDashboard.PageBuilder.label_value_list>
-    <:elem label="Registered name"><%= @registered_name %></:elem>
-    <:elem label="Current function"><%= @current_function %></:elem>
-    <:elem label="Initial call"><%= @initial_call %></:elem>
-    <:elem label="Status"><%= @status %></:elem>
-    <:elem label="Message queue length"><%= @message_queue_len %></:elem>
-    <:elem label="Ancestors"><.info links={@ancestor_links} /></:elem>
-    <:elem label="Other links"><.info links={@other_links} /></:elem>
-    <:elem label="Monitors"><.info links={@monitors} /></:elem>
-    <:elem label="Monitored by"><.info links={@monitored_by} /></:elem>
-    <:elem label="Trap exit"><%= @trap_exit %></:elem>
-    <:elem label="Error handler"><%= @error_handler %></:elem>
-    <:elem label="Priority"><%= @priority %></:elem>
-    <:elem label="Group leader"><%= @group_leader %></:elem>
-    <:elem label="Total heap size"><%= @total_heap_size %></:elem>
-    <:elem label="Heap size"><%= @heap_size %></:elem>
-    <:elem label="Stack size"><%= @stack_size %></:elem>
-    <:elem label="Reductions"><%= @reductions %></:elem>
-    <:elem label="Garbage collection"><%= @garbage_collection %></:elem>
-    <:elem label="Suspending"><%= @suspending %></:elem>
-    <:elem label="Current stacktrace"><%= @current_stacktrace %></:elem>
+      <:elem label="Registered name"><%= @registered_name %></:elem>
+      <:elem label="Current function"><%= @current_function %></:elem>
+      <:elem label="Initial call"><%= @initial_call %></:elem>
+      <:elem label="Status"><%= @status %></:elem>
+      <:elem label="Message queue length"><%= @message_queue_len %></:elem>
+      <:elem label="Ancestors"><.info links={@ancestor_links} /></:elem>
+      <:elem label="Other links"><.info links={@other_links} /></:elem>
+      <:elem label="Monitors"><.info links={@monitors} /></:elem>
+      <:elem label="Monitored by"><.info links={@monitored_by} /></:elem>
+      <:elem label="Trap exit"><%= @trap_exit %></:elem>
+      <:elem label="Error handler"><%= @error_handler %></:elem>
+      <:elem label="Priority"><%= @priority %></:elem>
+      <:elem label="Group leader"><%= @group_leader %></:elem>
+      <:elem label="Total heap size"><%= @total_heap_size %></:elem>
+      <:elem label="Heap size"><%= @heap_size %></:elem>
+      <:elem label="Stack size"><%= @stack_size %></:elem>
+      <:elem label="Reductions"><%= @reductions %></:elem>
+      <:elem label="Garbage collection"><%= @garbage_collection %></:elem>
+      <:elem label="Suspending"><%= @suspending %></:elem>
+      <:elem label="Current stacktrace"><%= @current_stacktrace %></:elem>
     </Phoenix.LiveDashboard.PageBuilder.label_value_list>
     """
   end

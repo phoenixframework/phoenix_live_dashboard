@@ -38,7 +38,8 @@ defmodule Phoenix.LiveDashboard.PageFilter do
     """
   end
 
-  defp render_page_content(_assigns, content) when is_struct(content, Phoenix.LiveView.Rendered) do
+  defp render_page_content(_assigns, content)
+       when is_struct(content, Phoenix.LiveView.Rendered) do
     content
   end
 end

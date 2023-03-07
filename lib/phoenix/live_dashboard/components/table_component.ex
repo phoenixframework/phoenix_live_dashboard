@@ -132,7 +132,14 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         |> get_in_or_first("filter", Enum.map(assigns.filter, &to_string/1))
       end
 
-    table_params = %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search, filter: filter}
+    table_params = %{
+      sort_by: sort_by,
+      sort_dir: sort_dir,
+      limit: limit,
+      search: search,
+      filter: filter
+    }
+
     assigns
     |> Map.put(:table_params, table_params)
     |> Map.delete(:col)
