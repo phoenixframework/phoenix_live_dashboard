@@ -17,7 +17,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       row_fetcher={{&fetch_processes/3, nil}}
       row_attrs={&row_attrs/1}
       title="Processes"
-      filter={get_filter_list()}
+      filter={get_filter_list(@page.node)}
     >
       <:col field={:pid} header="PID" :let={process} >
         <%= process[:pid] |> encode_pid() |> String.replace_prefix("PID", "") %>
@@ -52,11 +52,8 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
     ]
   end
 
-  defp get_filter_list() do
-    case Application.get_env(:phoenix_live_dashboard, :process_filter) do
-      nil -> nil
-      process_filter_module -> process_filter_module.list()
-    end
+  defp get_filter_list(node) do
+    :rpc.call(node, SystemInfo, :get_process_filter_list, [])
   end
 
   @impl true

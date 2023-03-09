@@ -237,6 +237,13 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     {processes, count, next_state}
   end
 
+  def get_process_filter_list() do
+    case Application.get_env(:phoenix_live_dashboard, :process_filter) do
+      nil -> nil
+      process_filter_module -> process_filter_module.list()
+    end
+  end
+
   defp process_info(pid_info, prev_reductions) do
     pid = (is_pid(pid_info) && pid_info) || pid_info.pid
 
