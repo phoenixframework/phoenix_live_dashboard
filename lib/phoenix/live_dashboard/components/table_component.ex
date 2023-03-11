@@ -3,6 +3,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   alias Phoenix.LiveDashboard.PageBuilder
 
+  require Logger
+
   @limit [50, 100, 500, 1000, 5000]
 
   @type params() :: %{
@@ -10,7 +12,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
           sort_by: :atom,
           sort_dir: :desc | :asc,
           search: binary(),
-          hint: binary() | nil
+          hint: binary() | nil,
+          filter: binary() | nil
         }
 
   @impl true
@@ -99,7 +102,12 @@ defmodule Phoenix.LiveDashboard.TableComponent do
        when is_function(row_fetcher, 3) do
     state = Map.get(socket.assigns, :row_fetcher_state, initial_state)
     {rows, total, state} = row_fetcher.(table_params, page_node, state)
-    {rows, total, assign(socket, :row_fetcher_state, state)}
+
+    {rows, total,
+     socket
+     |> assign(:row_fetcher_state, state)
+     |> assign(:filter_list, Map.get(state, :filter_list))
+     |> assign(:filter, Map.get(state, :filter))}
   end
 
   defp normalize_table_params(assigns) do
@@ -126,11 +134,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     search = all_params["search"]
     search = if search == "", do: nil, else: search
 
-    filter =
-      if assigns.filter do
-        all_params
-        |> get_in_or_first("filter", Enum.map(assigns.filter, &to_string/1))
-      end
+    filter = all_params["filter"]
 
     table_params = %{
       sort_by: sort_by,
@@ -164,6 +168,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   @impl true
   def render(assigns) do
+    assigns = assign_filter_data(assigns)
+
     ~H"""
     <div id={@dom_id} class="tabular">
       <Phoenix.LiveDashboard.PageBuilder.card_title title={@title} hint={@hint} />
@@ -206,7 +212,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
             <div class="col-auto">
               <div class="input-group input-group-sm">
                 <select name="filter" class="custom-select" id="filter-select">
-                  <%= options_for_select(@filter, @table_params.filter) %>
+                  <%= options_for_select(@filter_list, @filter) %>
                 </select>
               </div>
             </div>
@@ -318,4 +324,14 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   defp replace_sort_dir(params, %{sortable: direction, field: field}),
     do: %{params | sort_dir: direction, sort_by: field}
+
+  defp assign_filter_data(assigns) do
+    row_fetcher_state = Map.get(assigns, :row_fetcher_state)
+
+    (row_fetcher_state &&
+       assigns
+       |> assign(:filter, Map.get(row_fetcher_state, :active_filter))
+       |> assign(:filter_list, Map.get(row_fetcher_state, :available_filters))) ||
+      assigns
+  end
 end

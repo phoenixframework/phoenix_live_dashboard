@@ -216,9 +216,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   @doc false
   def processes_callback(process_filter, search, sort_by, sort_dir, limit, prev_reductions) do
     multiplier = sort_dir_multipler(sort_dir)
+    {active_filter, available_filters, process_list} = get_process_filter_data(process_filter)
 
     processes =
-      for pid <- process_list(process_filter),
+      for pid <- process_list,
           info = process_info(pid, prev_reductions),
           show_process?(info, search) do
         sorter = info[sort_by] * multiplier
@@ -227,20 +228,23 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     next_state = for {_sorter, info} <- processes, into: %{}, do: {info[:pid], info[:reductions]}
 
-    count =
-      if search || process_filter,
-        do: length(processes),
-        else: :erlang.system_info(:process_count)
-
     processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
 
-    {processes, count, next_state}
+    count = length(processes)
+
+    {active_filter, available_filters, processes, count, next_state}
   end
 
-  def get_process_filter_list() do
+  def get_process_filter_data(filter) do
     case Application.get_env(:phoenix_live_dashboard, :process_filter) do
-      nil -> nil
-      process_filter_module -> process_filter_module.list()
+      nil ->
+        {nil, nil, Process.list()}
+
+      filter_mod ->
+        available_filters = filter_mod.list()
+        active_filter = filter || filter_mod.default_filter()
+        process_list = filter_mod.filter(active_filter)
+        {active_filter, available_filters, process_list}
     end
   end
 

@@ -17,7 +17,6 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       row_fetcher={{&fetch_processes/3, nil}}
       row_attrs={&row_attrs/1}
       title="Processes"
-      filter={get_filter_list(@page.node)}
     >
       <:col field={:pid} header="PID" :let={process} >
         <%= process[:pid] |> encode_pid() |> String.replace_prefix("PID", "") %>
@@ -36,12 +35,13 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
   end
 
   defp fetch_processes(params, node, state) do
-    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
+    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit, filter: filter} = params
 
-    {processes, count, state} =
-      SystemInfo.fetch_processes(node, params.filter, search, sort_by, sort_dir, limit, state)
+    {active_filter, available_filters, processes, count, state} =
+      SystemInfo.fetch_processes(node, filter, search, sort_by, sort_dir, limit, state)
 
-    {processes, count, state}
+    {processes, count,
+     state |> Map.merge(%{active_filter: active_filter, available_filters: available_filters})}
   end
 
   defp row_attrs(process) do
@@ -50,10 +50,6 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       {"phx-value-info", encode_pid(process[:pid])},
       {"phx-page-loading", true}
     ]
-  end
-
-  defp get_filter_list(node) do
-    :rpc.call(node, SystemInfo, :get_process_filter_list, [])
   end
 
   @impl true
