@@ -3,8 +3,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   alias Phoenix.LiveDashboard.PageBuilder
 
-  require Logger
-
   @limit [50, 100, 500, 1000, 5000]
 
   @type params() :: %{
@@ -135,6 +133,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     search = if search == "", do: nil, else: search
 
     filter = all_params["filter"]
+    filter = if filter == "", do: nil, else: filter
 
     table_params = %{
       sort_by: sort_by,
@@ -330,8 +329,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
     (row_fetcher_state &&
        assigns
-       |> assign(:filter, Map.get(row_fetcher_state, :active_filter))
-       |> assign(:filter_list, Map.get(row_fetcher_state, :available_filters))) ||
+       |> assign(:filter, Map.get(row_fetcher_state, :filter))
+       |> assign(:filter_list, Map.get(row_fetcher_state, :filter_list))) ||
       assigns
   end
 end

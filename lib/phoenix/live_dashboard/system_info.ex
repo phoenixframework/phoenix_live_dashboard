@@ -220,7 +220,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     processes =
       for pid <- process_list,
-          info = process_info(pid, prev_reductions),
+          info = process_info(pid, prev_reductions[pid]),
           show_process?(info, search) do
         sorter = info[sort_by] * multiplier
         {sorter, info}
@@ -228,9 +228,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     next_state = for {_sorter, info} <- processes, into: %{}, do: {info[:pid], info[:reductions]}
 
-    processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
-
     count = length(processes)
+    processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
 
     {active_filter, available_filters, processes, count, next_state}
   end
@@ -242,19 +241,18 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
       filter_mod ->
         available_filters = filter_mod.list()
-        active_filter = filter || filter_mod.default_filter()
+        active_filter = (filter in available_filters && filter) || filter_mod.default_filter()
         process_list = filter_mod.filter(active_filter)
         {active_filter, available_filters, process_list}
     end
   end
 
-  defp process_info(pid_info, prev_reductions) do
-    pid = (is_pid(pid_info) && pid_info) || pid_info.pid
+  defp process_info(pid, prev_reductions) do
 
     if info = Process.info(pid, @processes_keys) do
-      diff = info[:reductions] - (prev_reductions[pid] || 0)
+      diff = info[:reductions] - (prev_reductions || 0)
 
-      details = to_process_details(pid_info)
+      details = to_process_details(pid)
 
       [
         pid: pid,
@@ -788,16 +786,5 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       end
 
     %PortDetails{port: port, description: description}
-  end
-
-  def process_list(nil) do
-    Process.list()
-  end
-
-  def process_list(filter) do
-    case Application.get_env(:phoenix_live_dashboard, :process_filter) do
-      nil -> process_list(nil)
-      filter_impl -> filter_impl.filter(filter)
-    end
   end
 end

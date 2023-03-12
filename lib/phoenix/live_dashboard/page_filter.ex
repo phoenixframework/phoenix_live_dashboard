@@ -1,6 +1,6 @@
 defmodule Phoenix.LiveDashboard.PageFilter do
   @moduledoc """
-  Page filter allows to customize the view of table components.
+  Page filter allows to customize the list of items for table components.
   This could be useful for cases where there are too many items and/or
   the customized list of items is desired.
   For instance, you may have millions of processes per node. Then, using the standard Processes page
@@ -9,32 +9,34 @@ defmodule Phoenix.LiveDashboard.PageFilter do
 
   Example of custom page filter implementation:
 
-    defmodule ProcessFilter.Demo do
-      @behaviour Phoenix.LiveDashboard.PageFilter
+  defmodule ProcessFilter.Demo do
+  @behaviour Phoenix.LiveDashboard.PageFilter
 
-      # This will result in having Filter dropdown in Processes page
-      @impl true
-      def list() do
-        ["Registered", "All", "Phoenix"]
-      end
+  @impl true
+  def list() do
+    ["All", "Registered", "Phoenix"]
+  end
 
-      # These are custom filter implementations
-      @impl true
-      def filter("Registered") do
-        Process.registered() |> Enum.map(fn name -> %{pid: Process.whereis(name), name_or_initial_call: name} end)
-      end
+  @impl true
+  def default_filter() do
+    "Phoenix"
+  end
 
-      def filter("All") do
-        Process.list()
-      end
+  @impl true
+  def filter("Registered") do
+    Process.registered() |> Enum.map(fn name -> Process.whereis(name) end)
+  end
 
-      def filter("Phoenix") do
-        Process.registered() |> Enum.flat_map(fn name -> String.contains?(to_string(name), "Phoenix") && [
-          %{pid: Process.whereis(name), name_or_initial_call: name}] || []
-        end)
-      end
+  def filter("All") do
+    Process.list()
+  end
 
-    end
+  def filter("Phoenix") do
+    Process.registered() |> Enum.flat_map(fn name -> String.contains?(to_string(name), "Phoenix") &&
+      [Process.whereis(name)]  || []
+  end)
+  end
+  end
 
 
    To enable the filter for Processes page, add this to your config.exs:
@@ -44,11 +46,28 @@ defmodule Phoenix.LiveDashboard.PageFilter do
   What will happen:
 
   - The Processes page will have Filter dropdown defined in list() function;
-  - The groups of processed will be displayed according to selected filter  ;
+  - The groups of processes will be displayed according to selected filter
 
   """
 
   @callback list() :: [String.t()]
 
   @callback filter(filter_name :: String.t()) :: [any()]
+
+  @callback default_filter() :: String.t()
+
+  defmacro __using__(_) do
+    quote do
+      @behaviour Phoenix.LiveDashboard.PageFilter
+      def default_filter() do
+        case list() do
+          nil -> nil
+          [] -> nil
+          [first | _rest] -> first
+        end
+      end
+
+      defoverridable default_filter: 0
+    end
+  end
 end

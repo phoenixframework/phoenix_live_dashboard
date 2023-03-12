@@ -41,7 +41,7 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       SystemInfo.fetch_processes(node, filter, search, sort_by, sort_dir, limit, state)
 
     {processes, count,
-     state |> Map.merge(%{active_filter: active_filter, available_filters: available_filters})}
+     state |> Map.merge(%{filter: active_filter, filter_list: available_filters})}
   end
 
   defp row_attrs(process) do
