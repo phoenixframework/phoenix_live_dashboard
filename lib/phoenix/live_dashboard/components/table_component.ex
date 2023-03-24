@@ -204,7 +204,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         </div>
       </form>
 
-    <%= if @filter do %>
+     <%= if @filter do %>
       <form phx-change="select_filter" phx-target={@myself} class="form-inline">
         <div class="form-row align-items-center">
             <div class="col-auto">Filter</div>
