@@ -248,7 +248,6 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp process_info(pid, prev_reductions) do
-
     if info = Process.info(pid, @processes_keys) do
       diff = info[:reductions] - (prev_reductions || 0)
 
