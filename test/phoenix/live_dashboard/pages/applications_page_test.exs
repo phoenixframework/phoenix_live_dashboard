@@ -75,6 +75,6 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
 
   defp applications_path(limit, search, sort_by, sort_dir) do
     "/dashboard/applications?" <>
-      "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+      "filter=&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end

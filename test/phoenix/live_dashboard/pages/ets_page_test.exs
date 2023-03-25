@@ -93,6 +93,6 @@ defmodule Phoenix.LiveDashboard.EtsPageTest do
 
   defp ets_path(limit, search, sort_by, sort_dir) do
     "/dashboard/ets?" <>
-      "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+      "filter=&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end

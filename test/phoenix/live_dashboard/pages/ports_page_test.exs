@@ -98,6 +98,6 @@ defmodule Phoenix.LiveDashboard.PortsPageTest do
 
   defp ports_path(limit, search, sort_by, sort_dir) do
     "/dashboard/ports?" <>
-      "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+      "filter=&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end

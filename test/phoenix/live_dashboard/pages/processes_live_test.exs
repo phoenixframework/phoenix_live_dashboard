@@ -149,6 +149,6 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
 
   defp processes_path(prefix \\ "dashboard", limit, search, sort_by, sort_dir) do
     "/#{prefix}/processes?" <>
-      "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+      "filter=&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 end
