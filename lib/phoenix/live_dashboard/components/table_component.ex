@@ -101,7 +101,9 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     state = Map.get(socket.assigns, :row_fetcher_state, initial_state)
 
     {active_filter, available_filters, rows, total, state} =
-      row_fetcher.(table_params, page_node, state)
+      with {rows, total, state} <- row_fetcher.(table_params, page_node, state) do
+        {nil, nil, rows, total, state}
+      end
 
     {rows, total,
      socket
