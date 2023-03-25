@@ -256,6 +256,11 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     In this case, the function will receive the state as third argument and must return
     a tuple with the rows, the total number, and the new state for the following call:
     `{(params(), node(), term() -> {list(), integer() | binary(), term()}), term()}`
+    Optionally for latter case: if the page decides to implement custom page filter
+    (please see `Phoenix.LiveDashboard.PageFilter` for details), the function must return
+    a tuple with the active filter, list of available filters, the rows, the total number,
+    and the new state for the following call:
+    `(params(), node(), term() -> {binary() | nil, list() | nil, list(), integer() | binary(), term()})`
     """
 
   attr :rows_name, :string,
