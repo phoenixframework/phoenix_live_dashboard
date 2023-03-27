@@ -140,10 +140,12 @@ end
 defmodule Phoenix.LiveDashboard.SystemInfoTest.ProcessFilter do
   @behaviour Phoenix.LiveDashboard.PageFilter
 
+  @impl true
   def list() do
     ["All", "Registered", "Phoenix"]
   end
 
+  @impl true
   def default_filter() do
     "Phoenix"
   end
@@ -152,6 +154,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest.ProcessFilter do
     Process.registered() |> Enum.map(fn name -> Process.whereis(name) end)
   end
 
+  @impl true
   def filter("All") do
     Process.list()
   end
