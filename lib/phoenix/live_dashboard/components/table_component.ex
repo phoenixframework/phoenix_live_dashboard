@@ -205,20 +205,20 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         </div>
       </form>
 
-     <%= if @active_filter do %>
-      <form phx-change="select_filter" phx-target={@myself} class="form-inline">
-        <div class="form-row align-items-center">
-            <div class="col-auto">Filter</div>
-            <div class="col-auto">
-              <div class="input-group input-group-sm">
-                <select name="filter" class="custom-select" id="filter-select">
-                  <%= options_for_select(@filter_list, @active_filter) %>
-                </select>
+      <%= if @active_filter do %>
+        <form phx-change="select_filter" phx-target={@myself} class="form-inline">
+          <div class="form-row align-items-center">
+              <div class="col-auto">Filter</div>
+              <div class="col-auto">
+                <div class="input-group input-group-sm">
+                  <select name="filter" class="custom-select" id="filter-select">
+                    <%= options_for_select(@filter_list, @active_filter) %>
+                  </select>
+                </div>
               </div>
-            </div>
-        </div>
-      </form>
-     <% end %>
+          </div>
+        </form>
+      <% end %>
 
       <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
