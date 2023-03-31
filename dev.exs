@@ -68,8 +68,8 @@ Application.put_env(:phoenix_live_dashboard, DemoWeb.Endpoint,
   check_origin: false,
   pubsub_server: Demo.PubSub,
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:default, ~w()]},
-    sass: {DartSass, :install_and_run, [:default, ~w()]}
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--watch)]},
+    sass: {DartSass, :install_and_run, [:default, ~w(--watch)]}
   ],
   live_reload: [
     patterns: [
