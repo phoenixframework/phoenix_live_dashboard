@@ -11743,6 +11743,9 @@ footer .footer-dashbit {
   text-decoration: none;
   cursor: pointer;
 }
+.dash-modal .modal-content .modal-action-hidden {
+  display: none;
+}
 
 @media (max-width: 992px) {
   .dash-modal .modal-dialog {
@@ -11909,5 +11912,3 @@ footer .footer-dashbit {
 .phx-disconnected * {
   pointer-events: none;
 }
-
-/*# sourceMappingURL=app.css.map */
