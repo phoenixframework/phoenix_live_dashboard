@@ -497,7 +497,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     attr :current, :integer, required: true, doc: "The current value of the usage."
     attr :limit, :integer, required: true, doc: "The max value of usage."
 
-    attr :dom_sub_id, :string,
+    attr :dom_id, :string,
       required: true,
       doc: "An unique identifier for the usage that will be concatenated to `dom_id`."
 
@@ -513,7 +513,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     <div class="card">
       <div class="card-body card-usage">
         <%= for usage <- @usage do %>
-          <.title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} percent={usage.percent} csp_nonces={@csp_nonces} >
+          <.title_bar_component dom_id={"#{@dom_id}-#{usage.dom_id}"} percent={usage.percent} csp_nonces={@csp_nonces} >
             <div>
               <%= usage.title %>
               <.hint text={usage[:hint]} :if={usage[:hint]}/>
@@ -574,7 +574,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     doc: """
     A list of `Map` with the following keys:
       * `:data` - A list of tuples with 4 elements with the following data: `{usage_name, usage_percent, color, hint}`
-      * `:dom_sub_id` - Required. Usage identifier.
+      * `:dom_id` - Required. Usage identifier.
       * `:title`- Bar title.
     """
 
@@ -585,6 +585,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   attr :total_legend, :string, required: true, doc: "The legent of the total usage."
   attr :total_usage, :string, required: true, doc: "The value of the total usage."
+  attr :dom_id, :string, default: nil, doc: "id attribute for the HTML the main tag."
 
   attr :csp_nonces, :any,
     required: true,
@@ -606,12 +607,12 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     <div class="card">
       <.card_title title={@inner_title} hint={@inner_hint} />
       <div class="card-body">
-        <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
+        <div phx-hook="PhxColorBarHighlight" id={"#{@dom_id}-color-bars"}>
           <div :for={usage <- @usages} class="flex-grow-1 mb-3">
             <div class="progress color-bar-progress flex-grow-1 mb-3">
               <span :if={usage[:title]} class="color-bar-progress-title"><%= usage[:title] %></span>
               <%= for {{name, value, color, _desc}, index} <- Enum.with_index(usage.data) do %>
-                <style nonce={@csp_nonces.style}>#<%= "cpu-#{usage.dom_sub_id}-progress-#{index}" %>{width:<%= value %>%}</style>
+                <style nonce={@csp_nonces.style}>#<%= "#{@dom_id}-#{usage.dom_id}-progress-#{index}" %>{width:<%= value %>%}</style>
                 <div
                     title={"#{name} - #{Phoenix.LiveDashboard.Helpers.format_percent(value)}"}
                     class={"progress-bar color-bar-progress-bar bg-gradient-#{color}"}
@@ -621,7 +622,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
                     aria-valuemax="100"
                     data-name={name}
                     data-empty={empty?(value)}
-                    id={"cpu-#{usage.dom_sub_id}-progress-#{index}"}>
+                    id={"#{@dom_id}-#{usage.dom_id}-progress-#{index}"}>
                 </div>
               <% end %>
             </div>

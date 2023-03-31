@@ -91,7 +91,7 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
           usages={[
             %{
               data: [{"foo", 123, "green", nil}, {"bar", 456, "blue", nil}],
-              dom_sub_id: "test-dom-sub-id",
+              dom_id: "sub-id",
               title: "test-usage-title"
             }
           ]}
@@ -120,12 +120,12 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
     assert result =~ ~S|<span class="color-bar-progress-title">test-usage-title</span>|
 
     assert result =~
-             ~r|<style nonce="style_nonce">#cpu-test-dom-sub-id-progress-(1\|2){width:(123\|456)%}</style>|
+             ~r|<style nonce="style_nonce">#test-dom-id-sub-id-progress-(1\|2){width:(123\|456)%}</style>|
 
     assert result =~ ~r|title=\"(foo\|bar) - (123\|456)%\"|
     assert result =~ ~r|class=\"progress-bar color-bar-progress-bar bg-gradient-(blue\|green)\"|
     assert result =~ ~r|data-name=\"(foo\|bar)\"|
-    assert result =~ ~r|id=\"cpu-test-dom-sub-id-progress-(0\|1)\"|
+    assert result =~ ~r|id=\"test-dom-id-sub-id-progress-(0\|1)\"|
 
     assert result =~ ~r|color-bar-legend-entry\" data-name=\"(foo\|bar)\"|
     assert result =~ ~r|<div class="color-bar-legend-color bg-(blue\|green) mr-2"></div>|
@@ -149,7 +149,7 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
           <:usage
               current={10}
               limit={150}
-              dom_sub_id="test-dom-sub-id"
+              dom_id="test-dom-sub-id"
               title="test-usage-title"
               hint="test-usage-hint"
               percent={13}
