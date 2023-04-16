@@ -217,7 +217,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
               </div>
           </div>
         </form>
-      <% end %>
 
       <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
