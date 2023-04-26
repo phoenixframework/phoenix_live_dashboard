@@ -111,8 +111,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :rpc.call(node, __MODULE__, :app_tree_callback, [application])
   end
 
-  def fetch_memory_allocators(node) do
-    :rpc.call(node, __MODULE__, :memory_allocators_callback, [])
+  def fetch_memory_allocators(node, max_carrier_sizes) do
+    :rpc.call(node, __MODULE__, :memory_allocators_callback, [max_carrier_sizes])
   end
 
   ## System callbacks
@@ -199,7 +199,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     }
   end
 
-  def memory_allocators_callback() do
+  def memory_allocators_callback(old_max_carrier_sizes) do
     allocs = :erlang.system_info(:alloc_util_allocators)
 
     :erlang.system_info({:allocator_sizes, allocs})
@@ -208,13 +208,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end)
     |> prepend_total()
     |> Enum.map(fn {type, {block, current_cs, max_cs}} ->
-      [
+      %{
         name: type,
         block_size: block,
         carrier_size: current_cs,
         max_carrier_size: max_cs
-      ]
+      }
     end)
+    |> calc_max_carrier_sizes(old_max_carrier_sizes)
   end
 
   defp calc_allocator_sizes(allocator_sizes) do
@@ -258,6 +259,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
        end)}
 
     [total | allocator_sizes]
+  end
+
+  defp calc_max_carrier_sizes(allocators, old_max_carrier_sizes) do
+    Enum.map_reduce(allocators, old_max_carrier_sizes || %{}, fn allocator, max_carrier_sizes ->
+      %{name: name, carrier_size: current} = allocator
+      max = Enum.max([old_max_carrier_sizes[name] || 0, current])
+      {Map.put(allocator, :max_carrier_size, max), Map.put(max_carrier_sizes, name, max)}
+    end)
   end
 
   ## Process Callbacks

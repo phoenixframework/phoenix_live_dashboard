@@ -26,7 +26,7 @@ defmodule Phoenix.LiveDashboard.MemoryAllocatorsPage do
         dom_id="memory-allocators-table"
         page={@page}
         title="Memory Allocators"
-        row_fetcher={&fetch_memory_allocators/2}
+        row_fetcher={{&fetch_memory_allocators/3, nil}}
         rows_name="memory allocators"
         search={false}
         limit={false}
@@ -49,15 +49,14 @@ defmodule Phoenix.LiveDashboard.MemoryAllocatorsPage do
 
   defp chart_id(), do: "memory-allocators-chart"
 
-  defp fetch_memory_allocators(params, node) do
+  defp fetch_memory_allocators(params, node, state) do
     %{sort_by: sort_by, sort_dir: sort_dir} = params
 
-    allocs =
-      node
-      |> SystemInfo.fetch_memory_allocators()
-      |> Enum.sort_by(fn item -> item[sort_by] end, sort_dir)
+    {allocs, state} = SystemInfo.fetch_memory_allocators(node, state)
 
-    {allocs, length(allocs)}
+    allocs = Enum.sort_by(allocs, fn item -> item[sort_by] end, sort_dir)
+
+    {allocs, length(allocs), state}
   end
 
   @impl true
@@ -67,7 +66,7 @@ defmodule Phoenix.LiveDashboard.MemoryAllocatorsPage do
 
   @impl true
   def handle_refresh(socket) do
-    allocs = SystemInfo.fetch_memory_allocators(socket.assigns.page.node)
+    {allocs, _} = SystemInfo.fetch_memory_allocators(socket.assigns.page.node, nil)
     now = DateTime.utc_now() |> DateTime.to_unix(:microsecond)
 
     chart_data =
