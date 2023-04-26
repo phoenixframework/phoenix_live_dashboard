@@ -89,42 +89,6 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
   end
 
-  describe "process filter" do
-    setup do
-      Application.put_env(:phoenix_live_dashboard, :process_filter, ProcessFilter)
-      on_exit(fn -> Application.put_env(:phoenix_live_dashboard, :process_filter, nil) end)
-    end
-
-    test "default process filter" do
-      assert "Phoenix" = ProcessFilter.default_filter()
-
-      {active_filter, available_filters, processes, count, _} =
-        SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 5000)
-
-      assert ProcessFilter.default_filter() == active_filter
-      assert ProcessFilter.list() == available_filters
-      assert Enum.count(processes) == count
-
-      {^active_filter, ^available_filters, processes, count, _} =
-        SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 1)
-
-      assert Enum.count(processes) == 1
-      assert count > 1
-    end
-
-    test "process list has filtered entries" do
-      {active_filter, _available_filters, processes, count, _} =
-        SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 5000)
-
-      assert "Phoenix" == active_filter
-
-      assert count ==
-               Enum.count(processes, fn [_pid, {:name_or_initial_call, name} | _] ->
-                 String.contains?(name, "Phoenix")
-               end)
-    end
-  end
-
   describe "ports" do
     test "all with limit" do
       {ports, count} = SystemInfo.fetch_ports(node(), "", :input, :asc, 100)
@@ -286,6 +250,48 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       assert {{:master, _, []},
               [{{:ancestor, _, []}, [{{:supervisor, _, :kernel_sup}, [_ | _]}]}]} =
                SystemInfo.fetch_app_tree(node(), :kernel)
+    end
+  end
+end
+
+defmodule Phoenix.LiveDashboard.SystemInfoTestSync do
+  use ExUnit.Case, async: false
+  alias Phoenix.LiveDashboard.SystemInfo
+  alias Phoenix.LiveDashboard.SystemInfoTest.ProcessFilter
+
+  describe "process filter" do
+    setup do
+      Application.put_env(:phoenix_live_dashboard, :process_filter, ProcessFilter)
+      on_exit(fn -> Application.put_env(:phoenix_live_dashboard, :process_filter, nil) end)
+    end
+
+    test "default process filter" do
+      assert "Phoenix" = ProcessFilter.default_filter()
+
+      {active_filter, available_filters, processes, count, _} =
+        SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 5000)
+
+      assert ProcessFilter.default_filter() == active_filter
+      assert ProcessFilter.list() == available_filters
+      assert Enum.count(processes) == count
+
+      {^active_filter, ^available_filters, processes, count, _} =
+        SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 1)
+
+      assert Enum.count(processes) == 1
+      assert count > 1
+    end
+
+    test "process list has filtered entries" do
+      {active_filter, _available_filters, processes, count, _} =
+        SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 5000)
+
+      assert "Phoenix" == active_filter
+
+      assert count ==
+               Enum.count(processes, fn [_pid, {:name_or_initial_call, name} | _] ->
+                 String.contains?(name, "Phoenix")
+               end)
     end
   end
 end
