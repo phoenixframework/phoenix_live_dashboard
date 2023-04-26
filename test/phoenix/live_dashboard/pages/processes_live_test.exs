@@ -148,7 +148,86 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
   end
 
   defp processes_path(prefix \\ "dashboard", limit, search, sort_by, sort_dir) do
+    processes_path(prefix, limit, search, sort_by, sort_dir, "")
+  end
+
+  defp processes_path(prefix, limit, search, sort_by, sort_dir, filter) do
     "/#{prefix}/processes?" <>
-      "filter=&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+      "filter=#{filter}&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+  end
+end
+
+defmodule Phoenix.LiveDashboard.ProcessesLiveTestSync do
+  use ExUnit.Case, async: false
+
+  import Phoenix.ConnTest
+  import Phoenix.LiveViewTest
+  @endpoint Phoenix.LiveDashboardTest.Endpoint
+
+  alias Phoenix.LiveDashboard.SystemInfoTest.ProcessFilter
+
+  describe "process filter" do
+    setup do
+      Application.put_env(:phoenix_live_dashboard, :process_filter, ProcessFilter)
+      on_exit(fn -> Application.put_env(:phoenix_live_dashboard, :process_filter, nil) end)
+    end
+
+    test "process filter" do
+      ## The process filter is enabled
+
+      {:ok, live, _} =
+        live(
+          build_conn(),
+          processes_path("dashboard", 1000, "", :message_queue_len, :desc, "Phoenix")
+        )
+
+      rendered = render(live)
+
+      ## The filter dropdown contains all filter values defined by ProcessFilter.list/0,
+      ## with "Phoenix" selected
+      assert rendered =~
+               ~s|<option value="All">All</option>|
+
+      assert rendered =~
+               ~s|<option value="Registered">Registered</option>|
+
+      assert rendered =~
+               ~s|<option selected="selected" value="Phoenix">Phoenix</option>|
+
+      ## The page contains the processes that match the filter...
+      assert rendered =~ ~r/Phoenix.LiveDashboard.DynamicSupervisor/
+      ## ...but not the ones that do not match
+      refute rendered =~ ~r/\:init/
+
+      ## Change active filter
+
+      {:ok, live, _} =
+        live(
+          build_conn(),
+          processes_path("dashboard", 1000, "", :message_queue_len, :desc, "All")
+        )
+
+      rendered = render(live)
+      ## Now we have :init process back
+      assert rendered =~ ~r/\:init/
+
+      ## Disable filter
+      Application.put_env(:phoenix_live_dashboard, :process_filter, nil)
+
+      {:ok, live, _} =
+        live(
+          build_conn(),
+          processes_path("dashboard", 1000, "", :message_queue_len, :desc, "")
+        )
+
+      rendered = render(live)
+      ## No filter, we still have :init process
+      assert rendered =~ ~r/\:init/
+    end
+
+    defp processes_path(prefix, limit, search, sort_by, sort_dir, filter) do
+      "/#{prefix}/processes?" <>
+        "filter=#{filter}&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+    end
   end
 end
