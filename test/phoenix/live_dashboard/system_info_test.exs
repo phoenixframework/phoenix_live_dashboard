@@ -271,7 +271,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTestSync do
       {active_filter, available_filters, processes, count, _} =
         SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 5000)
 
-      assert ProcessFilter.default_filter() == active_filter
+      assert "Phoenix" == active_filter
       assert ProcessFilter.list() == available_filters
       assert Enum.count(processes) == count
 
@@ -282,11 +282,9 @@ defmodule Phoenix.LiveDashboard.SystemInfoTestSync do
       assert count > 1
     end
 
-    test "process list has filtered entries" do
-      {active_filter, _available_filters, processes, count, _} =
+    test "process list has only filtered entries" do
+      {_active_filter, _available_filters, processes, count, _} =
         SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 5000)
-
-      assert "Phoenix" == active_filter
 
       assert count ==
                Enum.count(processes, fn [_pid, {:name_or_initial_call, name} | _] ->

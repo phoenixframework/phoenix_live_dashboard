@@ -292,7 +292,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
   attr :dom_id, :string, default: nil, doc: "id attribute for the HTML the main tag."
-  attr :filter, :string, default: nil, doc: "To filter table rows"
 
   @spec live_table(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def live_table(assigns) do

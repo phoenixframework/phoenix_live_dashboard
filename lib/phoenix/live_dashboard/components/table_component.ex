@@ -10,8 +10,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
           sort_by: :atom,
           sort_dir: :desc | :asc,
           search: binary(),
-          hint: binary() | nil,
-          filter: binary() | nil
+          hint: binary() | nil
         }
 
   @impl true
@@ -31,7 +30,6 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     |> validate_required_one_sortable_column()
     |> Map.put_new(:search, true)
     |> Map.put_new(:limit, @limit)
-    |> Map.put_new(:filter, nil)
     |> Map.put_new(:row_attrs, [])
     |> Map.put_new(:hint, nil)
     |> Map.put_new(:dom_id, nil)
@@ -93,7 +91,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   defp fetch_rows(row_fetcher, table_params, page_node, socket)
        when is_function(row_fetcher, 2) do
     {rows, total} = row_fetcher.(table_params, page_node)
-    {rows, total, assign(socket, :active_filter, nil)}
+    {rows, total, assign(socket, :filter_list, nil)}
   end
 
   defp fetch_rows({row_fetcher, initial_state}, table_params, page_node, socket)
@@ -105,11 +103,14 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         {nil, nil, rows, total, state}
       end
 
+    ## Update `filter` in table_params
+    table_params = Map.put(table_params, :filter, active_filter)
+
     {rows, total,
      socket
      |> assign(:row_fetcher_state, state)
-     |> assign(:filter_list, available_filters)
-     |> assign(:active_filter, active_filter)}
+     |> assign(:table_params, table_params)
+     |> assign(:filter_list, available_filters)}
   end
 
   defp normalize_table_params(assigns) do
@@ -205,13 +206,13 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         </div>
       </form>
 
-      <form :if={@active_filter} phx-change="select_filter" phx-target={@myself} class="form-inline">
+      <form :if={@filter_list} phx-change="select_filter" phx-target={@myself} class="form-inline">
           <div class="form-row align-items-center">
               <div class="col-auto">Filter</div>
               <div class="col-auto">
                 <div class="input-group input-group-sm">
                   <select name="filter" class="custom-select" id="filter-select">
-                    <%= options_for_select(@filter_list, @active_filter) %>
+                    <%= options_for_select(@filter_list, @table_params.filter) %>
                   </select>
                 </div>
               </div>
