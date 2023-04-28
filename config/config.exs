@@ -10,7 +10,8 @@ if config_env() == :dev do
   config :esbuild,
     version: "0.14.41",
     default: [
-      args: ~w(js/app.js --bundle --minify --sourcemap=external --target=es2020 --outdir=../dist/js),
+      args:
+        ~w(js/app.js --bundle --minify --sourcemap=external --target=es2020 --outdir=../dist/js),
       cd: Path.expand("../assets", __DIR__),
       env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
     ]
