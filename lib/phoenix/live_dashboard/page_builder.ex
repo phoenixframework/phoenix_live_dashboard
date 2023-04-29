@@ -96,7 +96,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   We currently support `card/1`, `fields_card/1`, `row/1`,
   `shared_usage_card/1`, and `usage_card/1`;
-  and the live components `live_layered_graph/1`, `live_nav_bar/1`,
+  and the live components `live_layered_graph/1`, `live_nav_bar/1`, 
   and `live_table/1`.
 
   ## Helpers
@@ -292,7 +292,6 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
   attr :dom_id, :string, default: nil, doc: "id attribute for the HTML the main tag."
-
   @spec live_table(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def live_table(assigns) do
     ~H"""
