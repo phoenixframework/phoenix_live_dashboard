@@ -291,6 +291,13 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   def handle_event("select_filter", %{"filter" => filter}, socket) do
+    # If filter is not in the filter list, force the default filter
+    if filter in socket.assigns.filter_list do
+      filter
+    else
+      nil
+    end
+
     table_params = %{socket.assigns.table_params | filter: filter}
     to = PageBuilder.live_dashboard_path(socket, socket.assigns.page, table_params)
     {:noreply, push_patch(socket, to: to)}

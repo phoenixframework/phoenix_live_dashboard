@@ -225,6 +225,25 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTestSync do
       assert rendered =~ ~r/\:init/
     end
 
+    test "process filter: filter value not in the list is replaced by the default one" do
+      ## Set filter value to the one not in the list
+      non_value = "XXX"
+      refute non_value in ProcessFilter.list()
+
+      {:ok, live, _} =
+        live(
+          build_conn(),
+          processes_path("dashboard", 1000, "", :message_queue_len, :desc, non_value)
+        )
+
+      rendered = render(live)
+      ## The filter value is set to the default
+      default_filter_value = ProcessFilter.default_filter()
+
+      assert rendered =~
+               ~s|<option selected="selected" value="#{default_filter_value}">#{default_filter_value}</option>|
+    end
+
     defp processes_path(prefix, limit, search, sort_by, sort_dir, filter) do
       "/#{prefix}/processes?" <>
         "filter=#{filter}&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
