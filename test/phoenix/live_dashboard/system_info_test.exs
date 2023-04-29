@@ -266,7 +266,6 @@ defmodule Phoenix.LiveDashboard.SystemInfoTestSync do
     end
 
     test "default process filter" do
-      
       {active_filter, available_filters, processes, count, _} =
         SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 5000)
 
