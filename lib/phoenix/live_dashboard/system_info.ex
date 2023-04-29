@@ -46,21 +46,21 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def fetch_processes(
         node,
-        filter,
         search,
         sort_by,
         sort_dir,
         limit,
+        filter,
         prev_reductions \\ nil
       ) do
     search = search && String.downcase(search)
 
     :rpc.call(node, __MODULE__, :processes_callback, [
-      filter,
       search,
       sort_by,
       sort_dir,
       limit,
+      filter,
       prev_reductions
     ])
   end
@@ -214,7 +214,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ]
 
   @doc false
-  def processes_callback(filter, search, sort_by, sort_dir, limit, prev_reductions) do
+  def processes_callback(search, sort_by, sort_dir, limit, filter, prev_reductions) do
     multiplier = sort_dir_multipler(sort_dir)
     {active_filter, available_filters, process_list} = get_process_filter_data(filter)
 
