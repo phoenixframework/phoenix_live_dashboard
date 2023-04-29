@@ -266,12 +266,11 @@ defmodule Phoenix.LiveDashboard.SystemInfoTestSync do
     end
 
     test "default process filter" do
-      assert "Phoenix" = ProcessFilter.default_filter()
-
+      
       {active_filter, available_filters, processes, count, _} =
         SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 5000)
 
-      assert "Phoenix" == active_filter
+      assert active_filter == ProcessFilter.default_filter()
       assert ProcessFilter.list() == available_filters
       assert Enum.count(processes) == count
 

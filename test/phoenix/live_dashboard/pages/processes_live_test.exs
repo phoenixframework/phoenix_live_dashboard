@@ -184,15 +184,18 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTestSync do
       rendered = render(live)
 
       ## The filter dropdown contains all filter values defined by ProcessFilter.list/0,
-      ## with "Phoenix" selected
-      assert rendered =~
-               ~s|<option value="All">All</option>|
+      ## with default filter selected
+
+      default_filter = ProcessFilter.default_filter()
+
+      other_filters = ProcessFilter.list() -- [default_filter]
+
+      Enum.each(other_filters, fn filter ->
+        assert rendered =~ ~s|<option value="#{filter}">#{filter}</option>|
+      end)
 
       assert rendered =~
-               ~s|<option value="Registered">Registered</option>|
-
-      assert rendered =~
-               ~s|<option selected="selected" value="Phoenix">Phoenix</option>|
+               ~s|<option selected="selected" value="#{default_filter}">#{default_filter}</option>|
 
       ## The page contains the processes that match the filter...
       assert rendered =~ ~r/Phoenix.LiveDashboard.DynamicSupervisor/
