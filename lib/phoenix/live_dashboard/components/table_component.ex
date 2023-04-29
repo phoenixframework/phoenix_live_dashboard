@@ -83,15 +83,28 @@ defmodule Phoenix.LiveDashboard.TableComponent do
       row_fetcher: row_fetcher
     } = assigns
 
-    {rows, total, socket} = fetch_rows(row_fetcher, table_params, page.node, socket)
-    assigns = Map.merge(assigns, %{rows: rows, total: total})
+    {rows, total, active_filter, available_filters, socket} =
+      fetch_rows(row_fetcher, table_params, page.node, socket)
+
+    assigns =
+      Map.merge(assigns, %{
+        rows: rows,
+        total: total,
+        table_params: Map.put(table_params, :filter, active_filter),
+        filter_list: available_filters
+      })
+
     {:ok, assign(socket, assigns)}
   end
 
   defp fetch_rows(row_fetcher, table_params, page_node, socket)
        when is_function(row_fetcher, 2) do
-    {rows, total} = row_fetcher.(table_params, page_node)
-    {rows, total, assign(socket, :filter_list, nil)}
+    {active_filter, available_filters, rows, total} =
+      with {rows, total} <- row_fetcher.(table_params, page_node) do
+        {nil, nil, rows, total}
+      end
+
+    {rows, total, active_filter, available_filters, socket}
   end
 
   defp fetch_rows({row_fetcher, initial_state}, table_params, page_node, socket)
@@ -103,14 +116,9 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         {nil, nil, rows, total, state}
       end
 
-    ## Update `filter` in table_params
-    table_params = Map.put(table_params, :filter, active_filter)
-
-    {rows, total,
+    {rows, total, active_filter, available_filters,
      socket
-     |> assign(:row_fetcher_state, state)
-     |> assign(:table_params, table_params)
-     |> assign(:filter_list, available_filters)}
+     |> assign(:row_fetcher_state, state)}
   end
 
   defp normalize_table_params(assigns) do
