@@ -31,12 +31,12 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
 
   describe "processes" do
     test "all with limit" do
-      {nil, nil, processes, count, _} =
+      {nil, [], processes, count, _} =
         SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 5000)
 
       assert Enum.count(processes) == count
 
-      {nil, nil, processes, count, _} =
+      {nil, [], processes, count, _} =
         SystemInfo.fetch_processes(node(), nil, "", :memory, :asc, 1)
 
       assert Enum.count(processes) == 1
@@ -44,7 +44,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "all with search" do
-      {nil, nil, pids, _count, _} =
+      {nil, [], pids, _count, _} =
         SystemInfo.fetch_processes(node(), nil, ":user", :memory, :asc, 100)
 
       assert [[pid, name | _]] = pids
@@ -53,7 +53,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "allows previous reductions param" do
-      {nil, nil, _pids, _count, state} =
+      {nil, [], _pids, _count, state} =
         SystemInfo.fetch_processes(
           node(),
           nil,
@@ -63,7 +63,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
           100
         )
 
-      {nil, nil, _pids, _count, _state} =
+      {nil, [], _pids, _count, _state} =
         SystemInfo.fetch_processes(
           node(),
           nil,

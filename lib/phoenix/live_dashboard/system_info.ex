@@ -237,7 +237,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   defp get_process_filter_data(filter) do
     case Application.get_env(:phoenix_live_dashboard, :process_filter) do
       nil ->
-        {nil, nil, Process.list()}
+        {nil, [], Process.list()}
 
       filter_mod ->
         available_filters = filter_mod.list()

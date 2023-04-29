@@ -101,7 +101,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
        when is_function(row_fetcher, 2) do
     {active_filter, available_filters, rows, total} =
       with {rows, total} <- row_fetcher.(table_params, page_node) do
-        {nil, nil, rows, total}
+        {nil, [], rows, total}
       end
 
     {rows, total, active_filter, available_filters, socket}
@@ -113,7 +113,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
     {active_filter, available_filters, rows, total, state} =
       with {rows, total, state} <- row_fetcher.(table_params, page_node, state) do
-        {nil, nil, rows, total, state}
+        {nil, [], rows, total, state}
       end
 
     {rows, total, active_filter, available_filters,

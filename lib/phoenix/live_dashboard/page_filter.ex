@@ -60,11 +60,7 @@ defmodule Phoenix.LiveDashboard.PageFilter do
     quote do
       @behaviour Phoenix.LiveDashboard.PageFilter
       def default_filter() do
-        case list() do
-          nil -> nil
-          [] -> nil
-          [first | _rest] -> first
-        end
+        List.first(list())
       end
 
       defoverridable default_filter: 0
