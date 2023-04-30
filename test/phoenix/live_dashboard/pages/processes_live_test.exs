@@ -183,6 +183,8 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTestSync do
 
       rendered = render(live)
 
+      assert rendered =~ ~s|<form phx-change="select_filter"|
+
       ## The filter dropdown contains all filter values defined by ProcessFilter.list/0,
       ## with default filter selected
 
@@ -224,6 +226,16 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTestSync do
         )
 
       rendered = render(live)
+
+      refute rendered =~ ~s|<form phx-change="select_filter"|
+
+      Enum.each(other_filters, fn filter ->
+        refute rendered =~ ~s|<option value="#{filter}">#{filter}</option>|
+      end)
+
+      refute rendered =~
+               ~s|<option selected="selected" value="#{default_filter}">#{default_filter}</option>|
+
       ## No filter, we still have :init process
       assert rendered =~ ~r/\:init/
     end

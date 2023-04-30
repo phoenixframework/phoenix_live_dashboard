@@ -86,6 +86,9 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     {rows, total, active_filter, available_filters, socket} =
       fetch_rows(row_fetcher, table_params, page.node, socket)
 
+    ## For the view, adjust available_filters to nil if it's empty
+    available_filters = if available_filters == [], do: nil, else: available_filters
+
     assigns =
       Map.merge(assigns, %{
         rows: rows,
