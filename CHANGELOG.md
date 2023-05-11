@@ -2,6 +2,8 @@
 
 ## Dev
 
+* Memory Allocators page
+* Serve static assets from the router
 * Use the new Phoenix.Component
 
 ## v0.7.2 (2022-10-26)

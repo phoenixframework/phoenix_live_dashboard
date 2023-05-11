@@ -71,7 +71,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
         current: format_bytes(current),
         limit: format_bytes(limit),
         percent: percentage(current, limit),
-        dom_sub_id: value_key,
+        dom_id: value_key,
         hint: hint,
         title: key
       }
@@ -102,7 +102,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
         current: format_percent(percent),
         limit: format_bytes(kbytes * 1024),
         percent: percent,
-        dom_sub_id: index,
+        dom_id: index,
         title: mountpoint
       }
     end)

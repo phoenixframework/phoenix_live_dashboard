@@ -129,6 +129,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
         }
 
   alias Phoenix.LiveDashboard.{
+    ChartComponent,
     LayeredGraphComponent,
     NavBarComponent,
     TableComponent
@@ -507,7 +508,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     attr :current, :integer, required: true, doc: "The current value of the usage."
     attr :limit, :integer, required: true, doc: "The max value of usage."
 
-    attr :dom_sub_id, :string,
+    attr :dom_id, :string,
       required: true,
       doc: "An unique identifier for the usage that will be concatenated to `dom_id`."
 
@@ -523,7 +524,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     <div class="card">
       <div class="card-body card-usage">
         <%= for usage <- @usage do %>
-          <.title_bar_component dom_id={"#{@dom_id}-#{usage.dom_sub_id}"} percent={usage.percent} csp_nonces={@csp_nonces} >
+          <.title_bar_component dom_id={"#{@dom_id}-#{usage.dom_id}"} percent={usage.percent} csp_nonces={@csp_nonces} >
             <div>
               <%= usage.title %>
               <.hint text={usage[:hint]} :if={usage[:hint]}/>
@@ -584,7 +585,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     doc: """
     A list of `Map` with the following keys:
       * `:data` - A list of tuples with 4 elements with the following data: `{usage_name, usage_percent, color, hint}`
-      * `:dom_sub_id` - Required. Usage identifier.
+      * `:dom_id` - Required. Usage identifier.
       * `:title`- Bar title.
     """
 
@@ -595,6 +596,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   attr :total_legend, :string, required: true, doc: "The legent of the total usage."
   attr :total_usage, :string, required: true, doc: "The value of the total usage."
+  attr :dom_id, :string, default: nil, doc: "id attribute for the HTML the main tag."
 
   attr :csp_nonces, :any,
     required: true,
@@ -616,12 +618,12 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     <div class="card">
       <.card_title title={@inner_title} hint={@inner_hint} />
       <div class="card-body">
-        <div phx-hook="PhxColorBarHighlight" id="cpu-color-bars">
+        <div phx-hook="PhxColorBarHighlight" id={"#{@dom_id}-color-bars"}>
           <div :for={usage <- @usages} class="flex-grow-1 mb-3">
             <div class="progress color-bar-progress flex-grow-1 mb-3">
               <span :if={usage[:title]} class="color-bar-progress-title"><%= usage[:title] %></span>
               <%= for {{name, value, color, _desc}, index} <- Enum.with_index(usage.data) do %>
-                <style nonce={@csp_nonces.style}>#<%= "cpu-#{usage.dom_sub_id}-progress-#{index}" %>{width:<%= value %>%}</style>
+                <style nonce={@csp_nonces.style}>#<%= "#{@dom_id}-#{usage.dom_id}-progress-#{index}" %>{width:<%= value %>%}</style>
                 <div
                     title={"#{name} - #{Phoenix.LiveDashboard.Helpers.format_percent(value)}"}
                     class={"progress-bar color-bar-progress-bar bg-gradient-#{color}"}
@@ -631,7 +633,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
                     aria-valuemax="100"
                     data-name={name}
                     data-empty={empty?(value)}
-                    id={"cpu-#{usage.dom_sub_id}-progress-#{index}"}>
+                    id={"#{@dom_id}-#{usage.dom_id}-progress-#{index}"}>
                 </div>
               <% end %>
             </div>
@@ -779,11 +781,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   defp first_elem_class(0), do: "border-top-0"
   defp first_elem_class(_), do: nil
 
-  @doc """
-  Modal component
-
-  You can see it in use in the modal in Ports or Processes page
-  """
+  @doc false
   attr :id, :string,
     required: true,
     doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
@@ -804,6 +802,64 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       <%= render_slot @inner_block %>
     </.live_component>
     """
+  end
+
+  @doc false
+  attr :id, :string,
+    required: true,
+    doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
+
+  attr :data, :list,
+    default: [],
+    doc: """
+    Temporary list of points to show in the chart.
+    Each element should be the format `{optional_label, x, y}`.
+    New points can be added using the function `send_data_to_chart/2` in real time.
+    """
+
+  attr :title, :string, required: true, doc: "Title of the chart"
+  attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
+
+  attr :kind, :atom,
+    values: [:counter, :last_value, :sum, :summary, :distribution],
+    doc: "Kind of chart to use."
+
+  attr :label, :string, default: nil, doc: "Default label to use in the chart."
+  attr :tags, :list, default: [], doc: "Optional list of tags."
+  attr :prune_threshold, :integer, default: 1_000, doc: "Number of points to keep before pruning."
+  attr :unit, :string, default: "", doc: "The unit that represent the chart."
+
+  attr :bucket_size, :integer,
+    doc: "Bucket size for histogram. Default: 20 when `kind = :histogram`, otherwise `nil`."
+
+  attr :full_width, :boolean, default: false, doc: "Size of the chart"
+
+  def live_chart(assigns) do
+    assigns =
+      assign_new(assigns, :bucket_size, fn ->
+        if assigns.kind == :histogram, do: 20, else: nil
+      end)
+
+    ~H"""
+    <.live_component
+      module={ChartComponent}
+      id={@id}
+      title={@title}
+      hint={@hint}
+      kind={@kind}
+      label={@label}
+      tags={@tags}
+      prune_threshold={@prune_threshold}
+      unit={@unit}
+      bucket_size={@bucket_size}
+      full_width={@full_width}
+    />
+    """
+  end
+
+  @doc false
+  def send_data_to_chart(id, data) do
+    Phoenix.LiveView.send_update(ChartComponent, id: id, data: data)
   end
 
   ## Helpers

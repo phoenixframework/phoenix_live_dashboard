@@ -276,7 +276,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
       current: system_usage[type],
       limit: system_limits[type],
       percent: percentage(system_usage[type], system_limits[type]),
-      dom_sub_id: "total",
+      dom_id: "total",
       hint: raw(@hints[type]),
       title: Phoenix.Naming.humanize(type)
     }
@@ -293,6 +293,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     <.row>
       <:col>
         <.shared_usage_card
+          dom_id="memory"
           title="Memory"
           usages={[calculate_memory_usage_percent(@memory_usage, @system_usage.memory.total)]}
           total_data={@memory_usage}
@@ -320,7 +321,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
     %{
       data: data,
-      dom_sub_id: "total"
+      dom_id: "total"
     }
   end
 

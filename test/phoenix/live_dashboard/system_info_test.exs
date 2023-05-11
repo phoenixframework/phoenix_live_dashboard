@@ -252,6 +252,81 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
                SystemInfo.fetch_app_tree(node(), :kernel)
     end
   end
+
+  describe "fetch_memory_allocators" do
+    test "handles when no max_carrier_sizes is given" do
+      assert {list, max} = SystemInfo.fetch_memory_allocators(node(), nil)
+
+      assert [
+               %{name: :total, block_size: _, carrier_size: m1, max_carrier_size: m1},
+               %{name: :temp_alloc, block_size: _, carrier_size: m2, max_carrier_size: m2},
+               %{name: :sl_alloc, block_size: _, carrier_size: m3, max_carrier_size: m3},
+               %{name: :std_alloc, block_size: _, carrier_size: m4, max_carrier_size: m4},
+               %{name: :ll_alloc, block_size: _, carrier_size: m5, max_carrier_size: m5},
+               %{name: :eheap_alloc, block_size: _, carrier_size: m6, max_carrier_size: m6},
+               %{name: :ets_alloc, block_size: _, carrier_size: m7, max_carrier_size: m7},
+               %{name: :fix_alloc, block_size: _, carrier_size: m8, max_carrier_size: m8},
+               %{name: :literal_alloc, block_size: _, carrier_size: m9, max_carrier_size: m9},
+               %{name: :binary_alloc, block_size: _, carrier_size: m10, max_carrier_size: m10},
+               %{name: :driver_alloc, block_size: _, carrier_size: m11, max_carrier_size: m11}
+             ] = list
+
+      assert %{
+               total: m1,
+               temp_alloc: m2,
+               sl_alloc: m3,
+               std_alloc: m4,
+               ll_alloc: m5,
+               eheap_alloc: m6,
+               ets_alloc: m7,
+               fix_alloc: m8,
+               literal_alloc: m9,
+               binary_alloc: m10,
+               driver_alloc: m11
+             } == max
+
+      for alloc <- list do
+        assert is_atom(alloc[:name])
+        assert is_integer(alloc[:block_size])
+        assert is_integer(alloc[:carrier_size])
+        assert is_integer(alloc[:max_carrier_size])
+      end
+    end
+
+    test "handles max_carrier_sizes" do
+      top = 999_999_999_999_999_999
+
+      max = %{
+        total: top,
+        temp_alloc: top,
+        sl_alloc: top,
+        std_alloc: top,
+        ll_alloc: top,
+        eheap_alloc: top,
+        ets_alloc: top,
+        fix_alloc: top,
+        literal_alloc: top,
+        binary_alloc: top,
+        driver_alloc: top
+      }
+
+      assert {list, ^max} = SystemInfo.fetch_memory_allocators(node(), max)
+
+      assert [
+               %{name: :total, block_size: _, carrier_size: _, max_carrier_size: ^top},
+               %{name: :temp_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top},
+               %{name: :sl_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top},
+               %{name: :std_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top},
+               %{name: :ll_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top},
+               %{name: :eheap_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top},
+               %{name: :ets_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top},
+               %{name: :fix_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top},
+               %{name: :literal_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top},
+               %{name: :binary_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top},
+               %{name: :driver_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top}
+             ] = list
+    end
+  end
 end
 
 defmodule Phoenix.LiveDashboard.SystemInfoTestSync do

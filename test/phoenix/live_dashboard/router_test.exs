@@ -330,6 +330,7 @@ defmodule Phoenix.LiveDashboard.RouterTest do
                "pages" => [
                  home: {Phoenix.LiveDashboard.HomePage, %{env_keys: [], home_app: @home_app}},
                  os_mon: {Phoenix.LiveDashboard.OSMonPage, %{}},
+                 memory_allocators: {Phoenix.LiveDashboard.MemoryAllocatorsPage, %{}},
                  metrics:
                    {Phoenix.LiveDashboard.MetricsPage, %{metrics: [], metrics_history: []}},
                  request_logger:

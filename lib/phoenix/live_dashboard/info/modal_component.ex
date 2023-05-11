@@ -31,10 +31,10 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
             <h6 class="modal-title"><%=@title %></h6>
             <div class="modal-action">
               <span phx-click={enable_fullscreen()} class="modal-action-item mr-3" id="fullscreen-on">
-                 &#128470;&#xFE0E;
+                &square;
               </span>
-              <span phx-click={disable_fullscreen()} class="modal-action-item mr-3" id="fullscreen-off" style="display: none;">
-                 &#128471;&#xFE0E;
+              <span phx-click={disable_fullscreen()} class="modal-action-item mr-3 modal-action-hidden" id="fullscreen-off">
+                &minus;
               </span>
               <.link patch={@return_to} class="modal-action-item mt-n1" id="modal-close">&times;</.link>
             </div>

@@ -380,7 +380,8 @@ defmodule Phoenix.LiveDashboard.Router do
     {pages, requirements} =
       [
         home: {Phoenix.LiveDashboard.HomePage, %{env_keys: env_keys, home_app: home_app}},
-        os_mon: {Phoenix.LiveDashboard.OSMonPage, %{}}
+        os_mon: {Phoenix.LiveDashboard.OSMonPage, %{}},
+        memory_allocators: {Phoenix.LiveDashboard.MemoryAllocatorsPage, %{}}
       ]
       |> Enum.concat(metrics_page(metrics, metrics_history))
       |> Enum.concat(request_logger_page(conn, request_logger))
