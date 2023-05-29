@@ -3,7 +3,10 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
 
   @impl true
   def mount(socket) do
-    {:ok, stream(socket, :data, [], dom_id: &data_dom_id/1)}
+    {:ok,
+     socket
+     |> stream_configure(:data, dom_id: &data_dom_id/1)
+     |> stream(:data, [])}
   end
 
   defp data_dom_id(_), do: "unused"
@@ -72,5 +75,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp chart_size(_full_width = false), do: "col-xl-6 col-xxl-4 col-xxxl-3 charts-col"
 
   defp bucket_size(nil), do: %{}
-  defp bucket_size(integer) when is_integer(integer), do: %{data_bucket_size: to_string(integer)}
+
+  defp bucket_size(integer) when is_integer(integer),
+    do: %{"data-bucket-size" => to_string(integer)}
 end
