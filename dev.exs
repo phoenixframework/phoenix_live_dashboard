@@ -456,6 +456,13 @@ defmodule DemoWeb.Router do
   use Phoenix.Router
   import Phoenix.LiveDashboard.Router
 
+  forward "/admin", DemoWeb.Router.Admin
+end
+
+defmodule DemoWeb.Router.Admin do
+  use Phoenix.Router
+  import Phoenix.LiveDashboard.Router
+
   pipeline :browser do
     plug :fetch_session
     plug :protect_from_forgery
@@ -470,6 +477,8 @@ defmodule DemoWeb.Router do
     get "/hello/:name", DemoWeb.PageController, :hello
 
     live_dashboard("/dashboard",
+      live_socket_path: "/live",
+      path_prefix: "/admin",
       env_keys: ["USER", "ROOTDIR"],
       metrics: DemoWeb.Telemetry,
       metrics_history: {DemoWeb.History, :data, []},
@@ -518,7 +527,7 @@ defmodule DemoWeb.Endpoint do
     same_site: "Lax"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+  socket "/admin/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
   socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
 
   plug Phoenix.LiveReloader

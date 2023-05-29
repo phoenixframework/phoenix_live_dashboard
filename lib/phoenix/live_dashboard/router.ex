@@ -97,6 +97,8 @@ defmodule Phoenix.LiveDashboard.Router do
         opts
       end
 
+    route_path_prefix = Keyword.get(opts, :path_prefix, "") <> path
+
     scope =
       quote bind_quoted: binding() do
         scope path, alias: false, as: false do
@@ -126,7 +128,9 @@ defmodule Phoenix.LiveDashboard.Router do
 
         unless Module.get_attribute(__MODULE__, :live_dashboard_prefix) do
           @live_dashboard_prefix Phoenix.Router.scoped_path(__MODULE__, path)
+          @live_dashboard_path_prefix Phoenix.Router.scoped_path(__MODULE__, route_path_prefix)
           def __live_dashboard_prefix__, do: @live_dashboard_prefix
+          def __live_dashboard_path_prefix__, do: @live_dashboard_path_prefix
         end
       end
     else
