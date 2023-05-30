@@ -1,7 +1,8 @@
 # CHANGELOG
 
-## Dev
+## v0.8.0 (2023-05-30)
 
+* Support and require Phoenix.LiveView 0.19.0
 * Memory Allocators page
 * Serve static assets from the router
 * Use the new Phoenix.Component
