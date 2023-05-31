@@ -19,7 +19,8 @@ defmodule Phoenix.LiveDashboard.RouterTest do
              session:
                {Phoenix.LiveDashboard.Router, :__session__,
                 [nil, @home_app, false, nil, nil, [], {true, nil}, nil, [], [], [], nil]},
-             root_layout: {Phoenix.LiveDashboard.LayoutView, :dash}
+             root_layout: {Phoenix.LiveDashboard.LayoutView, :dash},
+             on_mount: nil
            ]
   end
 
@@ -28,6 +29,10 @@ defmodule Phoenix.LiveDashboard.RouterTest do
              private: %{live_socket_path: "/live", csp_nonce_assign_key: nil},
              as: :live_dashboard
            ]
+  end
+
+  test "configures on_mount" do
+    assert session_opts(on_mount: [{Foo, :bar}])[:on_mount] == [{Foo, :bar}]
   end
 
   test "configures live_socket_path" do

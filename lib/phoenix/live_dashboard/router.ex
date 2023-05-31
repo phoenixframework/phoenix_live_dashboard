@@ -327,7 +327,8 @@ defmodule Phoenix.LiveDashboard.Router do
       options[:live_session_name] || :live_dashboard,
       [
         session: {__MODULE__, :__session__, session_args},
-        root_layout: {Phoenix.LiveDashboard.LayoutView, :dash}
+        root_layout: {Phoenix.LiveDashboard.LayoutView, :dash},
+        on_mount: options[:on_mount] || nil
       ],
       [
         private: %{live_socket_path: live_socket_path, csp_nonce_assign_key: csp_nonce_assign_key},
