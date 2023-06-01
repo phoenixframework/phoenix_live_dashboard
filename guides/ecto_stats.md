@@ -48,7 +48,7 @@ To enable the "Ecto Stats" functionality for SQLite in your dashboard, you will 
 In your `mix.exs`, add the following to your `deps`:
 
 ```elixir
-  {:ecto_sqlite3_extras, "~> 1.0.0"},
+  {:ecto_sqlite3_extras, "~> 1.2.0"},
 ```
 
 ### Configure the dashboard
