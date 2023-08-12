@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboardTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   import Plug.Conn
   import Phoenix.ConnTest
