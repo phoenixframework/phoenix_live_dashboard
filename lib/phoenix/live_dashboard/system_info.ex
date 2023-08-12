@@ -522,7 +522,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Ports callbacks
 
-  @inet_ports ['tcp_inet', 'udp_inet', 'sctp_inet']
+  @inet_ports [~c"tcp_inet", ~c"udp_inet", ~c"sctp_inet"]
 
   @doc false
   def ports_callback(search, sort_by, sort_dir, limit) do
@@ -730,7 +730,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     disk =
       case :disksup.get_disk_data() do
-        [{'none', 0, 0}] -> []
+        [{~c"none", 0, 0}] -> []
         other -> other
       end
 

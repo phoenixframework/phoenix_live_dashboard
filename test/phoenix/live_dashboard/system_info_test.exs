@@ -79,18 +79,18 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       {ports, _count} = SystemInfo.fetch_ports(node(), "forker", :input, :asc, 100)
       assert [[port, name | _]] = ports
       assert port == {:port, hd(Port.list())}
-      assert name == {:name, 'forker'}
+      assert name == {:name, ~c"forker"}
     end
 
     test "info" do
       {:ok, port} = SystemInfo.fetch_port_info(hd(Port.list()))
-      assert port[:name] == 'forker'
+      assert port[:name] == ~c"forker"
 
       connected_details = port[:connected]
       %module{pid: pid} = connected_details
 
       assert module == SystemInfo.ProcessDetails
-      assert pid == :erlang.list_to_pid('<0.0.0>')
+      assert pid == :erlang.list_to_pid(~c"<0.0.0>")
     end
   end
 
