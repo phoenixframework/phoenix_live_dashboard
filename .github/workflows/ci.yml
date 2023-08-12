@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   mix_test:
@@ -34,8 +34,11 @@ jobs:
       matrix:
         include:
           - pair:
-              elixir: 1.14.0
+              elixir: 1.14.3
               otp: 24.3
+          - pair:
+              elixir: 1.15.4
+              otp: 26.0.2
             lint: lint
     steps:
       - uses: actions/checkout@v2
