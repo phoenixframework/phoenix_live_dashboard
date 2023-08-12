@@ -83,22 +83,45 @@ defmodule Phoenix.LiveDashboard.TableComponent do
       row_fetcher: row_fetcher
     } = assigns
 
-    {rows, total, socket} = fetch_rows(row_fetcher, table_params, page.node, socket)
-    assigns = Map.merge(assigns, %{rows: rows, total: total})
+    {rows, total, active_filter, available_filters, socket} =
+      fetch_rows(row_fetcher, table_params, page.node, socket)
+
+    ## For the view, adjust available_filters to nil if it's empty
+    available_filters = if available_filters == [], do: nil, else: available_filters
+
+    assigns =
+      Map.merge(assigns, %{
+        rows: rows,
+        total: total,
+        table_params: Map.put(table_params, :filter, active_filter),
+        filter_list: available_filters
+      })
+
     {:ok, assign(socket, assigns)}
   end
 
   defp fetch_rows(row_fetcher, table_params, page_node, socket)
        when is_function(row_fetcher, 2) do
-    {rows, total} = row_fetcher.(table_params, page_node)
-    {rows, total, socket}
+    {active_filter, available_filters, rows, total} =
+      with {rows, total} <- row_fetcher.(table_params, page_node) do
+        {nil, [], rows, total}
+      end
+
+    {rows, total, active_filter, available_filters, socket}
   end
 
   defp fetch_rows({row_fetcher, initial_state}, table_params, page_node, socket)
        when is_function(row_fetcher, 3) do
     state = Map.get(socket.assigns, :row_fetcher_state, initial_state)
-    {rows, total, state} = row_fetcher.(table_params, page_node, state)
-    {rows, total, assign(socket, :row_fetcher_state, state)}
+
+    {active_filter, available_filters, rows, total, state} =
+      with {rows, total, state} <- row_fetcher.(table_params, page_node, state) do
+        {nil, [], rows, total, state}
+      end
+
+    {rows, total, active_filter, available_filters,
+     socket
+     |> assign(:row_fetcher_state, state)}
   end
 
   defp normalize_table_params(assigns) do
@@ -125,7 +148,15 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     search = all_params["search"]
     search = if search == "", do: nil, else: search
 
-    table_params = %{sort_by: sort_by, sort_dir: sort_dir, limit: limit, search: search}
+    filter = all_params["filter"]
+
+    table_params = %{
+      sort_by: sort_by,
+      sort_dir: sort_dir,
+      limit: limit,
+      search: search,
+      filter: filter
+    }
 
     assigns
     |> Map.put(:table_params, table_params)
@@ -186,6 +217,19 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         </div>
       </form>
 
+      <form :if={@filter_list} phx-change="select_filter" phx-target={@myself} class="form-inline">
+          <div class="form-row align-items-center">
+              <div class="col-auto">Filter</div>
+              <div class="col-auto">
+                <div class="input-group input-group-sm">
+                  <select name="filter" class="custom-select" id="filter-select">
+                    <%= options_for_select(@filter_list, @table_params.filter) %>
+                  </select>
+                </div>
+              </div>
+          </div>
+        </form>
+
       <div class="card tabular-card mb-4 mt-4">
         <div class="card-body p-0">
           <div class="dash-table-wrapper">
@@ -245,6 +289,15 @@ defmodule Phoenix.LiveDashboard.TableComponent do
 
   def handle_event("select_limit", %{"limit" => limit}, socket) do
     table_params = %{socket.assigns.table_params | limit: limit}
+    to = PageBuilder.live_dashboard_path(socket, socket.assigns.page, table_params)
+    {:noreply, push_patch(socket, to: to)}
+  end
+
+  def handle_event("select_filter", %{"filter" => filter}, socket) do
+    # If filter is not in thefilter list, force the default filter
+    filter = filter in socket.assigns.filter_list && filter
+
+    table_params = %{socket.assigns.table_params | filter: filter}
     to = PageBuilder.live_dashboard_path(socket, socket.assigns.page, table_params)
     {:noreply, push_patch(socket, to: to)}
   end

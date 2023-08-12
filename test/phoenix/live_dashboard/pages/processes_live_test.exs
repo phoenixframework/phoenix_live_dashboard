@@ -150,7 +150,120 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
   end
 
   defp processes_path(prefix \\ "dashboard", limit, search, sort_by, sort_dir) do
+    processes_path(prefix, limit, search, sort_by, sort_dir, "")
+  end
+
+  defp processes_path(prefix, limit, search, sort_by, sort_dir, filter) do
     "/#{prefix}/processes?" <>
-      "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+      "filter=#{filter}&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+  end
+end
+
+defmodule Phoenix.LiveDashboard.ProcessesLiveTestSync do
+  use ExUnit.Case, async: false
+
+  import Phoenix.ConnTest
+  import Phoenix.LiveViewTest
+  @endpoint Phoenix.LiveDashboardTest.Endpoint
+
+  alias Phoenix.LiveDashboard.SystemInfoTest.ProcessFilter
+
+  describe "process filter" do
+    setup do
+      Application.put_env(:phoenix_live_dashboard, :process_filter, ProcessFilter)
+      on_exit(fn -> Application.put_env(:phoenix_live_dashboard, :process_filter, nil) end)
+    end
+
+    test "process filter" do
+      ## The process filter is enabled
+
+      {:ok, live, _} =
+        live(
+          build_conn(),
+          processes_path("dashboard", 1000, "", :message_queue_len, :desc, "Phoenix")
+        )
+
+      rendered = render(live)
+
+      assert rendered =~ ~s|<form phx-change="select_filter"|
+
+      ## The filter dropdown contains all filter values defined by ProcessFilter.list/0,
+      ## with default filter selected
+
+      default_filter = ProcessFilter.default_filter()
+
+      other_filters = ProcessFilter.list() -- [default_filter]
+
+      Enum.each(other_filters, fn filter ->
+        assert rendered =~ ~s|<option value="#{filter}">#{filter}</option>|
+      end)
+
+      assert rendered =~
+               ~s|<option selected="selected" value="#{default_filter}">#{default_filter}</option>|
+
+      ## The page contains the processes that match the filter...
+      assert rendered =~ ~r/Phoenix.LiveDashboard.DynamicSupervisor/
+      ## ...but not the ones that do not match
+      refute rendered =~ ~r/\:init/
+
+      ## Change active filter
+
+      {:ok, live, _} =
+        live(
+          build_conn(),
+          processes_path("dashboard", 1000, "", :message_queue_len, :desc, "All")
+        )
+
+      rendered = render(live)
+      ## Now we have :init process back
+      assert rendered =~ ~r/\:init/
+
+      ## Disable filter
+      Application.put_env(:phoenix_live_dashboard, :process_filter, nil)
+
+      {:ok, live, _} =
+        live(
+          build_conn(),
+          processes_path("dashboard", 1000, "", :message_queue_len, :desc, "")
+        )
+
+      rendered = render(live)
+
+      refute rendered =~ ~s|<form phx-change="select_filter"|
+
+      Enum.each(other_filters, fn filter ->
+        refute rendered =~ ~s|<option value="#{filter}">#{filter}</option>|
+      end)
+
+      refute rendered =~
+               ~s|<option selected="selected" value="#{default_filter}">#{default_filter}</option>|
+
+      ## No filter, we still have :init process
+      assert rendered =~ ~r/\:init/
+    end
+
+    test "process filter: filter value not in the list is replaced by the default one" do
+      ## Set filter value to the one not in the list
+      non_value = "XXX"
+      refute non_value in ProcessFilter.list()
+
+      {:ok, live, _} =
+        live(
+          build_conn(),
+          processes_path("dashboard", 1000, "", :message_queue_len, :desc, non_value)
+        )
+
+      rendered = render(live)
+      ## The filter value is set to the default
+      default_filter_value = ProcessFilter.default_filter()
+
+      assert rendered =~
+               ~s|<option selected="selected" value="#{default_filter_value}">#{default_filter_value}</option>|
+    end
+
+    defp processes_path(prefix, limit, search, sort_by, sort_dir, filter) do
+      "/#{prefix}/processes?" <>
+        "filter=#{filter}&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+    end
   end
 end

@@ -98,7 +98,7 @@ defmodule Phoenix.LiveDashboard.SocketsPageTest do
 
   defp sockets_path(limit, search, sort_by, sort_dir) do
     "/dashboard/sockets?" <>
-      "limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
+      "filter=&limit=#{limit}&search=#{search}&sort_by=#{sort_by}&sort_dir=#{sort_dir}"
   end
 
   defp open_socket() do

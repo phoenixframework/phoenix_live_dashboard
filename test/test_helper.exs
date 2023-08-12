@@ -137,6 +137,37 @@ defmodule Phoenix.LiveDashboardTest.Endpoint do
   plug Phoenix.LiveDashboardTest.Router
 end
 
+defmodule Phoenix.LiveDashboard.SystemInfoTest.ProcessFilter do
+  @behaviour Phoenix.LiveDashboard.PageFilter
+
+  @impl true
+  def list() do
+    ["All", "Registered", "Phoenix"]
+  end
+
+  @impl true
+  def default_filter() do
+    "Phoenix"
+  end
+
+  @impl true
+  def filter("Registered") do
+    Process.registered() |> Enum.map(fn name -> Process.whereis(name) end)
+  end
+
+  def filter("All") do
+    Process.list()
+  end
+
+  def filter("Phoenix") do
+    Process.registered()
+    |> Enum.flat_map(fn name ->
+      (String.contains?(to_string(name), "Phoenix") &&
+         [Process.whereis(name)]) || []
+    end)
+  end
+end
+
 Application.stop(:ssh)
 Application.unload(:ssh)
 Application.ensure_all_started(:os_mon)

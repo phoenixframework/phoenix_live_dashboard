@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.SystemInfoTest do
   use ExUnit.Case, async: true
   alias Phoenix.LiveDashboard.SystemInfo
+  alias Phoenix.LiveDashboard.SystemInfoTest.ProcessFilter
 
   describe "node_capabilities/2" do
     test "detects started applications" do
@@ -30,26 +31,48 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
 
   describe "processes" do
     test "all with limit" do
-      {processes, count, _} = SystemInfo.fetch_processes(node(), "", :memory, :asc, 5000)
+      {nil, [], processes, count, _} =
+        SystemInfo.fetch_processes(node(), "", :memory, :asc, 5000, nil)
+
       assert Enum.count(processes) == count
-      {processes, count, _} = SystemInfo.fetch_processes(node(), "", :memory, :asc, 1)
+
+      {nil, [], processes, count, _} =
+        SystemInfo.fetch_processes(node(), "", :memory, :asc, 1, nil)
+
       assert Enum.count(processes) == 1
       assert count > 1
     end
 
     test "all with search" do
-      {pids, _count, _} = SystemInfo.fetch_processes(node(), ":user", :memory, :asc, 100)
+      {nil, [], pids, _count, _} =
+        SystemInfo.fetch_processes(node(), ":user", :memory, :asc, 100, nil)
+
       assert [[pid, name | _]] = pids
       assert pid == {:pid, Process.whereis(:user)}
       assert name == {:name_or_initial_call, ":user"}
     end
 
     test "allows previous reductions param" do
-      {_pids, _count, state} =
-        SystemInfo.fetch_processes(node(), ":user", :reductions_diff, :asc, 100)
+      {nil, [], _pids, _count, state} =
+        SystemInfo.fetch_processes(
+          node(),
+          ":user",
+          :reductions_diff,
+          :asc,
+          100,
+          nil
+        )
 
-      {_pids, _count, _state} =
-        SystemInfo.fetch_processes(node(), ":user", :reductions_diff, :asc, 100, state)
+      {nil, [], _pids, _count, _state} =
+        SystemInfo.fetch_processes(
+          node(),
+          ":user",
+          :reductions_diff,
+          :asc,
+          100,
+          nil,
+          state
+        )
     end
 
     test "info" do
@@ -302,6 +325,44 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
                %{name: :binary_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top},
                %{name: :driver_alloc, block_size: _, carrier_size: _, max_carrier_size: ^top}
              ] = list
+    end
+  end
+end
+
+defmodule Phoenix.LiveDashboard.SystemInfoTestSync do
+  use ExUnit.Case, async: false
+  alias Phoenix.LiveDashboard.SystemInfo
+  alias Phoenix.LiveDashboard.SystemInfoTest.ProcessFilter
+
+  describe "process filter" do
+    setup do
+      Application.put_env(:phoenix_live_dashboard, :process_filter, ProcessFilter)
+      on_exit(fn -> Application.put_env(:phoenix_live_dashboard, :process_filter, nil) end)
+    end
+
+    test "default process filter" do
+      {active_filter, available_filters, processes, count, _} =
+        SystemInfo.fetch_processes(node(), "", :memory, :asc, 5000, nil)
+
+      assert active_filter == ProcessFilter.default_filter()
+      assert ProcessFilter.list() == available_filters
+      assert Enum.count(processes) == count
+
+      {^active_filter, ^available_filters, processes, count, _} =
+        SystemInfo.fetch_processes(node(), "", :memory, :asc, 1, nil)
+
+      assert Enum.count(processes) == 1
+      assert count > 1
+    end
+
+    test "process list has only filtered entries" do
+      {_active_filter, _available_filters, processes, count, _} =
+        SystemInfo.fetch_processes(node(), "", :memory, :asc, 5000, nil)
+
+      assert count ==
+               Enum.count(processes, fn [_pid, {:name_or_initial_call, name} | _] ->
+                 String.contains?(name, "Phoenix")
+               end)
     end
   end
 end

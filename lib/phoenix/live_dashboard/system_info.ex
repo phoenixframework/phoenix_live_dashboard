@@ -44,7 +44,15 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   ## Fetchers
 
-  def fetch_processes(node, search, sort_by, sort_dir, limit, prev_reductions \\ nil) do
+  def fetch_processes(
+        node,
+        search,
+        sort_by,
+        sort_dir,
+        limit,
+        filter,
+        prev_reductions \\ nil
+      ) do
     search = search && String.downcase(search)
 
     :rpc.call(node, __MODULE__, :processes_callback, [
@@ -52,6 +60,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       sort_by,
       sort_dir,
       limit,
+      filter,
       prev_reductions
     ])
   end
@@ -279,11 +288,12 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ]
 
   @doc false
-  def processes_callback(search, sort_by, sort_dir, limit, prev_reductions) do
+  def processes_callback(search, sort_by, sort_dir, limit, filter, prev_reductions) do
     multiplier = sort_dir_multipler(sort_dir)
+    {active_filter, available_filters, process_list} = get_process_filter_data(filter)
 
     processes =
-      for pid <- Process.list(),
+      for pid <- process_list,
           info = process_info(pid, prev_reductions[pid]),
           show_process?(info, search) do
         sorter = info[sort_by] * multiplier
@@ -292,10 +302,23 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
     next_state = for {_sorter, info} <- processes, into: %{}, do: {info[:pid], info[:reductions]}
 
-    count = if search, do: length(processes), else: :erlang.system_info(:process_count)
+    count = length(processes)
     processes = processes |> Enum.sort() |> Enum.take(limit) |> Enum.map(&elem(&1, 1))
 
-    {processes, count, next_state}
+    {active_filter, available_filters, processes, count, next_state}
+  end
+
+  defp get_process_filter_data(filter) do
+    case Application.get_env(:phoenix_live_dashboard, :process_filter) do
+      nil ->
+        {nil, [], Process.list()}
+
+      filter_mod ->
+        available_filters = filter_mod.list()
+        active_filter = (filter in available_filters && filter) || filter_mod.default_filter()
+        process_list = filter_mod.filter(active_filter)
+        {active_filter, available_filters, process_list}
+    end
   end
 
   defp process_info(pid, prev_reductions) do
@@ -795,6 +818,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   defp pid_or_port_details(name) when is_atom(name), do: to_process_details(name)
   defp pid_or_port_details(port) when is_port(port), do: to_port_details(port)
   defp pid_or_port_details(reference) when is_reference(reference), do: reference
+
+  def to_process_details(detail_map) when is_map(detail_map) do
+    struct(ProcessDetails, detail_map)
+  end
 
   def to_process_details(pid) when is_pid(pid) and node(pid) == node() do
     {name, initial_call} =

@@ -35,12 +35,8 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
   end
 
   defp fetch_processes(params, node, state) do
-    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit} = params
-
-    {processes, count, state} =
-      SystemInfo.fetch_processes(node, search, sort_by, sort_dir, limit, state)
-
-    {processes, count, state}
+    %{search: search, sort_by: sort_by, sort_dir: sort_dir, limit: limit, filter: filter} = params
+    SystemInfo.fetch_processes(node, search, sort_by, sort_dir, limit, filter, state)
   end
 
   defp row_attrs(process) do

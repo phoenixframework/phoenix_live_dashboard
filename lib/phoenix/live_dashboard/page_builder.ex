@@ -96,7 +96,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   We currently support `card/1`, `fields_card/1`, `row/1`,
   `shared_usage_card/1`, and `usage_card/1`;
-  and the live components `live_layered_graph/1`, `live_nav_bar/1`, 
+  and the live components `live_layered_graph/1`, `live_nav_bar/1`,
   and `live_table/1`.
 
   ## Helpers
@@ -257,6 +257,17 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     In this case, the function will receive the state as third argument and must return
     a tuple with the rows, the total number, and the new state for the following call:
     `{(params(), node(), term() -> {list(), integer() | binary(), term()}), term()}`
+
+    Optionally, if the page decides to implement custom page filter
+    (please see `Phoenix.LiveDashboard.PageFilter` for details), the function must return
+    - for `row_fetcher/2`:
+    a tuple with the active filter, list of available filters, the list of rows, and the total number
+    for the following call:
+    `(params(), node() -> {binary() | nil, list(), list(), integer() | binary()})`
+    - for `row_fetcher/3`:
+    a tuple with the active filter, list of available filters, the list of rows, the total number,
+    and the new state for the following call:
+    `(params(), node(), term() -> {binary() | nil, list(), list(), integer() | binary(), term()})`
     """
 
   attr :rows_name, :string,
