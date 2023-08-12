@@ -13,6 +13,7 @@
 #
 # $ iex -S mix dev [flags]
 #######################################
+Mix.ensure_application!(:os_mon)
 Logger.configure(level: :debug)
 
 argv = System.argv()

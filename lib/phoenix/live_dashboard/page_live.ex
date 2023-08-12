@@ -175,7 +175,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
   defp dashboard_mount_path(socket, url, params) do
     %{path: path} = URI.parse(url)
-    range = if params["node"], do: 0..-3, else: 0..-2
+    range = if params["node"], do: 0..-3//1, else: 0..-2//1
 
     mount_path = path |> String.split("/", trim: true) |> Enum.slice(range) |> Enum.join("/")
     mount_path = "/" <> mount_path

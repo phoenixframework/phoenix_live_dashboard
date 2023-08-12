@@ -100,7 +100,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
           fn assigns ->
             ~H"""
             <.live_component module={TableComponent} {assigns} >
-              <:col 
+              <:col
                 field={:foo}
                 header="Foo header"
                 sortable={:desc}
@@ -195,9 +195,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
 
   describe "validate params" do
     test "normalizes columns" do
-      msg = "the :field parameter is expected, got: %{__slot__: :col, inner_block: nil}"
-
-      assert_raise ArgumentError, msg, fn ->
+      assert_raise ArgumentError, ~r"the :field parameter is expected, got:", fn ->
         render_component(
           fn assigns ->
             ~H"""
@@ -211,10 +209,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         )
       end
 
-      msg =
-        ":field parameter must not be nil, got: %{__slot__: :col, field: nil, inner_block: nil}"
-
-      assert_raise ArgumentError, msg, fn ->
+      assert_raise ArgumentError, ~r":field parameter must not be nil, got: ", fn ->
         render_component(
           fn assigns ->
             ~H"""
@@ -228,10 +223,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         )
       end
 
-      msg =
-        ":field parameter must be an atom or a string, got: %{__slot__: :col, field: 7, inner_block: nil}"
-
-      assert_raise ArgumentError, msg, fn ->
+      assert_raise ArgumentError, ~r":field parameter must be an atom or a string, got: ", fn ->
         render_component(
           fn assigns ->
             ~H"""

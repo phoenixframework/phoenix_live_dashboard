@@ -267,7 +267,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   end
 
   defp column_header(column) do
-    column[:header] || column.field |> to_string() |> String.capitalize()
+    column[:header] || column.field |> to_string() |> :string.titlecase()
   end
 
   defp sort_link_icon(assigns) do
