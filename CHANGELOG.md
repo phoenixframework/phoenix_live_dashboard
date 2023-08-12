@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.8.1 (2023-08-12)
+
+* Fix warnings on more recent Elixir versions
+* Fix OS Mon bug on Windows
+* Support custom `on_mount` callback
+
 ## v0.8.0 (2023-05-30)
 
 * Support and require Phoenix.LiveView 0.19.0
