@@ -61,6 +61,8 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   defp calculate_cpu_data(_), do: nil
 
   defp rup(value), do: Float.ceil(value / 256, 2)
+
+  defp rup_avg(value, 0), do: 0
   defp rup_avg(value, count), do: Float.ceil(value / 256 / count, 2)
 
   defp calculate_memory_usage(system_memory) do
