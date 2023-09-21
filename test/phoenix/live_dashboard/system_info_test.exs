@@ -38,10 +38,12 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "all with search" do
-      {pids, _count, _} = SystemInfo.fetch_processes(node(), ":user", :memory, :asc, 100)
+      process = if System.otp_release() == "26", do: :user_drv_writer, else: :user
+      {pids, _count, _} = SystemInfo.fetch_processes(node(), inspect(process), :memory, :asc, 100)
+
       assert [[pid, name | _]] = pids
-      assert pid == {:pid, Process.whereis(:user)}
-      assert name == {:name_or_initial_call, ":user"}
+      assert pid == {:pid, Process.whereis(process)}
+      assert name == {:name_or_initial_call, inspect(process)}
     end
 
     test "allows previous reductions param" do
@@ -56,7 +58,13 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       {:ok, info} = SystemInfo.fetch_process_info(Process.whereis(:user))
       assert info[:registered_name] == :user
       assert is_integer(info[:message_queue_len])
-      assert info[:initial_call] == {:erlang, :apply, 2}
+
+      expected =
+        if System.otp_release() == "26",
+          do: {:group, :server, 4},
+          else: {:erlang, :apply, 2}
+
+      assert info[:initial_call] == expected
 
       pid = Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor)
       {:ok, info} = SystemInfo.fetch_process_info(pid)
