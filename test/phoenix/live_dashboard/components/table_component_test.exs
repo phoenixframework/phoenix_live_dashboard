@@ -51,7 +51,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
     render_component(
       fn assigns ->
         ~H"""
-        <.live_component module={TableComponent} {assigns} >
+        <.live_component module={TableComponent} {assigns}>
           <:col field={:foo} sortable={:desc} />
           <:col field={:bar} sortable={:desc} />
           <:col field={:baz} />
@@ -99,17 +99,12 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         render_component(
           fn assigns ->
             ~H"""
-            <.live_component module={TableComponent} {assigns} >
-              <:col
-                field={:foo}
-                header="Foo header"
-                sortable={:desc}
-                :let={row}
-              >
+            <.live_component module={TableComponent} {assigns}>
+              <:col :let={row} field={:foo} header="Foo header" sortable={:desc}>
                 <%= "foo-format-#{row[:foo]}" %>
               </:col>
-              <:col field={:bar} text_align="right"/>
-              <:col field={:baz}/>
+              <:col field={:bar} text_align="right" />
+              <:col field={:baz} />
             </.live_component>
             """
           end,
@@ -199,8 +194,8 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         render_component(
           fn assigns ->
             ~H"""
-            <.live_component module={TableComponent} {assigns} >
-              <:col/>
+            <.live_component module={TableComponent} {assigns}>
+              <:col />
             </.live_component>
             """
           end,
@@ -213,7 +208,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         render_component(
           fn assigns ->
             ~H"""
-            <.live_component module={TableComponent} {assigns} >
+            <.live_component module={TableComponent} {assigns}>
               <:col field={nil} />
             </.live_component>
             """
@@ -227,7 +222,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         render_component(
           fn assigns ->
             ~H"""
-            <.live_component module={TableComponent} {assigns} >
+            <.live_component module={TableComponent} {assigns}>
               <:col field={7} />
             </.live_component>
             """
@@ -243,7 +238,7 @@ defmodule Phoenix.LiveDashboard.TableComponentTest do
         render_component(
           fn assigns ->
             ~H"""
-            <.live_component module={TableComponent} {assigns} >
+            <.live_component module={TableComponent} {assigns}>
               <:col field={:id} />
             </.live_component>
             """

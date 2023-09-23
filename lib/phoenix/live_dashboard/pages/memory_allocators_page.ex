@@ -32,16 +32,15 @@ defmodule Phoenix.LiveDashboard.MemoryAllocatorsPage do
         limit={false}
       >
         <:col field={:name} header="Name or module" />
-        <:col field={:block_size} sortable={:desc} :let={alloc}>
+        <:col :let={alloc} field={:block_size} sortable={:desc}>
           <%= format_bytes(alloc[:block_size]) %>
         </:col>
-        <:col field={:carrier_size} sortable={:desc} :let={alloc}>
+        <:col :let={alloc} field={:carrier_size} sortable={:desc}>
           <%= format_bytes(alloc[:carrier_size]) %>
         </:col>
-        <:col field={:max_carrier_size} sortable={:desc} :let={alloc}>
+        <:col :let={alloc} field={:max_carrier_size} sortable={:desc}>
           <%= format_bytes(alloc[:max_carrier_size]) %>
         </:col>
-
       </.live_table>
     </div>
     """

@@ -57,7 +57,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   @impl true
   def render(assigns) do
     ~H"""
-    <.live_nav_bar id="metrics_nav_bar" page={@page} >
+    <.live_nav_bar id="metrics_nav_bar" page={@page}>
       <:item :for={item <- @items} name={item} label={format_nav_name(item)} method="redirect">
         <div :if={@metrics} class="phx-dashboard-metrics-grid row">
           <%= for {metric, id} <- @metrics do %>

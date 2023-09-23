@@ -47,7 +47,9 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponentTest do
       content
       |> Floki.parse_fragment!()
       |> Floki.find(".node-label")
-      |> Floki.text(sep: " | ")
+      |> Floki.text(sep: "|")
+      |> String.split("|")
+      |> Enum.map(&String.trim/1)
     end
 
     test "renders a basic broadway pipeline" do
@@ -136,7 +138,7 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponentTest do
 
       assert circles_and_arrows_count(content) == {8, 6}
 
-      assert labels(content) == "a1 | a2 | b1 | b3 | b5 | b2 | b4 | b6"
+      assert labels(content) == ~w[a1 a2 b1 b3 b5 b2 b4 b6]
     end
 
     test "show_grid? option controls the grid display" do

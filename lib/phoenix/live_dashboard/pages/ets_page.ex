@@ -23,10 +23,10 @@ defmodule Phoenix.LiveDashboard.EtsPage do
       <:col field={:protection} />
       <:col field={:type} />
       <:col field={:size} text_align="right" sortable={:desc} />
-      <:col field={:memory} text_align="right" sortable={:desc} :let={ets}>
+      <:col :let={ets} field={:memory} text_align="right" sortable={:desc}>
         <%= format_words(ets[:memory]) %>
       </:col>
-      <:col field={:owner} :let={ets} >
+      <:col :let={ets} field={:owner}>
         <%= encode_pid(ets[:owner]) %>
       </:col>
     </.live_table>

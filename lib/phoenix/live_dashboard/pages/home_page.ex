@@ -78,7 +78,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
           input={elem(@system_usage.io, 0)}
           output={elem(@system_usage.io, 1)}
         />
-        <.run_queues_row {@system_usage}/>
+        <.run_queues_row {@system_usage} />
         <.environments_row fields={@environment} />
       </:col>
       <:col>
@@ -97,10 +97,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
           system_limits={@system_limits}
           csp_nonces={@csp_nonces}
         />
-        <.memory_shared_usage_row
-          system_usage={@system_usage}
-          csp_nonces={@csp_nonces}
-        />
+        <.memory_shared_usage_row system_usage={@system_usage} csp_nonces={@csp_nonces} />
       </:col>
     </.row>
     """
@@ -184,27 +181,23 @@ defmodule Phoenix.LiveDashboard.HomePage do
 
   defp run_queues_row(assigns) do
     ~H"""
-      <.row>
-        <:col>
-          <.card
-              title="Run queues"
-              inner_title="Total"
-              inner_hint={hint_msg(:total_queues)}
-          >
-            <%= @total_run_queue %>
-          </.card>
-        </:col>
-        <:col>
-          <.card inner_title="CPU">
-            <%= @cpu_run_queue %>
-          </.card>
-        </:col>
-        <:col>
-          <.card inner_title="IO">
-            <%= @total_run_queue - @cpu_run_queue %>
-          </.card>
-        </:col>
-      </.row>
+    <.row>
+      <:col>
+        <.card title="Run queues" inner_title="Total" inner_hint={hint_msg(:total_queues)}>
+          <%= @total_run_queue %>
+        </.card>
+      </:col>
+      <:col>
+        <.card inner_title="CPU">
+          <%= @cpu_run_queue %>
+        </.card>
+      </:col>
+      <:col>
+        <.card inner_title="IO">
+          <%= @total_run_queue - @cpu_run_queue %>
+        </.card>
+      </:col>
+    </.row>
     """
   end
 
@@ -214,10 +207,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     ~H"""
     <.row>
       <:col>
-        <.fields_card
-          title="Environment"
-          fields={@fields}
-        />
+        <.fields_card title="Environment" fields={@fields} />
       </:col>
     </.row>
     """
@@ -247,7 +237,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
     ~H"""
     <.row>
       <:col>
-        <.usage_card dom_id="ports" csp_nonces={@csp_nonces} >
+        <.usage_card dom_id="ports" csp_nonces={@csp_nonces}>
           <:usage {usage_params(:ports, @system_usage, @system_limits)} />
         </.usage_card>
       </:col>

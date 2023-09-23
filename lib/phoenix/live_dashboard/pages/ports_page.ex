@@ -18,27 +18,23 @@ defmodule Phoenix.LiveDashboard.PortsPage do
       row_fetcher={&fetch_ports/2}
       row_attrs={&row_attrs/1}
     >
-      <:col field={:port} :let={data}>
+      <:col :let={data} field={:port}>
         <%= data[:port] |> encode_port() |> String.trim_leading("Port") %>
       </:col>
-      <:col field={:name} header="Name or path" :let={data}>
+      <:col :let={data} field={:name} header="Name or path">
         <%= format_path(data[:name]) %>
       </:col>
-      <:col
-        field={:os_pid}
-        header="OS pid"
-        :let={data}
-      >
+      <:col :let={data} field={:os_pid} header="OS pid">
         <%= if data[:os_pid] != :undefined, do: data[:os_pid] %>
       </:col>
-      <:col field={:input} text_align="right" sortable={:desc} :let={data}>
+      <:col :let={data} field={:input} text_align="right" sortable={:desc}>
         <%= format_bytes(data[:input]) %>
       </:col>
-      <:col field={:output} text_align="right" sortable={:desc} :let={data}>
+      <:col :let={data} field={:output} text_align="right" sortable={:desc}>
         <%= format_bytes(data[:output]) %>
       </:col>
-      <:col field={:id} text_align="right"/>
-      <:col field={:owner} :let={data}>
+      <:col field={:id} text_align="right" />
+      <:col :let={data} field={:owner}>
         <%= inspect(data[:owner]) %>
       </:col>
     </.live_table>

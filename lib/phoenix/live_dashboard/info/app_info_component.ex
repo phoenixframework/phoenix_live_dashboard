@@ -8,11 +8,26 @@ defmodule Phoenix.LiveDashboard.AppInfoComponent do
     ~H"""
     <div class="app-info">
       <%= if @alive do %>
-        <svg width={@width} height={@height} id="tree" class="tree" >
+        <svg width={@width} height={@height} id="tree" class="tree">
           <%= for node <- @nodes do %>
-            <rect x={node.x} y={node.y} rx="10" ry="10" width={node.width} height={node.height}
-            class="node" phx-click="show_info" phx-value-info={node_encoded_pid(node.value)} phx-page-loading />
-            <text class="tree-node-text" x={node.x + 10} y={node.y + div(node.height, 2)} dominant-baseline="central">
+            <rect
+              x={node.x}
+              y={node.y}
+              rx="10"
+              ry="10"
+              width={node.width}
+              height={node.height}
+              class="node"
+              phx-click="show_info"
+              phx-value-info={node_encoded_pid(node.value)}
+              phx-page-loading
+            />
+            <text
+              class="tree-node-text"
+              x={node.x + 10}
+              y={node.y + div(node.height, 2)}
+              dominant-baseline="central"
+            >
               <%= node.label %>
             </text>
           <% end %>

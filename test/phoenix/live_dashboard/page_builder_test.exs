@@ -14,7 +14,9 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
         hint="test-hint"
         inner_title="test-inner-title"
         inner_hint="test-inner-hint"
-      >test-value</.card>
+      >
+        test-value
+      </.card>
       """)
 
     assert result =~ ~r|<h5 class=\"card-title\">[\r\n\s]*test-title[\r\n\s]*|
@@ -28,7 +30,10 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
   describe "row/1" do
     test "renders columns" do
       assigns = %{}
-      result = rendered_to_string(~H{<.row><:col>1</:col><:col>2</:col></.row>})
+      result = rendered_to_string(~H{<.row>
+  <:col>1</:col>
+  <:col>2</:col>
+</.row>})
 
       assert result =~
                ~r{<div class="row">[\r\n\s]*<div class="col-sm-6 mb-4 flex-column d-flex">[\r\n\s]*1[\r\n\s]*</div>[\r\n\s]*<div class="col-sm-6 mb-4 flex-column d-flex">[\r\n\s]*2[\r\n\s]*</div>[\r\n\s]*</div>}
@@ -53,7 +58,7 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
       msg = "row component must have at least 1 and at most 3 :col, got: 0"
 
       assert_raise ArgumentError, msg, fn ->
-        rendered_to_string(~H"<.row/>")
+        rendered_to_string(~H"<.row />")
       end
     end
   end
@@ -87,28 +92,28 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
 
     result =
       rendered_to_string(~H"""
-        <.shared_usage_card
-          usages={[
-            %{
-              data: [{"foo", 123, "green", nil}, {"bar", 456, "blue", nil}],
-              dom_id: "sub-id",
-              title: "test-usage-title"
-            }
-          ]}
-          total_data={[
-            {"foo", 1000, "green", nil},
-            {"bar", 2000, "blue", nil}
-          ]}
-          total_legend="test-total-legend"
-          total_usage="test-total-usage"
-          dom_id="test-dom-id"
-          title="test-title"
-          inner_title="test-inner-title"
-          hint="test-hint"
-          inner_hint="test-inner-hint"
-          total_formatter={&"test-format-#{&1}"}
-          csp_nonces={%{img: "img_nonce", style: "style_nonce", script: "script_nonce"}}
-        />
+      <.shared_usage_card
+        usages={[
+          %{
+            data: [{"foo", 123, "green", nil}, {"bar", 456, "blue", nil}],
+            dom_id: "sub-id",
+            title: "test-usage-title"
+          }
+        ]}
+        total_data={[
+          {"foo", 1000, "green", nil},
+          {"bar", 2000, "blue", nil}
+        ]}
+        total_legend="test-total-legend"
+        total_usage="test-total-usage"
+        dom_id="test-dom-id"
+        title="test-title"
+        inner_title="test-inner-title"
+        hint="test-hint"
+        inner_hint="test-inner-hint"
+        total_formatter={&"test-format-#{&1}"}
+        csp_nonces={%{img: "img_nonce", style: "style_nonce", script: "script_nonce"}}
+      />
       """)
 
     assert result =~ ~r|<h5 class=\"card-title\">[\r\n\s]*test-title[\r\n\s]*|
@@ -120,7 +125,7 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
     assert result =~ ~S|<span class="color-bar-progress-title">test-usage-title</span>|
 
     assert result =~
-             ~r|<style nonce="style_nonce">#test-dom-id-sub-id-progress-(1\|2){width:(123\|456)%}</style>|
+             ~r|<style nonce="style_nonce">\s*#test-dom-id-sub-id-progress-(1\|2){width:(123\|456)%}\s*</style>|
 
     assert result =~ ~r|title=\"(foo\|bar) - (123\|456)%\"|
     assert result =~ ~r|class=\"progress-bar color-bar-progress-bar bg-gradient-(blue\|green)\"|
@@ -140,21 +145,21 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
 
     result =
       rendered_to_string(~H"""
-        <.usage_card
-          dom_id="test-dom-id"
-          title="test-title"
-          hint="test-hint"
-          csp_nonces={%{img: "img_nonce", style: "style_nonce", script: "script_nonce"}}
-        >
-          <:usage
-              current={10}
-              limit={150}
-              dom_id="test-dom-sub-id"
-              title="test-usage-title"
-              hint="test-usage-hint"
-              percent={13}
-          />
-        </.usage_card>
+      <.usage_card
+        dom_id="test-dom-id"
+        title="test-title"
+        hint="test-hint"
+        csp_nonces={%{img: "img_nonce", style: "style_nonce", script: "script_nonce"}}
+      >
+        <:usage
+          current={10}
+          limit={150}
+          dom_id="test-dom-sub-id"
+          title="test-usage-title"
+          hint="test-usage-hint"
+          percent={13}
+        />
+      </.usage_card>
       """)
 
     assert result =~ ~r|<h5 class=\"card-title\">[\r\n\s]*test-title[\r\n\s]*|
@@ -167,6 +172,6 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
     assert result =~ ~r|<strong>[\r\n\s]*13%[\r\n\s]*</strong>|
 
     assert result =~
-             ~r|<style nonce=\"style_nonce\">#test-dom-id-test-dom-sub-id-progress{width:13%}<\/style>|
+             ~r|<style nonce=\"style_nonce\">\s*#test-dom-id-test-dom-sub-id-progress{width:13%}\s*<\/style>|
   end
 end

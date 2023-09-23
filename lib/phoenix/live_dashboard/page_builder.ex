@@ -335,7 +335,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @spec live_nav_bar(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def live_nav_bar(assigns) do
     ~H"""
-    <.live_component module={NavBarComponent} {assigns}/>
+    <.live_component module={NavBarComponent} {assigns} />
     """
   end
 
@@ -349,10 +349,10 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     ~H"""
     <div class="hint">
       <svg class="hint-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="44" height="44" fill="none"/>
-        <rect x="19" y="10" width="6" height="5.76" rx="1" class="hint-icon-fill"/>
-        <rect x="19" y="20" width="6" height="14" rx="1" class="hint-icon-fill"/>
-        <circle cx="22" cy="22" r="20" class="hint-icon-stroke" stroke-width="4"/>
+        <rect width="44" height="44" fill="none" />
+        <rect x="19" y="10" width="6" height="5.76" rx="1" class="hint-icon-fill" />
+        <rect x="19" y="20" width="6" height="14" rx="1" class="hint-icon-fill" />
+        <circle cx="22" cy="22" r="20" class="hint-icon-stroke" stroke-width="4" />
       </svg>
       <div class="hint-text"><%= @text %></div>
     </div>
@@ -368,9 +368,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @spec card_title(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def card_title(assigns) do
     ~H"""
-    <h5 class="card-title" :if={@title}>
+    <h5 :if={@title} class="card-title">
       <%= @title %>
-      <.hint :if={@hint} text={@hint}/>
+      <.hint :if={@hint} text={@hint} />
     </h5>
     """
   end
@@ -393,7 +393,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     ~H"""
     <.card_title title={@title} hint={@hint} />
     <div id={@dom_id} class="banner-card mt-auto">
-      <h6 class="banner-card-title" :if={@inner_title}>
+      <h6 :if={@inner_title} class="banner-card-title">
         <%= @inner_title %>
         <.hint :if={@inner_hint} text={@inner_hint} />
       </h6>
@@ -426,7 +426,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       <div class="fields-card">
         <div class="card mb-4">
           <div class="card-body rounded pt-3">
-            <h6 class="card-title" :if={@inner_title}>
+            <h6 :if={@inner_title} class="card-title">
               <%= @inner_title %>
               <.hint :if={@inner_hint} text={@inner_hint} />
             </h6>
@@ -513,10 +513,14 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     <div class="card">
       <div class="card-body card-usage">
         <%= for usage <- @usage do %>
-          <.title_bar_component dom_id={"#{@dom_id}-#{usage.dom_id}"} percent={usage.percent} csp_nonces={@csp_nonces} >
+          <.title_bar_component
+            dom_id={"#{@dom_id}-#{usage.dom_id}"}
+            percent={usage.percent}
+            csp_nonces={@csp_nonces}
+          >
             <div>
               <%= usage.title %>
-              <.hint text={usage[:hint]} :if={usage[:hint]}/>
+              <.hint :if={usage[:hint]} text={usage[:hint]} />
             </div>
             <div>
               <small class="text-muted pr-2">
@@ -545,17 +549,19 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     <div class="py-2">
       <section>
         <div class="d-flex justify-content-between">
-          <%= render_slot @inner_block %>
+          <%= render_slot(@inner_block) %>
         </div>
-        <style nonce={@csp_nonces.style}>#<%= "#{@dom_id}-progress" %>{width:<%= @percent %>%}</style>
+        <style nonce={@csp_nonces.style}>
+          #<%= "#{@dom_id}-progress" %>{width:<%= @percent %>%}
+        </style>
         <div class="progress flex-grow-1 mt-2">
           <div
-          class={"progress-bar bg-#{@color}"}
-          role="progressbar"
-          aria-valuenow={@percent}
-          aria-valuemin="0"
-          aria-valuemax="100"
-          id={"#{@dom_id}-progress"}
+            class={"progress-bar bg-#{@color}"}
+            role="progressbar"
+            aria-valuenow={@percent}
+            aria-valuemin="0"
+            aria-valuemax="100"
+            id={"#{@dom_id}-progress"}
           >
           </div>
         </div>
@@ -612,31 +618,39 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
             <div class="progress color-bar-progress flex-grow-1 mb-3">
               <span :if={usage[:title]} class="color-bar-progress-title"><%= usage[:title] %></span>
               <%= for {{name, value, color, _desc}, index} <- Enum.with_index(usage.data) do %>
-                <style nonce={@csp_nonces.style}>#<%= "#{@dom_id}-#{usage.dom_id}-progress-#{index}" %>{width:<%= value %>%}</style>
+                <style nonce={@csp_nonces.style}>
+                  #<%= "#{@dom_id}-#{usage.dom_id}-progress-#{index}" %>{width:<%= value %>%}
+                </style>
                 <div
-                    title={"#{name} - #{Phoenix.LiveDashboard.Helpers.format_percent(value)}"}
-                    class={"progress-bar color-bar-progress-bar bg-gradient-#{color}"}
-                    role="progressbar"
-                    aria-valuenow={maybe_round(value)}
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    data-name={name}
-                    data-empty={empty?(value)}
-                    id={"#{@dom_id}-#{usage.dom_id}-progress-#{index}"}>
+                  title={"#{name} - #{Phoenix.LiveDashboard.Helpers.format_percent(value)}"}
+                  class={"progress-bar color-bar-progress-bar bg-gradient-#{color}"}
+                  role="progressbar"
+                  aria-valuenow={maybe_round(value)}
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  data-name={name}
+                  data-empty={empty?(value)}
+                  id={"#{@dom_id}-#{usage.dom_id}-progress-#{index}"}
+                >
                 </div>
               <% end %>
             </div>
           </div>
           <div class="color-bar-legend">
             <div class="row">
-            <%= for {name, value, color, hint} <- @total_data do %>
-              <div class="col-lg-6 d-flex align-items-center py-1 flex-grow-0 color-bar-legend-entry" data-name={name}>
-                <div class={"color-bar-legend-color bg-#{color} mr-2"}></div>
-                <span><%= name %><.hint :if={hint} text={hint} /></span>
-                <span class="flex-grow-1 text-right text-muted">
-                <%= if @total_formatter, do: @total_formatter.(value), else: total_formatter(value) %>
-                </span>
-              </div>
+              <%= for {name, value, color, hint} <- @total_data do %>
+                <div
+                  class="col-lg-6 d-flex align-items-center py-1 flex-grow-0 color-bar-legend-entry"
+                  data-name={name}
+                >
+                  <div class={"color-bar-legend-color bg-#{color} mr-2"}></div>
+                  <span><%= name %><.hint :if={hint} text={hint} /></span>
+                  <span class="flex-grow-1 text-right text-muted">
+                    <%= if @total_formatter,
+                      do: @total_formatter.(value),
+                      else: total_formatter(value) %>
+                  </span>
+                </div>
               <% end %>
             </div>
           </div>
@@ -788,7 +802,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       title={@title}
       return_to={@return_to}
     >
-      <%= render_slot @inner_block %>
+      <%= render_slot(@inner_block) %>
     </.live_component>
     """
   end

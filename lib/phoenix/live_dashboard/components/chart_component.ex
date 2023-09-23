@@ -52,17 +52,18 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
           <div phx-hook="PhxChartComponent" id={"chart-#{@id}-datasets"} hidden>
             <span :for={{_id, {x, y, z}} <- @streams.data} data-x={x} data-y={y} data-z={z}></span>
           </div>
-          <div class="chart"
-              id={"chart-ignore-#{@id}"}
-              phx-update="ignore"
-              data-label={@label}
-              data-metric={@kind}
-              data-title={@title}
-              data-tags={Enum.join(@tags, "-")}
-              data-unit={@unit}
-              data-prune-threshold={@prune_threshold}
-              {bucket_size(@bucket_size)}
-            >
+          <div
+            class="chart"
+            id={"chart-ignore-#{@id}"}
+            phx-update="ignore"
+            data-label={@label}
+            data-metric={@kind}
+            data-title={@title}
+            data-tags={Enum.join(@tags, "-")}
+            data-unit={@unit}
+            data-prune-threshold={@prune_threshold}
+            {bucket_size(@bucket_size)}
+          >
           </div>
         </div>
         <Phoenix.LiveDashboard.PageBuilder.hint :if={@hint} text={@hint} />

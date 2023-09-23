@@ -18,21 +18,21 @@ defmodule Phoenix.LiveDashboard.SocketsPage do
       row_fetcher={&fetch_sockets/2}
       row_attrs={&row_attrs/1}
     >
-      <:col field={:port} :let={socket}>
+      <:col :let={socket} field={:port}>
         <%= socket[:port] |> encode_socket() |> String.trim_leading("Socket") %>
       </:col>
       <:col field={:module} sortable={:asc} />
-      <:col field={:send_oct} header="Sent" text_align="right" sortable={:desc} :let={socket}>
+      <:col :let={socket} field={:send_oct} header="Sent" text_align="right" sortable={:desc}>
         <%= format_bytes(socket[:send_oct]) %>
       </:col>
-      <:col field={:recv_oct} header="Received" text_align="right" sortable={:desc} :let={socket}>
+      <:col :let={socket} field={:recv_oct} header="Received" text_align="right" sortable={:desc}>
         <%= format_bytes(socket[:recv_oct]) %>
       </:col>
       <:col field={:local_address} header="Local Address" sortable={:asc} />
       <:col field={:foreign_address} sortable={:asc} />
       <:col field={:state} sortable={:asc} />
       <:col field={:type} sortable={:asc} />
-      <:col field={:connected} header="Owner" :let={socket}>
+      <:col :let={socket} field={:connected} header="Owner">
         <%= encode_pid(socket[:connected]) %>
       </:col>
     </.live_table>

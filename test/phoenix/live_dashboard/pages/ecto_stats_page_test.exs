@@ -76,7 +76,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
              "Depending on the database, ecto_psql_extras, ecto_mysql_extras, or ecto_sqlite3_extras should be installed."
 
     assert rendered =~
-             ~s|Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details|
+             ~r|<a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">\s*documentation\s*</a>|
   end
 
   @forbidden_navs [:kill_all, :mandelbrot]

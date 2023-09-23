@@ -158,7 +158,14 @@ defmodule Phoenix.LiveDashboard.TableComponent do
         <form phx-change="search" phx-submit="search" phx-target={@myself} class="form-inline">
           <div class="form-row align-items-center">
             <div class="col-auto">
-              <input type="search" name="search" class="form-control form-control-sm" value={@table_params.search} placeholder="Search" phx-debounce="300">
+              <input
+                type="search"
+                name="search"
+                class="form-control form-control-sm"
+                value={@table_params.search}
+                placeholder="Search"
+                phx-debounce="300"
+              />
             </div>
           </div>
         </form>
@@ -194,7 +201,12 @@ defmodule Phoenix.LiveDashboard.TableComponent do
                 <tr>
                   <th :for={column <- @columns} class={col_class(@dom_id, column)}>
                     <%= if column[:sortable] do %>
-                      <.sort_link socket={@socket} page={@page} table_params={@table_params} column={column}/>
+                      <.sort_link
+                        socket={@socket}
+                        page={@page}
+                        table_params={@table_params}
+                        column={column}
+                      />
                     <% else %>
                       <%= column[:header] || column[:field] %>
                     <% end %>
@@ -208,7 +220,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
                       <%= render_slot(column, row) %>
                     <% else %>
                       <%= row[column.field] |> to_string() %>
-                  <% end %>
+                    <% end %>
                   </td>
                 </tr>
               </tbody>
@@ -252,14 +264,16 @@ defmodule Phoenix.LiveDashboard.TableComponent do
   defp sort_link(assigns) do
     if assigns.table_params.sort_by == assigns.column.field do
       ~H"""
-      <.link patch={PageBuilder.live_dashboard_path(@socket, @page, reverse_sort_dir(@table_params))} >
+      <.link patch={PageBuilder.live_dashboard_path(@socket, @page, reverse_sort_dir(@table_params))}>
         <%= column_header(@column) %>
         <.sort_link_icon dir={@table_params.sort_dir} />
       </.link>
       """
     else
       ~H"""
-      <.link patch={PageBuilder.live_dashboard_path(@socket, @page, replace_sort_dir(@table_params, @column))} >
+      <.link patch={
+        PageBuilder.live_dashboard_path(@socket, @page, replace_sort_dir(@table_params, @column))
+      }>
         <%= column_header(@column) %>
       </.link>
       """

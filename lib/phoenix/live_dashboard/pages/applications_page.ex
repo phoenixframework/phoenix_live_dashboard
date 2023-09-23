@@ -20,7 +20,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPage do
       <:col field={:name} sortable={:asc} />
       <:col field={:description} />
       <:col field={:state} sortable={:asc} />
-      <:col field={:tree?} header="Sup tree?" text_align="center" :let={app}>
+      <:col :let={app} field={:tree?} header="Sup tree?" text_align="center">
         <%= if app[:tree?], do: "✓" %>
       </:col>
       <:col field={:version} />

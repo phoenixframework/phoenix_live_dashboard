@@ -18,25 +18,34 @@ defmodule Phoenix.LiveDashboard.ModalComponent do
 
   def render(assigns) do
     ~H"""
-    <div id={@id} class="dash-modal modal"
+    <div
+      id={@id}
+      class="dash-modal modal"
       tabindex="-1"
       phx-capture-click="close"
       phx-window-keydown="close"
       phx-key="escape"
       phx-target={"##{@id}"}
-      phx-page-loading>
+      phx-page-loading
+    >
       <div class="modal-dialog modal-lg" id="modal-container">
         <div class="modal-content">
           <div class="modal-header">
-            <h6 class="modal-title"><%=@title %></h6>
+            <h6 class="modal-title"><%= @title %></h6>
             <div class="modal-action">
               <span phx-click={enable_fullscreen()} class="modal-action-item mr-3" id="fullscreen-on">
                 &square;
               </span>
-              <span phx-click={disable_fullscreen()} class="modal-action-item mr-3 modal-action-hidden" id="fullscreen-off">
+              <span
+                phx-click={disable_fullscreen()}
+                class="modal-action-item mr-3 modal-action-hidden"
+                id="fullscreen-off"
+              >
                 &minus;
               </span>
-              <.link patch={@return_to} class="modal-action-item mt-n1" id="modal-close">&times;</.link>
+              <.link patch={@return_to} class="modal-action-item mt-n1" id="modal-close">
+                &times;
+              </.link>
             </div>
           </div>
           <div class="modal-body">

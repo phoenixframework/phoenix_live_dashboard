@@ -147,10 +147,10 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
         </.card>
       </:col>
       <:col>
-        <.card inner_title="Load 5 min"> <%= @cpu.load5 %> </.card>
+        <.card inner_title="Load 5 min"><%= @cpu.load5 %></.card>
       </:col>
       <:col>
-        <.card inner_title="Load 15 min"> <%= @cpu.load15 %> </.card>
+        <.card inner_title="Load 15 min"><%= @cpu.load15 %></.card>
       </:col>
     </.row>
     """

@@ -17,7 +17,7 @@ defmodule Phoenix.LiveDashboard.TitleBarComponentTest do
         )
 
       assert result =~ "123"
-      assert result =~ ~R|<style nonce="style_nonce">#.*\{width:0.1%\}|
+      assert result =~ ~R|<style nonce="style_nonce">\s*#.*\{width:0.1%\}|
       assert result =~ "div class=\"test-class\""
     end
   end

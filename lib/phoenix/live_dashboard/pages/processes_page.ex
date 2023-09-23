@@ -18,16 +18,16 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
       row_attrs={&row_attrs/1}
       title="Processes"
     >
-      <:col field={:pid} header="PID" :let={process} >
+      <:col :let={process} field={:pid} header="PID">
         <%= process[:pid] |> encode_pid() |> String.replace_prefix("PID", "") %>
       </:col>
-      <:col field={:name_or_initial_call} header="Name or initial call"/>
-      <:col field={:memory} header="Memory" text_align="right" sortable={:desc} :let={process}>
+      <:col field={:name_or_initial_call} header="Name or initial call" />
+      <:col :let={process} field={:memory} header="Memory" text_align="right" sortable={:desc}>
         <%= format_bytes(process[:memory]) %>
       </:col>
-      <:col field={:reductions_diff} header="Reductions" text_align="right" sortable={:desc}/>
-      <:col field={:message_queue_len} header="MsgQ" text_align="right" sortable={:desc}/>
-      <:col field={:current_function} header="Current function" :let={process}>
+      <:col field={:reductions_diff} header="Reductions" text_align="right" sortable={:desc} />
+      <:col field={:message_queue_len} header="MsgQ" text_align="right" sortable={:desc} />
+      <:col :let={process} field={:current_function} header="Current function">
         <%= format_call(process[:current_function]) %>
       </:col>
     </.live_table>

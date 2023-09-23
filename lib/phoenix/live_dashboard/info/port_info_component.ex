@@ -70,7 +70,9 @@ defmodule Phoenix.LiveDashboard.PortInfoComponent do
 
   defp info(%{links: links} = assigns) when is_list(links) do
     ~H"""
-    <%= for info <- @links do %><%= info %><% end %>
+    <%= for info <- @links do %>
+      <%= info %>
+    <% end %>
     """
   end
 

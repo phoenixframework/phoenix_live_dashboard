@@ -194,10 +194,14 @@ defmodule Phoenix.LiveDashboard.PageLive do
           <form id="refresher" phx-change="select_refresh">
             <%= if @menu.refresher? do %>
               <label for="refresh-interval-select">Update every</label>
-              <select name="refresh" class="custom-select custom-select-sm"
-                      id="refresh-interval-select" data-page={@page.route}
-                      data-dashboard-mount-path={@menu.dashboard_mount_path}
-                      phx-hook="PhxRememberRefresh">
+              <select
+                name="refresh"
+                class="custom-select custom-select-sm"
+                id="refresh-interval-select"
+                data-page={@page.route}
+                data-dashboard-mount-path={@menu.dashboard_mount_path}
+                phx-hook="PhxRememberRefresh"
+              >
                 <%= options_for_select(@menu.refresh_options, @menu.refresh) %>
               </select>
             <% else %>
@@ -317,10 +321,16 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp maybe_link(socket, page, {:enabled, text, route}) do
-    live_redirect(text,
-      to: PageBuilder.live_dashboard_path(socket, route, page.node, page.params, []),
-      class: "menu-item"
-    )
+    assigns = %{text: text, route: route, socket: socket, page: page}
+
+    ~H"""
+    <.link
+      navigate={PageBuilder.live_dashboard_path(@socket, @route, @page.node, @page.params, [])}
+      class="menu-item"
+    >
+      <%= @text %>
+    </.link>
+    """
   end
 
   defp maybe_link(_socket, _page, {:disabled, text}) do
@@ -338,7 +348,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
     ~H"""
     <div class="menu-item menu-item-disabled">
-      <%= @text %> <%= link "Enable", to: @more_info_url, class: "menu-item-enable-button" %>
+      <%= @text %> <%= link("Enable", to: @more_info_url, class: "menu-item-enable-button") %>
     </div>
     """
   end

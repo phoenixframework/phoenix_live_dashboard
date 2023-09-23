@@ -34,7 +34,7 @@ defmodule Phoenix.LiveDashboard.Components.NavBarComponentTest do
     render_component(
       fn assigns ->
         ~H"""
-        <.live_component module={NavBarComponent} {assigns} >
+        <.live_component module={NavBarComponent} {assigns}>
           <:item name="Foo" method="patch">
             <span>foo_text</span>
           </:item>

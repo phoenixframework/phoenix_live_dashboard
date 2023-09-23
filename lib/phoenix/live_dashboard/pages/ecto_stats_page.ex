@@ -139,16 +139,21 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       render_error(assigns)
     else
       ~H"""
-      <.live_nav_bar id="repos_nav_bar" page={@page} nav_param="repo" style={:bar} extra_params={["nav"]} >
+      <.live_nav_bar
+        id="repos_nav_bar"
+        page={@page}
+        nav_param="repo"
+        style={:bar}
+        extra_params={["nav"]}
+      >
         <:item :for={repo <- @repos} name={inspect(repo)} label={inspect(repo)}>
           <.render_repo_tab
             page={@page}
             repo={repo}
             ecto_options={@ecto_options}
             info_module={info_module_for(@page.node, repo)}
-        />
+          />
         </:item>
-
       </.live_nav_bar>
       """
     end
@@ -156,8 +161,11 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   defp render_repo_tab(assigns) do
     ~H"""
-    <.live_nav_bar id="queries_nav_bar" page={@page} extra_params={["repo"]} >
-      <:item :for={{table_name, info} <- queries(@page.node, @repo, @info_module)} name={to_string(table_name)}>
+    <.live_nav_bar id="queries_nav_bar" page={@page} extra_params={["repo"]}>
+      <:item
+        :for={{table_name, info} <- queries(@page.node, @repo, @info_module)}
+        name={to_string(table_name)}
+      >
         <.live_table
           id={"table_#{table_name}"}
           page={@page}
@@ -167,9 +175,11 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
           search={info.searchable != []}
           default_sort_by={info.default_sort_by}
           rows_name="entries"
-          row_fetcher={&row_fetcher(@repo, @info_module, table_name, info.searchable, @ecto_options, &1, &2)}
+          row_fetcher={
+            &row_fetcher(@repo, @info_module, table_name, info.searchable, @ecto_options, &1, &2)
+          }
         >
-          <:col :for={col <- info.columns} field={col.name} sortable={sortable(col.type)} :let={row}>
+          <:col :let={row} :for={col <- info.columns} field={col.name} sortable={sortable(col.type)}>
             <%= format(col.type, row[col.name]) %>
           </:col>
         </.live_table>
@@ -290,7 +300,11 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
             Depending on the database, ecto_psql_extras, ecto_mysql_extras, or ecto_sqlite3_extras should be installed.
 
-            Check the <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">documentation</a> for details.
+            Check the
+            <a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">
+              documentation
+            </a>
+            for details.
           </small>
         </.card>
         """
