@@ -222,6 +222,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   You can see it in use the applications, processes, sockets pages and many others.
   """
+  @doc type: :component
   attr :id, :any,
     required: true,
     doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
@@ -300,6 +301,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   You can see it in use the Metrics and Ecto info pages.
   """
+  @doc type: :component
   attr :id, :any,
     required: true,
     doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
@@ -342,6 +344,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @doc """
   Hint pop-up text component
   """
+  @doc type: :component
   attr :text, :string, required: true, doc: "Text to show in the hint"
 
   @spec hint(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
@@ -362,6 +365,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @doc """
   Card title component.
   """
+  @doc type: :component
   attr :title, :string, default: nil, doc: "The title above the card."
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
 
@@ -380,7 +384,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   You can see it in use the Home and OS Data pages.
   """
-
+  @doc type: :component
   slot(:inner_block, required: true, doc: "The value that the card will show.")
   attr :title, :string, default: nil, doc: "The title above the card."
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
@@ -409,7 +413,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   You can see it in use the Home page in the Environment section.
   """
-
+  @doc type: :component
   attr :fields, :list,
     required: true,
     doc: "A list of key-value elements that will be shown inside the card."
@@ -448,6 +452,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   You can see it in use the Home page and OS Data pages.
   """
+  @doc type: :component
   slot(:col,
     required: true,
     doc:
@@ -485,6 +490,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   You can see it in use the Home page and OS Data pages.
   """
+  @doc type: :component
   attr :title, :string, default: nil, doc: "The title above the card."
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
   attr :dom_id, :string, required: true, doc: "A unique identifier for all usages in this card."
@@ -575,6 +581,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   You can see it in use the Home page and OS Data pages.
   """
+  @doc type: :component
   attr :usages, :list,
     required: true,
     doc: """
@@ -700,6 +707,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       ...>    ]
       ...> ]
   """
+  @doc type: :component
   attr :id, :any,
     required: true,
     doc: "Because is a stateful `Phoenix.LiveComponent` an unique id is needed."
@@ -764,6 +772,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   You can see it in use in the modal in Ports or Processes page.
   """
+  @doc type: :component
   slot :elem, required: true, doc: "Value for each element of the list" do
     attr :label, :string, required: true, doc: "Label for the elem"
   end
