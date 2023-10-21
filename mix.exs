@@ -85,7 +85,10 @@ defmodule Phoenix.LiveDashboard.MixProject do
       source_url: "https://github.com/phoenixframework/phoenix_live_dashboard",
       extra_section: "GUIDES",
       extras: extras(),
-      nest_modules_by_prefix: [Phoenix.LiveDashboard]
+      nest_modules_by_prefix: [Phoenix.LiveDashboard],
+      groups_for_functions: [
+        Components: &(&1[:type] == :component)
+      ]
     ]
   end
 
