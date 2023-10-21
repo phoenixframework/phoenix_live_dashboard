@@ -385,7 +385,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   You can see it in use the Home and OS Data pages.
   """
   @doc type: :component
-  slot(:inner_block, required: true, doc: "The value that the card will show.")
+  slot :inner_block, required: true, doc: "The value that the card will show."
   attr :title, :string, default: nil, doc: "The title above the card."
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
   attr :inner_title, :string, default: nil, doc: "The title inside the card."
@@ -453,12 +453,11 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   You can see it in use the Home page and OS Data pages.
   """
   @doc type: :component
-  slot(:col,
+  slot :col,
     required: true,
     doc:
       "A list of components. It can receive up to 3 components." <>
         " Each element will be one column."
-  )
 
   @spec row(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def row(assigns) do
@@ -548,7 +547,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :dom_id, :string, required: true
   attr :percent, :float, required: true
   attr :csp_nonces, :any, required: true
-  slot(:inner_block, required: true)
+  slot :inner_block, required: true
 
   defp title_bar_component(assigns) do
     ~H"""
@@ -801,7 +800,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :title, :string, required: true, doc: "Title of the modal"
 
   attr :return_to, :string, required: true, doc: "Path to return when closing the modal"
-  slot(:inner_block, required: true, doc: "Content to show in the modal")
+  slot :inner_block, required: true, doc: "Content to show in the modal"
 
   def live_modal(assigns) do
     ~H"""
