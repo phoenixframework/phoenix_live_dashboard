@@ -96,7 +96,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   We currently support `card/1`, `fields_card/1`, `row/1`,
   `shared_usage_card/1`, and `usage_card/1`;
-  and the live components `live_layered_graph/1`, `live_nav_bar/1`, 
+  and the live components `live_layered_graph/1`, `live_nav_bar/1`,
   and `live_table/1`.
 
   ## Helpers
@@ -978,7 +978,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   def live_dashboard_path(socket, route, node, old_params, new_params) when is_atom(node) do
     if function_exported?(socket.router, :__live_dashboard_prefix__, 0) do
       new_params = for {key, val} <- new_params, key not in ~w(page node), do: {key, val}
-      prefix = socket.router.__live_dashboard_prefix__()
+      prefix = socket.router.__live_dashboard_prefix__() |> dbg()
+      # broken due to redirecting in a loop
+      prefix = socket.router.__live_dashboard_path_prefix__() |> dbg()
 
       path =
         if node == node() and is_nil(old_params["node"]) do
