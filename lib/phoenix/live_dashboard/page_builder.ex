@@ -982,9 +982,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
       path =
         if node == node() and is_nil(old_params["node"]) do
-          "#{prefix}/#{route}"
+          Path.join([prefix, to_string(route)])
         else
-          "#{prefix}/#{URI.encode_www_form(to_string(node))}/#{route}"
+          Path.join([prefix, URI.encode_www_form(to_string(node)), to_string(route)])
         end
 
       Phoenix.VerifiedRoutes.unverified_path(socket, socket.router, path, new_params)

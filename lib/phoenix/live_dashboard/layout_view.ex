@@ -27,7 +27,7 @@ defmodule Phoenix.LiveDashboard.LayoutView do
       Phoenix.VerifiedRoutes.unverified_path(
         conn,
         conn.private.phoenix_router,
-        "#{prefix}/#{asset}-#{hash}"
+        Path.join([prefix, "#{asset}-#{hash}"])
       )
     else
       apply(
