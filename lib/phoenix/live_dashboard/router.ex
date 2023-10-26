@@ -126,6 +126,7 @@ defmodule Phoenix.LiveDashboard.Router do
 
         unless Module.get_attribute(__MODULE__, :live_dashboard_prefix) do
           @live_dashboard_prefix Phoenix.Router.scoped_path(__MODULE__, path)
+                                 |> String.replace_suffix("/", "")
           def __live_dashboard_prefix__, do: @live_dashboard_prefix
         end
       end
