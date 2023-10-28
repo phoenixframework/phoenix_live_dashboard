@@ -19,7 +19,8 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
     end
 
     socket =
-      assign(socket,
+      socket
+      |> assign(
         stream: stream,
         param_key: param_key,
         cookie_key: cookie_key,
@@ -28,8 +29,10 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
         autoscroll_enabled: true,
         messages_present: false
       )
+      |> stream_configure(:messages, dom_id: fn _ -> "log-#{System.unique_integer()}" end)
+      |> stream(:messages, [])
 
-    {:ok, socket, temporary_assigns: [messages: []]}
+    {:ok, socket}
   end
 
   def mount(_, %{request_logger: _}, socket) do
@@ -53,7 +56,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
 
   @impl true
   def handle_info({:logger, level, message}, socket) do
-    {:noreply, assign(socket, messages: [{message, level}], messages_present: true)}
+    {:noreply, socket |> stream(:messages, [{message, level}]) |> assign(messages_present: true)}
   end
 
   @impl true
@@ -78,9 +81,9 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
 
       <div class="card mb-4" id="logger-messages-card" phx-hook="PhxRequestLoggerMessages">
         <div class="card-body">
-          <div id="logger-messages" phx-update="append">
-            <%= for {message, level} <- @messages do %>
-              <pre id={"log-#{System.unique_integer()}"} class={"log-level#{level}"}><%= message %></pre>
+          <div id="logger-messages" phx-update="stream">
+            <%= for {id, {message, level}} <- @streams.messages do %>
+              <pre id={id} class={"log-level#{level}"}><%= message %></pre>
             <% end %>
           </div>
           <!-- Autoscroll ON/OFF checkbox -->
