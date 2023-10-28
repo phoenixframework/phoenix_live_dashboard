@@ -7,16 +7,9 @@ defmodule Phoenix.LiveDashboard.Router do
   Defines a LiveDashboard route.
 
   It expects the `path` the dashboard will be mounted at
-  and a set of options.
+  and a set of options. You can then link to the route directly:
 
-  This will also generate a named helper called `live_dashboard_path/2`
-  which you can use to link directly to the dashboard, such as:
-
-      <%= link "Dashboard", to: live_dashboard_path(conn, :home) %>
-
-  Note you should only use `link/2` to link to the dashboard (and not
-  `live_redirect/live_link`, as it has to set its own session on first
-  render.
+      <a href={~p"/dashboard"}>Dashboard</a>
 
   ## Options
 

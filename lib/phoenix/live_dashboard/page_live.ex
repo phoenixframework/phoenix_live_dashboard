@@ -348,7 +348,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
     ~H"""
     <div class="menu-item menu-item-disabled">
-      <%= @text %> <%= link("Enable", to: @more_info_url, class: "menu-item-enable-button") %>
+      <%= @text %> <a href={@more_info_url} class="menu-item-enable-button">Enable</a>
     </div>
     """
   end

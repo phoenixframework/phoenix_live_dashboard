@@ -6,7 +6,6 @@ defmodule Phoenix.LiveDashboard.Web do
     quote do
       @moduledoc false
       use Phoenix.Component
-
       unquote(view_helpers())
     end
   end
@@ -31,13 +30,9 @@ defmodule Phoenix.LiveDashboard.Web do
 
   defp view_helpers do
     quote do
-      # Use all HTML functionality (forms, tags, etc)
-      use Phoenix.HTML
-
-      # Import convenience functions for LiveView rendering
+      import Phoenix.HTML
+      import Phoenix.HTML.Form
       import Phoenix.LiveView.Helpers
-
-      # Import dashboard built-in functions
       import Phoenix.LiveDashboard.Helpers
     end
   end
