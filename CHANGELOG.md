@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.8.3 (2023-10-28)
+
+* Address deprecation warnings from Phoenix.LiveView and Phoenix.HTML
+
+## v0.8.2 (2023-09-23)
+
+* Support Phoenix.LiveView 0.20.0
+
 ## v0.8.1 (2023-08-12)
 
 * Fix warnings on more recent Elixir versions
