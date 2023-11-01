@@ -31,7 +31,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
   end
 
   defp extra_applications(:test), do: [:ssh, :os_mon, :runtime_tools, :logger]
-  defp extra_applications(_), do: [:logger]
+  defp extra_applications(_), do: [:runtime_tools, :logger]
 
   defp aliases do
     [
