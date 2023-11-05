@@ -78,10 +78,10 @@ jobs:
       - name: Install Dependencies
         run: mix deps.get --only test
 
-      - name: Setup Node.js 16.x
+      - name: Setup Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
 
       - name: npm install and test
         run: |

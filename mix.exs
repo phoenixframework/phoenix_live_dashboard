@@ -66,7 +66,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:ecto_sqlite3, "~> 0.9.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.21", only: :docs},
       {:esbuild, "~> 0.5", only: :dev},
-      {:dart_sass, "~> 0.5", only: :dev}
+      {:dart_sass, "~> 0.7", only: :dev}
     ]
   end
 
