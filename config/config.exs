@@ -17,7 +17,7 @@ if config_env() == :dev do
     ]
 
   config :dart_sass,
-    version: "1.54.5",
+    version: "1.61.0",
     default: [
       args: ~w(--load-path=node_modules --no-source-map css/app.scss ../dist/css/app.css),
       cd: Path.expand("../assets", __DIR__)
