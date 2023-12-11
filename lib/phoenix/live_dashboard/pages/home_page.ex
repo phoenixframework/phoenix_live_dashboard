@@ -169,7 +169,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
       </:col>
       <:col>
         <.card inner_title="Total output" inner_hint={hint_msg(:total_output)}>
-          <%= format_bytes(@input) %>
+          <%= format_bytes(@output) %>
         </.card>
       </:col>
     </.row>
