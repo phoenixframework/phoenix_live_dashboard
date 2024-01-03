@@ -44,6 +44,10 @@ defmodule Phoenix.LiveDashboard.Router do
       If not set, metrics will start out empty/blank and only display
       data that occurs while the browser page is open.
 
+    * `:on_mount` - Declares a custom list of `Phoenix.LiveView.on_mount/1`
+      callbacks to add to the dashboard's `Phoenix.LiveView.Router.live_session/3`.
+      A single value may also be declared.
+
     * `:request_logger` - By default the Request Logger page is enabled. Passing
        `false` will disable this page.
 
