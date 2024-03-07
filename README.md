@@ -16,7 +16,7 @@ LiveDashboard provides real-time performance monitoring and debugging tools for 
 
 - Request logging - See everything that was logged for certain requests
 
-- Applications - See, filter, and search applications in the current node
+- Applications - See, filter, and search applications in the current node and view their processes in a supervision tree
 
 - Processes - See, filter, and search processes in the current node
 
