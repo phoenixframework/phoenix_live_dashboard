@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.8.3"
+  @version "0.8.4"
 
   def project do
     [
@@ -61,7 +61,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:plug_cowboy, "~> 2.0", only: :dev},
       {:jason, "~> 1.0", only: [:dev, :test, :docs]},
-      {:floki, "~> 0.27.0", only: :test},
+      {:floki, "~> 0.27", only: :test},
       {:stream_data, "~> 0.1", only: :test},
       {:ecto_sqlite3, "~> 0.9.1", only: [:dev, :test]},
       {:ex_doc, "~> 0.21", only: :docs},
