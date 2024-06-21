@@ -38,7 +38,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
   def mount(_, %{request_logger: _}, socket) do
     stream = :crypto.strong_rand_bytes(3) |> Base.url_encode64()
     to = live_dashboard_path(socket, socket.assigns.page, stream: stream)
-    {:ok, push_redirect(socket, to: to)}
+    {:ok, push_navigate(socket, to: to)}
   end
 
   @impl true
