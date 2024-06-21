@@ -288,7 +288,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
 
     if node && node != page.node do
       to = PageBuilder.live_dashboard_path(socket, page.route, node, page.params, page.params)
-      {:noreply, push_redirect(socket, to: to)}
+      {:noreply, push_navigate(socket, to: to)}
     else
       {:noreply, redirect_to_current_node(socket)}
     end
@@ -366,7 +366,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   defp redirect_to_current_node(socket) do
-    push_redirect(socket, to: PageBuilder.live_dashboard_path(socket, :home, node(), %{}, %{}))
+    push_navigate(socket, to: PageBuilder.live_dashboard_path(socket, :home, node(), %{}, %{}))
   end
 
   defp update_page(socket, assigns) do
