@@ -98,7 +98,27 @@ This is all. Run `mix phx.server` and access the "/dashboard" to configure the n
 
 ### Extra: Add dashboard access on all environments (including production)
 
-If you want to use the LiveDashboard in production, you should put it behind some authentication and allow only admins to access it. If your application does not have an admins-only section yet, you can use `Plug.BasicAuth` to set up some basic authentication as long as you are also using SSL (which you should anyway):
+If you want to use the LiveDashboard in production, you should put authentication in front of it. For example, if you use `mix phx.gen.auth` to generate an Admin resource, you could use the following code:
+
+```elixir
+# lib/my_app_web/router.ex
+use MyAppWeb, :router
+import Phoenix.LiveDashboard.Router
+
+...
+
+pipeline :admins_only do
+  plug :fetch_current_admin
+  plug :require_authenticated_admin
+end
+
+scope "/" do
+  pipe_through [:browser, :admins_only]
+  live_dashboard "/dashboard"
+end
+```
+
+If you'd rather have some quick and dirty HTTP Authentication, the following code can be used as a starting point:
 
 ```elixir
 # lib/my_app_web/router.ex
@@ -124,12 +144,6 @@ end
 ```
 
 If you are running your application behind a proxy or a webserver, you also have to make sure they are configured for allowing WebSocket upgrades. For example, [here is an article](https://web.archive.org/web/20171104012240/https://dennisreimann.de/articles/phoenix-nginx-config.html) on how to configure Nginx with Phoenix and WebSockets.
-
-Finally, you will also want to configure your `config/prod.exs` and use your domain name under the `check_origin` configuration:
-
-    check_origin: ["//myapp.com"]
-
-Then you should be good to go!
 
 ## Using from the command line with PLDS
 
