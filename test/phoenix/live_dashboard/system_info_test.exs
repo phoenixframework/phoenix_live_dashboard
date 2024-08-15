@@ -59,6 +59,18 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
         assert pid == {:pid, agent_pid}
         assert name == {:name_or_initial_call, "test label"}
       end
+
+      test "all with search by name if both name and label are set" do
+        {:ok, agent_pid} =
+          Agent.start_link(fn -> Process.set_label("test label") end, name: :test_agent)
+
+        {pids, _count, _} =
+          SystemInfo.fetch_processes(node(), "test_agent", :memory, :asc, 100)
+
+        assert [[pid, name | _]] = pids
+        assert pid == {:pid, agent_pid}
+        assert name == {:name_or_initial_call, ":test_agent"}
+      end
     end
 
     test "allows previous reductions param" do
