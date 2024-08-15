@@ -38,12 +38,27 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "all with search" do
-      process = if System.otp_release() == "26", do: :user_drv_writer, else: :user
+      process =
+        if System.otp_release() |> String.to_integer() >= 26, do: :user_drv_writer, else: :user
+
       {pids, _count, _} = SystemInfo.fetch_processes(node(), inspect(process), :memory, :asc, 100)
 
       assert [[pid, name | _]] = pids
       assert pid == {:pid, Process.whereis(process)}
       assert name == {:name_or_initial_call, inspect(process)}
+    end
+
+    if System.otp_release() |> String.to_integer() >= 27 do
+      test "all with search by label" do
+        {:ok, agent_pid} = Agent.start_link(fn -> Process.set_label("test label") end)
+
+        {pids, _count, _} =
+          SystemInfo.fetch_processes(node(), "test label", :memory, :asc, 100)
+
+        assert [[pid, name | _]] = pids
+        assert pid == {:pid, agent_pid}
+        assert name == {:name_or_initial_call, "test label"}
+      end
     end
 
     test "allows previous reductions param" do
@@ -60,7 +75,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       assert is_integer(info[:message_queue_len])
 
       expected =
-        if System.otp_release() == "26",
+        if System.otp_release() |> String.to_integer() >= 26,
           do: {:group, :server, 4},
           else: {:erlang, :apply, 2}
 
