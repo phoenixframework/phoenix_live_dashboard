@@ -803,8 +803,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
           initial_call = Keyword.get(dictionary, :"$initial_call", initial_call)
 
           name =
-            format_process_label(Keyword.get(dictionary, :"$process_label")) ||
-              format_registered_name(name) ||
+            format_registered_name(name) ||
+              format_process_label(Keyword.get(dictionary, :"$process_label")) ||
               format_initial_call(initial_call)
 
           {name, initial_call}
