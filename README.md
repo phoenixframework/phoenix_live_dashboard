@@ -56,7 +56,7 @@ end
 
 The LiveDashboard is built on top of LiveView. If LiveView is already installed in your app, feel free to skip this section.
 
-If you plan to use LiveView in your application in the future, we recommend you to follow [the official installation instructions](https://hexdocs.pm/phoenix_live_view/installation.html).
+If you plan to use LiveView in your application in the future, we recommend you to follow [the official installation instructions](https://hexdocs.pm/phoenix_live_view/0.20.0/installation.html).
 This guide only covers the minimum steps necessary for the LiveDashboard itself to run.
 
 First, update your endpoint's configuration to include a signing salt. You can generate a signing salt by running `mix phx.gen.secret 32` (note Phoenix v1.5+ apps already have this configuration):
