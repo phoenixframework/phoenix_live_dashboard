@@ -34,7 +34,7 @@ The dashboard also works across nodes. If your nodes are connected via Distribut
 
 ## Installation
 
-To start using LiveDashboard, you will need three steps:
+The LiveDashboard is built on top of LiveView. Both LiveView and LiveDashboard ship by default as part of Phoenix. But if you skipped them, you can LiveDashboard in three steps:
 
 1. Add the `phoenix_live_dashboard` dependency
 2. Configure LiveView
@@ -54,12 +54,7 @@ end
 
 ### 2. Configure LiveView
 
-The LiveDashboard is built on top of LiveView. If LiveView is already installed in your app, feel free to skip this section.
-
-If you plan to use LiveView in your application in the future, we recommend you to follow [the official installation instructions](https://hexdocs.pm/phoenix_live_view/installation.html).
-This guide only covers the minimum steps necessary for the LiveDashboard itself to run.
-
-First, update your endpoint's configuration to include a signing salt. You can generate a signing salt by running `mix phx.gen.secret 32` (note Phoenix v1.5+ apps already have this configuration):
+First, update your endpoint's configuration to include a signing salt:
 
 ```elixir
 # config/config.exs
