@@ -1,8 +1,9 @@
 defmodule Phoenix.LiveDashboard.TelemetryListener do
-  # This module is the one responsible for listening to
-  # telemetry events and sending metrics from the given node.
+  # This module is responsible for listening to telemetry events and sending metrics from the given node.
   @moduledoc false
   use GenServer, restart: :temporary
+
+  @event_buffer_size 10_000
 
   def listen(node, metrics) do
     DynamicSupervisor.start_child(
@@ -24,6 +25,10 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
         %{label: label, measurement: measurement, time: time} = map
         {index, label, measurement, time}
       end
+
+    # Added event buffering for high-load situations
+    :ets.insert(:dashboard_telemetry, {:event, entries})
+    handle_buffer_overflow()
 
     send(parent, {:telemetry, entries})
   end
@@ -69,6 +74,14 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
     end
   end
 
+  # Handles buffer overflow by trimming the ETS table when it exceeds the event buffer size
+  defp handle_buffer_overflow do
+    if :ets.info(:dashboard_telemetry, :size) > @event_buffer_size do
+      oldest_event = :ets.first(:dashboard_telemetry)
+      :ets.delete(:dashboard_telemetry, oldest_event)
+    end
+  end
+
   @impl true
   def init({parent, metrics}) do
     Process.flag(:trap_exit, true)
@@ -80,6 +93,9 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
       id = {__MODULE__, event_name, self()}
       :telemetry.attach(id, event_name, &__MODULE__.handle_metrics/4, {parent, metrics})
     end
+
+    # Initialize ETS table to store telemetry events
+    :ets.new(:dashboard_telemetry, [:named_table, :public, :ordered_set])
 
     {:ok, %{ref: ref, events: Map.keys(metrics_per_event)}}
   end
@@ -94,6 +110,9 @@ defmodule Phoenix.LiveDashboard.TelemetryListener do
     for event <- events do
       :telemetry.detach({__MODULE__, event, self()})
     end
+
+    # Clean up ETS table
+    :ets.delete(:dashboard_telemetry)
 
     :ok
   end
