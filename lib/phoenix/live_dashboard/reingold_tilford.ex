@@ -246,7 +246,7 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
   def lines(%{children: children} = node) do
     lines_to_children = lines_to_children(node)
 
-    aditional_lines =
+    additional_lines =
       cond do
         [node] == children ->
           [child | _] = children
@@ -261,7 +261,7 @@ defmodule Phoenix.LiveDashboard.ReingoldTilford do
       end
 
     children_lines = Enum.flat_map(children, &lines/1)
-    lines_to_children ++ aditional_lines ++ children_lines
+    lines_to_children ++ additional_lines ++ children_lines
   end
 
   defp line_from_parent(node, child) do

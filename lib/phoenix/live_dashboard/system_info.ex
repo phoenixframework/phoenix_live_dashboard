@@ -280,7 +280,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   @doc false
   def processes_callback(search, sort_by, sort_dir, limit, prev_reductions) do
-    multiplier = sort_dir_multipler(sort_dir)
+    multiplier = sort_dir_multiplier(sort_dir)
 
     processes =
       for pid <- Process.list(),
@@ -526,7 +526,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   @doc false
   def ports_callback(search, sort_by, sort_dir, limit) do
-    multiplier = sort_dir_multipler(sort_dir)
+    multiplier = sort_dir_multiplier(sort_dir)
 
     ports =
       for port <- Port.list(), port_info = port_info(port), show_port?(port_info, search) do
@@ -574,7 +574,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   ## ETS callbacks
 
   def ets_callback(search, sort_by, sort_dir, limit) do
-    multiplier = sort_dir_multipler(sort_dir)
+    multiplier = sort_dir_multiplier(sort_dir)
 
     tables =
       for ref <- :ets.all(), info = ets_info(ref), show_ets?(info, search) do
@@ -788,8 +788,8 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     end
   end
 
-  defp sort_dir_multipler(:asc), do: 1
-  defp sort_dir_multipler(:desc), do: -1
+  defp sort_dir_multiplier(:asc), do: 1
+  defp sort_dir_multiplier(:desc), do: -1
 
   defp pid_or_port_details(pid) when is_pid(pid), do: to_process_details(pid)
   defp pid_or_port_details(name) when is_atom(name), do: to_process_details(name)
