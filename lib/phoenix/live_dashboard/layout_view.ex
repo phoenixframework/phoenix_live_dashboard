@@ -37,4 +37,20 @@ defmodule Phoenix.LiveDashboard.LayoutView do
       )
     end
   end
+
+  defp custom_head_tags(assigns, key) do
+    case assigns do
+      %{^key => components} when is_list(components) ->
+        assigns = assign(assigns, :components, components)
+
+        ~H"""
+        <%= for component <- @components do %>
+          <%= component.(assigns) %>
+        <% end %>
+        """
+
+      _ ->
+        nil
+    end
+  end
 end

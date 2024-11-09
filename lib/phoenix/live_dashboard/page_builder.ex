@@ -96,7 +96,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   We currently support `card/1`, `fields_card/1`, `row/1`,
   `shared_usage_card/1`, and `usage_card/1`;
-  and the live components `live_layered_graph/1`, `live_nav_bar/1`, 
+  and the live components `live_layered_graph/1`, `live_nav_bar/1`,
   and `live_table/1`.
 
   ## Helpers
@@ -105,6 +105,74 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   helpers are: `live_dashboard_path/2`, `live_dashboard_path/3`,
   `encode_app/1`, `encode_ets/1`, `encode_pid/1`, `encode_port/1`,
   and `encode_socket/1`.
+
+  ## Custom Hooks
+
+  If your page needs to register custom hooks, you can use the `register_after_opening_head_tag/2`
+  function. Because the hooks need to be available on the dead render in the layout, before the
+  LiveView's LiveSocket is configured, your need to do this inside an `on_mount` hook:
+
+  ```elixir
+  defmodule MyAppWeb.MyLiveDashboardHooks do
+    import Phoenix.LiveView
+    import Phoenix.Component
+
+    alias Phoenix.LiveDashboard.PageBuilder
+
+    def on_mount(:default, _params, _session, socket) do
+      {:cont, PageBuilder.register_after_opening_head_tag(socket, &after_opening_head_tag/1)}
+    end
+
+    defp after_opening_head_tag(assigns) do
+      ~H\"\"\"
+      <script>
+        window.customHooks = {
+          ...(window.customHooks || {}),
+          MyHook: {
+            mounted() {
+              // do something
+            }
+          }
+        }
+      </script>
+      \"\"\"
+    end
+  end
+
+  defmodule MyAppWeb.MyCustomPage do
+    ...
+  end
+  ```
+
+  And then add it to the list of `on_mount` hooks in the `live_dashboard` router configuration:
+
+  ```elixir
+  live_dashboard "/dashboard",
+    additional_pages: [
+      route_name: MyAppWeb.MyCustomPage
+    ],
+    on_mount: [
+      MyAppWeb.MyLiveDashboardHooks
+    ]
+  ```
+
+  The LiveDashboard will merge the `window.customHooks` object into the hooks that are
+  configured on the LiveSocket.
+
+  > #### Warning {: .warning}
+  >
+  > If you are building a library that will be used by others, ensure that you are
+  > not overwriting the `window.customHooks` object instead of extending it.
+  >
+  > Instead of `window.customHooks = {...}`,
+  > use `window.customHooks = {...(window.customHooks || {}), ...}`.
+
+  Note that in order to use external libraries, you will either need to include them from
+  a CDN, or bundle them yourself and include them from your apps static paths.
+
+  Also, you are responsible for ensuring that your Content Security Policy (CSP) allows
+  the hooks to be executed. If you are building a library that will be used by others,
+  consider including a valid nonce on your script tags.
   """
 
   use Phoenix.Component
@@ -969,6 +1037,30 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   def live_dashboard_path(socket, %{route: route, node: node, params: old_params}, extra) do
     new_params = Enum.into(extra, old_params, fn {k, v} -> {Atom.to_string(k), v} end)
     live_dashboard_path(socket, route, node, old_params, new_params)
+  end
+
+  @doc """
+  Registers a component to be rendered after the opening head tag in the layout.
+  """
+  def register_after_opening_head_tag(socket, component) do
+    register_head(socket, component, :after_opening_head_tag)
+  end
+
+  @doc """
+  Registers a component to be rendered before the closing head tag in the layout.
+  """
+  def register_before_closing_head_tag(socket, component) do
+    register_head(socket, component, :before_closing_head_tag)
+  end
+
+  defp register_head(socket, component, assign) do
+    case socket do
+      %{assigns: %{^assign => [_ | _]}} ->
+        update(socket, assign, fn existing -> [component | existing] end)
+
+      _ ->
+        assign(socket, assign, [component])
+    end
   end
 
   # TODO: Remove this and the conditional on Phoenix v1.7+
