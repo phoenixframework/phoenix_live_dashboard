@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" phx-socket={live_socket_path(@conn)}>
   <head>
+    <script nonce={csp_nonce(@conn, :script)}>
+      window.LiveDashboard = {
+        customHooks: {},
+        registerCustomHooks(hooks) {
+          this.customHooks = {...this.customHooks, ...hooks}
+        }
+      }
+    </script>
     <%= custom_head_tags(assigns, :after_opening_head_tag) %>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>

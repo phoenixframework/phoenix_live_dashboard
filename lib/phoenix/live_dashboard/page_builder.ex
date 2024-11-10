@@ -125,15 +125,14 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
     defp after_opening_head_tag(assigns) do
       ~H\"\"\"
-      <script>
-        window.customHooks = {
-          ...(window.customHooks || {}),
+      <script nonce={@csp_nonces[:script]}>
+        window.LiveDashboard.registerCustomHooks({
           MyHook: {
             mounted() {
               // do something
             }
           }
-        }
+        })
       </script>
       \"\"\"
     end
@@ -156,23 +155,34 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     ]
   ```
 
-  The LiveDashboard will merge the `window.customHooks` object into the hooks that are
-  configured on the LiveSocket.
-
-  > #### Warning {: .warning}
-  >
-  > If you are building a library that will be used by others, ensure that you are
-  > not overwriting the `window.customHooks` object instead of extending it.
-  >
-  > Instead of `window.customHooks = {...}`,
-  > use `window.customHooks = {...(window.customHooks || {}), ...}`.
+  The LiveDashboard provides a function `window.LiveDashboard.registerCustomHooks({ ... })` that you can call
+  with an object of hook declarations.
 
   Note that in order to use external libraries, you will either need to include them from
-  a CDN, or bundle them yourself and include them from your apps static paths.
+  a CDN, or bundle them yourself and include them from your app's static paths.
 
-  Also, you are responsible for ensuring that your Content Security Policy (CSP) allows
-  the hooks to be executed. If you are building a library that will be used by others,
-  consider including a valid nonce on your script tags.
+  > #### A note on CSPs and libraries {: .info}
+  >
+  > Phoenix LiveDashboard supports CSP nonces for its own assets, configurable using the
+  > `Phoenix.LiveDashboard.Router.live_dashboard/2` macro by setting the `:csp_nonce_assign_key`
+  > option. If you are building a library, ensure that you render those CSP nonces on any scripts,
+  > styles or images of your page. The nonces are passed to your custom page under the `:csp_nonces` assign
+  > and also available in  the `after_opening_head_tag` component.
+  >
+  > You should use those when including scripts or styles like this:
+  >
+  > ```heex
+  > <script nonce={@csp_nonces[:script]}>...</script>
+  > <script nonce={@csp_nonces[:script]} src="..."></script>
+  > <style nonce={@csp_nonces[:style]}>...</style>
+  > <link rel="stylesheet" href="..." nonce={@csp_nonces[:style]}>
+  > ```
+  >
+  > This ensures that your custom page can be used when a CSP is in place using the mechanism
+  > supported by Phoenix LiveDashboard.
+  >
+  > If your custom page needs a different CSP policy, for example due to inline styles set by scripts,
+  > please consider documenting these requirements.
   """
 
   use Phoenix.Component
