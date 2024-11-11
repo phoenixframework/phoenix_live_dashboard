@@ -96,7 +96,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   We currently support `card/1`, `fields_card/1`, `row/1`,
   `shared_usage_card/1`, and `usage_card/1`;
-  and the live components `live_layered_graph/1`, `live_nav_bar/1`, 
+  and the live components `live_layered_graph/1`, `live_nav_bar/1`,
   and `live_table/1`.
 
   ## Helpers
@@ -105,6 +105,84 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   helpers are: `live_dashboard_path/2`, `live_dashboard_path/3`,
   `encode_app/1`, `encode_ets/1`, `encode_pid/1`, `encode_port/1`,
   and `encode_socket/1`.
+
+  ## Custom Hooks
+
+  If your page needs to register custom hooks, you can use the `register_after_opening_head_tag/2`
+  function. Because the hooks need to be available on the dead render in the layout, before the
+  LiveView's LiveSocket is configured, your need to do this inside an `on_mount` hook:
+
+  ```elixir
+  defmodule MyAppWeb.MyLiveDashboardHooks do
+    import Phoenix.LiveView
+    import Phoenix.Component
+
+    alias Phoenix.LiveDashboard.PageBuilder
+
+    def on_mount(:default, _params, _session, socket) do
+      {:cont, PageBuilder.register_after_opening_head_tag(socket, &after_opening_head_tag/1)}
+    end
+
+    defp after_opening_head_tag(assigns) do
+      ~H\"\"\"
+      <script nonce={@csp_nonces[:script]}>
+        window.LiveDashboard.registerCustomHooks({
+          MyHook: {
+            mounted() {
+              // do something
+            }
+          }
+        })
+      </script>
+      \"\"\"
+    end
+  end
+
+  defmodule MyAppWeb.MyCustomPage do
+    ...
+  end
+  ```
+
+  And then add it to the list of `on_mount` hooks in the `live_dashboard` router configuration:
+
+  ```elixir
+  live_dashboard "/dashboard",
+    additional_pages: [
+      route_name: MyAppWeb.MyCustomPage
+    ],
+    on_mount: [
+      MyAppWeb.MyLiveDashboardHooks
+    ]
+  ```
+
+  The LiveDashboard provides a function `window.LiveDashboard.registerCustomHooks({ ... })` that you can call
+  with an object of hook declarations.
+
+  Note that in order to use external libraries, you will either need to include them from
+  a CDN, or bundle them yourself and include them from your app's static paths.
+
+  > #### A note on CSPs and libraries {: .info}
+  >
+  > Phoenix LiveDashboard supports CSP nonces for its own assets, configurable using the
+  > `Phoenix.LiveDashboard.Router.live_dashboard/2` macro by setting the `:csp_nonce_assign_key`
+  > option. If you are building a library, ensure that you render those CSP nonces on any scripts,
+  > styles or images of your page. The nonces are passed to your custom page under the `:csp_nonces` assign
+  > and also available in  the `after_opening_head_tag` component.
+  >
+  > You should use those when including scripts or styles like this:
+  >
+  > ```heex
+  > <script nonce={@csp_nonces[:script]}>...</script>
+  > <script nonce={@csp_nonces[:script]} src="..."></script>
+  > <style nonce={@csp_nonces[:style]}>...</style>
+  > <link rel="stylesheet" href="..." nonce={@csp_nonces[:style]}>
+  > ```
+  >
+  > This ensures that your custom page can be used when a CSP is in place using the mechanism
+  > supported by Phoenix LiveDashboard.
+  >
+  > If your custom page needs a different CSP policy, for example due to inline styles set by scripts,
+  > please consider documenting these requirements.
   """
 
   use Phoenix.Component
@@ -969,6 +1047,30 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   def live_dashboard_path(socket, %{route: route, node: node, params: old_params}, extra) do
     new_params = Enum.into(extra, old_params, fn {k, v} -> {Atom.to_string(k), v} end)
     live_dashboard_path(socket, route, node, old_params, new_params)
+  end
+
+  @doc """
+  Registers a component to be rendered after the opening head tag in the layout.
+  """
+  def register_after_opening_head_tag(socket, component) do
+    register_head(socket, component, :after_opening_head_tag)
+  end
+
+  @doc """
+  Registers a component to be rendered before the closing head tag in the layout.
+  """
+  def register_before_closing_head_tag(socket, component) do
+    register_head(socket, component, :before_closing_head_tag)
+  end
+
+  defp register_head(socket, component, assign) do
+    case socket do
+      %{assigns: %{^assign => [_ | _]}} ->
+        update(socket, assign, fn existing -> [component | existing] end)
+
+      _ ->
+        assign(socket, assign, [component])
+    end
   end
 
   # TODO: Remove this and the conditional on Phoenix v1.7+

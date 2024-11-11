@@ -21,7 +21,7 @@ let Hooks = {
 let socketPath = document.querySelector("html").getAttribute("phx-socket") || "/live"
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveView.LiveSocket(socketPath, Phoenix.Socket, {
-  hooks: Hooks,
+  hooks: { ...Hooks, ...window.LiveDashboard.customHooks },
   params: (liveViewName) => {
     return {
       _csrf_token: csrfToken,
