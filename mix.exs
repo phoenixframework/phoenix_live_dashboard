@@ -87,7 +87,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       extra_section: "GUIDES",
       extras: extras(),
       nest_modules_by_prefix: [Phoenix.LiveDashboard],
-      groups_for_functions: [
+      groups_for_docs: [
         Components: &(&1[:type] == :component)
       ]
     ]
