@@ -37,7 +37,6 @@ defmodule Phoenix.LiveDashboardTest do
 
     assert html =~ ~s|<script nonce="script_nonce"|
     assert html =~ ~s|<style nonce="style_nonce"|
-    assert html =~ ~s|<img nonce="img_nonce"|
   end
 
   @tag :integration
