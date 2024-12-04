@@ -87,6 +87,28 @@ defmodule Phoenix.LiveDashboardTest.Router do
     live_dashboard "/dashboard",
       metrics: Phoenix.LiveDashboardTest.Telemetry
 
+    live_dashboard "/parent_cookie_domain",
+      request_logger_cookie_domain: :parent,
+      live_session_name: :cookie_dashboard
+  end
+
+  # we only really support one live dashboard per router,
+  # and some tests rely on correct redirect paths that wouldn't work with multiple dashboards;
+  # as a workaround we forward all non matching requests to a separate router
+  forward "/", Phoenix.LiveDashboardTest.RouterConfig
+end
+
+defmodule Phoenix.LiveDashboardTest.RouterConfig do
+  use Phoenix.Router
+  import Phoenix.LiveDashboard.Router
+
+  pipeline :browser do
+    plug :fetch_session
+  end
+
+  scope "/", ThisWontBeUsed, as: :this_wont_be_used do
+    pipe_through :browser
+
     live_dashboard "/config",
       live_socket_path: "/custom/live",
       csp_nonce_assign_key: %{
@@ -100,10 +122,6 @@ defmodule Phoenix.LiveDashboardTest.Router do
       metrics_history: {TestHistory, :test_data, []},
       request_logger_cookie_domain: "my.domain",
       live_session_name: :config_dashboard
-
-    live_dashboard "/parent_cookie_domain",
-      request_logger_cookie_domain: :parent,
-      live_session_name: :cookie_dashboard
   end
 end
 

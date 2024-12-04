@@ -136,7 +136,7 @@ defmodule Phoenix.LiveDashboard.ProcessesLiveTest do
     live |> element("button", @kill_process_label) |> render_click()
     assert_received {:DOWN, ^ref, _, _, :killed}
 
-    return_path = processes_path(10, "", :message_queue_len, :desc)
+    return_path = processes_path("config", 10, "", :message_queue_len, :desc)
     assert_patch(live, return_path, 1000)
   end
 
