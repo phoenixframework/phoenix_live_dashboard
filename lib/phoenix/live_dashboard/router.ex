@@ -300,7 +300,7 @@ defmodule Phoenix.LiveDashboard.Router do
     csp_nonce_assign_key =
       case options[:csp_nonce_assign_key] do
         nil -> nil
-        key when is_atom(key) -> %{img: key, style: key, script: key}
+        key when is_atom(key) -> %{style: key, script: key}
         %{} = keys -> Map.take(keys, [:img, :style, :script])
       end
 
@@ -404,7 +404,6 @@ defmodule Phoenix.LiveDashboard.Router do
       "allow_destructive_actions" => allow_destructive_actions,
       "requirements" => requirements |> Enum.concat() |> Enum.uniq(),
       "csp_nonces" => %{
-        img: conn.assigns[csp_nonce_assign_key[:img]],
         style: conn.assigns[csp_nonce_assign_key[:style]],
         script: conn.assigns[csp_nonce_assign_key[:script]]
       }
