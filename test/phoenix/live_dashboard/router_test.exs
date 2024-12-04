@@ -43,7 +43,6 @@ defmodule Phoenix.LiveDashboard.RouterTest do
              %{
                live_socket_path: "/custom/live",
                csp_nonce_assign_key: %{
-                 img: :csp_nonce,
                  style: :csp_nonce,
                  script: :csp_nonce
                }
@@ -54,18 +53,16 @@ defmodule Phoenix.LiveDashboard.RouterTest do
     assert route_opts(
              live_socket_path: "/custom/live",
              csp_nonce_assign_key: %{
-               img: :img_csp_none,
-               style: :style_csp_none,
-               script: :script_csp_none,
+               style: :style_csp_nonce,
+               script: :script_csp_nonce,
                other: :unused
              }
            )[:private] ==
              %{
                live_socket_path: "/custom/live",
                csp_nonce_assign_key: %{
-                 img: :img_csp_none,
-                 style: :style_csp_none,
-                 script: :script_csp_none
+                 style: :style_csp_nonce,
+                 script: :script_csp_nonce
                }
              }
   end
@@ -363,14 +360,12 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
     test "loads nonces when key present" do
       assert %{
-               "csp_nonces" => %{img: "img_nonce", script: "script_nonce", style: "style_nonce"}
+               "csp_nonces" => %{script: "script_nonce", style: "style_nonce"}
              } =
                build_conn()
-               |> Plug.Conn.assign(:img_nonce, "img_nonce")
                |> Plug.Conn.assign(:style_nonce, "style_nonce")
                |> Plug.Conn.assign(:script_nonce, "script_nonce")
                |> csp_session(%{
-                 img: :img_nonce,
                  style: :style_nonce,
                  script: :script_nonce
                })
@@ -378,11 +373,10 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
     test "loads nil nonces when assign present" do
       assert %{
-               "csp_nonces" => %{img: nil, script: nil, style: nil}
+               "csp_nonces" => %{script: nil, style: nil}
              } =
                build_conn()
                |> csp_session(%{
-                 img: :img_nonce,
                  style: :style_nonce,
                  script: :script_nonce
                })
@@ -390,10 +384,9 @@ defmodule Phoenix.LiveDashboard.RouterTest do
 
     test "loads nil nonces when key absent" do
       assert %{
-               "csp_nonces" => %{img: nil, script: nil, style: nil}
+               "csp_nonces" => %{script: nil, style: nil}
              } =
                build_conn()
-               |> Plug.Conn.assign(:img_nonce, "img_nonce")
                |> Plug.Conn.assign(:style_nonce, "style_nonce")
                |> Plug.Conn.assign(:script_nonce, "script_nonce")
                |> csp_session()

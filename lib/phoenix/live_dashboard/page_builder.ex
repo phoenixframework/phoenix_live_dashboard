@@ -172,10 +172,10 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   > You should use those when including scripts or styles like this:
   >
   > ```heex
-  > <script nonce={@csp_nonces[:script]}>...</script>
-  > <script nonce={@csp_nonces[:script]} src="..."></script>
-  > <style nonce={@csp_nonces[:style]}>...</style>
-  > <link rel="stylesheet" href="..." nonce={@csp_nonces[:style]}>
+  > <script nonce={@csp_nonces.script}>...</script>
+  > <script nonce={@csp_nonces.script} src="..."></script>
+  > <style nonce={@csp_nonces.style}>...</style>
+  > <link rel="stylesheet" href="..." nonce={@csp_nonces.style}>
   > ```
   >
   > This ensures that your custom page can be used when a CSP is in place using the mechanism

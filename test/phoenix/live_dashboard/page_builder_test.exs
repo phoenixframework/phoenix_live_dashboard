@@ -112,7 +112,7 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
         hint="test-hint"
         inner_hint="test-inner-hint"
         total_formatter={&"test-format-#{&1}"}
-        csp_nonces={%{img: "img_nonce", style: "style_nonce", script: "script_nonce"}}
+        csp_nonces={%{style: "style_nonce", script: "script_nonce"}}
       />
       """)
 
@@ -149,7 +149,7 @@ defmodule Phoenix.LiveDashboard.PageBuilderTest do
         dom_id="test-dom-id"
         title="test-title"
         hint="test-hint"
-        csp_nonces={%{img: "img_nonce", style: "style_nonce", script: "script_nonce"}}
+        csp_nonces={%{style: "style_nonce", script: "script_nonce"}}
       >
         <:usage
           current={10}
