@@ -56,14 +56,14 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:ecto, "~> 3.6.2 or ~> 3.7", optional: true},
 
       # Dev and test
-      {:circular_buffer, "~> 0.3", only: :dev},
-      {:telemetry_poller, "~> 0.4", only: :dev},
+      {:circular_buffer, "~> 0.4", only: :dev},
+      {:telemetry_poller, "~> 1.0", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:plug_cowboy, "~> 2.0", only: :dev},
       {:jason, "~> 1.0", only: [:dev, :test, :docs]},
       {:floki, "~> 0.27", only: :test},
-      {:stream_data, "~> 0.1", only: :test},
-      {:ecto_sqlite3, "~> 0.9.1", only: [:dev, :test]},
+      {:stream_data, "~> 1.0", only: :test},
+      {:ecto_sqlite3, "~> 0.17", only: [:dev, :test]},
       {:ex_doc, "~> 0.21", only: :docs},
       {:makeup_eex, ">= 0.1.1", only: :docs},
       {:esbuild, "~> 0.5", only: :dev},

@@ -130,10 +130,6 @@ defmodule Phoenix.LiveDashboard.ReingoldTilfordTest do
     end
   end
 
-  defp validate_x_separation_between_nodes(%{children: []} = node, ancestor_x_coordinate) do
-    if ancestor_x_coordinate + @node_x_separation <= node, do: true, else: false
-  end
-
   defp validate_x_separation_between_nodes(
          %{children: children} = ancestor,
          ancestor_x_coordinate
