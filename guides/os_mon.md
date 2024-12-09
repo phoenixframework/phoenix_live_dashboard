@@ -19,4 +19,4 @@ The OS Data comes from the `os_mon` application, which ships as part of your Erl
 
 ## Configuring os_mon
 
-See [the Erlang docs](http://erlang.org/doc/man/os_mon_app.html) for more information and `os_mon` configuration.
+See [the Erlang docs](https://www.erlang.org/doc/apps/os_mon/os_mon_app.html) for more information and `os_mon` configuration.
