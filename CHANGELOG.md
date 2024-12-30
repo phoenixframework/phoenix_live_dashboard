@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v0.8.6 (2024-12-30)
+
+* Update Erlang docs url
+* Fix rendering of durations in Elixir v1.18+
+* Fix warnings on Elixir v1.18+
+* Remove img nonce which had no effect whatsoever
+
 ## v0.8.5 (2024-11-14)
 
 * Provide a mechanism for user extensible LiveView hooks
