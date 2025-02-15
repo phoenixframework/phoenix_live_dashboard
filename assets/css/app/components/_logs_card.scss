@@ -28,7 +28,7 @@
         color: change-color($color-yellow);
       }
 
-      &.log-level-error, &.log-level-critical, &.log-level-alert {
+      &.log-level-error, &.log-level-critical, &.log-level-alert, &.log-level-emergency {
         color: change-color($color-red);
       }
     }
