@@ -498,7 +498,7 @@ defmodule DemoWeb.Router do
 
   def put_csp(conn, _opts) do
     style_nonce = nonce()
-    script_nonce = noonce()
+    script_nonce = nonce()
 
     conn
     |> assign(:style_csp_nonce, style_nonce)
