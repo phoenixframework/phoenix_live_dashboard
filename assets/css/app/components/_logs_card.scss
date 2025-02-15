@@ -17,8 +17,19 @@
         background-color: change-color($color-gray-warm-100, $alpha: 0.5);
       }
 
+      &.log-level-notice, &.log-level-info {
+      }
+
       &.log-level-debug {
-        color: change-color($text-color, $alpha: 0.75);
+        color: change-color($color-blue, $alpha: 0.75);
+      }
+
+      &.log-level-warning, &.log-level-warn {
+        color: change-color($color-yellow);
+      }
+
+      &.log-level-error, &.log-level-critical, &.log-level-alert {
+        color: change-color($color-red);
       }
     }
 
