@@ -83,7 +83,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
         <div class="card-body">
           <div id="logger-messages" phx-update="stream">
             <%= for {id, {message, level}} <- @streams.messages do %>
-              <pre id={id} class={"log-level#{level} text-wrap"}><%= message %></pre>
+              <pre id={id} class={"log-level-#{level} text-wrap"}><%= message %></pre>
             <% end %>
           </div>
           <!-- Autoscroll ON/OFF checkbox -->
