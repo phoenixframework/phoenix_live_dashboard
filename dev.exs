@@ -193,6 +193,7 @@ end
 
 defmodule DemoWeb.PageController do
   import Plug.Conn
+  require Logger
 
   def init(opts), do: opts
 
@@ -206,6 +207,19 @@ defmodule DemoWeb.PageController do
   def call(conn, :hello) do
     name = Map.get(conn.params, "name", "friend")
     content(conn, "<p>Hello, #{name}!</p>")
+  end
+
+  def call(conn, :logs) do
+    Logger.notice("This is a notice")
+    Logger.debug("This is a debug message")
+    Logger.info("This is an info")
+    Logger.warning("This is a warning")
+    Logger.error("This is an error")
+    Logger.critical("This is a critical message")
+    Logger.alert("This is an alert")
+    Logger.emergency("This is an emergency")
+
+    content(conn, "Logs will show in request logger")
   end
 
   def call(conn, :get) do
@@ -469,6 +483,7 @@ defmodule DemoWeb.Router do
     get "/get", DemoWeb.PageController, :get
     get "/hello", DemoWeb.PageController, :hello
     get "/hello/:name", DemoWeb.PageController, :hello
+    get "/logs", DemoWeb.PageController, :logs
 
     live_dashboard("/dashboard",
       env_keys: ["USER", "ROOTDIR"],
