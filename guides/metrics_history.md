@@ -6,7 +6,7 @@ modify the dashboard config (in "my_app_web/router.ex") to include a `metrics_hi
 ```elixir
 live_dashboard "/dashboard",
   metrics: MyAppWeb.Telemetry,
-  metrics_history: {MyApp.MetricsStorage, :metrics_history, []}
+  metrics_history: {MyAppWeb.MetricsStorage, :metrics_history, []}
 ```
 
 where `MetricsStorage` is a module and `:metrics_history` is a function taking a single argument in this example, which will always be a metric.
