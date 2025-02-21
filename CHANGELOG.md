@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.8.7
+
+* Fix metrics history not rendering on LiveView 1.0.2+
+
 ## v0.8.6 (2024-12-30)
 
 * Update Erlang docs url
