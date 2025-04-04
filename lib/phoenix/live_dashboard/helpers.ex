@@ -95,19 +95,19 @@ defmodule Phoenix.LiveDashboard.Helpers do
     |> Enum.join("\n")
   end
 
-  @format_path_regex ~r/^(?<beginning>((.+?\/){3})).*(?<ending>(\/.*){3})$/
-
   @doc """
   Formats large paths by removing intermediate parts.
   """
   def format_path(path) do
+    format_path_regex = ~r/^(?<beginning>((.+?\/){3})).*(?<ending>(\/.*){3})$/
+
     path_string =
       path
       |> to_string()
       |> String.replace_prefix("\"", "")
       |> String.replace_suffix("\"", "")
 
-    case Regex.named_captures(@format_path_regex, path_string) do
+    case Regex.named_captures(format_path_regex, path_string) do
       %{"beginning" => beginning, "ending" => ending} -> "#{beginning}...#{ending}"
       _ -> path_string
     end
