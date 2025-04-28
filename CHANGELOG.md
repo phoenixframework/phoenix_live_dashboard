@@ -1,7 +1,8 @@
 # CHANGELOG
 
-## v0.8.7
+## v0.8.7 (2025-04-28)
 
+* Fix warnings on Erlang/OTP 28
 * Fix metrics history not rendering on LiveView 1.0.2+
 
 ## v0.8.6 (2024-12-30)
