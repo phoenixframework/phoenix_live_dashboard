@@ -151,6 +151,10 @@ The following reporter options are available to the dashboard:
     points. When the threshold is reached, the chart data will
     be pruned by half. Default is `1_000`.
 
+  * `:refresh_interval` - the interval in milliseconds at which the chart
+  will be refreshed. The default value is `1_000`.
+
+
   * `:bucket_size` - the unit width of each bucket. This option only
     applies to `distribution` histograms. The default value is `20`.
 
