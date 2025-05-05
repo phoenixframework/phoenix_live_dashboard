@@ -16,6 +16,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
   defp validate_assigns!(assigns) do
     validate_positive_integer_or_nil!(assigns[:bucket_size], :bucket_size)
     validate_positive_integer_or_nil!(assigns[:prune_threshold], :prune_threshold)
+    validate_positive_integer_or_nil!(assigns[:refresh_interval], :refresh_interval)
     :ok
   end
 
@@ -48,6 +49,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
             data-tags={Enum.join(@tags, "-")}
             data-unit={@unit}
             data-prune-threshold={@prune_threshold}
+            data-refresh-interval={@refresh_interval}
             {bucket_size(@bucket_size)}
           >
           </div>
