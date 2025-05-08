@@ -154,7 +154,6 @@ The following reporter options are available to the dashboard:
   * `:refresh_interval` - the interval in milliseconds at which the chart
   will be refreshed. The default value is `1_000`.
 
-
   * `:bucket_size` - the unit width of each bucket. This option only
     applies to `distribution` histograms. The default value is `20`.
 
