@@ -125,6 +125,7 @@ function nextTaggedValueForCallback({ x, y, z }, callback) {
 }
 
 const getPruneThreshold = ({ pruneThreshold = 1000 }) => pruneThreshold
+const getRefreshInterval = ({ refreshInterval = 1000 }) => refreshInterval
 
 // Handles the basic metrics like Counter, LastValue, and Sum.
 class CommonMetric {
@@ -210,6 +211,7 @@ class Summary {
     this.datasets = [{ key: "|x|", data: [] }]
     this.chart = new uPlot(config, this.constructor.initialData(options), chartEl)
     this.pruneThreshold = getPruneThreshold(options)
+    this.refreshInterval = getRefreshInterval(options)
     this.options = options
 
     if (options.tagged) {
@@ -467,8 +469,7 @@ const PhxChartComponent = {
       tagged: (chartEl.dataset.tags && chartEl.dataset.tags !== "") || false,
       width: Math.max(size.width, minChartSize.width),
       height: minChartSize.height,
-      now: new Date() / 1e3,
-      refreshInterval: 1000
+      now: new Date() / 1e3
     })
 
     this.chart = new TelemetryChart(chartEl, options)

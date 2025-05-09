@@ -95,6 +95,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
       label: chart_label(metric),
       tags: metric.tags,
       prune_threshold: prune_threshold(metric),
+      refresh_interval: refresh_interval(metric),
       unit: chart_unit(metric.unit),
       bucket_size: bucket_size(kind, metric)
     }
@@ -132,6 +133,11 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   @default_prune_threshold 1_000
   defp prune_threshold(metric) do
     metric.reporter_options[:prune_threshold] || @default_prune_threshold
+  end
+
+  @default_refresh_interval 1_000
+  defp refresh_interval(metric) do
+    metric.reporter_options[:refresh_interval] || @default_refresh_interval
   end
 
   defp bucket_size(:distribution, metric), do: normalize_bucket_size(metric)

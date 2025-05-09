@@ -916,6 +916,11 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :label, :string, default: nil, doc: "Default label to use in the chart."
   attr :tags, :list, default: [], doc: "Optional list of tags."
   attr :prune_threshold, :integer, default: 1_000, doc: "Number of points to keep before pruning."
+
+  attr :refresh_interval, :integer,
+    default: 1_000,
+    doc: "The interval in milliseconds to refresh the chart."
+
   attr :unit, :string, default: "", doc: "The unit that represent the chart."
 
   attr :bucket_size, :integer,
@@ -939,6 +944,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       label={@label}
       tags={@tags}
       prune_threshold={@prune_threshold}
+      refresh_interval={@refresh_interval}
       unit={@unit}
       bucket_size={@bucket_size}
       full_width={@full_width}

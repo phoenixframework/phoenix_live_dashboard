@@ -17,6 +17,7 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
       tags: [],
       unit: "",
       prune_threshold: 1_000,
+      refresh_interval: 1_000,
       bucket_size: 20
     }
 
@@ -59,6 +60,11 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
     test "renders max number of events" do
       result = render_chart(prune_threshold: 5)
       assert result =~ ~s|data-prune-threshold="5"|
+    end
+
+    test "renders refresh interval" do
+      result = render_chart(refresh_interval: 5)
+      assert result =~ ~s|data-refresh-interval="5"|
     end
 
     test "renders data" do
@@ -113,6 +119,20 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
 
       assert_raise ArgumentError, msg, fn ->
         render_chart(prune_threshold: true)
+      end
+    end
+
+    test "refresh_interval" do
+      msg = ":refresh_interval must be a positive integer, got: -1"
+
+      assert_raise ArgumentError, msg, fn ->
+        render_chart(refresh_interval: -1)
+      end
+
+      msg = ":refresh_interval must be a positive integer, got: true"
+
+      assert_raise ArgumentError, msg, fn ->
+        render_chart(refresh_interval: true)
       end
     end
   end

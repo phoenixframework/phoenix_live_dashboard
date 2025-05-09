@@ -139,5 +139,10 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
       opts = [reporter_options: [prune_threshold: 5]]
       assert %{prune_threshold: 5} = subject(last_value([:a, :b, :c, :size], opts))
     end
+
+    test "adds refresh_interval from report_options" do
+      opts = [reporter_options: [refresh_interval: 5]]
+      assert %{refresh_interval: 5} = subject(last_value([:a, :b, :c, :size], opts))
+    end
   end
 end
