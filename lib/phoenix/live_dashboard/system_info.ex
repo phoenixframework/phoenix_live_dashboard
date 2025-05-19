@@ -15,15 +15,12 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   def node_capabilities(node, requirements) do
-    case :rpc.call(node, :code, :is_loaded, [__MODULE__]) do
+    case :erpc.call(node, :code, :is_loaded, [__MODULE__]) do
       {:file, _} ->
         maybe_replace(node, fetch_capabilities(node, requirements), requirements)
 
       false ->
         load(node, requirements)
-
-      {:error, reason} ->
-        raise("Failed to load #{__MODULE__} on #{node}: #{inspect(reason)}")
     end
   end
 
@@ -38,7 +35,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   defp load(node, requirements) do
     {_module, binary, filename} = :code.get_object_code(__MODULE__)
-    :rpc.call(node, :code, :load_binary, [__MODULE__, filename, binary])
+    :erpc.call(node, :code, :load_binary, [__MODULE__, filename, binary])
     fetch_capabilities(node, requirements)
   end
 
@@ -46,73 +43,67 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
   def fetch_processes(node, search, sort_by, sort_dir, limit, prev_reductions \\ nil) do
     search = search && String.downcase(search)
-
-    :rpc.call(node, __MODULE__, :processes_callback, [
-      search,
-      sort_by,
-      sort_dir,
-      limit,
-      prev_reductions
-    ])
+    args = [search, sort_by, sort_dir, limit, prev_reductions]
+    :erpc.call(node, __MODULE__, :processes_callback, args)
   end
 
   def fetch_ets(node, search, sort_by, sort_dir, limit) do
     search = search && String.downcase(search)
-    :rpc.call(node, __MODULE__, :ets_callback, [search, sort_by, sort_dir, limit])
+    :erpc.call(node, __MODULE__, :ets_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_sockets(node, search, sort_by, sort_dir, limit) do
     search = search && String.downcase(search)
-    :rpc.call(node, __MODULE__, :sockets_callback, [search, sort_by, sort_dir, limit])
+    :erpc.call(node, __MODULE__, :sockets_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_socket_info(port) do
-    :rpc.call(node(port), __MODULE__, :socket_info_callback, [port])
+    :erpc.call(node(port), __MODULE__, :socket_info_callback, [port])
   end
 
   def fetch_process_info(pid) do
-    :rpc.call(node(pid), __MODULE__, :process_info_callback, [pid])
+    :erpc.call(node(pid), __MODULE__, :process_info_callback, [pid])
   end
 
   def fetch_ports(node, search, sort_by, sort_dir, limit) do
     search = search && String.downcase(search)
-    :rpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
+    :erpc.call(node, __MODULE__, :ports_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_applications(node, search, sort_by, sort_dir, limit) do
-    :rpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
+    :erpc.call(node, __MODULE__, :applications_info_callback, [search, sort_by, sort_dir, limit])
   end
 
   def fetch_port_info(port) do
-    :rpc.call(node(port), __MODULE__, :port_info_callback, [port])
+    :erpc.call(node(port), __MODULE__, :port_info_callback, [port])
   end
 
   def fetch_ets_info(node, ref) do
-    :rpc.call(node, __MODULE__, :ets_info_callback, [ref])
+    :erpc.call(node, __MODULE__, :ets_info_callback, [ref])
   end
 
   def fetch_system_info(node, keys, app) do
-    :rpc.call(node, __MODULE__, :info_callback, [keys, app])
+    :erpc.call(node, __MODULE__, :info_callback, [keys, app])
   end
 
   def fetch_system_usage(node) do
-    :rpc.call(node, __MODULE__, :usage_callback, [])
+    :erpc.call(node, __MODULE__, :usage_callback, [])
   end
 
   def fetch_os_mon_info(node) do
-    :rpc.call(node, __MODULE__, :os_mon_callback, [])
+    :erpc.call(node, __MODULE__, :os_mon_callback, [])
   end
 
   def fetch_capabilities(node, requirements) do
-    :rpc.call(node, __MODULE__, :capabilities_callback, [requirements])
+    :erpc.call(node, __MODULE__, :capabilities_callback, [requirements])
   end
 
   def fetch_app_tree(node, application) do
-    :rpc.call(node, __MODULE__, :app_tree_callback, [application])
+    :erpc.call(node, __MODULE__, :app_tree_callback, [application])
   end
 
   def fetch_memory_allocators(node, max_carrier_sizes) do
-    :rpc.call(node, __MODULE__, :memory_allocators_callback, [max_carrier_sizes])
+    :erpc.call(node, __MODULE__, :memory_allocators_callback, [max_carrier_sizes])
   end
 
   ## System callbacks
