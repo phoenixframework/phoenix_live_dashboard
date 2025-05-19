@@ -67,12 +67,14 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   end
 
   defp named_stats_available_repos(node) do
-    case :rpc.call(node, Ecto.Repo, :all_running, []) do
+    try do
+      :erpc.call(node, Ecto.Repo, :all_running, [])
+    catch
+      _, _ ->
+        {:error, :cannot_list_running_repos}
+    else
       repos when is_list(repos) ->
         {:ok, Enum.filter(repos, fn repo -> extra_available?(node, repo) end)}
-
-      {:badrpc, _error} ->
-        {:error, :cannot_list_running_repos}
     end
   end
 
@@ -125,7 +127,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   end
 
   defp info_module_for(node, repo) do
-    case :rpc.call(node, repo, :__adapter__, []) do
+    case :erpc.call(node, repo, :__adapter__, []) do
       Ecto.Adapters.Postgres -> EctoPSQLExtras
       Ecto.Adapters.MyXQL -> EctoMySQLExtras
       Ecto.Adapters.SQLite3 -> EctoSQLite3Extras
