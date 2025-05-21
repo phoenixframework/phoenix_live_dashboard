@@ -4,6 +4,7 @@
 
 * Fix warnings on Erlang/OTP 28
 * Fix metrics history not rendering on LiveView 1.0.2+
+* Fix colored logging in request logger
 
 ## v0.8.6 (2024-12-30)
 
