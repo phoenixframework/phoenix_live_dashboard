@@ -6,6 +6,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   @info_keys [
     :initial_call,
     :registered_name,
+    :label,
     :current_function,
     :status,
     :message_queue_len,
@@ -37,6 +38,7 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
       <%= if @alive do %>
         <Phoenix.LiveDashboard.PageBuilder.label_value_list>
           <:elem label="Registered name"><%= @registered_name %></:elem>
+          <:elem label="Label"><%= @label %></:elem>
           <:elem label="Current function"><%= @current_function %></:elem>
           <:elem label="Initial call"><%= @initial_call %></:elem>
           <:elem label="Status"><%= @status %></:elem>
