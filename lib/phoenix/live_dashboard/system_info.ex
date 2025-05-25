@@ -373,7 +373,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       {:ancestors,
        Keyword.get(dictionary, :"$ancestors", [])
        |> Enum.map(&pid_or_port_details/1)},
-      {:label, Keyword.get(dictionary, :"$process_label", [])}
+      {:label, Keyword.get(dictionary, :"$process_label")}
     ]
   end
 
