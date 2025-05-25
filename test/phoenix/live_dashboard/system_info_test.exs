@@ -99,6 +99,14 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       assert info[:registered_name] == Phoenix.LiveDashboard.DynamicSupervisor
       assert info[:initial_call] == {:supervisor, Supervisor.Default, 1}
     end
+
+    if System.otp_release() |> String.to_integer() >= 27 do
+      test "info with label" do
+        {:ok, agent_pid} = Agent.start_link(fn -> Process.set_label("test label") end)
+        {:ok, info} = SystemInfo.fetch_process_info(agent_pid)
+        assert info[:label] == "test label"
+      end
+    end
   end
 
   describe "ports" do

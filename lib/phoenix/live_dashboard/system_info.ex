@@ -345,34 +345,39 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
 
         {:ok,
          info
-         |> Enum.map(&process_info_callback_key/1)
+         |> Enum.flat_map(&process_info_callback_key/1)
          |> Keyword.put(:initial_call, details.initial_call)}
     end
   end
 
   defp process_info_callback_key({:links, links}),
-    do: {:links, Enum.map(links, &pid_or_port_details/1)}
+    do: [{:links, Enum.map(links, &pid_or_port_details/1)}]
 
   defp process_info_callback_key({:monitors, monitors}) do
-    {:monitors,
-     monitors
-     |> Enum.map(fn {_label, pid_or_port} -> pid_or_port end)
-     |> Enum.map(&pid_or_port_details/1)}
+    [
+      {:monitors,
+       monitors
+       |> Enum.map(fn {_label, pid_or_port} -> pid_or_port end)
+       |> Enum.map(&pid_or_port_details/1)}
+    ]
   end
 
   defp process_info_callback_key({:monitored_by, monitored_by}),
-    do: {:monitored_by, Enum.map(monitored_by, &pid_or_port_details/1)}
+    do: [{:monitored_by, Enum.map(monitored_by, &pid_or_port_details/1)}]
 
   defp process_info_callback_key({:group_leader, group_leader}),
-    do: {:group_leader, pid_or_port_details(group_leader)}
+    do: [{:group_leader, pid_or_port_details(group_leader)}]
 
   defp process_info_callback_key({:dictionary, dictionary}) do
-    {:ancestors,
-     Keyword.get(dictionary, :"$ancestors", [])
-     |> Enum.map(&pid_or_port_details/1)}
+    [
+      {:ancestors,
+       Keyword.get(dictionary, :"$ancestors", [])
+       |> Enum.map(&pid_or_port_details/1)},
+      {:label, Keyword.get(dictionary, :"$process_label")}
+    ]
   end
 
-  defp process_info_callback_key({key, value}), do: {key, value}
+  defp process_info_callback_key({key, value}), do: [{key, value}]
 
   ## Applications callbacks
 
@@ -496,8 +501,12 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   end
 
   defp to_wrapped_node(type, pid, children) do
-    case Process.info(pid, :registered_name) do
-      {:registered_name, registered_name} ->
+    case Process.info(pid, [:registered_name, :dictionary]) do
+      [{:registered_name, []}, {:dictionary, dictionary}] ->
+        label = Keyword.get(dictionary, :"$process_label", [])
+        [{{type, pid, label}, children}]
+
+      [{:registered_name, registered_name}, _] ->
         [{{type, pid, registered_name}, children}]
 
       _ ->
