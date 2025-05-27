@@ -54,7 +54,7 @@ In your `mix.exs`, add the following to your `deps`:
 ### Configure the dashboard
 
 This step is **only needed if you want to restrict the repositories** listed in your dashboard, because
-by default all _repos_ are gonna be listed.
+by default all _repos_ are going to be listed.
 
 Go to the `live_dashboard` call in your router and list your repositories:
 
