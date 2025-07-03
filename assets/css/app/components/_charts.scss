@@ -114,6 +114,20 @@
   }
 }
 
+/* Override uPlot styles */
+/* Avoid wrapping for long legend titles when data is shown for that row on hover, changes the legend heights */
+.u-series {
+  th {
+    text-wrap: nowrap;
+  }
+}
+
+/* Avoid block styles for legends, leads to chart card size updates and hopping on hover */
+.u-inline {
+  display: flex;
+  flex-direction: column;
+}
+
 @media (min-width: map-get($grid-breakpoints, xxl)) {
   [data-phx-view="LiveDashboard.MetricsLive"] #main.container{
     max-width: 95%;
