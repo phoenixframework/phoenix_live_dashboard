@@ -1,5 +1,5 @@
 defmodule Phoenix.LiveDashboard.PageBuilder do
-  @moduledoc """
+  @moduledoc ~S'''
   Page builder is the default mechanism for building custom dashboard pages.
 
   Each dashboard page is a LiveView with additional callbacks for
@@ -19,7 +19,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
         @impl true
         def render(assigns) do
-          ~H\"""
+          ~H"""
           <.live_table
             id="ets-table"
             dom_id="ets-table"
@@ -40,7 +40,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
               <%= encode_pid(ets[:owner]) %>
             </:col>
           </.live_table>
-          \"""
+          """
         end
 
         defp fetch_ets(params, node) do
@@ -108,9 +108,41 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   ## Custom Hooks
 
-  If your page needs to register custom hooks, you can use the `register_after_opening_head_tag/2`
-  function. Because the hooks need to be available on the dead render in the layout, before the
-  LiveView's LiveSocket is configured, your need to do this inside an `on_mount` hook:
+  ### Colocated Hooks
+
+  If you're using LiveView 1.1 or later, you can use [**runtime** colocated hooks](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.ColocatedHook.html#module-runtime-hooks):
+
+  ```elixir
+  defmodule MyAppWeb.MyCustomPage do
+    use Phoenix.LiveDashboard.PageBuilder
+
+    ...
+
+    @impl true
+    def render(assigns) do
+      ~H"""
+      <script :type={Phoenix.LiveView.ColocatedHook} name=".MyHook" runtime nonce={@csp_nonces.script}>
+        {
+          mounted() {
+            // do something
+          }
+        }
+      </script>
+
+      <div id="my-element" phx-hook=".MyHook">...</div>
+      """
+    end
+  end
+  ```
+
+  In case you are not using CSP nonces, you can omit the nonce attribute.
+
+  ### LiveView hooks and registerCustomHooks
+
+  If your are on an earlier version of LiveView or runtime hooks don't work for another reason,
+  you can use the `register_after_opening_head_tag/2` function. Because the hooks need to be available
+  on the dead render in the layout, before the LiveView's LiveSocket is configured, you
+  need to do this inside an `on_mount` hook:
 
   ```elixir
   defmodule MyAppWeb.MyLiveDashboardHooks do
@@ -124,7 +156,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     end
 
     defp after_opening_head_tag(assigns) do
-      ~H\"\"\"
+      ~H"""
       <script nonce={@csp_nonces[:script]}>
         window.LiveDashboard.registerCustomHooks({
           MyHook: {
@@ -134,7 +166,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           }
         })
       </script>
-      \"\"\"
+      """
     end
   end
 
@@ -183,7 +215,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   >
   > If your custom page needs a different CSP policy, for example due to inline styles set by scripts,
   > please consider documenting these requirements.
-  """
+  '''
 
   use Phoenix.Component
 
