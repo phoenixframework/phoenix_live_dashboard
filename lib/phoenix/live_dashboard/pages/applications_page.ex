@@ -1,21 +1,28 @@
 defmodule Phoenix.LiveDashboard.ApplicationsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  use Phoenix.LiveDashboard.LiveCapture
 
   alias Phoenix.LiveDashboard.SystemInfo
 
   @menu_text "Applications"
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.applications_page_assigns()
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:row_fetcher, fn -> &fetch_applications/2 end)
+      |> assign_new(:row_attrs, fn -> &row_attrs/1 end)
+
     ~H"""
     <.live_table
       id="apps-table"
       dom_id="apps-table"
       page={@page}
       title="Applications"
-      row_fetcher={&fetch_applications/2}
-      row_attrs={&row_attrs/1}
+      row_fetcher={@row_fetcher}
+      row_attrs={@row_attrs}
     >
       <:col field={:name} sortable={:asc} />
       <:col field={:description} />

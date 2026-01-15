@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.SocketsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  use Phoenix.LiveDashboard.LiveCapture
 
   alias Phoenix.LiveDashboard.SystemInfo
   import Phoenix.LiveDashboard.Helpers
@@ -8,15 +9,21 @@ defmodule Phoenix.LiveDashboard.SocketsPage do
   @menu_text "Sockets"
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.sockets_page_assigns()
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:row_fetcher, fn -> &fetch_sockets/2 end)
+      |> assign_new(:row_attrs, fn -> &row_attrs/1 end)
+
     ~H"""
     <.live_table
       id="sockets-table"
       dom_id="sockets-table"
       page={@page}
       title="Sockets"
-      row_fetcher={&fetch_sockets/2}
-      row_attrs={&row_attrs/1}
+      row_fetcher={@row_fetcher}
+      row_attrs={@row_attrs}
     >
       <:col :let={socket} field={:port}>
         <%= socket[:port] |> encode_socket() |> String.trim_leading("Socket") %>

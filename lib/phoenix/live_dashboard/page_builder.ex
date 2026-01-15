@@ -218,6 +218,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   '''
 
   use Phoenix.Component
+  use Phoenix.LiveDashboard.LiveCapture
 
   defstruct info: nil,
             module: nil,
@@ -399,6 +400,33 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
   attr :dom_id, :string, default: nil, doc: "id attribute for the HTML the main tag."
+  capture(
+    attributes: %{
+      id: "live_table",
+      page: %{
+        __struct__: Phoenix.LiveDashboard.PageBuilder,
+        route: "example",
+        node: node(),
+        params: %{}
+      },
+      row_fetcher: &Phoenix.LiveDashboard.LiveCaptureFactory.table_row_fetcher/2,
+      rows_name: "items",
+      title: "Example Table",
+      search: true,
+      limit: [10, 25, 50],
+      col: [
+        %{field: :name, sortable: :asc, header: "Name"},
+        %{field: :count, header: "Count"}
+      ]
+    },
+    variants: [
+      main: %{},
+      empty: %{
+        row_fetcher: &Phoenix.LiveDashboard.LiveCaptureFactory.table_row_fetcher_empty/2,
+        rows_name: "rows"
+      }
+    ]
+  )
   @spec live_table(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def live_table(assigns) do
     ~H"""
@@ -444,6 +472,28 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     attr :method, :string, values: ~w(patch navigate href redirect), doc: "Method used to update"
   end
 
+  capture(
+    attributes: %{
+      id: "nav_bar",
+      page: %{
+        __struct__: Phoenix.LiveDashboard.PageBuilder,
+        route: "example",
+        node: node(),
+        params: %{"nav" => "overview"}
+      },
+      nav_param: "nav",
+      extra_params: [],
+      style: :pills,
+      item: [
+        %{name: "overview", label: "Overview", inner_block: "<div>Overview content</div>"},
+        %{name: "details", label: "Details", inner_block: "<div>Details content</div>"}
+      ]
+    },
+    variants: [
+      pills: %{},
+      bar: %{style: :bar}
+    ]
+  )
   @spec live_nav_bar(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def live_nav_bar(assigns) do
     ~H"""
@@ -457,6 +507,15 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   @doc type: :component
   attr :text, :string, required: true, doc: "Text to show in the hint"
 
+  capture(
+    attributes: %{
+      text: "Helpful hint text"
+    },
+    variants: [
+      short: %{},
+      long: %{text: "Longer hint text for additional context."}
+    ]
+  )
   @spec hint(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def hint(assigns) do
     ~H"""
@@ -479,6 +538,16 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :title, :string, default: nil, doc: "The title above the card."
   attr :hint, :string, default: nil, doc: "A textual hint to show close to the title."
 
+  capture(
+    attributes: %{
+      title: "Card Title",
+      hint: "Extra context"
+    },
+    variants: [
+      with_hint: %{},
+      no_hint: %{hint: nil}
+    ]
+  )
   @spec card_title(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def card_title(assigns) do
     ~H"""
@@ -502,6 +571,20 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
   attr :dom_id, :string, default: nil, doc: "id attribute for the HTML the main tag."
 
+  capture(
+    attributes: %{
+      title: "Card Header",
+      hint: "Header hint",
+      inner_title: "Inner Title",
+      inner_hint: "Inner hint",
+      dom_id: "card-example",
+      inner_block: "42"
+    },
+    variants: [
+      full: %{},
+      minimal: %{inner_title: nil, inner_hint: nil}
+    ]
+  )
   @spec card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def card(assigns) do
     ~H"""
@@ -533,6 +616,19 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :inner_title, :string, default: nil, doc: "The title inside the card."
   attr :inner_hint, :string, default: nil, doc: "A textual hint to show close to the inner title."
 
+  capture(
+    attributes: %{
+      title: "Environment",
+      hint: "App settings",
+      inner_title: "Variables",
+      inner_hint: "Read-only",
+      fields: [{"APP_ENV", "dev"}, {"PORT", "4000"}]
+    },
+    variants: [
+      multi: %{},
+      single: %{fields: [{"APP_ENV", "prod"}]}
+    ]
+  )
   def fields_card(assigns) do
     ~H"""
     <%= if @fields && not Enum.empty?(@fields) do %>
@@ -569,6 +665,24 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       "A list of components. It can receive up to 3 components." <>
         " Each element will be one column."
 
+  capture(
+    attributes: %{
+      col: [
+        %{inner_block: "<div class=\"card\">Column 1</div>"},
+        %{inner_block: "<div class=\"card\">Column 2</div>"},
+        %{inner_block: "<div class=\"card\">Column 3</div>"}
+      ]
+    },
+    variants: [
+      three: %{},
+      two: %{
+        col: [
+          %{inner_block: "<div class=\"card\">Column A</div>"},
+          %{inner_block: "<div class=\"card\">Column B</div>"}
+        ]
+      }
+    ]
+  )
   @spec row(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def row(assigns) do
     assigns = row_validate_columns_length(assigns)
@@ -621,6 +735,36 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     attr :hint, :string, doc: "A textual hint to show close to the usage title."
   end
 
+  capture(
+    attributes: %{
+      title: "Usage",
+      hint: "Current utilization",
+      dom_id: "usage-card",
+      csp_nonces: %{style: "nonce"},
+      usage: [
+        %{
+          current: 35,
+          limit: 100,
+          dom_id: "cpu",
+          percent: "35",
+          title: "CPU",
+          hint: "Average over 1m"
+        },
+        %{
+          current: 62,
+          limit: 256,
+          dom_id: "memory",
+          percent: "24",
+          title: "Memory",
+          hint: "RSS in MB"
+        }
+      ]
+    },
+    variants: [
+      multi: %{},
+      single: %{usage: Phoenix.LiveDashboard.LiveCaptureFactory.usage_card_single()}
+    ]
+  )
   @spec usage_card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def usage_card(assigns) do
     ~H"""
@@ -722,6 +866,34 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     default: nil,
     doc: ~s<A function that format the `total_usage`. Default: `&("\#{&1} %")`.>
 
+  capture(
+    attributes: %{
+      usages: [
+        %{
+          dom_id: "cpu",
+          title: "CPU",
+          data: [
+            {"user", 35.5, "red", nil},
+            {"system", 10.2, "blue", "Kernel time"}
+          ]
+        }
+      ],
+      total_data: [
+        {"user", 35.5, "red", nil},
+        {"system", 10.2, "blue", "Kernel time"}
+      ],
+      total_legend: "Total",
+      total_usage: "45.7%",
+      dom_id: "shared-usage",
+      csp_nonces: %{style: "nonce"},
+      title: "Resource Usage",
+      hint: "Aggregated"
+    },
+    variants: [
+      default: %{},
+      formatted: %{total_formatter: &Phoenix.LiveDashboard.LiveCaptureFactory.total_formatter/1}
+    ]
+  )
   @spec shared_usage_card(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def shared_usage_card(assigns) do
     ~H"""
@@ -869,6 +1041,25 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     Default: `fn node_data -> node_data.detail end`.
     """
 
+  capture(
+    attributes: %{
+      id: "layered-graph",
+      title: "Pipeline",
+      hint: "Sample flow",
+      layers: [
+        [%{id: "a1", children: ["b1"], data: "a1"}],
+        [%{id: "b1", children: [], data: %{label: "b1", detail: 3}}]
+      ],
+      show_grid?: false,
+      background: &Phoenix.LiveDashboard.LiveCaptureFactory.layered_background/1,
+      format_label: &Phoenix.LiveDashboard.LiveCaptureFactory.layered_label/1,
+      format_detail: &Phoenix.LiveDashboard.LiveCaptureFactory.layered_detail/1
+    },
+    variants: [
+      default: %{},
+      grid: %{show_grid?: true}
+    ]
+  )
   @spec live_layered_graph(assigns :: Socket.assigns()) :: Phoenix.LiveView.Rendered.t()
   def live_layered_graph(assigns) do
     ~H"""
@@ -886,6 +1077,18 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
     attr :label, :string, required: true, doc: "Label for the elem"
   end
 
+  capture(
+    attributes: %{
+      elem: [
+        %{label: "PID", inner_block: "PID 0.123.0"},
+        %{label: "State", inner_block: "running"}
+      ]
+    },
+    variants: [
+      default: %{},
+      minimal: %{elem: [%{label: "Status", inner_block: "ok"}]}
+    ]
+  )
   def label_value_list(assigns) do
     ~H"""
     <table class="table table-hover tabular-info-table">
@@ -912,6 +1115,18 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :return_to, :string, required: true, doc: "Path to return when closing the modal"
   slot :inner_block, required: true, doc: "Content to show in the modal"
 
+  capture(
+    attributes: %{
+      id: "live-modal",
+      title: "Modal Title",
+      return_to: "/dashboard",
+      inner_block: "<p>Modal content goes here.</p>"
+    },
+    variants: [
+      default: %{},
+      short: %{inner_block: "<p>Done.</p>"}
+    ]
+  )
   def live_modal(assigns) do
     ~H"""
     <.live_component
@@ -960,11 +1175,43 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
 
   attr :full_width, :boolean, default: false, doc: "Size of the chart"
 
+  capture(
+    attributes: %{
+      id: "live_chart",
+      data: [
+        {"series-1", 12, -5_000_000},
+        {"series-1", 18, -4_000_000},
+        {"series-1", 9, -3_000_000},
+        {"series-1", 22, -2_000_000},
+        {"series-1", 16, -1_000_000}
+      ],
+      title: "MyChart",
+      hint: "Chart about",
+      kind: :counter,
+      label: "X",
+      tags: ["demo", "preview"],
+      prune_threshold: 1_000,
+      refresh_interval: 1_000,
+      unit: "ms",
+      bucket_size: nil,
+      full_width: false
+    },
+    variants: [
+      counter: %{},
+      distribution: %{
+        kind: :distribution,
+        bucket_size: 10,
+        data: Phoenix.LiveDashboard.LiveCaptureFactory.chart_distribution_data()
+      }
+    ]
+  )
+
   def live_chart(assigns) do
     assigns =
       assign_new(assigns, :bucket_size, fn ->
         if assigns.kind == :histogram, do: 20, else: nil
       end)
+      |> update(:data, &resolve_chart_data/1)
 
     ~H"""
     <.live_component
@@ -982,6 +1229,15 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       full_width={@full_width}
     />
     """
+  end
+
+  defp resolve_chart_data(data) when is_list(data) do
+    now = System.system_time(:microsecond)
+
+    Enum.map(data, fn
+      {x, y, z} when is_integer(z) and z < 0 -> {x, y, now + z}
+      other -> other
+    end)
   end
 
   @doc false

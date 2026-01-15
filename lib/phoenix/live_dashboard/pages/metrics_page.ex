@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.MetricsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder, refresher?: false
+  use Phoenix.LiveDashboard.LiveCapture
 
   @menu_text "Metrics"
 
@@ -55,6 +56,7 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   end
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.metrics_page_assigns()
   def render(assigns) do
     ~H"""
     <.live_nav_bar id="metrics_nav_bar" page={@page}>
@@ -76,6 +78,14 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
 
   attr :metric, :any, required: true, doc: "Metric to be represented in the chart"
 
+  capture attributes: %{
+            id: "metric-1",
+            metric: Phoenix.LiveDashboard.LiveCaptureFactory.sample_metric()
+          },
+          variants: [
+            counter: %{},
+            summary: %{metric: Phoenix.LiveDashboard.LiveCaptureFactory.sample_metric_summary()}
+          ]
   def live_metric_chart(%{id: id, metric: metric}) do
     assigns = assigns_from_metric(id, metric)
 

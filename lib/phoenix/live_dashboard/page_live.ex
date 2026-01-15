@@ -6,6 +6,7 @@ end
 defmodule Phoenix.LiveDashboard.PageLive do
   @moduledoc false
   use Phoenix.LiveDashboard.Web, :live_view
+  use Phoenix.LiveDashboard.LiveCapture
 
   import Phoenix.LiveDashboard.Helpers
   alias Phoenix.LiveView.Socket
@@ -184,6 +185,7 @@ defmodule Phoenix.LiveDashboard.PageLive do
   end
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.page_live_assigns()
   def render(assigns) do
     ~H"""
     <header class="d-flex">

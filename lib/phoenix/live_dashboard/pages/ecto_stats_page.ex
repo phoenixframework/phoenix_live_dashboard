@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.EctoStatsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  use Phoenix.LiveDashboard.LiveCapture
   import Phoenix.LiveDashboard.Helpers
 
   @compile {:no_warn_undefined, [Decimal, Duration, EctoPSQLExtras, {Ecto.Repo, :all_running, 0}]}
@@ -136,6 +137,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   end
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.ecto_stats_page_assigns()
   def render(assigns) do
     if assigns[:error] do
       render_error(assigns)

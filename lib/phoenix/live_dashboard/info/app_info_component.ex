@@ -1,9 +1,12 @@
 defmodule Phoenix.LiveDashboard.AppInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_component
+  use Phoenix.LiveDashboard.LiveCapture
 
   alias Phoenix.LiveDashboard.{PageBuilder, SystemInfo, ReingoldTilford}
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.app_info_assigns(),
+          variants: [alive: %{}, missing: %{alive: false}]
   def render(assigns) do
     ~H"""
     <div class="app-info">

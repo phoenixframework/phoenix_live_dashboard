@@ -470,6 +470,7 @@ end
 defmodule DemoWeb.Router do
   use Phoenix.Router
   import Phoenix.LiveDashboard.Router
+  import LiveCapture.Router
 
   pipeline :browser do
     plug :fetch_session
@@ -484,6 +485,13 @@ defmodule DemoWeb.Router do
     get "/hello", DemoWeb.PageController, :hello
     get "/hello/:name", DemoWeb.PageController, :hello
     get "/logs", DemoWeb.PageController, :logs
+
+    live_capture "/live_capture",
+      Phoenix.LiveDashboard.LiveCapture,
+      csp_nonce_assign_key: %{
+        style: :style_csp_nonce,
+        script: :script_csp_nonce
+      }
 
     live_dashboard("/dashboard",
       env_keys: ["USER", "ROOTDIR"],

@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.ProcessesPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  use Phoenix.LiveDashboard.LiveCapture
   import Phoenix.LiveDashboard.Helpers
 
   alias Phoenix.LiveDashboard.SystemInfo
@@ -8,14 +9,20 @@ defmodule Phoenix.LiveDashboard.ProcessesPage do
   @menu_text "Processes"
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.processes_page_assigns()
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:row_fetcher, fn -> {&fetch_processes/3, nil} end)
+      |> assign_new(:row_attrs, fn -> &row_attrs/1 end)
+
     ~H"""
     <.live_table
       id="processes-table"
       dom_id="processes-table"
       page={@page}
-      row_fetcher={{&fetch_processes/3, nil}}
-      row_attrs={&row_attrs/1}
+      row_fetcher={@row_fetcher}
+      row_attrs={@row_attrs}
       title="Processes"
     >
       <:col :let={process} field={:pid} header="PID">

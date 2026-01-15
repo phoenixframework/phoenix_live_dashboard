@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.OSMonPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  use Phoenix.LiveDashboard.LiveCapture
 
   import Phoenix.LiveDashboard.Helpers
 
@@ -111,6 +112,7 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
   end
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.os_mon_page_assigns()
   def render(assigns) do
     ~H"""
     <.row>

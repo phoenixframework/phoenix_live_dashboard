@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.MemoryAllocatorsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  use Phoenix.LiveDashboard.LiveCapture
 
   alias Phoenix.LiveDashboard.SystemInfo
   import Phoenix.LiveDashboard.Helpers
@@ -8,7 +9,12 @@ defmodule Phoenix.LiveDashboard.MemoryAllocatorsPage do
   @menu_text "Memory Allocators"
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.memory_allocators_page_assigns()
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:row_fetcher, fn -> {&fetch_memory_allocators/3, nil} end)
+
     ~H"""
     <div>
       <div class="row">
@@ -26,7 +32,7 @@ defmodule Phoenix.LiveDashboard.MemoryAllocatorsPage do
         dom_id="memory-allocators-table"
         page={@page}
         title="Memory Allocators"
-        row_fetcher={{&fetch_memory_allocators/3, nil}}
+        row_fetcher={@row_fetcher}
         rows_name="memory allocators"
         search={false}
         limit={false}

@@ -1,5 +1,6 @@
 defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_component
+  use Phoenix.LiveDashboard.LiveCapture
 
   alias Phoenix.LiveDashboard.SystemInfo
 
@@ -32,6 +33,8 @@ defmodule Phoenix.LiveDashboard.ProcessInfoComponent do
   end
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.process_info_assigns(),
+          variants: [alive: %{}, missing: %{alive: false}]
   def render(assigns) do
     ~H"""
     <div class="tabular-info">

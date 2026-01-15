@@ -1,10 +1,13 @@
 defmodule Phoenix.LiveDashboard.TitleBarComponent do
   use Phoenix.LiveDashboard.Web, :live_component
+  use Phoenix.LiveDashboard.LiveCapture
 
   def mount(socket) do
     {:ok, assign(socket, class: "", color: "blue")}
   end
 
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.title_bar_assigns(),
+          variants: [main: %{}, warning: %{percent: 87.2, color: "orange"}]
   def render(assigns) do
     ~H"""
     <div class={@class}>

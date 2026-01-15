@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.PortsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  use Phoenix.LiveDashboard.LiveCapture
 
   alias Phoenix.LiveDashboard.SystemInfo
   import Phoenix.LiveDashboard.Helpers
@@ -8,15 +9,21 @@ defmodule Phoenix.LiveDashboard.PortsPage do
   @menu_text "Ports"
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.ports_page_assigns()
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:row_fetcher, fn -> &fetch_ports/2 end)
+      |> assign_new(:row_attrs, fn -> &row_attrs/1 end)
+
     ~H"""
     <.live_table
       id="ports-table"
       dom_id="ports-table"
       page={@page}
       title="Ports"
-      row_fetcher={&fetch_ports/2}
-      row_attrs={&row_attrs/1}
+      row_fetcher={@row_fetcher}
+      row_attrs={@row_attrs}
     >
       <:col :let={data} field={:port}>
         <%= data[:port] |> encode_port() |> String.trim_leading("Port") %>

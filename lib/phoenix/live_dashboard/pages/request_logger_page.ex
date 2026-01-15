@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.RequestLoggerPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder, refresher?: false
+  use Phoenix.LiveDashboard.LiveCapture
 
   @menu_text "Request Logger"
 
@@ -73,7 +74,10 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
   end
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.request_logger_page_assigns()
   def render(assigns) do
+    assigns = assign_new(assigns, :show_refresh_link, fn -> true end)
+
     ~H"""
     <!-- Card containing log messages -->
     <div class="logs-card" data-messages-present={if @messages_present, do: "true", else: "false"}>
@@ -185,7 +189,7 @@ defmodule Phoenix.LiveDashboard.RequestLoggerPage do
       <!-- End cookie column -->
     </div>
     <!-- Row with a 'new stream' link -->
-    <div class="row mb-3">
+    <div :if={@show_refresh_link} class="row mb-3">
       <div class="col text-center">
         Want to refresh the logger parameter?
         <.link navigate={live_dashboard_path(@socket, @page, [])}>

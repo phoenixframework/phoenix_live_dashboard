@@ -1,5 +1,6 @@
 defmodule Phoenix.LiveDashboard.SocketInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_component
+  use Phoenix.LiveDashboard.LiveCapture
   alias Phoenix.LiveDashboard.SystemInfo
 
   @info_keys [
@@ -14,6 +15,8 @@ defmodule Phoenix.LiveDashboard.SocketInfoComponent do
   ]
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.socket_info_assigns(),
+          variants: [alive: %{}, missing: %{alive: false}]
   def render(assigns) do
     ~H"""
     <div class="tabular-info">

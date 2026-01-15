@@ -1,5 +1,6 @@
 defmodule Phoenix.LiveDashboard.EtsInfoComponent do
   use Phoenix.LiveDashboard.Web, :live_component
+  use Phoenix.LiveDashboard.LiveCapture
 
   alias Phoenix.LiveDashboard.SystemInfo
 
@@ -21,6 +22,8 @@ defmodule Phoenix.LiveDashboard.EtsInfoComponent do
   ]
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.ets_info_assigns(),
+          variants: [alive: %{}, missing: %{alive: false}]
   def render(assigns) do
     ~H"""
     <div class="tabular-info">

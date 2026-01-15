@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.EtsPage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  use Phoenix.LiveDashboard.LiveCapture
 
   alias Phoenix.LiveDashboard.SystemInfo
   import Phoenix.LiveDashboard.Helpers
@@ -8,15 +9,21 @@ defmodule Phoenix.LiveDashboard.EtsPage do
   @menu_text "ETS"
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.ets_page_assigns()
   def render(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:row_fetcher, fn -> &fetch_ets/2 end)
+      |> assign_new(:row_attrs, fn -> &row_attrs/1 end)
+
     ~H"""
     <.live_table
       id="ets-table"
       dom_id="ets-table"
       page={@page}
       title="ETS"
-      row_fetcher={&fetch_ets/2}
-      row_attrs={&row_attrs/1}
+      row_fetcher={@row_fetcher}
+      row_attrs={@row_attrs}
       rows_name="tables"
     >
       <:col field={:name} header="Name or module" />

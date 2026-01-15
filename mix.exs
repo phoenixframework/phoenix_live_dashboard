@@ -67,7 +67,8 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:ex_doc, "~> 0.21", only: :docs},
       {:makeup_eex, ">= 0.1.1", only: :docs},
       {:esbuild, "~> 0.5", only: :dev},
-      {:dart_sass, "~> 0.7", only: :dev}
+      {:dart_sass, "~> 0.7", only: :dev},
+      {:live_capture, "~> 0.2", only: :dev}
     ]
   end
 

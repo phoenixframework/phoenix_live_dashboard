@@ -1,6 +1,7 @@
 defmodule Phoenix.LiveDashboard.HomePage do
   @moduledoc false
   use Phoenix.LiveDashboard.PageBuilder
+  use Phoenix.LiveDashboard.LiveCapture
 
   import Phoenix.HTML
   import Phoenix.LiveDashboard.Helpers
@@ -67,6 +68,7 @@ defmodule Phoenix.LiveDashboard.HomePage do
   end
 
   @impl true
+  capture attributes: Phoenix.LiveDashboard.LiveCaptureFactory.home_page_assigns()
   def render(assigns) do
     ~H"""
     <.row>
