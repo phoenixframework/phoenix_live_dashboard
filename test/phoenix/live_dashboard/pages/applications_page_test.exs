@@ -69,6 +69,62 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
     assert rendered =~ ":standard_error"
   end
 
+  test "list view renders when view_mode=list" do
+    {:ok, live, _} = live(build_conn(), app_info_path(:kernel, view_mode: "list"))
+    rendered = render(live)
+    assert rendered =~ "process-list"
+    assert rendered =~ ":rex"
+    assert rendered =~ ":standard_error"
+    assert rendered =~ "supervisor"
+  end
+
+  test "list view filter narrows results and highlights matches" do
+    {:ok, live, _} = live(build_conn(), app_info_path(:kernel, view_mode: "list"))
+    rendered = render(live)
+    assert rendered =~ ":rex"
+    assert rendered =~ ":standard_error"
+
+    rendered =
+      live
+      |> element(".app-info-filter")
+      |> render_change(%{"filter" => "rex"})
+
+    assert rendered =~ ":rex"
+    refute rendered =~ ":standard_error"
+    assert rendered =~ "process-list-match"
+  end
+
+  test "list view expand all and collapse all" do
+    {:ok, live, _} = live(build_conn(), app_info_path(:kernel, view_mode: "list"))
+    rendered = render(live)
+    # Tree is expanded by default, so we see nested processes
+    assert rendered =~ ":rex"
+
+    # Collapse all hides children
+    rendered =
+      live
+      |> element("button", "Collapse all")
+      |> render_click()
+
+    refute rendered =~ ":rex"
+
+    # Expand all shows them again
+    rendered =
+      live
+      |> element("button", "Expand all")
+      |> render_click()
+
+    assert rendered =~ ":rex"
+  end
+
+  defp app_info_path(app, params) do
+    query =
+      [{"info", "App<#{app}>"} | Enum.map(params, fn {k, v} -> {to_string(k), v} end)]
+      |> URI.encode_query()
+
+    "/dashboard/applications?#{query}"
+  end
+
   defp applications_href(limit, search, sort_by, sort_dir) do
     ~s|href="#{Plug.HTML.html_escape_to_iodata(applications_path(limit, search, sort_by, sort_dir))}"|
   end
