@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+* Add a compact nested list view for application supervision trees
+
 ## v0.8.7 (2025-04-28)
 
 * Fix warnings on Erlang/OTP 28
