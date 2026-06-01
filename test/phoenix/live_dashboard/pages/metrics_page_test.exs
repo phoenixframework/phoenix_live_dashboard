@@ -94,8 +94,13 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
                label: "Count",
                kind: :summary,
                title: "a.b.c.count",
-               bucket_size: nil
+               bucket_size: nil,
+               percentiles: nil
              } = subject(summary([:a, :b, :c, :count]))
+
+      assert %{
+               percentiles: [50, 95]
+             } = subject(summary([:a, :b, :c, :count], reporter_options: [percentiles: [50, 95]]))
     end
 
     test "last_value metric" do

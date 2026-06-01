@@ -18,7 +18,8 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
       unit: "",
       prune_threshold: 1_000,
       refresh_interval: 1_000,
-      bucket_size: 20
+      bucket_size: 20,
+      percentiles: nil
     }
 
     assigns = Map.merge(defaults, Map.new(assigns))
@@ -90,6 +91,14 @@ defmodule Phoenix.LiveDashboard.ChartComponentTest do
 
       result = render_chart(bucket_size: 50)
       assert result =~ ~s|data-bucket-size="50"|
+    end
+
+    test "renders percentiles" do
+      result = render_chart(percentiles: nil)
+      refute result =~ ~s|data-percentiles=|
+
+      result = render_chart(percentiles: [50, 95])
+      assert result =~ ~s|data-percentiles="50,95"|
     end
   end
 
