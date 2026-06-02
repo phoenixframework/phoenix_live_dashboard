@@ -42,6 +42,9 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
     assert rendered =~ "MyApp"
     assert rendered =~ ~s|data-title="phx.b.c"|
     assert rendered =~ ~s|data-title="phx.b.d"|
+    assert rendered =~ ~s|data-title="phx.b.duration"|
+    assert rendered =~ ~s|data-metric="summary"|
+    assert rendered =~ ~s|data-percentiles="50,95,99"|
 
     send(live.pid, {:telemetry, [{0, nil, "value", System.system_time(:millisecond)}]})
 

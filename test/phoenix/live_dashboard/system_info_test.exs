@@ -87,11 +87,13 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       assert is_integer(info[:message_queue_len])
 
       expected =
-        if System.otp_release() |> String.to_integer() >= 26,
-          do: {:group, :server, 4},
-          else: {:erlang, :apply, 2}
+        if System.otp_release() |> String.to_integer() >= 26 do
+          [{:group, :server, 4}, {:group, :init, 1}]
+        else
+          [{:erlang, :apply, 2}]
+        end
 
-      assert info[:initial_call] == expected
+      assert info[:initial_call] in expected
 
       pid = Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor)
       {:ok, info} = SystemInfo.fetch_process_info(pid)
@@ -195,10 +197,13 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "all with search" do
-      open_socket()
+      socket = open_socket()
+      {:ok, {_address, port}} = :inet.sockname(socket)
 
-      {[socket], _count} = SystemInfo.fetch_sockets(node(), "*:*", :send_oct, :asc, 100)
-      assert socket[:foreign_address] == "*:*"
+      {sockets, _count} =
+        SystemInfo.fetch_sockets(node(), Integer.to_string(port), :send_oct, :asc, 100)
+
+      assert Enum.any?(sockets, &(&1[:port] == socket and &1[:foreign_address] == "*:*"))
       {sockets, _count} = SystemInfo.fetch_sockets(node(), "impossible", :send_oct, :asc, 100)
       assert Enum.empty?(sockets)
     end

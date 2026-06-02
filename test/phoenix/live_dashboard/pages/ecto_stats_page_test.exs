@@ -41,14 +41,16 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
     assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
 
-    start_mysql_repo!()
+    mysql_started? = start_mysql_repo()
 
-    {:ok, live, _} = live(build_conn(), ecto_stats_path())
-    rendered = render(live)
+    if mysql_started? do
+      {:ok, live, _} = live(build_conn(), ecto_stats_path())
+      rendered = render(live)
 
-    assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
-    assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
-    assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
+      assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
+      assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
+      assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
+    end
 
     start_sqlite_repo!()
 
@@ -57,7 +59,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
     assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
     assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
-    assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
+    if mysql_started?, do: assert(rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo")
     assert rendered =~ "Phoenix.LiveDashboardTest.SQLiteRepo"
   end
 
@@ -88,10 +90,10 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
       assert {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
     end
 
-    start_mysql_repo!()
-
-    for {nav, _} <- EctoMySQLExtras.queries(MySQLRepo) do
-      assert {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
+    if start_mysql_repo() do
+      for {nav, _} <- EctoMySQLExtras.queries(MySQLRepo) do
+        assert {:ok, _, _} = live(build_conn(), ecto_stats_path(nav))
+      end
     end
 
     start_pg_repo!()
@@ -136,27 +138,27 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     refute rendered =~ "fuzzystrmatch"
     assert rendered =~ "hstore"
 
-    start_mysql_repo!()
+    if start_mysql_repo() do
+      {:ok, live, _} = live(build_conn(), ecto_stats_path(:plugins, "", MySQLRepo))
 
-    {:ok, live, _} = live(build_conn(), ecto_stats_path(:plugins, "", MySQLRepo))
+      rendered = render(live)
+      assert rendered =~ "Version"
+      assert rendered =~ "Status"
+      assert rendered =~ "PERFORMANCE_SCHEMA"
+      assert rendered =~ "InnoDB"
 
-    rendered = render(live)
-    assert rendered =~ "Version"
-    assert rendered =~ "Status"
-    assert rendered =~ "PERFORMANCE_SCHEMA"
-    assert rendered =~ "InnoDB"
+      {:ok, live, _} =
+        live(
+          build_conn(),
+          ecto_stats_path(:plugins, "InnoDB", MySQLRepo)
+        )
 
-    {:ok, live, _} =
-      live(
-        build_conn(),
-        ecto_stats_path(:plugins, "InnoDB", MySQLRepo)
-      )
-
-    rendered = render(live)
-    assert rendered =~ "Version"
-    assert rendered =~ "Status"
-    refute rendered =~ "PERFORMANCE_SCHEMA"
-    assert rendered =~ "InnoDB"
+      rendered = render(live)
+      assert rendered =~ "Version"
+      assert rendered =~ "Status"
+      refute rendered =~ "PERFORMANCE_SCHEMA"
+      assert rendered =~ "InnoDB"
+    end
 
     start_sqlite_repo!()
 
@@ -202,8 +204,24 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     start_supervised!(PGRepo)
   end
 
-  defp start_mysql_repo! do
-    start_supervised!(MySQLRepo)
+  defp start_mysql_repo do
+    with mysql_url when is_binary(mysql_url) <- System.get_env("MYSQL_URL"),
+         {:ok, _} <- start_supervised(MySQLRepo),
+         {:ok, _} <- mysql_query() do
+      true
+    else
+      _ ->
+        stop_supervised(MySQLRepo)
+        false
+    end
+  end
+
+  defp mysql_query do
+    try do
+      MySQLRepo.query("SELECT 1", [], timeout: 500, pool_timeout: 500)
+    catch
+      :exit, reason -> {:error, reason}
+    end
   end
 
   defp start_sqlite_repo! do

@@ -1,7 +1,7 @@
 System.put_env("PHX_DASHBOARD_TEST", "PHX_DASHBOARD_ENV_VALUE")
 
 pg_url = System.get_env("PG_URL") || "postgres:postgres@127.0.0.1"
-mysql_url = System.get_env("MYSQL_URL") || "root@127.0.0.1"
+mysql_url = System.get_env("MYSQL_URL")
 sqlite_db = System.get_env("SQLITE_DB") || "test.db"
 
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Repo,
@@ -25,14 +25,16 @@ end
 _ = Ecto.Adapters.Postgres.storage_up(Phoenix.LiveDashboardTest.PGRepo.config())
 
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.MySQLRepo,
-  url: "ecto://#{mysql_url}/phx_dashboard_test"
+  url: "ecto://#{mysql_url || "root@127.0.0.1"}/phx_dashboard_test"
 )
 
 defmodule Phoenix.LiveDashboardTest.MySQLRepo do
   use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.MyXQL
 end
 
-_ = Ecto.Adapters.MyXQL.storage_up(Phoenix.LiveDashboardTest.MySQLRepo.config())
+if mysql_url do
+  _ = Ecto.Adapters.MyXQL.storage_up(Phoenix.LiveDashboardTest.MySQLRepo.config())
+end
 
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.SQLiteRepo,
   database: sqlite_db
@@ -66,6 +68,7 @@ defmodule Phoenix.LiveDashboardTest.Telemetry do
     [
       counter("phx.b.c"),
       counter("phx.b.d"),
+      summary("phx.b.duration", reporter_options: [percentiles: [50, 95, 99]]),
       counter("ecto.f.g"),
       counter("my_app.h.i")
     ]
