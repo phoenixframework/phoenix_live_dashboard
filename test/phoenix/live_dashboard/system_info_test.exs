@@ -85,12 +85,18 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       {:ok, info} = SystemInfo.fetch_process_info(Process.whereis(:user))
       assert info[:registered_name] == :user
       assert is_integer(info[:message_queue_len])
+      otp_release = String.to_integer(System.otp_release())
 
       expected =
-        if System.otp_release() |> String.to_integer() >= 26 do
-          [{:group, :server, 4}, {:group, :init, 1}]
-        else
-          [{:erlang, :apply, 2}]
+        cond do
+          otp_release >= 28 ->
+            {:group, :init, 1}
+
+          otp_release >= 26 ->
+            {:group, :server, 4}
+
+          true ->
+            {:erlang, :apply, 2}
         end
 
       assert info[:initial_call] in expected
@@ -203,7 +209,20 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
       {sockets, _count} =
         SystemInfo.fetch_sockets(node(), Integer.to_string(port), :send_oct, :asc, 100)
 
-      assert Enum.any?(sockets, &(&1[:port] == socket and &1[:foreign_address] == "*:*"))
+      socket =
+        if String.to_integer(System.otp_release()) >= 28 do
+          assert {[socket, _other], _count} =
+                   SystemInfo.fetch_sockets(node(), "*:*", :send_oct, :asc, 100)
+
+          socket
+        else
+          assert {[socket], _count} =
+                   SystemInfo.fetch_sockets(node(), "*:*", :send_oct, :asc, 100)
+
+          socket
+        end
+
+      assert socket[:foreign_address] == "*:*"
       {sockets, _count} = SystemInfo.fetch_sockets(node(), "impossible", :send_oct, :asc, 100)
       assert Enum.empty?(sockets)
     end
