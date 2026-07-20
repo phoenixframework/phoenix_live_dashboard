@@ -44,15 +44,15 @@ jobs:
               otp: 27.0.1
             lint: lint
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
           otp-version: ${{matrix.pair.otp}}
           elixir-version: ${{matrix.pair.elixir}}
 
       - name: Cache Mix
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             deps
@@ -81,15 +81,15 @@ jobs:
     name: npm test
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
           elixir-version: 1.14.0
           otp-version: 24.3
 
       - name: Cache Mix
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             deps
@@ -102,12 +102,12 @@ jobs:
         run: mix deps.get --only test
 
       - name: Setup Node.js 18.x
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 18
 
       - name: Cache npm dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
