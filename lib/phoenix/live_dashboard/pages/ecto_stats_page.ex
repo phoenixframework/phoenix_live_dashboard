@@ -14,7 +14,14 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
         ecto_mysql_extras_options: ecto_mysql_extras_options,
         ecto_sqlite3_extras_options: ecto_sqlite3_extras_options
       }) do
-    capabilities = for repo <- List.wrap(repos), do: {:process, repo}
+    capabilities =
+      for repo <- List.wrap(repos) do
+        case repo do
+          {repo, _} -> {:process, repo}
+          repo -> {:process, repo}
+        end
+      end
+
     repos = repos || :auto_discover
 
     {:ok,
@@ -46,6 +53,14 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
     case result do
       {:ok, repos} ->
+        repos =
+          for repo <- repos do
+            case repo do
+              {_repo, _info_module} -> repo
+              repo -> {repo, info_module_for(socket.assigns.page.node, repo)}
+            end
+          end
+
         {:ok, assign(socket, :repos, repos)}
 
       {:error, error} ->
@@ -74,7 +89,12 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
         {:error, :cannot_list_running_repos}
     else
       repos when is_list(repos) ->
-        {:ok, Enum.filter(repos, fn repo -> extra_available?(node, repo) end)}
+        repos =
+          for repo <- repos, extra_available?(repo) do
+            {repo, info_module_for(node, repo)}
+          end
+
+        {:ok, repos}
     end
   end
 
@@ -96,21 +116,39 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
 
   @impl true
   def menu_link(%{repos: repos}, capabilities) do
+    none_in_caps? =
+      not Enum.any?(repos, fn repo ->
+        repo =
+          case repo do
+            {repo, _} -> repo
+            repo -> repo
+          end
+
+        repo in capabilities.processes
+      end)
+
     cond do
-      Enum.all?(repos, fn repo -> repo not in capabilities.processes end) ->
-        :skip
-
-      extra_available_for_any?(Node.self(), repos) ->
-        {:ok, @page_title}
-
-      true ->
-        {:disabled, @page_title, @disabled_link}
+      none_in_caps? -> :skip
+      extra_available_for_any?(Node.self(), repos) -> {:ok, @page_title}
+      true -> {:disabled, @page_title, @disabled_link}
     end
   end
 
   defp extra_available_for_any?(node, repos) do
-    Enum.any?(repos, fn repo -> extra_available?(node, repo) end)
+    Enum.any?(repos, fn repo ->
+      case repo do
+        {_repo, extra} ->
+          extra != nil && Code.ensure_loaded?(extra)
+
+        repo ->
+          extra_available?(node, repo)
+      end
+    end)
   end
+
+  defp extra_available?(nil), do: false
+
+  defp extra_available?(repo), do: Code.ensure_loaded?(repo)
 
   defp extra_available?(node, repo) when is_atom(repo) do
     extra = info_module_for(node, repo)
@@ -124,6 +162,10 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   # user does not need to have extra module installed on every node.
   defp extra_loaded?(extra) do
     Code.ensure_loaded?(extra)
+  end
+
+  defp info_module_for(_node, {_repo, info_module}) do
+    info_module
   end
 
   defp info_module_for(node, repo) do
@@ -148,12 +190,12 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
         style={:bar}
         extra_params={["nav"]}
       >
-        <:item :for={repo <- @repos} name={inspect(repo)} label={inspect(repo)}>
+        <:item :for={{repo, info_module} <- @repos} name={inspect(repo)} label={inspect(repo)}>
           <.render_repo_tab
             page={@page}
             repo={repo}
             ecto_options={@ecto_options}
-            info_module={info_module_for(@page.node, repo)}
+            info_module={info_module}
           />
         </:item>
       </.live_nav_bar>

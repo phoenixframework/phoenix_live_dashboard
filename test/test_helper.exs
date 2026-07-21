@@ -44,6 +44,16 @@ end
 
 _ = Ecto.Adapters.SQLite3.storage_up(Phoenix.LiveDashboardTest.SQLiteRepo.config())
 
+Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.CustomRepo,
+  url: "ecto://#{pg_url}/phx_dashboard_test"
+)
+
+defmodule Phoenix.LiveDashboardTest.CustomRepo do
+  use Ecto.Repo, otp_app: :phoenix_live_dashboard, adapter: Ecto.Adapters.Postgres
+end
+
+_ = Ecto.Adapters.Postgres.storage_up(Phoenix.LiveDashboardTest.CustomRepo.config())
+
 Application.put_env(:phoenix_live_dashboard, Phoenix.LiveDashboardTest.Endpoint,
   url: [host: "localhost", port: 4000],
   secret_key_base: "Hu4qQN3iKzTV4fJxhorPQlA/osH9fAMtbtjVS58PFgfw3ja5Z18Q/WSNR9wP4OfW",
