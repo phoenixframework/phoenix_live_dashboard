@@ -956,34 +956,36 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :unit, :string, default: "", doc: "The unit that represent the chart."
 
   attr :bucket_size, :integer,
-    doc: "Bucket size for histogram. Default: 20 when `kind = :histogram`, otherwise `nil`."
+   doc: "Bucket size for histogram. Default: 20 when `kind = :histogram`, otherwise `nil`."
+
+  attr :percentiles, :list, default: nil, doc: "Optional list of percentiles for summary metrics."
 
   attr :full_width, :boolean, default: false, doc: "Size of the chart"
 
   def live_chart(assigns) do
-    assigns =
-      assign_new(assigns, :bucket_size, fn ->
-        if assigns.kind == :histogram, do: 20, else: nil
-      end)
+   assigns =
+     assign_new(assigns, :bucket_size, fn ->
+       if assigns.kind == :histogram, do: 20, else: nil
+     end)
 
-    ~H"""
-    <.live_component
-      module={ChartComponent}
-      id={@id}
-      title={@title}
-      hint={@hint}
-      kind={@kind}
-      label={@label}
-      tags={@tags}
-      prune_threshold={@prune_threshold}
-      refresh_interval={@refresh_interval}
-      unit={@unit}
-      bucket_size={@bucket_size}
-      full_width={@full_width}
-    />
-    """
+   ~H"""
+   <.live_component
+     module={ChartComponent}
+     id={@id}
+     title={@title}
+     hint={@hint}
+     kind={@kind}
+     label={@label}
+     tags={@tags}
+     prune_threshold={@prune_threshold}
+     refresh_interval={@refresh_interval}
+     unit={@unit}
+     bucket_size={@bucket_size}
+     percentiles={@percentiles}
+     full_width={@full_width}
+   />
+   """
   end
-
   @doc false
   def send_data_to_chart(id, data) do
     Phoenix.LiveView.send_update(ChartComponent, id: id, data: data)

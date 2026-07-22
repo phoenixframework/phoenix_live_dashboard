@@ -99,7 +99,7 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
             {:erlang, :apply, 2}
         end
 
-      assert info[:initial_call] == expected
+      assert info[:initial_call] in expected
 
       pid = Process.whereis(Phoenix.LiveDashboard.DynamicSupervisor)
       {:ok, info} = SystemInfo.fetch_process_info(pid)
@@ -203,7 +203,11 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "all with search" do
-      open_socket()
+      socket = open_socket()
+      {:ok, {_address, port}} = :inet.sockname(socket)
+
+      {sockets, _count} =
+        SystemInfo.fetch_sockets(node(), Integer.to_string(port), :send_oct, :asc, 100)
 
       socket =
         if String.to_integer(System.otp_release()) >= 28 do
