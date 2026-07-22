@@ -10,6 +10,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
   alias Phoenix.LiveDashboardTest.PGRepo
   alias Phoenix.LiveDashboardTest.MySQLRepo
   alias Phoenix.LiveDashboardTest.SQLiteRepo
+  alias Phoenix.LiveDashboardTest.CustomRepo
 
   test "menu_link/2" do
     assert :skip = EctoStatsPage.menu_link(%{repos: []}, %{})
@@ -19,6 +20,33 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
     assert {:ok, "Ecto Stats"} =
              EctoStatsPage.menu_link(%{repos: :auto_discover}, %{processes: []})
+
+    # A repo configured with an explicit info module, i.e. `{repo, info_module}`
+    assert :skip =
+             EctoStatsPage.menu_link(%{repos: [{CustomRepo, EctoPSQLExtras}]}, %{processes: []})
+
+    assert {:ok, "Ecto Stats"} =
+             EctoStatsPage.menu_link(
+               %{repos: [{CustomRepo, EctoPSQLExtras}]},
+               %{processes: [CustomRepo]}
+             )
+
+    # The configured info module is not available
+    assert {:disabled, "Ecto Stats", _} =
+             EctoStatsPage.menu_link(%{repos: [{CustomRepo, nil}]}, %{processes: [CustomRepo]})
+  end
+
+  test "init/1 builds process capabilities for repos with a custom info module" do
+    assert {:ok, session, capabilities} =
+             EctoStatsPage.init(%{
+               repos: [Repo, {CustomRepo, EctoPSQLExtras}],
+               ecto_psql_extras_options: [],
+               ecto_mysql_extras_options: [],
+               ecto_sqlite3_extras_options: []
+             })
+
+    assert session.repos == [Repo, {CustomRepo, EctoPSQLExtras}]
+    assert capabilities == [process: Repo, process: CustomRepo]
   end
 
   test "renders" do
@@ -31,6 +59,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     refute rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
     refute rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
     refute rendered =~ "Phoenix.LiveDashboardTest.SQLiteRepo"
+    refute rendered =~ "Phoenix.LiveDashboardTest.CustomRepo"
     assert rendered =~ ~r"Showing \d+ entries"
 
     start_pg_repo!()
@@ -59,6 +88,17 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
     assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
     assert rendered =~ "Phoenix.LiveDashboardTest.SQLiteRepo"
+
+    start_custom_repo!()
+
+    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+    rendered = render(live)
+
+    assert rendered =~ "Phoenix.LiveDashboardTest.Repo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.PGRepo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.MySQLRepo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.SQLiteRepo"
+    assert rendered =~ "Phoenix.LiveDashboardTest.CustomRepo"
   end
 
   test "renders error without running repos" do
@@ -208,5 +248,9 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
   defp start_sqlite_repo! do
     start_supervised!(SQLiteRepo)
+  end
+
+  defp start_custom_repo! do
+    start_supervised!(CustomRepo)
   end
 end

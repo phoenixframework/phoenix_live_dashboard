@@ -1,6 +1,6 @@
 # Configuring Ecto repository stats
 
-This guide covers how to configure the LiveDashboard to show stats from your underlying database. At the moment, these stats can only be shown for Ecto repositories running on `Ecto.Adapters.Postgres` or `Ecto.Adapters.MyXQL`.
+This guide covers how to configure the LiveDashboard to show stats from your underlying database. These stats are shown for Ecto repositories running on `Ecto.Adapters.Postgres`, `Ecto.Adapters.MyXQL`, or `Ecto.Adapters.SQLite3`. You can also [override the info module](#overriding-the-info-module) used for a repository — for example, for a PostgreSQL-compatible database that needs different queries.
 
 ## Installing Ecto Stats
 
@@ -62,7 +62,7 @@ Go to the `live_dashboard` call in your router and list your repositories:
 live_dashboard "/dashboard", ecto_repos: [MyApp.Repo]
 ```
 
-You want to list all repositories that connect to distinct databases. For example, if you have both `MyApp.Repo` and `MyApp.RepoAnother` but they connect to the same database, there is no benefit in listing both. Remember only Ecto repositories running on `Ecto.Adapters.Postgres` or `Ecto.Adapters.MyXQL` are currently supported.
+You want to list all repositories that connect to distinct databases. For example, if you have both `MyApp.Repo` and `MyApp.RepoAnother` but they connect to the same database, there is no benefit in listing both. Repositories running on `Ecto.Adapters.Postgres`, `Ecto.Adapters.MyXQL`, or `Ecto.Adapters.SQLite3` are detected automatically. To customize the queries used for a repository, see [Overriding the info module](#overriding-the-info-module).
 
 If you want to disable the "Ecto Stats" option altogether, set `ecto_repos: []`.
 
@@ -103,6 +103,23 @@ live_dashboard "/dashboard",
 ```
 
 See the [`ecto_sqlite3_extras` documentation](https://github.com/orsinium-labs/ecto_sqlite3_extras) for available options.
+
+### Overriding the info module
+
+By default, the module used to load the stats — the "info module" — is inferred from each repository's adapter:
+
+- `Ecto.Adapters.Postgres` uses `EctoPSQLExtras`
+- `Ecto.Adapters.MyXQL` uses `EctoMySQLExtras`
+- `Ecto.Adapters.SQLite3` uses `EctoSQLite3Extras`
+
+You can override this by listing a repository as a `{repo, info_module}` tuple instead of a bare module:
+
+```elixir
+live_dashboard "/dashboard",
+  ecto_repos: [MyApp.Repo, {MyApp.CompatRepo, MyApp.CompatExtras}]
+```
+
+This is useful for a PostgreSQL-compatible database that runs on `Ecto.Adapters.Postgres` — and so is detected as `EctoPSQLExtras` — but needs a different set of queries. You can point it at an info module with queries tailored to that database instead. The given `info_module` must implement the same API as `EctoPSQLExtras`, `EctoMySQLExtras`, and `EctoSQLite3Extras`.
 
 ### Install custom PostgreSQL extensions
 

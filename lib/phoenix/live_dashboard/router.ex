@@ -26,6 +26,12 @@ defmodule Phoenix.LiveDashboard.Router do
       auto-discover the available repositories. You can disable this behavior
       by setting `[]` to this option.
 
+      Each entry can be a repository module or a `{repo, info_module}` tuple.
+      In the tuple form, `info_module` is the "extras" module used to load the
+      stats — `EctoPSQLExtras`, `EctoMySQLExtras`, `EctoSQLite3Extras`, or any
+      module implementing the same API — and overrides the one that would
+      otherwise be inferred from the repository's adapter.
+
     * `:env_keys` - Configures environment variables to display.
       It is defined as a list of string keys. If not set, the environment
       information will not be displayed
@@ -450,6 +456,9 @@ defmodule Phoenix.LiveDashboard.Router do
   defp validate_requirements(module, requirements) do
     Enum.each(requirements, fn
       {key, value} when key in [:application, :module, :process] and is_atom(value) ->
+        :ok
+
+      {key, {value, _}} when key in [:application, :module, :process] and is_atom(value) ->
         :ok
 
       other ->

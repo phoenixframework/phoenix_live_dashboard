@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Add a compact nested list view for application supervision trees
+* Allow overriding the Ecto Stats info module per repository by passing `{repo, info_module}` tuples in `:ecto_repos`
 
 ## v0.8.7 (2025-04-28)
 
