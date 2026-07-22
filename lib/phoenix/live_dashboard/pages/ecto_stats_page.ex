@@ -164,10 +164,6 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     Code.ensure_loaded?(extra)
   end
 
-  defp info_module_for(_node, {_repo, info_module}) do
-    info_module
-  end
-
   defp info_module_for(node, repo) do
     case :erpc.call(node, repo, :__adapter__, []) do
       Ecto.Adapters.Postgres -> EctoPSQLExtras
