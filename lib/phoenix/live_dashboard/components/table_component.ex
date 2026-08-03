@@ -33,6 +33,7 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     |> Map.put_new(:row_attrs, [])
     |> Map.put_new(:hint, nil)
     |> Map.put_new(:dom_id, nil)
+    |> Map.put_new(:toolbar, [])
     |> Map.update(:default_sort_by, nil, &(&1 && to_string(&1)))
     |> Map.put_new_lazy(:rows_name, fn ->
       Phoenix.Naming.humanize(assigns.title) |> String.downcase()
@@ -83,22 +84,30 @@ defmodule Phoenix.LiveDashboard.TableComponent do
       row_fetcher: row_fetcher
     } = assigns
 
-    {rows, total, socket} = fetch_rows(row_fetcher, table_params, page.node, socket)
-    assigns = Map.merge(assigns, %{rows: rows, total: total})
+    {rows, total, error, socket} = fetch_rows(row_fetcher, table_params, page.node, socket)
+    assigns = Map.merge(assigns, %{rows: rows, total: total, error: error})
     {:ok, assign(socket, assigns)}
   end
 
   defp fetch_rows(row_fetcher, table_params, page_node, socket)
        when is_function(row_fetcher, 2) do
-    {rows, total} = row_fetcher.(table_params, page_node)
-    {rows, total, socket}
+    case row_fetcher.(table_params, page_node) do
+      {:error, message} -> {[], 0, message, socket}
+      {rows, total} -> {rows, total, nil, socket}
+    end
   end
 
   defp fetch_rows({row_fetcher, initial_state}, table_params, page_node, socket)
        when is_function(row_fetcher, 3) do
     state = Map.get(socket.assigns, :row_fetcher_state, initial_state)
-    {rows, total, state} = row_fetcher.(table_params, page_node, state)
-    {rows, total, assign(socket, :row_fetcher_state, state)}
+
+    case row_fetcher.(table_params, page_node, state) do
+      {:error, message} ->
+        {[], 0, message, socket}
+
+      {rows, total, new_state} ->
+        {rows, total, nil, assign(socket, :row_fetcher_state, new_state)}
+    end
   end
 
   defp normalize_table_params(assigns) do
@@ -154,6 +163,8 @@ defmodule Phoenix.LiveDashboard.TableComponent do
     ~H"""
     <div id={@dom_id} class="tabular">
       <Phoenix.LiveDashboard.PageBuilder.card_title title={@title} hint={@hint} />
+      <%= render_slot(@toolbar) %>
+      <div :if={@error} class="alert alert-danger" role="alert"><%= @error %></div>
       <div :if={@search} class="tabular-search">
         <form phx-change="search" phx-submit="search" phx-target={@myself} class="form-inline">
           <div class="form-row align-items-center">

@@ -82,6 +82,76 @@ defmodule Phoenix.LiveDashboardTest.Telemetry do
   end
 end
 
+defmodule Phoenix.LiveDashboardTest.FakeOldEctoExtras do
+  defmodule Query do
+    def info do
+      %{
+        title: "Fake old query",
+        columns: [%{name: :value, type: :integer}],
+        default_args: [threshold: 10]
+      }
+    end
+
+    def query(_args \\ []), do: "SELECT 1"
+  end
+
+  def queries(_repo \\ nil), do: %{fake_old: Query}
+  def query(_name, _repo, _opts), do: %{columns: ["value"], rows: [[1]]}
+end
+
+defmodule Phoenix.LiveDashboardTest.FakeNewEctoExtras do
+  defmodule Query do
+    def info do
+      %{
+        title: "Fake new query",
+        columns: [%{name: :threshold, type: :integer}, %{name: :enabled, type: :boolean}],
+        parameters: [
+          %{
+            name: :threshold,
+            type: :integer,
+            default: 10,
+            description: "minimum number of calls"
+          },
+          %{
+            name: :enabled,
+            type: :boolean,
+            default: true,
+            description: "whether the check is enabled"
+          }
+        ]
+      }
+    end
+
+    def query(args \\ []), do: {"SELECT $1, $2", [args[:threshold], args[:enabled]]}
+  end
+
+  def queries(_repo \\ nil), do: %{fake_new: Query}
+
+  def query(_name, _repo, opts) do
+    %{
+      columns: ["threshold", "enabled"],
+      rows: [[opts[:args][:threshold], opts[:args][:enabled]]]
+    }
+  end
+end
+
+defmodule Phoenix.LiveDashboardTest.FakeRaisingEctoExtras do
+  defmodule Query do
+    def info do
+      %{
+        title: "Fake raising query",
+        columns: [%{name: :value, type: :string}],
+        parameters: [%{name: :input, type: :string}]
+      }
+    end
+
+    def query(_args \\ []), do: {"SELECT 1", []}
+  end
+
+  def queries(_repo \\ nil), do: %{fake_raising: Query}
+  def query(_name, _repo, _opts), do: raise("boom: the query could not run")
+end
+
 defmodule Phoenix.LiveDashboardTest.Router do
   use Phoenix.Router
   import Phoenix.LiveDashboard.Router
@@ -100,6 +170,14 @@ defmodule Phoenix.LiveDashboardTest.Router do
     live_dashboard "/parent_cookie_domain",
       request_logger_cookie_domain: :parent,
       live_session_name: :cookie_dashboard
+
+    live_dashboard "/custom_ecto",
+      ecto_repos: [
+        {Phoenix.LiveDashboardTest.Repo, Phoenix.LiveDashboardTest.FakeOldEctoExtras},
+        {Phoenix.LiveDashboardTest.PGRepo, Phoenix.LiveDashboardTest.FakeNewEctoExtras},
+        {Phoenix.LiveDashboardTest.SQLiteRepo, Phoenix.LiveDashboardTest.FakeRaisingEctoExtras}
+      ],
+      live_session_name: :custom_ecto_dashboard
   end
 
   # we only really support one live dashboard per router,

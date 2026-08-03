@@ -23,6 +23,12 @@
       color: $color-gray-600;
     }
   }
+
+  &-parameters {
+    ::placeholder {
+      color: $color-gray-600;
+    }
+  }
 }
 
 .custom-select {

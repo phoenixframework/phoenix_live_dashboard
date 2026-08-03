@@ -218,6 +218,123 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     assert rendered =~ "page_size"
   end
 
+  test "editable query parameters" do
+    start_pg_repo!()
+
+    new = "/custom_ecto/ecto_stats?repo=#{inspect(PGRepo)}"
+
+    {:ok, live, _} = live(build_conn(), new)
+    input = live |> element(~s|input[name="parameter_threshold"]|) |> render()
+    assert input =~ ~s|value="10"|
+    assert input =~ ~s|placeholder="threshold"|
+
+    {:ok, live, _} = live(build_conn(), new <> "&parameter_threshold=20")
+    assert live |> element(~s|input[name="parameter_threshold"]|) |> render() =~ ~s|value="20"|
+    assert has_element?(live, "td", "20")
+
+    {:ok, live, _} = live(build_conn(), new <> "&parameter_threshold=abc")
+    assert live |> element(~s|input[name="parameter_threshold"]|) |> render() =~ ~s|value="10"|
+
+    {:ok, live, _} = live(build_conn(), new <> "&parameter_threshold=")
+    assert live |> element(~s|input[name="parameter_threshold"]|) |> render() =~ ~s|value="10"|
+
+    {:ok, live, _} = live(build_conn(), new <> "&parameter_bogus=5")
+    assert live |> element(~s|input[name="parameter_threshold"]|) |> render() =~ ~s|value="10"|
+  end
+
+  test "renders a labeled, type-appropriate control for each parameter" do
+    start_pg_repo!()
+    start_sqlite_repo!()
+
+    {:ok, live, _} = live(build_conn(), "/custom_ecto/ecto_stats?repo=#{inspect(PGRepo)}")
+
+    assert has_element?(live, "details summary", "Parameters")
+    refute has_element?(live, "details[open]")
+    assert has_element?(live, ~s|details .card form[phx-submit="update_ecto_params"]|)
+
+    assert has_element?(live, ~s|label[for="parameter_threshold"]|, "Threshold")
+    assert has_element?(live, ~s|input[name="parameter_threshold"][type="number"]|)
+
+    assert has_element?(
+             live,
+             ~s|label[for="parameter_threshold"] .small.text-muted.font-italic|,
+             "- Minimum number of calls"
+           )
+
+    assert has_element?(live, ~s|label[for="parameter_enabled"]|, "Enabled")
+    assert has_element?(live, ~s|select[name="parameter_enabled"] option[value="true"]|, "true")
+    assert has_element?(live, ~s|select[name="parameter_enabled"] option[value="false"]|, "false")
+
+    assert has_element?(
+             live,
+             ~s|label[for="parameter_enabled"] .small.text-muted.font-italic|,
+             "- Whether the check is enabled"
+           )
+
+    assert has_element?(live, ~s|input[name="parameter_threshold"].w-auto|)
+    assert has_element?(live, ~s|select[name="parameter_enabled"].w-auto|)
+
+    assert has_element?(live, ~s|form.tabular-parameters input[name="parameter_threshold"]|)
+
+    html = render(live)
+    assert {title_at, _} = :binary.match(html, "card-title")
+    assert {params_at, _} = :binary.match(html, "toggle_parameter_form")
+    assert {table_at, _} = :binary.match(html, "dash-table")
+    assert title_at < params_at and params_at < table_at
+
+    {:ok, live, _} = live(build_conn(), "/custom_ecto/ecto_stats?repo=#{inspect(SQLiteRepo)}")
+    assert has_element?(live, ~s|input[name="parameter_input"][type="text"]|)
+  end
+
+  test "boolean parameters are cast to booleans before reaching the query" do
+    start_pg_repo!()
+    base = "/custom_ecto/ecto_stats?repo=#{inspect(PGRepo)}"
+
+    {:ok, live, _} = live(build_conn(), base)
+    assert has_element?(live, "td", "true")
+
+    {:ok, live, _} = live(build_conn(), base <> "&parameter_enabled=false")
+    assert has_element?(live, "td", "false")
+  end
+
+  test "the parameters section reads its open state from the URL so a refresh keeps it open" do
+    start_pg_repo!()
+    base = "/custom_ecto/ecto_stats?repo=#{inspect(PGRepo)}"
+
+    {:ok, live, _} = live(build_conn(), base)
+    refute has_element?(live, "details[open]")
+    assert has_element?(live, ~s|summary[phx-click="toggle_parameter_form"]|, "Parameters")
+
+    {:ok, live, _} = live(build_conn(), base <> "&params_open=true")
+    assert has_element?(live, "details[open]")
+  end
+
+  test "the parameters form only shows for queries that declare parameters" do
+    start_main_repo!()
+    start_pg_repo!()
+
+    base = "/custom_ecto/ecto_stats"
+
+    {:ok, live, _} = live(build_conn(), base <> "?repo=#{inspect(Repo)}&parameter_threshold=999")
+    assert render(live) =~ "Fake old query"
+    refute has_element?(live, ~s|form[phx-submit="update_ecto_params"]|)
+
+    {:ok, live, _} = live(build_conn(), base <> "?repo=#{inspect(PGRepo)}")
+    assert render(live) =~ "Fake new query"
+    assert has_element?(live, ~s|input[name="parameter_threshold"]|)
+  end
+
+  test "a query that raises renders an error banner instead of crashing" do
+    start_sqlite_repo!()
+
+    {:ok, live, _} = live(build_conn(), "/custom_ecto/ecto_stats?repo=#{inspect(SQLiteRepo)}")
+
+    assert has_element?(live, ".alert-danger", "boom: the query could not run")
+
+    assert has_element?(live, "table.dash-table")
+    assert has_element?(live, ~s|input[name="parameter_input"]|)
+  end
+
   defp ecto_stats_path() do
     "/dashboard/ecto_stats"
   end

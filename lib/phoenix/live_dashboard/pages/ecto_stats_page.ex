@@ -199,9 +199,31 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     end
   end
 
+  @impl true
+  def handle_event("update_ecto_params", params, socket) do
+    page = socket.assigns.page
+
+    parameters =
+      Map.filter(params, fn {key, _value} -> String.starts_with?(key, "parameter_") end)
+
+    new_params = Map.merge(page.params, parameters)
+
+    to = live_dashboard_path(socket, page.route, page.node, page.params, new_params)
+    {:noreply, push_patch(socket, to: to)}
+  end
+
+  def handle_event("toggle_parameter_form", _params, socket) do
+    page = socket.assigns.page
+    open? = page.params["params_open"] == "true"
+    new_params = Map.put(page.params, "params_open", to_string(not open?))
+
+    to = live_dashboard_path(socket, page.route, page.node, page.params, new_params)
+    {:noreply, push_patch(socket, to: to)}
+  end
+
   defp render_repo_tab(assigns) do
     ~H"""
-    <.live_nav_bar id="queries_nav_bar" page={@page} extra_params={["repo"]}>
+    <.live_nav_bar id="queries_nav_bar" page={@page} extra_params={["repo", "params_open"]}>
       <:item
         :for={{table_name, info} <- queries(@page.node, @repo, @info_module)}
         name={to_string(table_name)}
@@ -212,13 +234,19 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
           title={Phoenix.Naming.humanize(table_name)}
           hint={info.title}
           limit={false}
-          search={info.searchable != []}
-          default_sort_by={info.default_sort_by}
+          search={searchable(info) != []}
+          default_sort_by={default_sort_by(info)}
           rows_name="entries"
           row_fetcher={
-            &row_fetcher(@repo, @info_module, table_name, info.searchable, @ecto_options, &1, &2)
+            &row_fetcher(@page.params, @repo, @info_module, table_name, info, @ecto_options, &1, &2)
           }
         >
+          <:toolbar :if={parameterized?(info)}>
+            <.parameters_form
+              open={@page.params["params_open"] == "true"}
+              parameters={parameters(@page.params, info, table_name, @info_module, @ecto_options)}
+            />
+          </:toolbar>
           <:col :let={row} :for={col <- info.columns} field={col.name} sortable={sortable(col.type)}>
             <%= format(col.type, row[col.name]) %>
           </:col>
@@ -228,6 +256,77 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     """
   end
 
+  defp parameters_form(assigns) do
+    ~H"""
+    <details class="mb-3" open={@open}>
+      <summary phx-click="toggle_parameter_form">Parameters</summary>
+      <div class="card mt-2">
+        <div class="card-body">
+          <form
+            phx-change="update_ecto_params"
+            phx-submit="update_ecto_params"
+            class="tabular-parameters"
+          >
+            <div :for={parameter <- @parameters} class="form-group">
+              <label for={"parameter_#{parameter.name}"} class="d-block mb-1 small">
+                <%= humanize_title(parameter.name) %><span
+                  :if={parameter.description}
+                  class="small text-muted font-italic"
+                > - <%= capitalize_first(parameter.description) %></span>
+              </label>
+              <.parameter_input parameter={parameter} />
+            </div>
+          </form>
+        </div>
+      </div>
+    </details>
+    """
+  end
+
+  defp parameter_input(%{parameter: %{type: :boolean}} = assigns) do
+    ~H"""
+    <select
+      name={"parameter_#{@parameter.name}"}
+      id={"parameter_#{@parameter.name}"}
+      class="custom-select custom-select-sm w-auto"
+    >
+      <option value="true" selected={@parameter.value == true}>true</option>
+      <option value="false" selected={@parameter.value == false}>false</option>
+    </select>
+    """
+  end
+
+  defp parameter_input(assigns) do
+    ~H"""
+    <input
+      type={input_type(@parameter.type)}
+      name={"parameter_#{@parameter.name}"}
+      id={"parameter_#{@parameter.name}"}
+      class="form-control form-control-sm w-auto d-inline-block"
+      value={to_string(@parameter.value)}
+      placeholder={to_string(@parameter.name)}
+      phx-debounce="300"
+    />
+    """
+  end
+
+  defp input_type(type) when type in [:integer, :float], do: "number"
+  defp input_type(_), do: "text"
+
+  defp capitalize_first(value) do
+    case to_string(value) do
+      <<first::utf8, rest::binary>> -> String.upcase(<<first::utf8>>) <> rest
+      "" -> ""
+    end
+  end
+
+  defp humanize_title(value) do
+    value
+    |> to_string()
+    |> String.split("_")
+    |> Enum.map_join(" ", &capitalize_first/1)
+  end
+
   @forbidden_tables [:kill_all, :mandelbrot]
 
   defp queries(node, repo, info_module) do
@@ -235,22 +334,69 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     |> Enum.reject(fn {table_name, _table_module} -> table_name in @forbidden_tables end)
     |> Enum.map(fn {table_name, table_module} -> {table_name, table_module.info()} end)
     |> Enum.sort(fn {_, a_info}, {_, b_info} -> a_info[:index] < b_info[:index] end)
-    |> Enum.map(fn {table_name, info} -> {table_name, normalize_info(info)} end)
   end
 
-  defp normalize_info(info) do
-    searchable = for %{type: :string, name: name} <- info.columns, do: name
-    default_sort_by = with [{column, _} | _] <- info[:order_by], do: to_string(column)
-
-    info
-    |> Map.put(:searchable, searchable)
-    |> Map.put(:default_sort_by, default_sort_by)
+  defp parameterized?(info) do
+    match?([%{} | _], info[:parameters])
   end
 
-  defp sortable(:string), do: :asc
-  defp sortable(_), do: :desc
+  defp query_args(params, info, table_name, info_module, ecto_options) do
+    if parameterized?(info) do
+      for %{name: name, value: value} <-
+            parameters(params, info, table_name, info_module, ecto_options) do
+        {name, value}
+      end
+    else
+      config_args(table_name, info_module, ecto_options)
+    end
+  end
 
-  defp row_fetcher(repo, info_module, table_name, searchable, ecto_options, params, node) do
+  defp parameters(params, info, table_name, info_module, ecto_options) do
+    config = config_args(table_name, info_module, ecto_options)
+
+    for %{name: name} = parameter <- info[:parameters] do
+      type = Map.get(parameter, :type)
+      default = Keyword.get(config, name, Map.get(parameter, :default))
+
+      value =
+        case params["parameter_#{name}"] do
+          blank when blank in [nil, ""] -> default
+          raw -> cast(raw, type, default)
+        end
+
+      %{name: name, type: type, value: value, description: Map.get(parameter, :description)}
+    end
+  end
+
+  defp cast(raw, :integer, default) do
+    case Integer.parse(raw) do
+      {integer, ""} -> integer
+      _ -> default
+    end
+  end
+
+  defp cast(raw, :float, default) do
+    case Float.parse(raw) do
+      {float, ""} -> float
+      _ -> default
+    end
+  end
+
+  defp cast("true", :boolean, _default), do: true
+  defp cast("false", :boolean, _default), do: false
+  defp cast(_raw, :boolean, default), do: default
+
+  defp cast(raw, _type, _default), do: raw
+
+  defp searchable(info) do
+    for %{type: :string, name: name} <- info.columns, do: name
+  end
+
+  defp default_sort_by(info) do
+    with [{column, _} | _] <- info[:order_by], do: to_string(column)
+  end
+
+  defp config_args(table_name, info_module, ecto_options) do
     ecto_db_extras_options =
       case info_module do
         EctoPSQLExtras -> Keyword.fetch!(ecto_options, :ecto_psql_extras_options)
@@ -259,14 +405,19 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
         _ -> []
       end
 
-    opts =
-      case Keyword.fetch(ecto_db_extras_options, table_name) do
-        {:ok, args} -> [args: args]
-        :error -> []
-      end
-      |> Keyword.merge(format: :raw)
+    Keyword.get(ecto_db_extras_options, table_name, [])
+  end
+
+  defp sortable(:string), do: :asc
+  defp sortable(_), do: :desc
+
+  defp row_fetcher(page_params, repo, info_module, table_name, info, ecto_options, params, node) do
+    args = query_args(page_params, info, table_name, info_module, ecto_options)
+    opts = if args == [], do: [format: :raw], else: [args: args, format: :raw]
 
     %{columns: columns, rows: rows} = info_module.query(table_name, {repo, node}, opts)
+
+    searchable = searchable(info)
 
     mapped =
       for row <- rows do
@@ -315,6 +466,10 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
       end)
 
     {sorted, length(rows)}
+  rescue
+    error -> {:error, Exception.message(error)}
+  catch
+    kind, reason -> {:error, Exception.format(kind, reason)}
   end
 
   defp format(_, %struct{} = value) when struct in [Decimal, Duration, Postgrex.Interval],

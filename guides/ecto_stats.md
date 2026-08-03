@@ -104,6 +104,8 @@ live_dashboard "/dashboard",
 
 See the [`ecto_sqlite3_extras` documentation](https://github.com/orsinium-labs/ecto_sqlite3_extras) for available options.
 
+```
+
 ### Overriding the info module
 
 By default, the module used to load the stats — the "info module" — is inferred from each repository's adapter:

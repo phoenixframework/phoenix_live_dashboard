@@ -49,9 +49,9 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
           # Here goes the code that goes through all ETS tables, searches
           # (if not nil), sorts, and limits them.
           #
-          # It must return a tuple where the first element is list with
-          # the current entries (up to limit) and an integer with the
-          # total amount of entries.
+          # It must return `{entries, total}` where entries is a list
+          # with the current entries (up to limit) and total is an integer with
+          # the total amount of entries, or `{:error, message}` on failure.
           # ...
         end
 
@@ -357,17 +357,22 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       doc: "Text align for text in the column. Default: `nil`."
   end
 
+  slot :toolbar,
+    doc: "Content rendered between the title and the table, such as filters or query controls."
+
   attr :row_fetcher, :any,
     required: true,
     doc: """
-    A function which receives the params and the node and
-    returns a tuple with the rows and the total number:
-    `(params(), node() -> {list(), integer() | binary()})`.
+    A function which receives the params and the node and returns either
+    `{rows, total}` on success or `{:error, message}` on failure:
+    `(params(), node() -> {list(), integer() | binary()} | {:error, binary()})`.
+    On failure the table renders `message` in an error banner in place of the
+    rows; catching exceptions is the caller's responsibility.
     Optionally, if the function needs to keep a state, it can be defined as a tuple
     where the first element is a function and the second is the initial state.
     In this case, the function will receive the state as third argument and must return
-    a tuple with the rows, the total number, and the new state for the following call:
-    `{(params(), node(), term() -> {list(), integer() | binary(), term()}), term()}`
+    `{rows, total, new_state}` with the new state for the following call:
+    `{(params(), node(), term() -> {list(), integer() | binary(), term()} | {:error, binary()}), term()}`
     """
 
   attr :rows_name, :string,

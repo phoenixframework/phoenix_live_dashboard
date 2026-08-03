@@ -4,6 +4,8 @@
 
 * Add a compact nested list view for application supervision trees
 * Allow overriding the Ecto Stats info module per repository by passing `{repo, info_module}` tuples in `:ecto_repos`
+* Allow editing a query's parameters from the Ecto Stats page when the query declares a `parameters` spec, persisting the values in the URL (queries that only declare `default_args` are unaffected)
+* Render an error message on the Ecto Stats page when a query fails to build or run, instead of crashing the dashboard
 
 ## v0.8.7 (2025-04-28)
 
