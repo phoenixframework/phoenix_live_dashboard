@@ -26,6 +26,5 @@ end
 
 if config_env() == :test do
   # TODO: add IDs
-  config :phoenix_live_view, :test_warnings,
-    missing_form_id: :ignore
+  config :phoenix_live_view, :test_warnings, missing_form_id: :ignore
 end
