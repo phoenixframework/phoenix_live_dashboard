@@ -1,9 +1,13 @@
 # CHANGELOG
 
-## Unreleased
+## v0.9.0 (2026-08-12)
 
+* Require Phoenix LiveView 1.0+
+* Require Elixir 1.15+
 * Add a compact nested list view for application supervision trees
 * Allow overriding the Ecto Stats info module per repository by passing `{repo, info_module}` tuples in `:ecto_repos`
+* Add refresh_interval as a reporting option for chart components
+* Display process label in application and process views
 
 ## v0.8.7 (2025-04-28)
 

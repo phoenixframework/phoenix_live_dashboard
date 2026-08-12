@@ -35,21 +35,19 @@ defmodule Phoenix.LiveDashboard.LayeredGraphComponentTest do
 
   describe "rendering" do
     defp circles_and_arrows_count(content) do
-      fragment = Floki.parse_fragment!(content)
+      fragment = LazyHTML.from_fragment(content)
 
       {
-        length(Floki.find(fragment, ".layered-graph circle")),
-        length(Floki.find(fragment, ".layered-graph line"))
+        Enum.count(LazyHTML.query(fragment, ".layered-graph circle")),
+        Enum.count(LazyHTML.query(fragment, ".layered-graph line"))
       }
     end
 
     defp labels(content) do
       content
-      |> Floki.parse_fragment!()
-      |> Floki.find(".node-label")
-      |> Floki.text(sep: "|")
-      |> String.split("|")
-      |> Enum.map(&String.trim/1)
+      |> LazyHTML.from_fragment()
+      |> LazyHTML.query(".node-label")
+      |> Enum.map(fn lazy -> LazyHTML.text(lazy) |> String.trim() end)
     end
 
     test "renders a basic broadway pipeline" do

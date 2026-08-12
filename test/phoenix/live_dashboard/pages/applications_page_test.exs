@@ -56,7 +56,7 @@ defmodule Phoenix.LiveDashboard.ApplicationsPageTest do
     rendered = render(live)
 
     assert rendered =~
-             ~s|tr phx-click="show_info" phx-value-info="App&lt;ssh&gt;" phx-page-loading="phx-page-loading" id="app-ssh">|
+             ~s|tr phx-click="show_info" phx-value-info="App&lt;ssh&gt;" phx-page-loading="" id="app-ssh">|
 
     assert :ok = Application.stop(:ssh)
     assert :ok = Application.unload(:ssh)

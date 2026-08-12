@@ -1,22 +1,22 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.8.7"
+  @version "0.9.0"
 
   def project do
     [
       app: :phoenix_live_dashboard,
       version: @version,
-      elixir: "~> 1.12",
+      elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
+      elixirc_options: [no_warn_undefined: [:cpu_sup, :disksup, :memsup]],
       deps: deps(),
       package: package(),
       name: "LiveDashboard",
       docs: docs(),
       homepage_url: "http://www.phoenixframework.org",
       description: "Real-time performance dashboard for Phoenix",
-      aliases: aliases(),
-      xref: [exclude: [:cpu_sup, :disksup, :memsup]]
+      aliases: aliases()
     ]
   end
 
@@ -48,7 +48,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
     [
       # Actual deps
       {:mime, "~> 1.6 or ~> 2.0"},
-      {:phoenix_live_view, "~> 0.19 or ~> 1.0", phoenix_live_view_opts()},
+      {:phoenix_live_view, "~> 1.0", phoenix_live_view_opts()},
       {:telemetry_metrics, "~> 0.6 or ~> 1.0"},
       {:ecto_psql_extras, "~> 0.7", optional: true},
       {:ecto_mysql_extras, "~> 0.5", optional: true},
@@ -56,12 +56,12 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:ecto, "~> 3.6.2 or ~> 3.7", optional: true},
 
       # Dev and test
-      {:circular_buffer, "~> 0.4", only: :dev},
+      {:circular_buffer, "~> 1.0", only: :dev},
       {:telemetry_poller, "~> 1.0", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:plug_cowboy, "~> 2.0", only: :dev},
       {:jason, "~> 1.0", only: [:dev, :test, :docs]},
-      {:floki, "~> 0.27", only: :test},
+      {:lazy_html, "~> 0.1", only: :test},
       {:stream_data, "~> 1.0", only: :test},
       {:ecto_sqlite3, "~> 0.17", only: [:dev, :test]},
       {:ex_doc, "~> 0.21", only: :docs},

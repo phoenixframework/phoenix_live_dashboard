@@ -1,14 +1,14 @@
 defmodule Phoenix.LiveDashboard.RequestLoggerTest do
   use ExUnit.Case, async: true
 
-  use Plug.Test
+  import Plug.Test
   alias Phoenix.LiveDashboard.RequestLogger
 
   @endpoint Phoenix.LiveDashboardTest.Endpoint
 
   def conn(url \\ "/") do
     conn(:get, url)
-    |> put_private(:phoenix_endpoint, @endpoint)
+    |> Plug.Conn.put_private(:phoenix_endpoint, @endpoint)
   end
 
   defp request_logger(conn, init) do
