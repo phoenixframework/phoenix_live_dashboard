@@ -34,6 +34,10 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
     # The configured info module is not available
     assert {:disabled, "Ecto Stats", _} =
              EctoStatsPage.menu_link(%{repos: [{CustomRepo, nil}]}, %{processes: [CustomRepo]})
+
+    # A repo running under a dynamic name, i.e. started with `name: :tenant_foo`
+    assert {:disabled, "Ecto Stats", _} =
+             EctoStatsPage.menu_link(%{repos: [:tenant_foo]}, %{processes: [:tenant_foo]})
   end
 
   test "init/1 builds process capabilities for repos with a custom info module" do
@@ -117,6 +121,22 @@ defmodule Phoenix.LiveDashboard.EctoStatsPageTest do
 
     assert rendered =~
              ~r|<a href="https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html" target="_blank">\s*documentation\s*</a>|
+  end
+
+  test "skips unnamed repos when auto-discovering" do
+    start_supervised!({Repo, name: nil})
+
+    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+
+    assert render(live) =~ "No Ecto repository was found running on this node."
+  end
+
+  test "skips repos running under a dynamic name when auto-discovering" do
+    start_supervised!({Repo, name: :tenant_foo})
+
+    {:ok, live, _} = live(build_conn(), ecto_stats_path())
+
+    assert render(live) =~ "No Ecto repository was found running on this node."
   end
 
   @forbidden_navs [:kill_all, :mandelbrot]
