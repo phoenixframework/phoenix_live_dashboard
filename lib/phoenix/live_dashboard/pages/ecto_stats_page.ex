@@ -90,7 +90,7 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     else
       repos when is_list(repos) ->
         repos =
-          for repo <- repos, extra_available?(repo) do
+          for repo <- repos, extra_available?(node, repo) do
             {repo, info_module_for(node, repo)}
           end
 
@@ -146,10 +146,6 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
     end)
   end
 
-  defp extra_available?(nil), do: false
-
-  defp extra_available?(repo), do: Code.ensure_loaded?(repo)
-
   defp extra_available?(node, repo) when is_atom(repo) do
     extra = info_module_for(node, repo)
     extra && extra_loaded?(extra)
@@ -165,12 +161,21 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   end
 
   defp info_module_for(node, repo) do
-    case :erpc.call(node, repo, :__adapter__, []) do
+    case adapter_for(node, repo) do
       Ecto.Adapters.Postgres -> EctoPSQLExtras
       Ecto.Adapters.MyXQL -> EctoMySQLExtras
       Ecto.Adapters.SQLite3 -> EctoSQLite3Extras
       _ -> nil
     end
+  end
+
+  # A repo started under a dynamic name or with `name: nil` is reported by
+  # `Ecto.Repo.all_running/0` as that name or as a pid, and neither answers
+  # `__adapter__/0`, so there is no extras module to offer for it.
+  defp adapter_for(node, repo) do
+    :erpc.call(node, repo, :__adapter__, [])
+  catch
+    _, _ -> nil
   end
 
   @impl true
