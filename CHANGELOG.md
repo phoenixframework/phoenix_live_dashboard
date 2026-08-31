@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.9.1 (2026-08-31)
+
+* Skip Ecto repos that cannot be resolved to an extras module
+
 ## v0.9.0 (2026-08-12)
 
 * Require Phoenix LiveView 1.0+

@@ -1,7 +1,7 @@
 defmodule Phoenix.LiveDashboard.MixProject do
   use Mix.Project
 
-  @version "0.9.0"
+  @version "0.9.1"
 
   def project do
     [
@@ -66,6 +66,7 @@ defmodule Phoenix.LiveDashboard.MixProject do
       {:ecto_sqlite3, "~> 0.17", only: [:dev, :test]},
       {:ex_doc, "~> 0.21", only: :docs},
       {:makeup_eex, ">= 0.1.1", only: :docs},
+      {:makeup_html, ">= 0.1.1", only: :docs},
       {:esbuild, "~> 0.5", only: :dev},
       {:dart_sass, "~> 0.7", only: :dev}
     ]
