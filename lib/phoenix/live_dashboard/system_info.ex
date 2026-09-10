@@ -518,7 +518,7 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
   defp put_child(seen, child), do: Map.put(seen, child, true)
 
   defp has_leader?(pid, gl),
-    do: Process.info(pid, :group_leader) == {:group_leader, gl}
+    do: node(pid) == node() and Process.info(pid, :group_leader) == {:group_leader, gl}
 
   ## Ports callbacks
 
