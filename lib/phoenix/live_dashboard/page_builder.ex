@@ -958,6 +958,8 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
   attr :bucket_size, :integer,
     doc: "Bucket size for histogram. Default: 20 when `kind = :histogram`, otherwise `nil`."
 
+  attr :percentiles, :list, default: nil, doc: "Optional list of percentiles for summary metrics."
+
   attr :full_width, :boolean, default: false, doc: "Size of the chart"
 
   def live_chart(assigns) do
@@ -979,6 +981,7 @@ defmodule Phoenix.LiveDashboard.PageBuilder do
       refresh_interval={@refresh_interval}
       unit={@unit}
       bucket_size={@bucket_size}
+      percentiles={@percentiles}
       full_width={@full_width}
     />
     """

@@ -51,6 +51,7 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
             data-prune-threshold={@prune_threshold}
             data-refresh-interval={@refresh_interval}
             {bucket_size(@bucket_size)}
+            {percentiles(@percentiles)}
           >
           </div>
         </div>
@@ -67,4 +68,9 @@ defmodule Phoenix.LiveDashboard.ChartComponent do
 
   defp bucket_size(integer) when is_integer(integer),
     do: %{"data-bucket-size" => to_string(integer)}
+
+  defp percentiles(nil), do: %{}
+
+  defp percentiles(list) when is_list(list),
+    do: %{"data-percentiles" => Enum.join(list, ",")}
 end

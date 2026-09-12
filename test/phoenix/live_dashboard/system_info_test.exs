@@ -203,22 +203,15 @@ defmodule Phoenix.LiveDashboard.SystemInfoTest do
     end
 
     test "all with search" do
-      open_socket()
+      socket = open_socket()
+      {:ok, {_address, port}} = :inet.sockname(socket)
 
-      socket =
-        if String.to_integer(System.otp_release()) >= 28 do
-          assert {[socket, _other], _count} =
-                   SystemInfo.fetch_sockets(node(), "*:*", :send_oct, :asc, 100)
+      assert {[found], _count} =
+               SystemInfo.fetch_sockets(node(), ":#{port}", :send_oct, :asc, 100)
 
-          socket
-        else
-          assert {[socket], _count} =
-                   SystemInfo.fetch_sockets(node(), "*:*", :send_oct, :asc, 100)
+      assert found[:local_address] == "localhost:#{port}"
+      assert found[:foreign_address] == "*:*"
 
-          socket
-        end
-
-      assert socket[:foreign_address] == "*:*"
       {sockets, _count} = SystemInfo.fetch_sockets(node(), "impossible", :send_oct, :asc, 100)
       assert Enum.empty?(sockets)
     end

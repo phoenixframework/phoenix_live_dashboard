@@ -102,6 +102,18 @@ function nextValueForCallback({ y, z }, callback) {
 
 const findLastNonNullValue = (data) => data.reduceRight((a, c) => (c != null && a == null ? c : a), null)
 
+const getPercentile = (data, percentile) => {
+  if (data.length === 0) return null
+  const sorted = data.slice().sort((a, b) => a - b)
+  const index = (percentile / 100) * (sorted.length - 1)
+  const lower = Math.floor(index)
+  const upper = Math.ceil(index)
+  const weight = index - lower
+
+  if (upper >= sorted.length) return sorted[lower]
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight
+}
+
 // Handler for a tagged CommonMetric
 function nextTaggedValueForCallback({ x, y, z }, callback) {
   // Find or create the series from the tag
@@ -203,7 +215,9 @@ class CommonMetric {
 // Displays a measurement summary
 class Summary {
   constructor(options, chartEl) {
-    // TODO: Get percentiles from options
+    const percentilesString = options.percentiles || ""
+    this.percentiles = percentilesString ? percentilesString.split(",").map(p => parseInt(p)) : []
+
     let config = this.constructor.getConfig(options)
     // Bind the series `values` callback to this instance
     config.series[1].values = this.__seriesValues.bind(this)
@@ -218,7 +232,7 @@ class Summary {
       this.chart.delSeries(1)
       this.__handler = this.handleTaggedMeasurement.bind(this)
     } else {
-      this.datasets.push(this.constructor.newDataset(options.label))
+      this.datasets.push(this.constructor.newDataset(options.label, 0, this.percentiles))
       this.__handler = this.handleMeasurement.bind(this)
     }
   }
@@ -252,7 +266,7 @@ class Summary {
     let seriesIndex = this.datasets.findIndex(({ key }) => label === key)
     if (seriesIndex === -1) {
       seriesIndex = this.datasets.push(
-        this.constructor.newDataset(label, this.datasets[0].data.length)
+        this.constructor.newDataset(label, this.datasets[0].data.length, this.percentiles)
       ) - 1
 
       let config = {
@@ -272,6 +286,7 @@ class Summary {
       dataset.agg.avg.push(null)
       dataset.agg.max.push(null)
       dataset.agg.min.push(null)
+      this.percentiles.forEach(p => dataset.agg.percentiles[p].push(null))
       return
     }
 
@@ -293,6 +308,11 @@ class Summary {
 
     dataset.agg.avg.push((dataset.agg.total / dataset.agg.count))
 
+    const nonNullData = dataset.data.filter(v => v !== null)
+    this.percentiles.forEach(p => {
+      dataset.agg.percentiles[p].push(getPercentile(nonNullData, p))
+    })
+
     return dataset
   }
 
@@ -306,9 +326,12 @@ class Summary {
           return { key, data: dataPruned }
         }
 
-        let { avg, count, max, min, total } = agg
+        let { avg, count, max, min, total, percentiles } = agg
         let minPruned = min.slice(start)
         let maxPruned = max.slice(start)
+
+        let pPruned = {}
+        this.percentiles.forEach(p => pPruned[p] = percentiles[p].slice(start))
 
         return {
           key,
@@ -318,7 +341,8 @@ class Summary {
             count,
             min: minPruned,
             max: maxPruned,
-            total
+            total,
+            percentiles: pPruned
           },
           last: {
             min: findLastNonNullValue(minPruned),
@@ -332,15 +356,23 @@ class Summary {
   __seriesValues(u, sidx, idx) {
     let dataset = this.datasets[sidx]
     if (dataset && dataset.data && dataset.data[idx]) {
-      let { agg: { avg, max, min }, data } = dataset
-      return {
+      let { agg: { avg, max, min, percentiles }, data } = dataset
+      let values = {
         Value: data[idx].toFixed(3),
         Min: min[idx].toFixed(3),
         Max: max[idx].toFixed(3),
         Avg: avg[idx].toFixed(3)
       }
+      this.percentiles.forEach(p => {
+        values[`P${p}`] = percentiles[p][idx] !== null ? percentiles[p][idx].toFixed(3) : "--"
+      })
+      return values
     } else {
-      return { Value: "--", Min: "--", Max: "--", Avg: "--" }
+      let values = { Value: "--", Min: "--", Max: "--", Avg: "--" }
+      this.percentiles.forEach(p => {
+        values[`P${p}`] = "--"
+      })
+      return values
     }
   }
 
@@ -374,12 +406,21 @@ class Summary {
     }
   }
 
-  static newDataset(key, length = 0) {
+  static newDataset(key, length = 0, percentiles = []) {
     let nils = length > 0 ? Array(length).fill(null) : []
+    let pAgg = {}
+    percentiles.forEach(p => pAgg[p] = [...nils])
     return {
       key,
       data: [...nils],
-      agg: { avg: [...nils], count: 0, max: [...nils], min: [...nils], total: 0 },
+      agg: {
+        avg: [...nils],
+        count: 0,
+        max: [...nils],
+        min: [...nils],
+        total: 0,
+        percentiles: pAgg
+      },
       last: { max: null, min: null }
     }
   }

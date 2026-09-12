@@ -147,7 +147,8 @@ describe('Metrics no tags', () => {
           min: [],
           max: [],
           count: 0,
-          total: 0
+          total: 0,
+          percentiles: {}
         },
         last: {
           max: null,
@@ -176,7 +177,8 @@ describe('Metrics no tags', () => {
           min: [2],
           max: [2],
           count: 1,
-          total: 2
+          total: 2,
+          percentiles: {}
         },
         last: {
           max: 2,
@@ -215,7 +217,8 @@ describe('Metrics no tags', () => {
           min: [2, 2, 2, 2],
           max: [2, 4, 6, 8],
           count: 4,
-          total: 20
+          total: 20,
+          percentiles: {}
         },
         last: {
           max: 8,
@@ -461,7 +464,8 @@ describe('Metrics with tags', () => {
             min: [2],
             max: [2],
             count: 1,
-            total: 2
+            total: 2,
+            percentiles: {}
           },
           last: {
             max: 2,
@@ -491,7 +495,8 @@ describe('Metrics with tags', () => {
             min: [2, null],
             max: [2, null],
             count: 1,
-            total: 2
+            total: 2,
+            percentiles: {}
           },
           last: {
             max: 2,
@@ -506,7 +511,8 @@ describe('Metrics with tags', () => {
             min: [null, 4],
             max: [null, 4],
             count: 1,
-            total: 4
+            total: 4,
+            percentiles: {}
           },
           last: {
             max: 4,
@@ -560,7 +566,8 @@ describe('Metrics with tags', () => {
             min: [-6, null, -6, null, -6, null],
             max: [-6, null, -2, null, 2, null],
             count: 3,
-            total: -6
+            total: -6,
+            percentiles: {}
           },
           last: {
             max: 2,
@@ -575,7 +582,8 @@ describe('Metrics with tags', () => {
             min: [null, -4, null, -4, null, -4],
             max: [null, -4, null, 0, null, 4],
             count: 3,
-            total: 0
+            total: 0,
+            percentiles: {}
           },
           last: {
             max: 4,

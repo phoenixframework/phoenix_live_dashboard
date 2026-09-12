@@ -97,7 +97,8 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
       prune_threshold: prune_threshold(metric),
       refresh_interval: refresh_interval(metric),
       unit: chart_unit(metric.unit),
-      bucket_size: bucket_size(kind, metric)
+      bucket_size: bucket_size(kind, metric),
+      percentiles: percentiles(kind, metric)
     }
   end
 
@@ -147,6 +148,12 @@ defmodule Phoenix.LiveDashboard.MetricsPage do
   defp normalize_bucket_size(metric) do
     metric.reporter_options[:bucket_size] || @default_bucket_size
   end
+
+  defp percentiles(:summary, metric) do
+    metric.reporter_options[:percentiles]
+  end
+
+  defp percentiles(_kind, _metric), do: nil
 
   defp send_updates_for_entries(entries, nav) do
     for {id, label, measurement, time} <- entries do

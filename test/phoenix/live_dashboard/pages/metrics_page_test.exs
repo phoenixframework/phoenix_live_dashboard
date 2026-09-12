@@ -42,6 +42,9 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
     assert rendered =~ "MyApp"
     assert rendered =~ ~s|data-title="phx.b.c"|
     assert rendered =~ ~s|data-title="phx.b.d"|
+    assert rendered =~ ~s|data-title="phx.b.duration"|
+    assert rendered =~ ~s|data-metric="summary"|
+    assert rendered =~ ~s|data-percentiles="50,95,99"|
 
     send(live.pid, {:telemetry, [{0, nil, "value", System.system_time(:millisecond)}]})
 
@@ -94,8 +97,13 @@ defmodule Phoenix.LiveDashboard.MetricsPageTest do
                label: "Count",
                kind: :summary,
                title: "a.b.c.count",
-               bucket_size: nil
+               bucket_size: nil,
+               percentiles: nil
              } = subject(summary([:a, :b, :c, :count]))
+
+      assert %{
+               percentiles: [50, 95]
+             } = subject(summary([:a, :b, :c, :count], reporter_options: [percentiles: [50, 95]]))
     end
 
     test "last_value metric" do
