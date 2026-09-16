@@ -3,7 +3,8 @@ defmodule Phoenix.LiveDashboard.EctoStatsPage do
   use Phoenix.LiveDashboard.PageBuilder
   import Phoenix.LiveDashboard.Helpers
 
-  @compile {:no_warn_undefined, [Decimal, Duration, EctoPSQLExtras, {Ecto.Repo, :all_running, 0}]}
+  @compile {:no_warn_undefined,
+            [Decimal, Duration, Postgrex.Interval, EctoPSQLExtras, {Ecto.Repo, :all_running, 0}]}
   @disabled_link "https://hexdocs.pm/phoenix_live_dashboard/ecto_stats.html"
   @page_title "Ecto Stats"
 
