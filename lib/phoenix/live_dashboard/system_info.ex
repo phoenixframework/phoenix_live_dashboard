@@ -106,6 +106,10 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
     :erpc.call(node, __MODULE__, :memory_allocators_callback, [max_carrier_sizes])
   end
 
+  def fetch_instrument_allocations(node) do
+    :rpc.call(node, __MODULE__, :instrument_allocations_callback, [])
+  end
+
   ## System callbacks
 
   @doc false
@@ -258,6 +262,14 @@ defmodule Phoenix.LiveDashboard.SystemInfo do
       max = Enum.max([old_max_carrier_sizes[name] || 0, current])
       {Map.put(allocator, :max_carrier_size, max), Map.put(max_carrier_sizes, name, max)}
     end)
+  end
+
+  def instrument_allocations_callback() do
+    if Code.ensure_loaded?(:instrument) do
+      :instrument.allocations()
+    else
+      {:error, :instrument_not_available}
+    end
   end
 
   ## Process Callbacks
