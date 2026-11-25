@@ -3,6 +3,14 @@ defmodule Phoenix.LiveDashboard.RequestLogger do
   A plug that enables request logging.
 
   See [our Request Logger guides](request_logger.html) for more information.
+
+  ## Options
+
+    * `:param_key` - the query parameter used to enable request logging
+    * `:cookie_key` - the cookie used to enable request logging
+    * `:validate_utf8` - forwarded to `Plug.Conn.fetch_query_params/2`.
+      Set it to `false` if your `Plug.Parsers` is configured with
+      `validate_utf8: false`. Defaults to `true`
   """
 
   @behaviour Plug
@@ -18,21 +26,21 @@ defmodule Phoenix.LiveDashboard.RequestLogger do
       raise ArgumentError, "either :param_key or :cookie_key is expected"
     end
 
-    {param_key, cookie_key}
+    {param_key, cookie_key, Keyword.take(opts, [:validate_utf8])}
   end
 
   @impl true
-  def call(conn, {param_key, cookie_key}) do
+  def call(conn, {param_key, cookie_key, query_opts}) do
     conn
-    |> verify_from_param_key(param_key)
+    |> verify_from_param_key(param_key, query_opts)
     |> verify_from_cookie_key(cookie_key)
     |> Plug.Conn.put_private(@private_key, {param_key, cookie_key})
   end
 
-  defp verify_from_param_key(conn, nil), do: conn
+  defp verify_from_param_key(conn, nil, _query_opts), do: conn
 
-  defp verify_from_param_key(conn, param_key) do
-    conn = Plug.Conn.fetch_query_params(conn)
+  defp verify_from_param_key(conn, param_key, query_opts) do
+    conn = Plug.Conn.fetch_query_params(conn, query_opts)
     verify_value(conn, param_key, conn.query_params[param_key])
     conn
   end

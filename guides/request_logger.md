@@ -18,4 +18,11 @@ Now go to your dashboard and the Request Logger will be enabled. Once you click 
 
 ## Configuring request logger
 
-There is no configuration for the request logger at the moment.
+The request logger reads the query string to look up the `:param_key`. If your endpoint accepts non-UTF-8 query parameters (i.e. `Plug.Parsers` is configured with `validate_utf8: false`), pass the same option to the request logger so it does not raise on them:
+
+```elixir
+plug Phoenix.LiveDashboard.RequestLogger,
+  param_key: "request_logger",
+  cookie_key: "request_logger",
+  validate_utf8: false
+```

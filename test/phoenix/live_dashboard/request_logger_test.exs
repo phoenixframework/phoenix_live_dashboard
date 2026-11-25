@@ -42,6 +42,21 @@ defmodule Phoenix.LiveDashboard.RequestLoggerTest do
              {Phoenix.LiveDashboardTest.PubSub, "phx_dashboard:request_logger:rstream"}
   end
 
+  test "raises on invalid UTF-8 query params by default" do
+    assert_raise Plug.Conn.InvalidQueryError, fn ->
+      conn("/?foo=%9F")
+      |> request_logger(param_key: "param_key")
+    end
+  end
+
+  test "accepts invalid UTF-8 query params with validate_utf8: false" do
+    conn("/?foo=%9F&param_key=#{RequestLogger.sign(@endpoint, "param_key", "rstream")}")
+    |> request_logger(param_key: "param_key", validate_utf8: false)
+
+    assert Logger.metadata()[:logger_pubsub_backend] ==
+             {Phoenix.LiveDashboardTest.PubSub, "phx_dashboard:request_logger:rstream"}
+  end
+
   test "sets logger metadata for matching cookie" do
     conn()
     |> put_req_cookie("invalid_key", RequestLogger.sign(@endpoint, "invalid_key", "cstream"))
