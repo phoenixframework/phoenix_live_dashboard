@@ -31,16 +31,20 @@ defmodule Phoenix.LiveDashboard.OSMonPage do
 
   @impl true
   def handle_refresh(socket) do
-    os_mon = SystemInfo.fetch_os_mon_info(socket.assigns.page.node)
+    case SystemInfo.fetch_os_mon_info(socket.assigns.page.node) do
+      os_mon when is_map(os_mon) ->
+        socket =
+          assign(socket,
+            cpu: calculate_cpu_data(os_mon),
+            mem_usages: calculate_memory_usage(os_mon.system_mem),
+            disk_usages: calculate_disk_usage(os_mon.disk)
+          )
 
-    socket =
-      assign(socket,
-        cpu: calculate_cpu_data(os_mon),
-        mem_usages: calculate_memory_usage(os_mon.system_mem),
-        disk_usages: calculate_disk_usage(os_mon.disk)
-      )
+        {:noreply, socket}
 
-    {:noreply, socket}
+      _ ->
+        {:noreply, socket}
+    end
   end
 
   defp calculate_cpu_data(%{cpu_avg1: num1, cpu_avg5: num5, cpu_avg15: num15} = os_mon)
